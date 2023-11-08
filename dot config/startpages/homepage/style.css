@@ -1,0 +1,58 @@
+@font-face {
+    font-family: 'Hack Nerd Font';
+    font-width: 12px;
+    font-display: swap;
+  }
+
+body,
+.container {
+    background: #101010;
+    color: #f7f7f7;
+    font-family: 'Hack Nerd Font';
+}
+
+h3 {
+    color: #999999;
+}
+
+a {
+    color: #f7f7f7;
+    text-decoration: none;
+}
+
+h2,
+a:hover {
+    color: #f7f7f7;
+}
+
+input {
+    background: #101010;
+    border: none;
+    outline: none;
+    color: #f7f7f7;
+    width: 100%;
+}
+
+.btn {
+    color: #f7f7f7;
+    background: #252525;
+}
+
+.btn:hover {
+    background: #999999;
+    color: #f7f7f7;
+}
+
+.date-weather-info {
+    background: #252525;
+}
+
+.main {
+    width: 640px;
+}
+
+.date-weather,
+.search,
+.col {
+    background: #454545;
+}

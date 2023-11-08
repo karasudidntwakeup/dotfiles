@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Startpage</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body onload="getWeatherData('Bucaramanga-Colombia')">
+    <div class="main position-absolute top-50 start-50 translate-middle">
+        <div class="date-weather my-2 p-3 rounded-3 text-center">
+            <div class="date-weather-info rounded-3 p-2">
+                <h2 id="current-time-text"></h1>
+                <h3 id="weatherData"></h3>
+            </div>
+        </div>
+        <div class="search my-2 p-2 rounded-3">
+            <div class="row">
+                <div class="search-bar col-10">
+                    <input type="text" placeholder="Search the web..." class="p-2 rounded-3" id="search-input" autofocus>
+                </div>
+                <div class="search-button col-2">
+                    <button class="btn rounded-3 p-2" type="button" id="search-button"
+                onclick="doSearch()">search</button>
+                </div>
+                
+              </div>
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class="col me-1 p-2 rounded-3">
+                    <div class="container rounded-3 p-2">
+                        <h3>Trabajo</h3>
+                        <p class="mx-3 my-1"><a href="https://www.ramajudicial.gov.co/portal/inicio">> Inicio</a></p>
+                        <p class="mx-3 my-1"><a href="https://www.ramajudicial.gov.co/directorio-cuentas-de-correo-electronico">> Correos</a></p>
+                        <p class="mx-3 my-1"><a href="https://www.ramajudicial.gov.co/consulta-procesos">> Consulta</a></p>
+                        <p class="mx-3 my-1"><a href="https://procesojudicial.ramajudicial.gov.co/TutelaEnLinea">> Tutelas</a></p>
+                        <p class="mx-3 my-1"><a href="https://www.ramajudicial.gov.co/web/abogados">> Abogados</a></p>
+                        <p class="mx-3 my-1"><a href="https://www.ramajudicial.gov.co/registro-nacional-de-abogados">> Regnal</a></p>
+                    </div>
+
+                </div>
+                <div class="col mx-1 p-2 rounded-3">
+                    <div class="container rounded-3 p-2">
+                        <h3>utilidades</h3>
+                        <p class="mx-3 my-1"><a href="https://drive.google.com/drive/folders/1xVIVArl1b7b_bcW4DYlWzdSgfE_ZAqsb">> Drive</a></p>
+                        <p class="mx-3 my-1"><a href="https://www.ilovepdf.com/">> Ilovepdf</a></p>
+                        <p class="mx-3 my-1"><a href="https://www.iloveimg.com/">> Iloveimg</a></p>
+                        <p class="mx-3 my-1"><a href="https://www.canva.com/">> Canva</a></p>
+                        <p class="mx-3 my-1"><a href="https://www.ramajudicial.gov.co/consulta-de-jurisprudencia-altas-cortes">> Cortes </a></p>
+                        <p class="mx-3 my-1"><a href="https://www.ramajudicial.gov.co/consulta-de-jurisprudencia-tribunales">> Tribunales</a></p>
+                    </div>
+                </div>
+                <div class="col ms-1 p-2 rounded-3">
+                    <div class="container rounded-3 p-2">
+                        <h3>Social</h3>
+                        <p class="mx-3 my-1"><a href="https://www.gmx.es/">> gmx</a></p>
+                        <p class="mx-3 my-1"><a href="https://mail.google.com/mail/u/0/#inbox">> gmail</a></p>
+                        <p class="mx-3 my-1"><a href="https://account.proton.me/login">> Proton</a></p>
+                        <p class="mx-3 my-1"><a href="https://outlook.live.com/owa/">> Outlook</a></p>
+                        <p class="mx-3 my-1"><a href="https://web.telegram.org/z/">> Telegram</a></p>
+                        <p class="mx-3 my-1"><a href="https://web.whatsapp.com/">> Whatsapp</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="index.js"></script>
+
+</html>
