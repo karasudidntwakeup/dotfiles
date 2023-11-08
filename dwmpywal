@@ -6,4 +6,4 @@ cd $HOME/k/dwm && sudo make clean install
 cd $HOME/k/dwm/st && sudo make clean install
 
 
-cowsay "YIFF<ASFLEANFPPY"
+cowsay "YIPPY"
