@@ -2,6 +2,7 @@
 #include <X11/XF86keysym.h>
 
 /* appearance */
+static const int user_bh = 0; /* 0 means that dwm will calculate bar height, >= 1 means dwm will user_bh as bar height */
 static const unsigned int borderpx  = 0;        /* border pixel of windows */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const unsigned int gappih    = 20;       /* horiz inner gap between windows */
@@ -33,7 +34,8 @@ static const char *brightnessdown[] = {"sudo", "xbacklight", "-dec", "5", NULL }
 
 /* tagging */
 
-static const char *tags[] = { "一", "二", "三", "四" };
+static const char *tags[] = { " 1 " , " 2 " , " 3 " , " 4 " ," 5 "  };
+static const char *alttags[] = { "   ", "   ", "   ", "   ", " "   };
 
 static const Rule rules[] = {
 	/* xprop(1):
