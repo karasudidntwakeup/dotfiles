@@ -1,5 +1,4 @@
 sed -i -e 31d -e 32d -e 33d -e 34d  ~/.cache/wal/colors-wal-st.h
-sed -i '17d' ~/.cache/wal/colors-wal-dwm.h
 
 
 cd $HOME/k/dwm && sudo make clean install
