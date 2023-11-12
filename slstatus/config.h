@@ -66,7 +66,7 @@ static const char unknown_str[] = "0";
 static const struct arg args[] = {
 	{ keymap, "^c#775b73^ %s  ", NULL  },
         { run_command, "^c#e1a78c^  󰋋  %s   ", "pactl list sinks | tr ' ' '\n' | grep -m1 '%'"},
-        { netspeed_rx, "^c#d6a265^ 󰖩  %sB/s    ",  "wlp7s0"},
+        { netspeed_rx, "^c#d6a265^ 󰖩  %sB/s    ",  "wlan0"},
 	{ battery_perc, "^c#7394c9^     %s%%  ", "BAT0" },
 	{ datetime, "^c#af6641^    %s  ", "%F"},
 	{ datetime, "^c#b4588b^ 󱑆 %s  ","%T"}
