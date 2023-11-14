@@ -44,7 +44,7 @@ static const Rule rules[] = {
 	 */
 	/* class      instance    title       tags mask     isfloating   monitor */
 	{ "Gimp",     NULL,       NULL,       0,            1,           -1 },
-	{ "thorium",  NULL,       NULL,       1 << 8,       0,           -1 },
+	{ "thorium-browser",  NULL,       NULL,       1 << 8,       0,           -1 },
 };
 
 /* layout(s) */
@@ -91,7 +91,7 @@ static const char *filebrowsercmd[]  = { "pcmanfm", NULL};
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", norm_bg, "-nf", norm_fg, "-sb", sel_bg, "-sf", sel_fg, NULL };
 static const char *termcmd[]  = { "st", NULL };
-static const char *browser[]       = { "thorium", NULL, "thorium" };
+static const char *browser[]       = { "thorium-browser", NULL, "thorium-browser" };
 
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
