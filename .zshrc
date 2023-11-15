@@ -1,6 +1,6 @@
 # Enable colors and change prompt:
 #laundryfetch
-
+neofetch
 autoload -U colors && colors	# Load colors
 PS1="%B%{$fg[red]%}[%{$fg[yellow]%}%n%{$fg[red]%}@%{$fg[blue]%}%M %{$fg[magenta]%}%~%{$fg[red]%}]%{$reset_color%}$%b "
 setopt autocd		# Automatically cd into typed directory.
@@ -25,10 +25,15 @@ source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 
 export ZSH="$HOME/.oh-my-zsh"
+export NNN_ARCHIVE="\\.(7z|a|ace|alz|arc|arj|bz|bz2|cab|cpio|deb|gz|jar|lha|lz|lzh|lzma|lzo|rar|rpm|rz|t7z|tar|tbz|tbz2|tgz|tlz|txz|tZ|tzo|war|xpi|xz|Z|zip)$"
+export PATH="${PATH}:${HOME}/.cache/wal/colors.sh"
+export NNN_FCOLORS='0000E631000000000000000000'
 export PATH="${PATH}:${HOME}/.local/bin/"
 source $ZSH/oh-my-zsh.sh
 #
 #
+alias y='yay -Syyu'
+alias nnn='nnn -e'
 alias rec=' ffmpeg -f x11grab -i :0.0 -f pulse -i alsa_output.usb-C-Media_Electronics_Inc._USB_Audio_Device-00.analog-stereo.monitor   -ac 2 recording.mkv'
 alias l.='ls -d .* --color=auto'
 alias ll='ls -la'
