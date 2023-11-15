@@ -6,8 +6,8 @@ xrandr --auto
 slstatus &
 nitrogen --restore &
 numlockx &
-picom --experimental-backend --animations --animation-for-open-window fly-in -b &
 setxkbmap -layout us,ara -option grp:ctrl_space_toggle,numpad:mac &
+picom --experimental-backend --animations --animation-for-open-window slide-up -b &
 xsetroot -cursor_name left_ptr
 while true; do
         dwm >/dev/null 2>&1
