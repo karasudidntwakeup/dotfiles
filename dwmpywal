@@ -1,8 +1,0 @@
-sed -i -e 31d -e 32d -e 33d -e 34d  ~/.cache/wal/colors-wal-st.h
-
-
-cd $HOME/k/dwm && sudo make clean install
-cd $HOME/k/dwm/st && sudo make clean install
-
-
-cowsay "YIPPY"
