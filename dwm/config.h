@@ -26,6 +26,11 @@ static const char *upvol[]   = { "/usr/bin/pactl", "set-sink-volume", "0", "+5%"
 static const char *downvol[] = { "/usr/bin/pactl", "set-sink-volume", "0", "-5%",     NULL };
 static const char *mutevol[] = { "/usr/bin/pactl", "set-sink-mute",   "0", "toggle",  NULL };
 
+//lock 
+
+
+static const char *slockcmd[] = { "slock", NULL };
+
 
 //brightness
 static const char *brightnessup[] = {"sudo", "xbacklight", "-inc","5", NULL };
@@ -160,9 +165,14 @@ static const Key keys[] = {
 
 
 
-          { 0, XF86XK_MonBrightnessUp, spawn, {.v = brightnessup} },
-          { 0, XF86XK_MonBrightnessDown, spawn, {.v = brightnessdown} },
- 	  { 0,                            XK_F5,     spawn,               SHCMD("setbg") },
+         { 0, XF86XK_MonBrightnessUp, spawn, {.v = brightnessup} },
+         { 0, XF86XK_MonBrightnessDown, spawn, {.v = brightnessdown} },
+
+
+ 	 { 0,                            XK_F5,     spawn,               SHCMD("setbg") },
+
+	 { MODKEY|ShiftMask, XK_l, spawn, {.v = slockcmd } },
+
 
 };
 

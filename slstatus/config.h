@@ -69,5 +69,5 @@ static const struct arg args[] = {
         { netspeed_rx, "^c#d6a265^ 󰖩  %sB/s    ",  "wlan0"},
 	{ battery_perc, "^c#7394c9^     %s%%  ", "BAT0" },
 	{ datetime, "^c#af6641^    %s  ", "%F"},
-	{ datetime, "^c#b4588b^ 󱑆 %s  ","%T"}
+	{ datetime, "^c#b4588b^ 󱑆 %s  ","%I:%M %p"}
 };

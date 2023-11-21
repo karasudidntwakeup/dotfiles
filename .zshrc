@@ -1,6 +1,5 @@
 # Enable colors and change prompt:
 #laundryfetch
-neofetch
 autoload -U colors && colors	# Load colors
 PS1="%B%{$fg[red]%}[%{$fg[yellow]%}%n%{$fg[red]%}@%{$fg[blue]%}%M %{$fg[magenta]%}%~%{$fg[red]%}]%{$reset_color%}$%b "
 setopt autocd		# Automatically cd into typed directory.
@@ -32,6 +31,7 @@ export PATH="${PATH}:${HOME}/.local/bin/"
 source $ZSH/oh-my-zsh.sh
 #
 #
+alias q='tgpt'
 alias y='yay -Syyu'
 alias nnn='nnn -e'
 alias rec=' ffmpeg -f x11grab -i :0.0 -f pulse -i alsa_output.usb-C-Media_Electronics_Inc._USB_Audio_Device-00.analog-stereo.monitor   -ac 2 recording.mkv'
@@ -44,8 +44,9 @@ alias 00='poweroff'
 alias 01='reboot'
 alias u='sudo pacman -Syyu'
 alias x='startx'
-alias h='Hyprland'
+alias h='htop'
 alias nnn='nnn -r -d -C -e -t 120'
+alias c='sudo pacman -Rns $(pacman -Qdtq) && sudo pacman -Sc'
 #variables
 
 
@@ -57,8 +58,5 @@ fi
 
 unsetopt BEEP
 
-export GOROOT=/usr/local/go
-export GOPATH=$HOME/go
-export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 
-export OPENAI_API_KEY=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
+export OPENAI_API_KEY=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
