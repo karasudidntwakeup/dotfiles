@@ -31,13 +31,12 @@ export PATH="${PATH}:${HOME}/.local/bin/"
 source $ZSH/oh-my-zsh.sh
 #
 #
+alias ls='exa --colour -l --icons'
 alias q='tgpt'
 alias y='yay -Syyu'
 alias nnn='nnn -e'
 alias rec=' ffmpeg -f x11grab -i :0.0 -f pulse -i alsa_output.usb-C-Media_Electronics_Inc._USB_Audio_Device-00.analog-stereo.monitor   -ac 2 recording.mkv'
 alias l.='ls -d .* --color=auto'
-alias ll='ls -la'
-alias ls='ls --color=auto'
 alias i='sudo pacman -S'
 alias r='sudo pacman -Rnsc'
 alias 00='poweroff'
@@ -48,12 +47,6 @@ alias h='htop'
 alias nnn='nnn -r -d -C -e -t 120'
 alias c='sudo pacman -Rns $(pacman -Qdtq) && sudo pacman -Sc'
 #variables
-
-
-if [ -z $DISPLAY ] && [ "$(tty)" = "/dev/tty1" ]
-then
-    startx
-fi
 
 
 unsetopt BEEP
