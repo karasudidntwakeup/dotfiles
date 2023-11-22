@@ -1,4 +1,0 @@
-#!/bin/sh
-
-qrencode -t PNG -s 8 -o /tmp/tmp.png $(wl-paste)
-imv /tmp/tmp.png

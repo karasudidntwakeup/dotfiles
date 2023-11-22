@@ -5,10 +5,8 @@ xrandr --dpi 80
 xset r rate 220 50
 setxkbmap -option caps:backspace
 dbus-update-activation-environment --systemd DBUS_SESSION_BUS_ADDRESS DISPLAY XAUTHORITY &
-nitrogen --restore &
+feh --bg-fill "$(< "${HOME}/.cache/wal/wal")" &
 slstatus &
-numlockx &
-setxkbmap -layout us,ara -option grp:ctrl_space_toggle,numpad:mac &
 picom --experimental-backend --animations --animation-for-open-window slide-up -b &
 #while true; do
 #        dwm >/dev/null 2>&1
