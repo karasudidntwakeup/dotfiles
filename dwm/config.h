@@ -165,13 +165,13 @@ static const Key keys[] = {
 
 
 
-         { 0, XF86XK_MonBrightnessUp, spawn, {.v = brightnessup} },
-         { 0, XF86XK_MonBrightnessDown, spawn, {.v = brightnessdown} },
+         { 0, XF86XK_MonBrightnessUp,  	spawn,  	   	         {.v = brightnessup} },
+         { 0, XF86XK_MonBrightnessDown, spawn,			         {.v = brightnessdown} },
 
 
  	 { 0,                            XK_F5,     spawn,               SHCMD("setbg") },
 
-	 { MODKEY|ShiftMask, XK_l, spawn, {.v = slockcmd } },
+	 { MODKEY, 		         XK_n,	    spawn,     	         {.v = slockcmd } },
 
 
 };

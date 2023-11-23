@@ -1,5 +1,5 @@
 # Enable colors and change prompt:
-#laundryfetch
+fm6000 -random -c random
 autoload -U colors && colors	# Load colors
 PS1="%B%{$fg[red]%}[%{$fg[yellow]%}%n%{$fg[red]%}@%{$fg[blue]%}%M %{$fg[magenta]%}%~%{$fg[red]%}]%{$reset_color%}$%b "
 setopt autocd		# Automatically cd into typed directory.
@@ -46,6 +46,7 @@ alias x='startx'
 alias h='htop'
 alias nnn='nnn -r -d -C -e -t 120'
 alias c='sudo pacman -Rns $(pacman -Qdtq) && sudo pacman -Sc'
+alias youtube='ytfzf'
 #variables
 
 
