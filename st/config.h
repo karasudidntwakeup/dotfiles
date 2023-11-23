@@ -5,7 +5,7 @@
  * font: see http://freedesktop.org/software/fontconfig/fontconfig-user.html
  */
 static char *font = "Cascadia Mono:pixelsize=16:antialias=true:autohint=true";
-static int borderpx = 3;
+static int borderpx = 35;
 
 /*
  * What program is execed by st depends of these precedence rules:
@@ -82,7 +82,7 @@ char *termname = "st-256color";
 unsigned int tabspaces = 8;
 
 /* bg opacity */
-float alpha = 1;
+float alpha = 0.7;
 
 /* Terminal colors (16 first used in escape sequence) */
 #include "/home/karasu/.cache/wal/colors-wal-st.h"
@@ -102,7 +102,7 @@ static unsigned int defaultrcs = 0;
  * 6: Bar ("|")
  * 7: Snowman ("☃")
  */
-static unsigned int cursorshape = 2;
+static unsigned int cursorshape = 6;
 
 /*
  * Default columns and rows numbers
