@@ -10,3 +10,5 @@ alias grep='grep --color=auto'
 PS1='[\u@\h \W]\$ '
 bind 'set bell-style none'
 export PATH="${PATH}:${HOME}/.local/bin/"
+
+source ~/.bash_aliases

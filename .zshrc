@@ -47,6 +47,7 @@ alias h='htop'
 alias nnn='nnn -r -d -C -e -t 120'
 alias c='sudo pacman -Rns $(pacman -Qdtq) && sudo pacman -Sc'
 alias youtube='ytfzf'
+alias t='telegram-send '
 #variables
 
 
