@@ -12,7 +12,7 @@ filetype plugin on      " indentation
 
 set cursorline          " highlight current line
 set wildmenu            " visual autocomplete for command menu
-
+set history=10000
 set showmatch           " highlight matching [{()}]
 set incsearch           " search as characters are entered
 set hlsearch            " highlight matches
