@@ -1,5 +1,5 @@
 # Enable colors and change prompt:
-fm6000 -random -c random
+nekofetch.sh
 autoload -U colors && colors	# Load colors
 PS1="%B%{$fg[red]%}[%{$fg[yellow]%}%n%{$fg[red]%}@%{$fg[blue]%}%M %{$fg[magenta]%}%~%{$fg[red]%}]%{$reset_color%}$%b "
 setopt autocd		# Automatically cd into typed directory.
@@ -22,15 +22,11 @@ source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zs
 source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 
-
 export ZSH="$HOME/.oh-my-zsh"
-export NNN_ARCHIVE="\\.(7z|a|ace|alz|arc|arj|bz|bz2|cab|cpio|deb|gz|jar|lha|lz|lzh|lzma|lzo|rar|rpm|rz|t7z|tar|tbz|tbz2|tgz|tlz|txz|tZ|tzo|war|xpi|xz|Z|zip)$"
 export PATH="${PATH}:${HOME}/.cache/wal/colors.sh"
-export NNN_FCOLORS='0000E631000000000000000000'
 export PATH="${PATH}:${HOME}/.local/bin/"
 source $ZSH/oh-my-zsh.sh
-#
-#
+
 alias ls='exa --colour -l --icons'
 alias q='tgpt'
 alias y='yay -Syyu'
