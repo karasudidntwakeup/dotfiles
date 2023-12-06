@@ -40,7 +40,7 @@ static const char *brightnessdown[] = {"sudo", "xbacklight", "-dec", "5", NULL }
 /* tagging */
 
 static const char *tags[] = { "  1  " , "  2  " , "  3  " , "  4  " ,"  5  "  };
-static const char *alttags[] = { "   ", "   ",  " 󰓓  ", "   ","   " };
+static const char *alttags[] = { "", "󰍳", "󰇥", "󱢢", "", "", "", "", "" };
 
 static const Rule rules[] = {
 	/* xprop(1):
