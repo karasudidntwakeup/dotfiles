@@ -5,7 +5,7 @@
  * font: see http://freedesktop.org/software/fontconfig/fontconfig-user.html
  */
 static char *font = "Cascadia Mono:pixelsize=16:antialias=true:autohint=true";
-static int borderpx = 35;
+static int borderpx = 45;
 
 /*
  * What program is execed by st depends of these precedence rules:
@@ -41,7 +41,7 @@ static unsigned int tripleclicktimeout = 600;
 int allowaltscreen = 1;
 
 /* frames per second st should at maximum draw to the screen */
-static unsigned int xfps = 120;
+static unsigned int xfps = 60;
 static unsigned int actionfps = 30;
 
 /*
@@ -82,7 +82,7 @@ char *termname = "st-256color";
 unsigned int tabspaces = 8;
 
 /* bg opacity */
-float alpha = 0.7;
+float alpha = 0.88;
 
 /* Terminal colors (16 first used in escape sequence) */
 #include "/home/karasu/.cache/wal/colors-wal-st.h"
