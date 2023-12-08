@@ -1,7 +1,7 @@
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
- neofetch
+neofetch
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
@@ -10,6 +10,14 @@ fi
 autoload -U colors && colors	# Load colors
 
 
+autoload -U up-line-or-beginning-search
+autoload -U down-line-or-beginning-search
+zle -N up-line-or-beginning-search
+zle -N down-line-or-beginning-search
+bindkey "^[[A" up-line-or-beginning-search
+bindkey "^[[B" down-line-or-beginning-search
+
+##
 my-backward-delete-word() {
     local WORDCHARS=${WORDCHARS/\//}
     zle backward-delete-word
@@ -17,6 +25,10 @@ my-backward-delete-word() {
 zle -N my-backward-delete-word
 bindkey '^W' my-backward-delete-word
 
+
+bindkey "^[[1;5C" forward-word
+bindkey "^[[1;5D" backward-word
+##
 
 #PS1="%B%{$fg[red]%}[%{$fg[yellow]%}%n%{$fg[green]%}@%{$fg[blue]%}%M %{$fg[magenta]%}%~%{$fg[red]%}]%{$reset_color%}$%b "
 
