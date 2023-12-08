@@ -10,6 +10,14 @@ fi
 autoload -U colors && colors	# Load colors
 
 
+my-backward-delete-word() {
+    local WORDCHARS=${WORDCHARS/\//}
+    zle backward-delete-word
+}
+zle -N my-backward-delete-word
+bindkey '^W' my-backward-delete-word
+
+
 #PS1="%B%{$fg[red]%}[%{$fg[yellow]%}%n%{$fg[green]%}@%{$fg[blue]%}%M %{$fg[magenta]%}%~%{$fg[red]%}]%{$reset_color%}$%b "
 
 setopt autocd		# Automatically cd into typed directory.
@@ -18,12 +26,12 @@ zstyle ':completion:*' menu select
 # History in cache directory:
 HISTSIZE=10000000
 SAVEHIST=10000000
-HISTFILE=$HOME/.zhistory
+HISTFILE=~/.zsh_history
+
 
 
 zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
 autoload -Uz compinit && compinit
-
 #
 set encoding=utf-8
 
@@ -57,7 +65,7 @@ unsetopt BEEP
 
 export OPENAI_API_KEY=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
 source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
+source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh 
 
