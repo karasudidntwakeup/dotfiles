@@ -64,8 +64,8 @@ static const char *tagsel[][2] = {
 	{ "#7aa2f7", "#5d7082" },
 	{ "#f28fad", "#4b0082" },
 	{ "#ffffff", "#9400d3" },
-	{ "#000000", "#ffffff" },
-	{ "#ffffff", "#000000" },
+	{ "#5d7082", "#7fa3fa" },
+	{ "#64aefe", "#64aefe },
 };
 
 static const Rule rules[] = {
