@@ -1,7 +1,7 @@
 #!/bin/sh
 xrandr --setprovideroutputsource modesetting NVIDIA-0
 xrandr --output eDP1 --mode 1920x1080 --rate 60
-xrandr --dpi 80
+xrdb -merge ~/.Xresources
 picom --experimental-backend --animations --animation-for-open-window slide-up -b &
 xset r rate 220 50
 setxkbmap -option caps:backspace
