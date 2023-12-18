@@ -9,8 +9,8 @@ slstatus &
 dbus-update-activation-environment --systemd DBUS_SESSION_BUS_ADDRESS DISPLAY XAUTHORITY &
 #feh --bg-fill "$(< "${HOME}/.cache/wal/wal")" &
 nitrogen --restore &
-#while true; do
-#        dwm >/dev/null 2>&1
-#done
+while true; do
+        dwm >/dev/null 2>&1
+done
  exec dbus-run-session dwm
 

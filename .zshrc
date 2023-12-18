@@ -49,6 +49,7 @@ autoload -Uz compinit && compinit
 set encoding=utf-8
 
 #
+export PATH="$PATH:/sbin:/usr/sbin:usr/local/sbin"
 export PATH="${PATH}:${HOME}/.cache/wal/colors.sh"
 export PATH="/home/karasu/.cargo/bin:$PATH"
 export ZSH="$HOME/.oh-my-zsh"
@@ -73,6 +74,7 @@ alias c='sudo pacman -Rns $(pacman -Qdtq) && sudo pacman -Sc'
 alias youtube='ytfzf'
 alias t='telegram-send '
 alias l='ls -al'
+alias iw='iwctl station wlan0 scan'
 #variables
 
 
