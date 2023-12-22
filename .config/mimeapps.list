@@ -1,0 +1,33 @@
+[Default Applications]
+x-scheme-handler/http=floorp.desktop
+x-scheme-handler/https=floorp.desktop
+text/html=floorp.desktop
+x-scheme-handler/about=librewolf.desktop
+x-scheme-handler/unknown=librewolf.desktop
+x-scheme-handler/tg=org.telegram.desktop.desktop
+x-scheme-handler/chrome=floorp.desktop
+application/x-extension-htm=floorp.desktop
+application/x-extension-html=floorp.desktop
+application/x-extension-shtml=floorp.desktop
+application/xhtml+xml=floorp.desktop
+application/x-extension-xhtml=floorp.desktop
+application/x-extension-xht=floorp.desktop
+application/pdf=org.pwmt.zathura.desktop
+image/jpeg=feh.desktop
+image/png=feh.desktop
+browser=librewolf.desktop
+application/x-extension-burp=install4j_o9t6z6-BurpSuiteCommunity.desktop
+
+[Added Associations]
+x-scheme-handler/http=xfce4-web-browser.desktop;librewolf.desktop;floorp.desktop;
+x-scheme-handler/https=xfce4-web-browser.desktop;librewolf.desktop;floorp.desktop;
+x-scheme-handler/tg=userapp-Telegram Desktop-VJTJO1.desktop;org.telegram.desktop.desktop;userapp-Telegram Desktop-AY6941.desktop;
+application/zip=pcmanfm.desktop;
+text/html=librewolf.desktop;floorp.desktop;
+x-scheme-handler/chrome=floorp.desktop;
+application/x-extension-htm=floorp.desktop;
+application/x-extension-html=floorp.desktop;
+application/x-extension-shtml=floorp.desktop;
+application/xhtml+xml=floorp.desktop;
+application/x-extension-xhtml=floorp.desktop;
+application/x-extension-xht=floorp.desktop;
