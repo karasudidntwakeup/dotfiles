@@ -1,0 +1,4 @@
+>=dev-cpp/gtkmm-3.24.8:3.0 X
+>=media-libs/libpulse-16.1-r2 X
+>=media-plugins/alsa-plugins-1.2.7.1-r1 pulseaudio
+

@@ -1,0 +1,24 @@
+# package.use# required by www-client/qutebrowser-3.1.0::gentoo[python_single_target_python3_11,qt6,-python_single_target_python3_10]
+# required by www-client/qutebrowser (argument)
+>=dev-qt/qtbase-6.6.1-r1 icu opengl
+# required by dev-python/PyQt6-WebEngine-6.6.0::gentoo[widgets]
+# required by www-client/qutebrowser-3.1.0::gentoo[python_single_target_python3_11,qt6]
+# required by www-client/qutebrowser (argument)
+>=dev-python/PyQt6-6.6.1 qml opengl webchannel
+# required by dev-qt/qtwebengine-6.6.1::gentoo
+# required by dev-python/PyQt6-WebEngine-6.6.0::gentoo
+# required by www-client/qutebrowser-3.1.0::gentoo[python_single_target_python3_11,qt6]
+# required by www-client/qutebrowser (argument)
+>=dev-libs/libxml2-2.11.5 icu
+# required by dev-qt/qtwebengine-6.6.1::gentoo
+# required by dev-python/PyQt6-WebEngine-6.6.0::gentoo
+# required by www-client/qutebrowser-3.1.0::gentoo[python_single_target_python3_11,qt6]
+# required by www-client/qutebrowser (argument)
+>=sys-libs/zlib-1.3-r2 minizip
+# required by dev-qt/qttranslations-6.6.1::gentoo
+# required by dev-qt/qtbase-6.6.1-r1::gentoo[nls]
+# required by dev-python/PyQt6-6.6.1::gentoo
+# required by dev-python/PyQt6-WebEngine-6.6.0::gentoo
+# required by www-client/qutebrowser-3.1.0::gentoo[python_single_target_python3_11,qt6]
+# required by www-client/qutebrowser (argument)
+>=dev-qt/qttools-6.6.1 opengl

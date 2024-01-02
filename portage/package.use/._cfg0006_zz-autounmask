@@ -1,0 +1,37 @@
+# package.use# required by www-client/qutebrowser-3.1.0::gentoo[test,python_single_target_python3_11,qt6,-python_single_target_python3_10]
+# required by www-client/qutebrowser (argument)
+>=dev-qt/qtbase-6.6.1-r1 icu
+# required by www-client/qutebrowser-3.1.0::gentoo[test,python_single_target_python3_11,qt6]
+# required by www-client/qutebrowser (argument)
+>=dev-python/PyQt6-6.6.1 opengl qml testlib
+# required by dev-python/pygobject-3.44.1::gentoo[test]
+# required by media-gfx/xdot-1.3::gentoo
+# required by dev-python/objgraph-3.5.0-r1::gentoo[test]
+# required by dev-python/greenlet-3.0.2::gentoo[test]
+# required by dev-python/werkzeug-3.0.1::gentoo[test,python_targets_python3_11,-python_targets_python3_10]
+# required by dev-python/pytest-httpserver-1.0.8::gentoo[test]
+# required by dev-python/responses-0.24.1::gentoo[test]
+# required by dev-python/tldextract-5.1.1::gentoo[test]
+# required by www-client/qutebrowser-3.1.0::gentoo[test,python_single_target_python3_11]
+# required by www-client/qutebrowser (argument)
+>=x11-base/xorg-server-21.1.10-r1 xvfb xephyr
+# required by media-gfx/graphviz-8.1.0::gentoo
+# required by media-gfx/xdot-1.3::gentoo
+# required by dev-python/objgraph-3.5.0-r1::gentoo[test]
+# required by dev-python/greenlet-3.0.2::gentoo[test]
+# required by dev-python/werkzeug-3.0.1::gentoo[test,python_targets_python3_11,-python_targets_python3_10]
+# required by dev-python/pytest-httpserver-1.0.8::gentoo[test]
+# required by dev-python/responses-0.24.1::gentoo[test]
+# required by dev-python/tldextract-5.1.1::gentoo[test]
+# required by www-client/qutebrowser-3.1.0::gentoo[test,python_single_target_python3_11]
+# required by www-client/qutebrowser (argument)
+>=media-libs/gd-2.3.3-r4 fontconfig truetype
+# required by dev-python/pytest-xvfb-3.0.0::gentoo[python_targets_python3_11]
+# required by www-client/qutebrowser-3.1.0::gentoo[test,python_single_target_python3_11]
+# required by www-client/qutebrowser (argument)
+>=dev-lang/python-3.11.7:3.11 tk
+# required by dev-python/pyvirtualdisplay-3.0::gentoo[test]
+# required by dev-python/pytest-xvfb-3.0.0::gentoo[test]
+# required by www-client/qutebrowser-3.1.0::gentoo[test,python_single_target_python3_11]
+# required by www-client/qutebrowser (argument)
+>=dev-python/pillow-10.1.0 xcb

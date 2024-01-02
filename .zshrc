@@ -30,6 +30,9 @@ zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
 bindkey "^[[A" up-line-or-beginning-search
 bindkey "^[[B" down-line-or-beginning-search
+bindkey "^[[1;5C" forward-word
+bindkey "^[[1;5D" backward-word
+
 
 
 
@@ -54,6 +57,7 @@ autoload -Uz compinit && compinit
 set encoding=utf-8
 
 #
+export $(dbus-launch)
 export PATH="$PATH:/sbin:/usr/sbin:usr/local/sbin"
 export PATH="${PATH}:${HOME}/.cache/wal/colors.sh"
 export PATH="/home/karasu/.cargo/bin:$PATH"
@@ -61,7 +65,7 @@ export ZSH="$HOME/.oh-my-zsh"
 export PATH="${PATH}:${HOME}/.local/bin/"
 #
 alias tree='eza--tree'
-#alias sudo='doas'
+alias u='sudo emerge -avuDN @world'
 alias ls='eza --icons'
 alias nnn='nnn -e'
 alias rec=' ffmpeg -f x11grab -i :0.0 -f pulse -i alsa_output.usb-C-Media_Electronics_Inc._USB_Audio_Device-00.analog-stereo.monitor   -ac 2 recording.mp4'
