@@ -1,7 +1,6 @@
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
-cal
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
@@ -68,7 +67,7 @@ alias tree='eza--tree'
 alias u='sudo emerge -avuDN @world'
 alias ls='eza --icons'
 alias nnn='nnn -e'
-alias rec=' ffmpeg -f x11grab -i :0.0 -f pulse -i alsa_output.usb-C-Media_Electronics_Inc._USB_Audio_Device-00.analog-stereo.monitor   -ac 2 recording.mp4'
+alias rec='ffmpeg -f x11grab -framerate 30 -video_size 1920x1080 -i :0.0 -f alsa hw:0 ~/howto/output.mp4 '
 alias l='ls -d .* --color=auto'
 alias 00='sudo poweroff'
 alias 01='sudo reboot'
