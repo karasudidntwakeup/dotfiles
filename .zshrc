@@ -64,7 +64,7 @@ export ZSH="$HOME/.oh-my-zsh"
 export PATH="${PATH}:${HOME}/.local/bin/"
 #
 alias tree='eza--tree'
-alias u='sudo emerge -avuDN @world'
+alias u='sudo emerge --ask --update --deep --newuse @world'
 alias ls='eza --icons'
 alias nnn='nnn -e'
 alias rec='ffmpeg -f x11grab -framerate 30 -video_size 1920x1080 -i :0.0 -f alsa hw:0 ~/howto/output.mp4 '

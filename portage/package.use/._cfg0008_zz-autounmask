@@ -1,5 +1,0 @@
-# package.use# required by x11-misc/xdg-utils-1.1.3_p20210805-r1::gentoo
-# required by x11-misc/dunst-1.9.2::gentoo
-# required by virtual/notification-daemon-0::gentoo[-kde,-gnome]
-# required by x11-libs/libnotify-0.8.2::gentoo
->=app-text/xmlto-0.0.28-r11 text

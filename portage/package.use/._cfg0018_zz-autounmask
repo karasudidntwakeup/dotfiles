@@ -1,6 +1,0 @@
-# package.use# required by www-client/qutebrowser-3.1.0::gentoo[python_single_target_python3_11,qt6]
-# required by www-client/qutebrowser (argument)
->=dev-python/PyQt6-6.6.1 opengl
-# required by dev-qt/qttools-6.6.1::gentoo[widgets]
-# required by dev-qt/qttranslations-6.6.1::gentoo
->=dev-qt/qtbase-6.6.1-r1 opengl

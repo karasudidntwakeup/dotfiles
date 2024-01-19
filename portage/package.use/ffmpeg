@@ -1,1 +1,0 @@
->=media-video/ffmpeg-6.0-r9:0/58.60.60::gentoo  USE="openh264 webp vulkan mp3 pulseaudio xvid x264 x256 vdpau jack bluray codec2 sndio oss pic"

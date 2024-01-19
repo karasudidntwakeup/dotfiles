@@ -1,9 +1,0 @@
-www-client/librewolf
-dev-libs/nss
-app-arch/zip
-# required by sys-kernel/gentoo-kernel-bin-6.6.8::gentoo
-# required by @selected
-# required by @world (argument)
-=virtual/dist-kernel-6.6.8 ~amd64
-# required by virtual/dist-kernel-6.6.8::gentoo
-=sys-kernel/gentoo-kernel-bin-6.6.8 ~amd64
