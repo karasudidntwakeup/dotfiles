@@ -63,6 +63,7 @@ export PATH="/home/karasu/.cargo/bin:$PATH"
 export ZSH="$HOME/.oh-my-zsh"
 export PATH="${PATH}:${HOME}/.local/bin/"
 #
+alias sudo='doas'
 alias tree='eza--tree'
 alias u='sudo emerge --ask --update --deep --newuse @world'
 alias ls='eza --icons'
