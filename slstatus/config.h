@@ -64,10 +64,10 @@ static const char unknown_str[] = "0";
  * wifi_essid          WiFi ESSID                      interface name (wlan0)
  */
 static const struct arg args[] = {
-	{ keymap, "^c#f28fad^ %s  ", NULL  },
-        { run_command, "^c#7aa2f7^  󰋋  %s   ", "pactl list sinks | tr ' ' '\n' | grep -m1 '%'"},
-        { netspeed_rx, "^c#7fa3fa^ 󰖩  %sB/s    ",  "wlan0"},
-	{ battery_perc, "^c#f78baa^     %s%%  ", "BAT0" },
+	{ keymap, "^c#ff7eb6^ %s  ", NULL  },
+  { run_command, "^c#33b1ff^  󰋋  %s   ", "pactl list sinks | tr ' ' '\n' | grep -m1 '%'"},
+  { netspeed_rx, "^c#be95ff^ 󰖩  %sB/s    ",  "wlan0"},
+	{ battery_perc, "^c#ee5396^     %s%%  ", "BAT0" },
 	{ datetime, "^c#f5ce6b^    %s  ", "%F"},
-	{ datetime, "^c#b4aefe^ 󱑆 %s  ","%I:%M %p"}
+	{ datetime, "^c#7aa2f7^ 󱑆 %s  ","%I:%M %p"}
 };
