@@ -6,14 +6,13 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
 fi
 # Enable colors and change prompt:
 autoload -U colors && colors	# Load colors
-local WORDCHARS='*?_[]~=&;!#$%^(){}<>'
+local WORDCHARS='*?_[]~=&;!#$%^(){}<>?'
 ##
 bindkey "\e[1;3C" forward-word
 bindkey "\e[1;3D" backward-word
 bindkey "^A" vi-beginning-of-line
 bindkey "^E" vi-end-of-line
 bindkey '^W' my-backward-delete-word
-bindkey '^[^?' backward-kill-word
 bindkey "\e[1;3D" backward-word     # ⌥←
 bindkey "\e[1;3C" forward-word      # ⌥→
 bindkey "^[[1;9D" beginning-of-line # cmd+←
@@ -21,6 +20,11 @@ bindkey "^[[A" up-line-or-beginning-search
 bindkey "^[[B" down-line-or-beginning-search
 bindkey "^[[1;5C" forward-word
 bindkey "^[[1;5D" backward-wordindkey "^[[1;9C" end-of-line       # cmd+→
+bindkey "^Y" up-line-or-beginning-search
+bindkey "^R"  list-choices
+bindkey '^[^?' backward-kill-word
+bindkey "^Z" history-incremental-search-backward
+
 #
 autoload -U up-line-or-beginning-search
 autoload -U down-line-or-beginning-search
@@ -48,15 +52,15 @@ export PATH="${PATH}:${HOME}/.local/bin/"
 export PATH="${PATH}:${HOME}/.cargo/bin"
 #
 alias vim='nvim'
-alias sudo='doas'
+#alias doas='doas'
 alias tree='eza--tree'
-alias u='sudo emerge -avqDN @world'
+alias u='doas emerge -avqDN @world'
 alias ls='eza --icons'
 alias nnn='nnn -e'
 alias rec='ffmpeg -f x11grab -framerate 30 -video_size 1920x1080 -i :0.0 -f alsa hw:0 ~/howto/output.mp4 '
 alias l='ls -d .* --color=auto'
-alias 00='sudo poweroff'
-alias 01='sudo reboot'
+alias 00='doas poweroff'
+alias 01='doas reboot'
 alias x='startx'
 alias h='htop'
 alias nnn='nnn -r -d -C -e -t 120'
