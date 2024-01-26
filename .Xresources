@@ -1,5 +1,6 @@
 xft.dpi: 80
-Xcursor.theme: BreezerX-Dark
 Xcursor.size: 9
-Sxiv.background: #2a151c
+Sxiv.background: #191919
+Sxiv.foreground: #9072bf
+
 
