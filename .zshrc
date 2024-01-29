@@ -52,9 +52,9 @@ export PATH="${PATH}:${HOME}/.local/bin/"
 export PATH="${PATH}:${HOME}/.cargo/bin"
 #
 alias vim='nvim'
-#alias doas='doas'
+alias sudo='doas'
 alias tree='eza--tree'
-alias u='doas emerge -avqDN @world'
+alias u='doas emerge -aquDN @world'
 alias ls='eza --icons'
 alias nnn='nnn -e'
 alias rec='ffmpeg -f x11grab -framerate 30 -video_size 1920x1080 -i :0.0 -f alsa hw:0 ~/howto/output.mp4 '
