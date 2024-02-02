@@ -46,7 +46,6 @@ autoload -Uz compinit && compinit
 #
 set encoding=utf-8
 #
-export $(dbus-launch)
 export PATH="$PATH:/sbin:/usr/sbin:usr/local/sbin"
 export PATH="${PATH}:${HOME}/.local/bin/"
 export PATH="${PATH}:${HOME}/.cargo/bin"
