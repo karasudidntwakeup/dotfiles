@@ -50,7 +50,7 @@ export PATH="$PATH:/sbin:/usr/sbin:usr/local/sbin"
 export PATH="${PATH}:${HOME}/.local/bin/"
 export PATH="${PATH}:${HOME}/.cargo/bin"
 #
-alias vim='nvim'
+alias vim='sudo nvim'
 alias sudo='doas'
 alias tree='eza--tree'
 alias u='doas emerge -aquDN @world'
