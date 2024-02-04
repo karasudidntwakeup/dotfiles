@@ -45,6 +45,7 @@ zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=
 autoload -Uz compinit && compinit
 #
 set encoding=utf-8
+LANG=en_US.UTF-8 
 #
 export PATH="$PATH:/sbin:/usr/sbin:usr/local/sbin"
 export PATH="${PATH}:${HOME}/.local/bin/"
