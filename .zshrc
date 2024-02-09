@@ -53,11 +53,11 @@ export PATH="${PATH}:${HOME}/.cargo/bin"
 #
 alias vim='sudo nvim'
 alias sudo='doas'
-alias tree='eza--tree'
+alias tree='eza --tree'
 alias u='doas emerge -aquDN @world'
 alias ls='eza --icons'
 alias nnn='nnn -e'
-alias rec='ffmpeg -f x11grab -framerate 30 -video_size 1920x1080 -i :0.0 -f alsa hw:0 ~/howto/output.mp4 '
+alias rec='ffmpeg -y -f x11grab  -i :0.0  ~/howto/output.mp4'
 alias sxiv='nsxiv'
 alias l='ls -d .* --color=auto'
 alias 00='doas poweroff'
