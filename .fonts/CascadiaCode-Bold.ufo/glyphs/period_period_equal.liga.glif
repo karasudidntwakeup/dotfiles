@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<glyph name="period_period_equal.liga" format="2">
+  <advance width="1200"/>
+  <outline>
+    <contour>
+      <point x="1900" y="835" type="line"/>
+      <point x="3320" y="835" type="line"/>
+      <point x="3320" y="1085" type="line"/>
+      <point x="1900" y="1085" type="line"/>
+    </contour>
+    <contour>
+      <point x="1900" y="333" type="line"/>
+      <point x="3320" y="333" type="line"/>
+      <point x="3320" y="583" type="line"/>
+      <point x="1900" y="583" type="line"/>
+    </contour>
+    <component base="period" xOffset="-120"/>
+    <component base="period" xOffset="650"/>
+  </outline>
+  <lib>
+    <dict>
+      <key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
+      <array>
+        <dict>
+          <key>alignment</key>
+          <integer>-1</integer>
+          <key>index</key>
+          <integer>0</integer>
+          <key>name</key>
+          <string>period</string>
+        </dict>
+        <dict>
+          <key>alignment</key>
+          <integer>-1</integer>
+          <key>index</key>
+          <integer>1</integer>
+          <key>name</key>
+          <string>period</string>
+        </dict>
+      </array>
+    </dict>
+  </lib>
+</glyph>

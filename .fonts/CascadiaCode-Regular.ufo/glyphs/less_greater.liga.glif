@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<glyph name="less_greater.liga" format="2">
+  <advance width="1200"/>
+  <outline>
+    <contour>
+      <point x="1210" y="214" type="line"/>
+      <point x="2168" y="608" type="line"/>
+      <point x="2168" y="810" type="line"/>
+      <point x="1210" y="1204" type="line"/>
+      <point x="252" y="810" type="line"/>
+      <point x="252" y="608" type="line"/>
+    </contour>
+    <contour>
+      <point x="1210" y="434" type="line"/>
+      <point x="470" y="700" type="line"/>
+      <point x="470" y="718" type="line"/>
+      <point x="1210" y="984" type="line"/>
+      <point x="1910" y="718" type="line"/>
+      <point x="1910" y="700" type="line"/>
+    </contour>
+  </outline>
+</glyph>

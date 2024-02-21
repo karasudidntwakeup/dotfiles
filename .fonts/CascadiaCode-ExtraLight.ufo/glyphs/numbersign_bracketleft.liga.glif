@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<glyph name="numbersign_bracketleft.liga" format="2">
+  <advance width="1200"/>
+  <outline>
+    <contour>
+      <point x="878" y="0" type="line"/>
+      <point x="968" y="0" type="line"/>
+      <point x="1088" y="1420" type="line"/>
+      <point x="998" y="1420" type="line"/>
+    </contour>
+    <contour>
+      <point x="432" y="0" type="line"/>
+      <point x="522" y="0" type="line"/>
+      <point x="642" y="1420" type="line"/>
+      <point x="552" y="1420" type="line"/>
+    </contour>
+    <contour>
+      <point x="284" y="419" type="line"/>
+      <point x="1606" y="419" type="line"/>
+      <point x="1606" y="509" type="line"/>
+      <point x="284" y="509" type="line"/>
+    </contour>
+    <contour>
+      <point x="284" y="911" type="line"/>
+      <point x="1606" y="911" type="line"/>
+      <point x="1606" y="1001" type="line"/>
+      <point x="284" y="1001" type="line"/>
+    </contour>
+    <component base="bracketleft" xOffset="1164"/>
+  </outline>
+</glyph>

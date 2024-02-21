@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <array>
+    <array>
+      <string>public.default</string>
+      <string>glyphs</string>
+    </array>
+    <array>
+      <string>public.background</string>
+      <string>glyphs.public.background</string>
+    </array>
+    <array>
+      <string>ExtraCondensed Black</string>
+      <string>glyphs.E_xtraC_ondensed B_lack</string>
+    </array>
+    <array>
+      <string>ExtraCondensed Thin</string>
+      <string>glyphs.E_xtraC_ondensed T_hin</string>
+    </array>
+    <array>
+      <string>ExtraCondensed Regular</string>
+      <string>glyphs.E_xtraC_ondensed R_egular</string>
+    </array>
+  </array>
+</plist>

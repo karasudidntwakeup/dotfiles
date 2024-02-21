@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<glyph name="rightHalfBlackSquare" format="2">
+  <advance width="1200"/>
+  <unicode hex="25E8"/>
+  <note>
+uni25E8
+</note>
+  <outline>
+    <contour>
+      <point x="600" y="235" type="line"/>
+      <point x="1085" y="235" type="line"/>
+      <point x="1085" y="1185" type="line"/>
+      <point x="600" y="1185" type="line"/>
+    </contour>
+    <component base="whiteSquare"/>
+  </outline>
+</glyph>

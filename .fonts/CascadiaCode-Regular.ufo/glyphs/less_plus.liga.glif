@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<glyph name="less_plus.liga" format="2">
+  <advance width="1200"/>
+  <outline>
+    <component base="less" xOffset="164"/>
+    <component base="plus" xOffset="1152"/>
+  </outline>
+</glyph>

@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<glyph name="bar_bracketright.liga" format="2">
+  <advance width="1200"/>
+  <outline>
+    <contour>
+      <point x="1620" y="-214" type="line"/>
+      <point x="1884" y="-214" type="line"/>
+      <point x="1884" y="1634" type="line"/>
+      <point x="1620" y="1634" type="line"/>
+    </contour>
+    <contour>
+      <point x="1016" y="-214" type="line"/>
+      <point x="1640" y="-214" type="line"/>
+      <point x="1640" y="27" type="line"/>
+      <point x="1016" y="27" type="line"/>
+    </contour>
+    <contour>
+      <point x="1016" y="1393" type="line"/>
+      <point x="1640" y="1393" type="line"/>
+      <point x="1640" y="1634" type="line"/>
+      <point x="1016" y="1634" type="line"/>
+    </contour>
+    <component base="bar" xOffset="46"/>
+  </outline>
+  <lib>
+    <dict>
+      <key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
+      <array>
+        <dict>
+          <key>alignment</key>
+          <integer>-1</integer>
+          <key>index</key>
+          <integer>0</integer>
+          <key>name</key>
+          <string>bar</string>
+        </dict>
+      </array>
+    </dict>
+  </lib>
+</glyph>
