@@ -59,10 +59,13 @@ alias 01='doas reboot'
 alias x='startx'
 alias h='htop'
 alias nnn='nnn -r -d -C -e -t 120'
+alias v='nvim'
 alias youtube='youtube -D'
 #variables
 unsetopt BEEP
 source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+source ~/.p10k.zsh
+#source ~/powerlevel10k/powerlevel10k.zsh-theme
+source /home/karasu/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
