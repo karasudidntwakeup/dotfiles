@@ -47,9 +47,8 @@ export PATH="${PATH}:${HOME}/.local/bin/"
 export PATH="${PATH}:${HOME}/.cargo/bin"
 #
 alias sudo='doas'
-alias tree='eza --tree'
 alias u='sudo xbps-install -Su'
-alias ls='eza --icons'
+alias ls='eza --tree --icons --sort=newest'
 alias nnn='nnn -e'
 alias rec='ffmpeg -y -f x11grab  -i :0.0  ~/howto/output.mp4'
 alias sxiv='nsxiv'
@@ -64,8 +63,7 @@ alias youtube='youtube -D'
 #variables
 unsetopt BEEP
 source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh 
-
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 source ~/.p10k.zsh
-#source ~/powerlevel10k/powerlevel10k.zsh-theme
+source ~/powerlevel10k/powerlevel9k.zsh-theme
 source /home/karasu/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
