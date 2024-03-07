@@ -47,7 +47,6 @@ export PATH="${PATH}:${HOME}/.local/bin/"
 export PATH="${PATH}:${HOME}/.cargo/bin"
 #
 alias sudo='doas'
-alias u='sudo xbps-install -Su'
 alias ll='eza --tree --icons --sort=newest'
 alias ls='eza --icons --sort=newest'
 alias nnn='nnn -e'
