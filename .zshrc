@@ -63,7 +63,6 @@ alias v='nvim'
 alias youtube='youtube -D'
 #eval
 eval "$(zoxide init zsh)"
-
 #variables
 unsetopt BEEP
 source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh 
