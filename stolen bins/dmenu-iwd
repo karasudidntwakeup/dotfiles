@@ -1,6 +1,6 @@
 #!/bin/bash
 
-STATION="wlan0"
+STATION="wlp7s0"
 FONT="Cascadia Mono"
 NORMAL_BACKGROUND="#191919"
 NORMAL_FOREGROUND="#7aa2f7"
