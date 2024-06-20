@@ -45,24 +45,24 @@ LANG=en_US.UTF-8
 export PATH="$PATH:/sbin:/usr/sbin:usr/local/sbin"
 export PATH="${PATH}:${HOME}/.local/bin/"
 export PATH="${PATH}:${HOME}/.cargo/bin"
-#
-alias sudo='doas'
 alias u='sudo xbps-install -Su'
-alias ll='eza --tree --icons --sort=newest'
+alias lta='eza --tree --icons --sort=newest'
 alias ls='eza --icons --sort=newest'
 alias nnn='nnn -e'
 alias rec='ffmpeg -y -f x11grab  -i :0.0  ~/howto/output.mp4'
 alias sxiv='nsxiv'
 alias l='ls -d .* --color=auto'
-alias 00='doas poweroff'
-alias 01='doas reboot'
+alias 00='sudo poweroff'
+alias 01='sudo reboot'
 alias x='startx'
 alias h='htop'
 alias nnn='nnn -r -d -C -e -t 120'
 alias v='nvim'
 alias youtube='youtube -D'
+alias ipc='ip -c addr  show'
 #eval
 eval "$(zoxide init zsh)"
+
 #variables
 unsetopt BEEP
 source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh 
