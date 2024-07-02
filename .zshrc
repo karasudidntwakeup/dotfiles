@@ -48,6 +48,7 @@ export PATH="${PATH}:${HOME}/.cargo/bin"
 alias u='sudo xbps-install -Su'
 alias lta='eza --tree --icons --sort=newest'
 alias ls='eza --icons --sort=newest'
+alias sl='eza --icons --sort=newest'
 alias nnn='nnn -e'
 alias rec='ffmpeg -y -f x11grab  -i :0.0  ~/howto/output.mp4'
 alias sxiv='nsxiv'
