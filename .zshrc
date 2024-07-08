@@ -61,6 +61,7 @@ alias nnn='nnn -r -d -C -e -t 120'
 alias v='nvim'
 alias youtube='youtube -D'
 alias ipc='ip -c addr  show'
+alias cat='bat -p'
 #eval
 eval "$(zoxide init zsh)"
 
