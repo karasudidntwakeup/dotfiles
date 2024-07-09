@@ -23,14 +23,16 @@ bindkey "^[[1;9C" end-of-line       # cmd+→
 #
 autoload -U up-line-or-beginning-search
 autoload -U down-line-or-beginning-search
+autoload -U compinit; compinit
 zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
 ##
-PS1="%B%{$fg[red]%}[%{$fg[yellow]%}%n%{$fg[green]%}@%{$fg[blue]%}%M %{$fg[magenta]%}%~%{$fg[red]%}]%{$reset_color%}  $%b "
+#PS1="%B%{$fg[red]%}[%{$fg[yellow]%}%n%{$fg[green]%}@%{$fg[blue]%}%M %{$fg[magenta]%}%~%{$fg[red]%}]%{$reset_color%}  $%b "
 #
 setopt autocd		# Automatically cd into typed directory.
 setopt interactive_comments
 zstyle ':completion:*' menu select
+zstyle ':fzf-tab-complete:cd:*' zfz preview 'exa color $realpath'
 # History in cache directory:
 HISTSIZE=10000000
 SAVEHIST=10000000
@@ -63,12 +65,13 @@ alias youtube='youtube -D'
 alias ipc='ip -c addr  show'
 alias cat='bat -p'
 #eval
-eval "$(zoxide init zsh)"
-
+eval "$(zoxide init --cmd cd zsh)"
+eval "$(fzf --zsh)"
 #variables
 unsetopt BEEP
 source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh 
+source ~/github/somewhere//fzf-tab.plugin.zsh
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 source ~/.p10k.zsh
-source ~/powerlevel10k/powerlevel9k.zsh-theme
-source /home/karasu/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source ~/github/powerlevel10k/powerlevel10k.zsh-theme
+source ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
