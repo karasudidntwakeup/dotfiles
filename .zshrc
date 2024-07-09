@@ -37,6 +37,7 @@ zstyle ':fzf-tab-complete:cd:*' zfz preview 'eza color $realpath'
 HISTSIZE=10000000
 SAVEHIST=10000000
 HISTFILE=~/.zsh_history
+HISTDUP=erase
 #
 zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
 autoload -Uz compinit && compinit
