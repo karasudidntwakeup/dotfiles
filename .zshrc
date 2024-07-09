@@ -32,7 +32,7 @@ zle -N down-line-or-beginning-search
 setopt autocd		# Automatically cd into typed directory.
 setopt interactive_comments
 zstyle ':completion:*' menu select
-zstyle ':fzf-tab-complete:cd:*' zfz preview 'eza color $realpath'
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza --color $realpath'
 # History in cache directory:
 HISTSIZE=10000000
 SAVEHIST=10000000
