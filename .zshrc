@@ -32,7 +32,7 @@ zle -N down-line-or-beginning-search
 setopt autocd		# Automatically cd into typed directory.
 setopt interactive_comments
 zstyle ':completion:*' menu select
-zstyle ':fzf-tab-complete:cd:*' zfz preview 'exa color $realpath'
+zstyle ':fzf-tab-complete:cd:*' zfz preview 'eza color $realpath'
 # History in cache directory:
 HISTSIZE=10000000
 SAVEHIST=10000000
@@ -50,6 +50,7 @@ export PATH="${PATH}:${HOME}/.cargo/bin"
 alias u='sudo xbps-install -Su'
 alias lta='eza --tree --icons --sort=newest'
 alias ls='eza --icons --sort=newest'
+alias l= 'eza --icons --sort=newest'
 alias sl='eza --icons --sort=newest'
 alias nnn='nnn -e'
 alias rec='ffmpeg -y -f x11grab  -i :0.0  ~/howto/output.mp4'
