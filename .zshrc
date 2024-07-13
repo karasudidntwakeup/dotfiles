@@ -63,8 +63,9 @@ alias h='htop'
 alias nnn='nnn -r -d -C -e -t 120'
 alias v='nvim'
 alias youtube='youtube -D'
-alias ipc='ip -c addr  show'
+alias ip='ip --color=auto'
 alias cat='bat -p'
+alias grep='grep -i --color=auto'
 #eval
 eval "$(zoxide init --cmd cd zsh)"
 eval "$(fzf --zsh)"
