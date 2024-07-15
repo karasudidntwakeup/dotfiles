@@ -50,7 +50,7 @@ export PATH="${PATH}:${HOME}/.local/bin/"
 export PATH="${PATH}:${HOME}/.cargo/bin"
 alias u='sudo xbps-install -Su'
 alias lta='eza --tree --icons --sort=newest'
-alias ls='eza --icons --sort=newest'
+alias ls='eza -l --icons --sort=newest'
 alias l='eza -al --icons --sort=newest'
 alias sl='eza --icons --sort=newest'
 alias nnn='nnn -e'

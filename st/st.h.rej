@@ -1,0 +1,29 @@
+--- st.h
++++ st.h
+@@ -108,17 +107,6 @@ typedef struct {
+ 	char state;
+ } TCursor;
+ 
+-typedef struct _ImageList {
+-	struct _ImageList *next, *prev;
+-	unsigned char *pixels;
+-	void *pixmap;
+-	int width;
+-	int height;
+-	int x;
+-	int y;
+-	int should_delete;
+-} ImageList;
+-
+ /* Internal representation of the screen */
+ typedef struct {
+ 	int row;      /* nb row */
+@@ -137,8 +125,6 @@ typedef struct {
+ 	int icharset; /* selected charset for sequence */
+ 	int numlock; /* lock numbers in keyboard */
+ 	int *tabs;
+-	ImageList *images;     /* sixel images */
+-	ImageList *images_alt; /* sixel images for alternate screen */
+ } Term;
+ 
+ /* Purely graphic info */

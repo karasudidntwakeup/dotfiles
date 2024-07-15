@@ -1,0 +1,45 @@
+--- st.c
++++ st.c
+@@ -35,7 +35,6 @@ char *argv0;
+ 
+ #include "win.h"
+ #include "st.h"
+-#include "sixel.h"
+ 
+ #if   defined(__linux)
+  #include <pty.h>
+@@ -210,7 +208,6 @@ Term term;
+ Selection sel;
+ int cmdfd;
+ pid_t pid;
+-sixel_state_t sixel_st;
+ char **opt_cmd  = NULL;
+ char *opt_class = NULL;
+ char *opt_embed = NULL;
+@@ -2378,18 +2300,22 @@ tputc(Rune u)
+ 		if (u == '\a' || u == 030 || u == 032 || u == 033 ||
+ 		   ISCONTROLC1(u)) {
+ 			term.esc &= ~(ESC_START|ESC_STR|ESC_DCS);
++			if (IS_SET(MODE_SIXEL)) {
++				/* TODO: render sixel */;
++				term.mode &= ~MODE_SIXEL;
++				return;
++			}
+ 			term.esc |= ESC_STR_END;
+ 			goto check_control_code;
+ 		}
+ 
+ 
+ 		if (IS_SET(MODE_SIXEL)) {
+-			if (sixel_parser_parse(&sixel_st, (unsigned char *)&u, 1) != 0)
+-				perror("sixel_parser_parse() failed");
++			/* TODO: implement sixel mode */
+ 			return;
+ 		}
+-		if (term.esc & ESC_DCS)
+-			goto check_control_code;
++		if (term.esc&ESC_DCS && strescseq.len == 0 && u == 'q')
++			term.mode |= MODE_SIXEL;
+ 
+ 		if (strescseq.len+len >= sizeof(strescseq.buf)-1) {
+ 			/*
