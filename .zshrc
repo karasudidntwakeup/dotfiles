@@ -66,6 +66,7 @@ alias youtube='youtube -D'
 alias ip='ip --color=auto'
 alias cat='bat -p'
 alias grep='grep -i --color=auto'
+alias sudo='doas'
 #eval
 eval "$(zoxide init --cmd cd zsh)"
 eval "$(fzf --zsh)"
