@@ -41,13 +41,14 @@ HISTDUP=erase
 #
 zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
 autoload -Uz compinit && compinit
-#
+#encoding
 set encoding=utf-8
 LANG=en_US.UTF-8 
-#
+#PATH
 export PATH="$PATH:/sbin:/usr/sbin:usr/local/sbin"
 export PATH="${PATH}:${HOME}/.local/bin/"
 export PATH="${PATH}:${HOME}/.cargo/bin"
+#alias
 alias u='sudo xbps-install -Su'
 alias lta='eza --tree --icons --sort=newest'
 alias ls='eza -l --icons --sort=newest'
@@ -60,7 +61,6 @@ alias 00='sudo poweroff'
 alias 01='sudo reboot'
 alias x='startx'
 alias h='htop'
-alias nnn='nnn -r -d -C -e -t 120'
 alias v='nvim'
 alias youtube='youtube -D'
 alias ip='ip --color=auto'

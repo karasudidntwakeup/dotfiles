@@ -5,9 +5,8 @@ picom --experimental-backend &
 xset r rate 220 50
 setxkbmap -option caps:backspace
 slstatus &
-xwallpaper --zoom /home/karasu/github/dotfiles/CustomWallpapers/tg_image_2416214385.jpeg
-#while true; do
-#        dwm >/dev/null 2>&1
-#done
- exec  dwm
-
+xwallpaper --zoom /home/karasu/github/dotfiles/CustomWallpapers/test41.png
+while true; do
+        dwm >/dev/null 2>&1
+done
+exec dbus-run-session dwm
