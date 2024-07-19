@@ -49,24 +49,22 @@ export PATH="$PATH:/sbin:/usr/sbin:usr/local/sbin"
 export PATH="${PATH}:${HOME}/.local/bin/"
 export PATH="${PATH}:${HOME}/.cargo/bin"
 #alias
-alias u='sudo xbps-install -Su'
+alias u='sudo pacman -Syyu'
 alias lta='eza --tree --icons --sort=newest'
 alias ls='eza -l --icons --sort=newest'
 alias l='eza -al --icons --sort=newest'
 alias sl='eza --icons --sort=newest'
-alias nnn='nnn -e'
+export LESS='-R --use-color -Dd+r$Du+b$'
 alias rec='ffmpeg -y -f x11grab  -i :0.0  ~/howto/output.mp4'
 alias sxiv='nsxiv'
 alias 00='sudo poweroff'
 alias 01='sudo reboot'
 alias x='startx'
 alias h='htop'
-alias v='nvim'
+alias vim='nvim'
 alias youtube='youtube -D'
 alias ip='ip --color=auto'
-alias cat='bat -p'
 alias grep='grep -i --color=auto'
-alias sudo='doas'
 #eval
 eval "$(zoxide init --cmd cd zsh)"
 eval "$(fzf --zsh)"
