@@ -62,7 +62,6 @@ alias 01='sudo reboot'
 alias x='startx'
 alias h='htop'
 alias vim='nvim'
-alias youtube='youtube -D'
 alias ip='ip --color=auto'
 alias grep='grep -i --color=auto'
 #eval
