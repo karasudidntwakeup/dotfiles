@@ -28,6 +28,7 @@ zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
 ##
 #PS1="%B%{$fg[red]%}[%{$fg[yellow]%}%n%{$fg[green]%}@%{$fg[blue]%}%M %{$fg[magenta]%}%~%{$fg[red]%}]%{$reset_color%}  $%b "
+
 #
 setopt autocd		# Automatically cd into typed directory.
 setopt interactive_comments
@@ -45,6 +46,7 @@ autoload -Uz compinit && compinit
 set encoding=utf-8
 LANG=en_US.UTF-8 
 #PATH
+export EDITOR=nvim
 export PATH="$PATH:/sbin:/usr/sbin:usr/local/sbin"
 export PATH="${PATH}:${HOME}/.local/bin/"
 export PATH="${PATH}:${HOME}/.cargo/bin"
@@ -61,9 +63,9 @@ alias 00='sudo poweroff'
 alias 01='sudo reboot'
 alias x='startx'
 alias h='htop'
-alias vim='nvim'
 alias ip='ip --color=auto'
 alias grep='grep -i --color=auto'
+alias cat='bat'
 #eval
 eval "$(zoxide init --cmd cd zsh)"
 eval "$(fzf --zsh)"
