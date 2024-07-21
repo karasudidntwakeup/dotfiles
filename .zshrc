@@ -6,8 +6,14 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
 fi
 # Enable colors and change prompt:
 autoload -U colors && colors	# Load colors
-local WORDCHARS='*?_[]~=&;!#$%^(){}<>?'
-#
+################ 
+my-backward-delete-word () {
+    local WORDCHARS='~!#$%^&*(){}[]<>?+;'
+    zle backward-delete-word
+ }
+zle -N my-backward-delete-word
+bindkey    '\e^?' my-backward-delete-word
+#################################3
 bindkey "^[[1;5C" forward-word
 bindkey "^[[1;5D" backward-word
 #
@@ -39,9 +45,6 @@ HISTSIZE=10000000
 SAVEHIST=10000000
 HISTFILE=~/.zsh_history
 HISTDUP=erase
-#
-zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
-autoload -Uz compinit && compinit
 #encoding
 set encoding=utf-8
 LANG=en_US.UTF-8 
