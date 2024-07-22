@@ -69,6 +69,7 @@ alias h='htop'
 alias ip='ip --color=auto'
 alias grep='grep -i --color=auto'
 alias cat='bat'
+alias xbacklight='sudo xbacklight'
 #eval
 eval "$(zoxide init --cmd cd zsh)"
 eval "$(fzf --zsh)"
@@ -77,6 +78,6 @@ unsetopt BEEP
 source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh 
 source ~/github/somewhere//fzf-tab.plugin.zsh
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-source ~/.p10k.zsh
 source ~/github/powerlevel10k/powerlevel10k.zsh-theme
 source ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
