@@ -4,7 +4,7 @@
  *
  * font: see http://freedesktop.org/software/fontconfig/fontconfig-user.html
  */
-static char *font = "Cascadia Code:pixelsize=16:antialias=true:autohint=true";
+static char *font = "Comic Mono:pixelsize=17:antialias=true:autohint=true";
 static int borderpx = 5;
 
 /*
