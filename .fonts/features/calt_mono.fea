@@ -1,3 +1,0 @@
-feature calt {
-sub dcaron' [lacute lcaron lcommaaccent ldot lslash b h k l hbar hcircumflex kcommaaccent @Uppercase] by dcaron.alt;
-} calt;
