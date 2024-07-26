@@ -33,7 +33,7 @@ autoload -U compinit; compinit
 zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
 ##
-#PS1="%B%{$fg[red]%}[%{$fg[yellow]%}%n%{$fg[green]%}@%{$fg[blue]%}%M %{$fg[magenta]%}%~%{$fg[red]%}]%{$reset_color%}  $%b "
+PS1="%B%{$fg[red]%}[%{$fg[yellow]%}%n%{$fg[green]%}@%{$fg[blue]%}%M %{$fg[magenta]%}%~%{$fg[red]%}]%{$reset_color%}  $%b "
 
 #
 setopt autocd		# Automatically cd into typed directory.
@@ -56,8 +56,8 @@ export PATH="${PATH}:${HOME}/.cargo/bin"
 #alias
 alias u='sudo pacman -Syyu'
 alias lta='eza --tree --icons --sort=newest'
-alias ls='eza -l --icons --sort=newest'
-alias l='eza -al --icons --sort=newest'
+alias ls=' eza -l --color=always --group-directories-first'
+alias l='eza -al --color=always --group-directories-first'
 alias sl='eza --icons --sort=newest'
 export LESS='-R --use-color -Dd+r$Du+b$'
 alias rec='ffmpeg -y -f x11grab  -i :0.0  ~/howto/output.mp4'
