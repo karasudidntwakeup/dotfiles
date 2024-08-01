@@ -56,7 +56,7 @@ export PATH="${PATH}:${HOME}/.cargo/bin"
 #alias
 alias u='sudo pacman -Syyu'
 alias lta='eza --tree --icons --sort=newest'
-alias ls=' eza -l --color=always --group-directories-first'
+alias ls=' eza --icons --color=always --group-directories-first'
 alias l='eza -al --color=always --group-directories-first'
 alias sl='eza --icons --sort=newest'
 export LESS='-R --use-color -Dd+r$Du+b$'
