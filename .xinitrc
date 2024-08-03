@@ -2,6 +2,9 @@
 xrandr --setprovideroutputsource NVIDIA-G0
 xrandr --auto
 setxkbmap -option caps:backspace
+/usr/bin/pipewire &
+/usr/bin/pipewire-pulse &
+/usr/bin/wireplumber &
 picom -f &
 slstatus &
 xwallpaper --zoom /home/karasu/github//github/dotfiles/CustomWallpapers/test41.png
