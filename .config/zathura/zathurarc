@@ -1,1 +1,4 @@
-/home/karasu/.cache/wal/zathurarc
+set selection-clipboard clipboard
+set recolor-keephue
+set default-bg \#191919
+set recolor-lightcolor \#191919

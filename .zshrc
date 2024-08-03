@@ -55,6 +55,7 @@ export PATH="${PATH}:${HOME}/.local/bin/"
 export PATH="${PATH}:${HOME}/.cargo/bin"
 #alias
 alias u='sudo pacman -Syyu'
+alias yu='yay -Syyu'
 alias lta='eza --tree --icons --sort=newest'
 alias ls=' eza --icons --color=always --group-directories-first'
 alias l='eza -al --color=always --group-directories-first'
@@ -70,6 +71,7 @@ alias ip='ip --color=auto'
 alias grep='grep -i --color=auto'
 alias cat='bat'
 alias xbacklight='sudo xbacklight'
+alias rsync='rsync -avd --progress'
 #eval
 eval "$(zoxide init --cmd cd zsh)"
 eval "$(fzf --zsh)"
