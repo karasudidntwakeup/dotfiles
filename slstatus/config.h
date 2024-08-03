@@ -66,7 +66,7 @@ static const char unknown_str[] = "0";
 static const struct arg args[] = {
 	{ keymap, "^c#ff7eb6^ %s  ", NULL  },
   { run_command," %s ","awk -F'[][]' '/Left:/ { print $2 }' <(amixer sget Master)"},
-  { ram_perc,    "^c#42be65^  %s%% ",  NULL },
+  { ram_perc,    "^c#c591e9^  %s%% ",  NULL },
   { netspeed_rx, "^c#be95ff^ 󰖩  %sB/s ", "wlan0" },
 	{ battery_perc, "^c#ee5396^  %s%%", "BAT0" },
 	{ datetime, "^c#f7b928^   %s ", "%F"},
