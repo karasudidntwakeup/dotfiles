@@ -63,11 +63,15 @@ static const char unknown_str[] = "0";
  * wifi_perc           WiFi signal in percent          interface name (wlan0)
  * wifi_essid          WiFi ESSID                      interface name (wlan0)
  */
+static const char vol[]         = "[ `amixer sget Master | tail -n 1 | awk '{print $6;}'` = \"[on]\" ] \
+                                   && printf \"`amixer sget Master | tail -n 1 | awk '{print $5;}' | grep -Po '\\[\\K[^%]*'`%%\" \
+                                   || printf 'Off'";
 static const struct arg args[] = {
 	{ keymap, "^c#ff7eb6^ %s  ", NULL  },
-  { run_command, "^c#33b1ff^  󰋋  %s   ", "pactl list sinks | tr ' ' '\n' | grep -m1 '%'"},
-  { netspeed_rx, "^c#be95ff^ 󰖩 %sB/s    ", "wlan0" },
-	{ battery_perc, "^c#ee5396^    %s%%  ", "BAT0" },
-	{ datetime, "^c#f7b928^   %s  ", "%F"},
-	{ datetime, "^c#7aa2f7^ 󱑆 %s  ","%I:%M %p"}
+  { run_command,          " %s ",        vol },
+  { ram_perc,    "^c#42be65^  %s%% ",  NULL },
+  { netspeed_rx, "^c#be95ff^ 󰖩 %sB/s ", "wlan0" },
+	{ battery_perc, "^c#ee5396^    %s%% ", "BAT0" },
+	{ datetime, "^c#f7b928^   %s ", "%F"},
+	{ datetime, "^c#7aa2f7^ 󱑆 %s ","%I:%M %p"}
 };
