@@ -19,7 +19,7 @@
   "modules": [
     {
 	  	"type": "custom", // startofinfo
-	  	"format": "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
+	  	"format": ""
 	  },
     {
 	  	"type": "custom", // start
@@ -31,74 +31,74 @@
 	  },
     {
       "type": "custom",
-      "format": "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
+      "format": ""
     },
     "break",
     {
       "type": "os",
-      "key": "  ",
+      "key": "   ",
       "keyColor": "blue"
     },
     {
       "type": "kernel",
-      "key": "  ",
+      "key": "   ",
       "keyColor": "white"
     },
     {
       "type": "packages",
-      "key": "  󰮯",
+      "key": "  󰮯 ",
       "keyColor": "yellow"
     },
     {
       "type": "wm",
-      "key": "  󰨇",
+      "key": "  󰨇 ",
       "keyColor": "blue"
     },
     {
       "type": "terminal",
-      "key": "  ",
+      "key": "   ",
       "keyColor": "magenta"
     },
     {
       "type": "shell",
-      "key": "  ",
+      "key": "   ",
       "keyColor": "yellow"
     },
     "break",
     {
       "type": "custom",
-      "format": "┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫"
+      "format": ""
     },
     "break",
     {
       "type": "host",
-      "key": "  ",
+      "key": "   ",
       "keyColor": "bright_blue"
     },
     {
       "type": "cpu",
-      "key": "  ",
+      "key": "   ",
       "keyColor": "bright_green"
     },
     {
       "type": "gpu",
-      "key": "  󱤓",
+      "key": "  󱤓 ",
       "keyColor": "red"
     },
     {
       "type": "memory",
-      "key": "  󰍛",
+      "key": "  󰍛 ",
       "keyColor": "bright_yellow"
     },
     {
       "type": "disk",
-      "key": "  ",
+      "key": "   ",
       "keyColor": "bright_cyan"
     },
     "break",
     {
       "type": "custom",
-      "format": "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"
+      "format": ""
     }
   ]
 }
