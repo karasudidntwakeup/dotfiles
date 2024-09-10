@@ -6,7 +6,7 @@ xmodmap ~/.Xmodmap
 /usr/bin/pipewire-pulse &
 picom -f &
 slstatus &
-redshift -l 26.820553:30.802498 &
+redshift &
 xwallpaper --zoom /home/karasu/github//github/dotfiles/CustomWallpapers/white/b.png
 /usr/bin/wireplumber &
 xset r rate 220 50
