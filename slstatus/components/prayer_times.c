@@ -57,7 +57,7 @@ prayer_times(const char *unused)
     int hours_left = diff_minutes / 60;
     int minutes_left = diff_minutes % 60;
     
-    snprintf(output, MAX_OUTPUT_LENGTH, "%s in %dh %dm", next_prayer->name, hours_left, minutes_left);
+    snprintf(output, MAX_OUTPUT_LENGTH, "%s in %d h %d m", next_prayer->name, hours_left, minutes_left);
     
     return output;
 }
