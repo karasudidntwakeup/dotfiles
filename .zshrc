@@ -72,6 +72,7 @@ alias grep='grep -i --color=auto'
 alias cat='bat'
 alias xbacklight='sudo xbacklight'
 alias rsync='rsync -avd --progress'
+alias yt='yt-dlp  -f "bestvideo[height<=720]+bestaudio/best[height<=720]" --audio-quality 0'
 #eval
 eval "$(zoxide init --cmd cd zsh)"
 eval "$(fzf --zsh)"
