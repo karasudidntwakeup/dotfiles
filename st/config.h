@@ -87,27 +87,28 @@ float alpha = 0.5;
 /* Terminal colors (16 first used in escape sequence) */
 const char *colorname[] = {
 
+ /* 8 normal colors */
+    [0] = "#4a4a4a", /* dark gray */
+    [1] = "#696969", /* dark gray with red tint */
+    [2] = "#5a5a5a", /* dark gray with green tint */
+    [3] = "#6b6b5a", /* dark gray with yellow tint */
+    [4] = "#4a4a5f", /* dark gray with blue tint */
+    [5] = "#5f4a5f", /* dark gray with pink tint */
+    [6] = "#4a5f5f", /* dark gray with teal tint */
+    [7] = "#3c3c3c", /* darker gray */
+
+    /* 8 bright colors */
+    [8]  = "#5c5c5c", /* medium gray */
+    [9]  = "#7a7070", /* medium gray with red tint */
+    [10] = "#607060", /* medium gray with green tint */
+    [11] = "#7a7060", /* medium gray with peach tint */
+    [12] = "#5c5c7a", /* medium gray with sapphire tint */
+    [13] = "#705c7a", /* medium gray with mauve tint */
+    [14] = "#5c707a", /* medium gray with sky tint */
+    [15] = "#2e2e2e", /* very dark gray */
+
   /* 8 normal colors */
-  [0] = "#000000", /* black   */
-  [1] = "#b4aefe", /* red     */
-  [2] = "#402e7a", /* green   */
-  [3] = "#940B92", /* yellow  */
-  [4] = "#435585", /* blue    */
-  [5] = "#430A5D", /* magenta */
-  [6] = "#b4aefe", /* cyan    */
-  [7] = "#4F1787", /* white   */
-
-  /* 8 bright colors */
-  [8]  = "#707070",  /* black   */
-  [9]  = "#707070",  /* red     */
-  [10] = "#929292", /* green   */
-  [11] = "#B0B0B0", /* yellow  */
-  [12] = "#C9C9C9", /* blue    */
-  [13] = "#D8D8D8", /* magenta */
-  [14] = "#E7E7E7", /* cyan    */
-  [15] = "#f1f1f1", /* white   */
-
-  /* special colors */
+   /* special colors */
   [256] = "#ffffff", /* background */
   [257] = "#000000", /* foreground */
   [258] = "#b4aefe",     /* cursor */
