@@ -31,7 +31,7 @@ prayer_times(const char *unused)
         {"Dhuhr", 12, 49},
         {"Asr", 16, 17},
         {"Maghrib", 18, 54},
-        {"Isha", 20, 12}
+        {"Isha", 20, 13}
     };
     
     int num_prayers = sizeof(prayers) / sizeof(prayers[0]);
