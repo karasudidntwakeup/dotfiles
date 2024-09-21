@@ -65,10 +65,11 @@ static const char unknown_str[] = "0";
  */
 static const struct arg args[] = {
 	{ keymap, "^c#000000^ %s  ", NULL  },
-  { run_command," %s ","awk -F'[][]' '/Left:/ { print $2 }' <(amixer sget Master)"},
+  { prayer_times, " %s",        NULL },
+  { run_command,"   %s ","awk -F'[][]' '/Left:/ { print $2 }' <(amixer sget Master)"},
   { ram_perc,    "  %s%% ",  NULL },
   { netspeed_rx, " 󰖩  %sB/s ", "wlan0" },
 	{ battery_perc, "  %s%%", "BAT0" },
 	{ datetime, "   %s ", "%F"},
-	{ datetime, " 󱑆 %s ","%I:%M %p"}
+	{ datetime, " 󱑆 %s ","%I:%M %p"},
 };
