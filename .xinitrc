@@ -1,5 +1,6 @@
 #!/bin/sh
 xrandr --setprovideroutputsource NVIDIA-G0
+xrandr --auto
 xmodmap ~/.Xmodmap &
 /usr/bin/wireplumber &
 /usr/bin/pipewire &
