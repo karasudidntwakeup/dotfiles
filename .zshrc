@@ -50,6 +50,7 @@ set encoding=utf-8
 LANG=en_US.UTF-8 
 #PATH
 export EDITOR=nvim
+export MANPATH="/usr/share/man"
 export PATH="$PATH:/sbin:/usr/sbin:usr/local/sbin"
 export PATH="${PATH}:${HOME}/.local/bin/"
 export PATH="${PATH}:${HOME}/.cargo/bin"
