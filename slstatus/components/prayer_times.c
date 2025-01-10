@@ -27,11 +27,11 @@ prayer_times(const char *unused)
     
     // Hardcoded prayer times for demonstration
     PrayerTime prayers[] = {
-        {"Fajr", 4, 43},
-        {"Dhuhr", 11, 39},
-        {"Asr", 14, 43},
-        {"Maghrib", 17, 05},
-        {"Isha", 18, 24}
+        {"Fajr", 5, 20},
+        {"Dhuhr", 12, 03},
+        {"Asr", 14, 54},
+        {"Maghrib", 17, 14},
+        {"Isha", 18, 36}
     };
     
     int num_prayers = sizeof(prayers) / sizeof(prayers[0]);
