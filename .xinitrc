@@ -8,7 +8,7 @@ xmodmap ~/.Xmodmap &
 picom -f &
 slstatus &
 redshift &
-xwallpaper --zoom /home/karasu/github//github/dotfiles/CustomWallpapers/white/b.png
+xwallpaper --zoom github/github/dotfiles/CustomWallpapers/white/6444A989D4D179437DA8201E7789235A_1737299071815.jpg
 xset r rate 220 50
 #while true; do
 #        dwm >/dev/null 2>&1
