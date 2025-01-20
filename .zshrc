@@ -50,7 +50,6 @@ set encoding=utf-8
 LANG=en_US.UTF-8 
 #PATH
 export EDITOR=nvim
-export MANPATH="/usr/share/man"
 export PATH="$PATH:/sbin:/usr/sbin:usr/local/sbin"
 export PATH="${PATH}:${HOME}/.local/bin/"
 export PATH="${PATH}:${HOME}/.cargo/bin"
@@ -62,7 +61,7 @@ alias ls=' eza --icons --color=always --group-directories-first'
 alias l='eza -al --color=always --group-directories-first'
 alias sl='eza --icons --sort=newest'
 export LESS='-R --use-color -Dd+r$Du+b$'
-alias rec='ffmpeg -y -f x11grab  -i :0.0  ~/howto/output.mp4'
+alias rec='ffmpeg -f x11grab -r  -i :0.0 -f pulse -i alsa_output.usb-C-Media_Electronics_Inc._USB_Audio_Device-00.analog-stereo.monitor  -ac 2 recording.mp4'
 alias sxiv='nsxiv'
 alias 00='sudo poweroff'
 alias 01='sudo reboot'
@@ -73,7 +72,8 @@ alias grep='grep -i --color=auto'
 alias cat='bat'
 alias xbacklight='sudo xbacklight'
 alias rsync='rsync -avd --progress'
-alias yt='yt-dlp  -f "bestvideo[height<=720]+bestaudio/best[height<=720]" --audio-quality 0'
+alias yt='yt-dlp  -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]" --audio-quality 0'
+alias v='nvim'
 #eval
 eval "$(zoxide init --cmd cd zsh)"
 eval "$(fzf --zsh)"
@@ -85,3 +85,9 @@ source ~/github/somewhere/fzf-tab.plugin.zsh
 source ~/github/powerlevel10k/powerlevel10k.zsh-theme
 source ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+## [Completion]
+## Completion scripts setup. Remove the following line to uninstall
+[[ -f /home/karasu/.dart-cli-completion/zsh-config.zsh ]] && . /home/karasu/.dart-cli-completion/zsh-config.zsh || true
+## [/Completion]
+
