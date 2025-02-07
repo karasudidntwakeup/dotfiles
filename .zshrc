@@ -75,6 +75,8 @@ alias xbacklight='sudo xbacklight'
 alias rsync='rsync -uvrP'
 alias yt='yt-dlp  -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]" --audio-quality 0'
 alias v='nvim'
+alias timer='tclock timer -d 20m -M'
+
 #eval
 eval "$(zoxide init --cmd cd zsh)"
 eval "$(fzf --zsh)"
