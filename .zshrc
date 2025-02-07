@@ -53,6 +53,7 @@ export EDITOR=nvim
 export PATH="$PATH:/sbin:/usr/sbin:usr/local/sbin"
 export PATH="${PATH}:${HOME}/.local/bin/"
 export PATH="${PATH}:${HOME}/.cargo/bin"
+export OLLAMA_NOPRUNE=true
 #alias
 alias u='sudo pacman -Syyu'
 alias yu='yay -Syyu'
@@ -71,7 +72,7 @@ alias ip='ip --color=auto'
 alias grep='grep -i --color=auto'
 alias cat='bat'
 alias xbacklight='sudo xbacklight'
-alias rsync='rsync -avd --progress'
+alias rsync='rsync -uvrP'
 alias yt='yt-dlp  -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]" --audio-quality 0'
 alias v='nvim'
 #eval
