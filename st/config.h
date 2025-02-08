@@ -95,7 +95,7 @@ const char *colorname[] = {
     [4] = "#9DBDFF", /* blue    */
     [5] = "#B87AAA", /* magenta */
     [6] = "#68B3B3", /* cyan    */
-    [7] = "#B6BAC1", /* white   */
+    [7] = "#000000", /* white   */
 
     /* 8 bright colors */
     [8]  = "#4E515F", /* black   */
@@ -111,7 +111,7 @@ const char *colorname[] = {
     [256] = "#ffffff", /* background */
     [257] = "#3A3E56", /* foreground */
     [258] = "#A66395", /* cursor */
-    [259] = "#F8FAFD", /* reverse cursor */
+    [259] = "#000000", /* reverse cursor */
 };
 /*
 /*
