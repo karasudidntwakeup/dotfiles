@@ -76,6 +76,7 @@ alias rsync='rsync -auvrP'
 alias yt='yt-dlp  -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]" --audio-quality 0'
 alias v='nvim'
 alias timer='tclock timer -d 20m -M'
+alias lf=lfrun
 
 #eval
 eval "$(zoxide init --cmd cd zsh)"
