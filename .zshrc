@@ -39,6 +39,9 @@ PS1="%B%{$fg[red]%}[%{$fg[yellow]%}%n%{$fg[green]%}@%{$fg[blue]%}%M %{$fg[magent
 setopt autocd		# Automatically cd into typed directory.
 setopt interactive_comments
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*' menu no
+zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'eza --color $realpath'
 zstyle ':completion:*' menu select
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza --color $realpath'
 # History in cache directory:
