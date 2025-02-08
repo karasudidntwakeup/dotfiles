@@ -38,6 +38,7 @@ PS1="%B%{$fg[red]%}[%{$fg[yellow]%}%n%{$fg[green]%}@%{$fg[blue]%}%M %{$fg[magent
 #
 setopt autocd		# Automatically cd into typed directory.
 setopt interactive_comments
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 zstyle ':completion:*' menu select
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza --color $realpath'
 # History in cache directory:
@@ -92,6 +93,5 @@ source ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 ## [Completion]
 ## Completion scripts setup. Remove the following line to uninstall
-[[ -f /home/karasu/.dart-cli-completion/zsh-config.zsh ]] && . /home/karasu/.dart-cli-completion/zsh-config.zsh || true
 ## [/Completion]
 
