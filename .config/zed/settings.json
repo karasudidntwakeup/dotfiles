@@ -8,6 +8,7 @@
 // from the command palette or from `Zed` application menu.
 {
     "theme": "Catppuccin Latte",
+    "vim_mode": true,
     "buffer_font_size": 15.0,
     "tab_size": 4,
     "buffer_font_family": "Geist Mono",
@@ -88,9 +89,8 @@
             "tab_size": 4,
             "hard_tabs": true
         }
-    },
+    }
 
-  "vim_mode": true
 }
 
 
