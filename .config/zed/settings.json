@@ -9,7 +9,7 @@
 {
     "theme": "Catppuccin Latte",
     "vim_mode": true,
-    "buffer_font_size": 15.0,
+    "buffer_font_size": 16.0,
     "tab_size": 4,
     "buffer_font_family": "Geist Mono",
     "format_on_save": "off",
@@ -39,7 +39,7 @@
 
     "experimental.theme_overrides": {
         "background.appearance": "blurred",
-        "background": "#f9fafcd7",
+        "background": "#fffffff0",
         "status_bar.background": "#f9fafcd7",
         "title_bar.background": "#f9fafcd7",
         "elevated_surface.background": "#f9fafc",
@@ -92,5 +92,3 @@
     }
 
 }
-
-
