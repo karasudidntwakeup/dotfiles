@@ -4,7 +4,7 @@
  *
  * font: see http://freedesktop.org/software/fontconfig/fontconfig-user.html
  */
-static char *font = "Recursive Mono Casual Static:pixelsize=15:antialias=true:autohint=true";
+static char *font = "Comic Code:pixelsize=15";
 static int borderpx = 5;
 
 /*
