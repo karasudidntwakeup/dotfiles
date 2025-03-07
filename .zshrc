@@ -59,6 +59,7 @@ export PATH="${PATH}:${HOME}/.local/bin/"
 export PATH="${PATH}:${HOME}/.cargo/bin"
 export OLLAMA_NOPRUNE=true
 #alias
+alias tree='eza --tree --icons --sort=newest --color=always'
 alias u='sudo pacman -Syyu'
 alias yu='yay -Syyu'
 alias lta='eza --tree --icons --sort=newest'
