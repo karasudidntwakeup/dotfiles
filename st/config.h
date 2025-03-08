@@ -4,7 +4,7 @@
  *
  * font: see http://freedesktop.org/software/fontconfig/fontconfig-user.html
  */
-static char *font = "Comic Code:pixelsize=15";
+static char *font = "Comic Code:pixelsize=16";
 static int borderpx = 5;
 
 /*
@@ -82,36 +82,38 @@ char *termname = "st-256color";
 unsigned int tabspaces = 8;
 
 /* bg opacity */
-float alpha = 0.94;
+float alpha = 1;
 
 /* Terminal colors (16 first used in escape sequence) */
 const char *colorname[] = {
 
-      /* 8 normal colors */
-    [0] = "#686C7A", /* black   */
-    [1] = "#C86464", /* red     */
-    [2] = "#6C48C5", /* green   */
-    [3] = "#C9A664", /* yellow  */
-    [4] = "#9DBDFF", /* blue    */
-    [5] = "#B87AAA", /* magenta */
-    [6] = "#68B3B3", /* cyan    */
-    [7] = "#000000", /* white   */
+/* 8 normal colors */
+[0] = "#141423", /* black   */
+[1] = "#C197FD", /* red     */
+[2] = "#E5C697", /* green   */
+[3] = "#62D6E8", /* yellow  */
+[4] = "#20E3B2", /* blue    */
+[5] = "#FF6BCB", /* magenta */
+[6] = "#8BE9FD", /* cyan    */
+[7] = "#E9E9F4", /* white   */
 
-    /* 8 bright colors */
-    [8]  = "#4E515F", /* black   */
-    [9]  = "#B54D4D", /* red     */
-    [10] = "#6C48C5", /* green   */
-    [11] = "#B8914D", /* yellow  */
-    [12] = "#9DBDFF", /* blue    */
-    [13] = "#A66395", /* magenta */
-    [14] = "#529A9A", /* cyan    */
-    [15] = "#9FA3AA", /* white   */
+/* 8 bright colors */
+[8]  = "#373760", /* black   */
+[9]  = "#C197FD", /* red     */
+[10] = "#E5C697", /* green   */
+[11] = "#62D6E8", /* yellow  */
+[12] = "#20E3B2", /* blue    */
+[13] = "#FF6BCB", /* magenta */
+[14] = "#8BE9FD", /* cyan    */
+[15] = "#F1F2F8", /* white   */
 
-    /* special colors */
-    [256] = "#ffffff", /* background */
-    [257] = "#3A3E56", /* foreground */
-    [258] = "#A66395", /* cursor */
-    [259] = "#000000", /* reverse cursor */
+/* special colors */
+[256] = "#141423", /* background */
+[257] = "#E9E9F4", /* foreground */
+[258] = "#20E3B2", /* cursor */
+[259] = "#373760", /* selection background */
+[260] = "#E9E9F4", /* selection foreground */
+
 };
 /*
 /*
