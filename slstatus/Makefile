@@ -7,6 +7,7 @@ include config.mk
 REQ = util
 COM =\
 	components/battery\
+	components/mpd_status\
 	components/cpu\
 	components/datetime\
 	components/disk\
@@ -28,7 +29,6 @@ COM =\
 	components/volume\
 	components/wifi\
 	components/prayer_times
-
 all: slstatus
 
 $(COM:=.o): config.mk $(REQ:=.h)

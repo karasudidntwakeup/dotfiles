@@ -5,9 +5,11 @@ const unsigned int interval = 1000;
 
 /* text to show if no value can be retrieved */
 static const char unknown_str[] = "0";
-
+#include "components/mpd_status.h"
 /* maximum output string length */
 #define MAXLEN 2048
+#include <stdio.h>
+#include <stdlib.h>
 
 /*
  * function            description                     argument (example)
@@ -63,8 +65,10 @@ static const char unknown_str[] = "0";
  * wifi_perc           WiFi signal in percent          interface name (wlan0)
  * wifi_essid          WiFi ESSID                      interface name (wlan0)
  */
+
 static const struct arg args[] = {
 	{ keymap, "^c#373760^  %s  ", NULL  },
+  { mpd_status, "^c#7e7eb5^  %s ", NULL },
   { prayer_times, "^c#7e7eb5^  %s",        NULL },
   { run_command," ^c#E5C697^  %s ","awk -F'[][]' '/Left:/ { print $2 }' <(amixer sget Master)"},
   { ram_perc,    "^c#62d6e8^  %s%% ",  NULL },
