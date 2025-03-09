@@ -59,6 +59,7 @@ export PATH="${PATH}:${HOME}/.local/bin/"
 export PATH="${PATH}:${HOME}/.cargo/bin"
 export OLLAMA_NOPRUNE=true
 #alias
+alias sudo='doas'
 alias tree='eza --tree --icons --sort=newest --color=always'
 alias u='sudo pacman -Syyu'
 alias yu='yay -Syyu'
@@ -81,7 +82,8 @@ alias rsync='rsync -auvrP'
 alias yt='yt-dlp  -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]" --audio-quality 0'
 alias v='nvim'
 alias timer='tclock timer -d 20m -M'
-alias lf=lfrun
+alias lf=l'frun'
+alias fzf='fzf --preview="bat --color=always {}"'
 
 #eval
 eval "$(zoxide init --cmd cd zsh)"
