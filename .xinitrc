@@ -6,7 +6,7 @@ xmodmap ~/.Xmodmap &
 /usr/bin/pipewire-pulse &
 picom -f &
 slstatus &
-redshift &
+#redshift &
 xwallpaper --zoom ~/.config/wall.png
 #while true; do
 #        dwm >/dev/null 2>&1
