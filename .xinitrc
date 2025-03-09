@@ -1,11 +1,10 @@
 #!/bin/sh
 xrandr --auto
 xmodmap ~/.Xmodmap &
-/usr/bin/wireplumber &
-/usr/bin/pipewire &
-/usr/bin/pipewire-pulse &
 picom -f &
 slstatus &
+pipe &
+mpd; mpc ls|mpc add
 #redshift &
 xwallpaper --zoom ~/.config/wall.png
 #while true; do
