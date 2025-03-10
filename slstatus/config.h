@@ -72,6 +72,7 @@ static const struct arg args[] = {
   { prayer_times, "^c#c197fd^  %s",        NULL },
   { run_command," ^c#E5C697^  %s ","awk -F'[][]' '/Left:/ { print $2 }' <(amixer sget Master)"},
   { ram_perc,    "^c#62d6e8^  %s%% ",  NULL },
+  { run_command, "^c#FFB86C^ %s", "iwgetid -r $interface" },
   { netspeed_rx, "^c#FFB86C^  %sB/s ", "wlan0" },
 	{ battery_perc, "^c#20E3B2^  %s%%", "BAT0" },
 	{ datetime, "^c#ff6bcb^   %s ", "%F"},
