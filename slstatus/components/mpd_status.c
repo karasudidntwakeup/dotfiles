@@ -11,7 +11,7 @@ mpd_status(const char *unused)
     char buffer[128];
 
     /* تشغيل أمر mpc للحصول على حالة التشغيل والعنوان والفنان */
-    fp = popen("mpc -f '[%artist% - ][%title%][ [%state%]]'", "r");
+    fp = popen("mpc -f '[%title%]'", "r");
     if (fp == NULL) {
         return "⏹ Error"; // عرض رسالة إذا فشل الأمر
     }
