@@ -21,7 +21,7 @@ mpd_status(const char *unused)
 
         /* التحقق مما إذا كان الإخراج فارغًا أو يحتوي على رسائل غير مرغوبة */
         if (strlen(buffer) == 0 || strstr(buffer, "volume:") || strstr(buffer, "ERROR")) {
-            output = "⏹ No Music"; // عرض رسالة إذا لم يكن هناك موسيقى
+            output = ""; // عرض رسالة إذا لم يكن هناك موسيقى
         } else {
             /* تحليل حالة التشغيل */
             if (strstr(buffer, "[playing]")) {
