@@ -99,4 +99,10 @@ source ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 ## [Completion]
 ## Completion scripts setup. Remove the following line to uninstall
 ## [/Completion]
-
+# Start tmux automatically if it's not already running
+# # Only run in interactive shells
+if [[ $- == *i* ]]; then
+    if command -v tmux &> /dev/null && [ -z "$TMUX" ]; then
+        tmux attach-session -t default || tmux new-session -s default
+    fi
+fi
