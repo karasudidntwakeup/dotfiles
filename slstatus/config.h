@@ -5,7 +5,6 @@ const unsigned int interval = 1000;
 
 /* text to show if no value can be retrieved */
 static const char unknown_str[] = "0";
-#include "components/mpd_status.h"
 /* maximum output string length */
 #define MAXLEN 2048
 #include <stdio.h>
@@ -68,7 +67,6 @@ static const char unknown_str[] = "0";
 
 static const struct arg args[] = {
 	{ keymap, "^c#373760^  %s  ", NULL  },
-  { mpd_status, "^c#6272a4^  %s ", NULL },
   { prayer_times, "^c#c197fd^  %s",        NULL },
   { run_command," ^c#E5C697^  %s ","awk -F'[][]' '/Left:/ { print $2 }' <(amixer sget Master)"},
   { ram_perc,    "^c#62d6e8^  %s%% ",  NULL },
