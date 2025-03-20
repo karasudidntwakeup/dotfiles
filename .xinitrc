@@ -4,7 +4,7 @@ xmodmap ~/.Xmodmap &
 picom -f &
 slstatus &
 pipe &
-mpd; mpc ls|mpc add &
+mpd; mpc ls|mpc add ; mpdn.sh &
 #redshift &
 xwallpaper --zoom ~/.config/wall.png
 #while true; do
