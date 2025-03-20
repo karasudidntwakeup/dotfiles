@@ -59,6 +59,7 @@ export PATH="${PATH}:${HOME}/.local/bin/"
 export PATH="${PATH}:${HOME}/.cargo/bin"
 export OLLAMA_NOPRUNE=true
 #alias
+alias z='zathura'
 alias tree='eza --tree --icons --sort=newest --color=always'
 alias u='sudo pacman -Syyu'
 alias yu='yay -Syyu'
@@ -101,8 +102,8 @@ source ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 ## [/Completion]
 # Start tmux automatically if it's not already running
 # # Only run in interactive shells
-if [[ $- == *i* ]]; then
-    if command -v tmux &> /dev/null && [ -z "$TMUX" ]; then
-        tmux attach-session -t default || tmux new-session -s default
-    fi
-fi
+# if [[ $- == *i* ]]; then
+#     if command -v tmux &> /dev/null && [ -z "$TMUX" ]; then
+#         tmux attach-session -t default || tmux new-session -s default
+#     fi
+# fi
