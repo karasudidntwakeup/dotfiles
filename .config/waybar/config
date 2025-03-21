@@ -3,9 +3,9 @@
 	// Using margin-bottom with a negative value in order to reduce the space between Hyprland window and waybar
 	"margin-bottom": -10,
 	"margin-top": 10,
-	"modules-left": ["custom/launcher",  "tray"],
+	"modules-left": ["custom/launcher"],
 	"modules-center": ["hyprland/workspaces"],
-	"modules-right": ["network","cpu","memory","pulseaudio", "battery" ],
+	"modules-right": ["tray","network","cpu","memory","pulseaudio", "battery" ],
 	
 	"pulseaudio": {
 		"tooltip": false,
@@ -58,7 +58,6 @@
 
     "custom/launcher":{
         "format": " ",
-        "on-click": "wofi -show drun",
         "on-click-right": "killall wofi"
     },
    // The code following below is given in the great documentation for Waybar status bar under Useful Utilities in Hyprland wiki
