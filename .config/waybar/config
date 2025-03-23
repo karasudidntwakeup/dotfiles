@@ -3,9 +3,8 @@
 	// Using margin-bottom with a negative value in order to reduce the space between Hyprland window and waybar
 	"margin-bottom": -10,
 	"margin-top": 10,
-	"modules-left": ["custom/launcher"],
-	"modules-center": ["hyprland/workspaces"],
-	"modules-right": ["tray","network","cpu","memory","pulseaudio", "battery" ],
+	"modules-left": ["hyprland/workspaces"],
+	"modules-right": ["tray","network","cpu","memory","pulseaudio", "battery","clock" ],
 	
 	"pulseaudio": {
 		"tooltip": false,
@@ -43,7 +42,9 @@
 		"spacing": 10
 	},
     "clock": {
-        "format": "{: %I:%M %p   %d/%m/%Y}"
+        "format": "{:%H:%M}",
+    "tooltip-format": "{:%A, %B %d, %Y}",
+    "interval": 60
     },
     "cpu": {
         "interval": 15,
@@ -61,8 +62,13 @@
         "on-click-right": "killall wofi"
     },
    // The code following below is given in the great documentation for Waybar status bar under Useful Utilities in Hyprland wiki
-    "hyrpland/workspaces": {
-    	"format": "{icon}",
+   "workspaces": {
+    "all-outputs": true,
+    "disable-scroll": false,
+    "format": "{name}",
+    "format-icons": {
+      "urgent": "⚠️"
+    } },
 	"on-scroll-up": "hyprctl dispatch workspace e+1",
 	"on-scroll-down": "hyprctl dispatch workspace e-1",
 	"on-click": "activate"
