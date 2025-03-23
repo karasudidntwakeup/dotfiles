@@ -79,6 +79,18 @@ window#waybar.hidden {
 	background: #bd93f9;
 }
 
+/* General styling for custom modules */
+#custom-wifi-speed {
+  background-color: #bd93f9;
+  color: #161320;
+  padding-left :  10px;
+  padding-right :  18px;
+  border-radius: 10px;
+	margin-top: 6px;
+	margin-left: 8px;
+	
+}
+
 #pulseaudio {
 	margin-top: 6px;
 	margin-left: 8px;
@@ -197,5 +209,10 @@ window#waybar.hidden {
 	color: #161320;
 	background: #C9CBFF;
 }
+
+
+
+
+
 
 
