@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Prompt the user to enter a question (enclosed in "")
+read -p "Enter your question in double quotes (e.g., \"What is the capital of France?\"): " question
+
+# Remove the surrounding double quotes
+question=$(echo "$question" | sed 's/^"\(.*\)"$/\1/')
+
+# Run tgpt, suppress loading messages, and capture the response
+response=$(tgpt "$question" 2>&1 | grep -v "Loading")
+
+# Pass the response to google_speech for text-to-speech synthesis
+echo "$response" | google_speech -
