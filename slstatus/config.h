@@ -68,7 +68,7 @@ static const char unknown_str[] = "0";
 static const struct arg args[] = {
 	{ keymap, "^c#373760^  %s  ", NULL  },
   { prayer_times, "^c#c197fd^  %s",        NULL },
-  { run_command," ^c#E5C697^  %s ","awk -F'[][]' '/Left:/ { print $2 }' <(amixer sget Master)"},
+  { run_command," ^c#E5C697^  %s ","amixer get Master | awk -F'[][]' '/%/ { print $2; exit }'"},
   { ram_perc,    "^c#62d6e8^  %s%% ",  NULL },
   { run_command, "^c#FFB86C^ %s", "iwgetid -r $interface" },
   { netspeed_rx, "^c#FFB86C^  %sB/s ", "wlan0" },
