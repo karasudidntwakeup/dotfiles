@@ -1,110 +1,38 @@
 {
-	"layer": "top",	
-	"position": "top",
-    "height": 27,
-
-
-    "modules-left": ["hyprland/workspaces", "hyprland/window"],
-    "modules-center": [],
-    "modules-right": ["network", "temperature", "backlight", "pulseaudio", "battery", "clock", "tray"],
-
-
-	"hyprland/workspaces": {
-        "disable-scroll": true,
-        "disable-markup": true,
- "format-icons": {
-    "1": "",
-    "2": "",
-    "3": "",
-    "4": "",
-    "5": ""
-}
-},
-
-
-
-	"hyprland/window": {
-    	"format": "{}",
-    	"max-length": 150
-},
-
-
-	"custom/scratch": {
-   		"interval": 3,
-   		"exec": "hyprlandmsg -t get_tree | jq 'recurse(.nodes[]) | first(select(.name==\"__i3_scratch\")) | .floating_nodes | length | select(. >= 0)'",
-   		"format": "^{}", 
-   		"on-click": "hyprlandmsg 'scratchpad show'",
-   		"on-click-right": "hyprlandmsg 'move scratchpad'"
-},
-
-
-    "tray": {
-        "icon-size": 18,
-        "spacing": 15
-},
-
-
-    "clock": {
-        "format": "{:%a %b %e  %R}",
-        "interval": 30
-},
-
-    
-    "battery": {
-        "bat": "BAT0",
-        "states": {
-              "full": 99,
-              "good": 98,
-              "normal": 98,
-              "warning": 20,
-              "critical": 20
-},
-
-        "format": "{icon}   {capacity}%",
-        "format-good": "{icon}   {capacity}%", 
-        "format-full": "   {capacity}%",
-        "format-icons": ["", "", "", "", ""],
-        "interval": 30
-},
-
+    "modules-left": ["hyprland/workspaces", "hyprland/mode"],
+    "modules-center": ["clock"],
+    "modules-right": ["tray", "pulseaudio","network"],
 
     "network": {
-        "interface": "wlan0", 
-        "format-wifi": "   WiFi-On",
-        "format-disconnected": "睊   Disconnected",
-        "interval": 60
-},
-
-
-    "temperature": {
-	   	"thermal-zone": 0,
-		"format": "{icon} {temperatureC}°C",
-		"format-icons":[""],
-		"interval": 30
-},
-
-
-	"backlight": {
-    	"device": "intel_backlight",
-    	"format": "{icon}  {percent}%  ",
-    	"format-icons": ["","","",""],
-    	"interval": 60
-},
-
-
+        "format-wifi": "{essid}  ",
+        "format-ethernet": "{ifname}  ",
+        "format-disconnected": " ", 
+        "max-length": 50,
+    },
+    "tray": {
+        "icon-size": 15,
+        "spacing": 10
+    },
+    "clock": {
+        // "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
+        // "format-alt": "{:%Y-%m-%d}"
+    },
     "pulseaudio": {
-        "format": "{icon}  {volume}%  ",
-        "format-bluetooth": "  {volume}%  ",
-        "format-muted":"婢  Mute  ",
-        "interval": 60,
-
+        "format": "{volume}% {icon} ",
+        "format-bluetooth": "{volume}% {icon}  {format_source}",
+        "format-bluetooth-muted": "  {icon}  {format_source}",
+        "format-muted": "0% {icon} ",
+        "format-source": "{volume}%  ",
+        "format-source-muted": " ",
         "format-icons": {
-        "default": [""]
-},
-            
-       "on-click": "blueman-manager"    
-
-
-}
-
+            "headphone": " ",
+            "hands-free": " ",
+            "headset": " ",
+            "phone": " ",
+            "portable": " ",
+            "car": " ",
+            "default": [" ", " ", " "]
+        },
+        "on-click": "pavucontrol"
+    },
 }
