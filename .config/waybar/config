@@ -10,7 +10,7 @@
         "max-length": 50,
     },
     "tray": {
-        "icon-size": 15,
+        "icon-size": 17,
         "spacing": 10
     },
     "clock": {
@@ -33,6 +33,5 @@
             "car": " ",
             "default": [" ", " ", " "]
         },
-        "on-click": "pavucontrol"
     },
 }
