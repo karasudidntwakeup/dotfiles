@@ -2,9 +2,12 @@
 xrandr --auto
 xmodmap ~/.Xmodmap &
 picom -f &
-slstatus &
+#slstatus &
+sxbar &
 pipe &
-mpd; mpc ls|mpc add ; mpdn.sh &
+mpd&
+mpc ls|mpc add & 
+mpdn.sh &
 #redshift &
 xwallpaper --zoom ~/.config/wall.png
 #while true; do

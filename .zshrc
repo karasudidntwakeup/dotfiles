@@ -58,7 +58,9 @@ export PATH="$PATH:/sbin:/usr/sbin:usr/local/sbin"
 export PATH="${PATH}:${HOME}/.local/bin/"
 export PATH="${PATH}:${HOME}/.cargo/bin"
 export OLLAMA_NOPRUNE=true
+export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 #alias
+alias gpt='tgpt'
 alias z='zathura'
 alias tree='eza --tree --icons --sort=newest --color=always'
 alias u='sudo pacman -Syyu'
@@ -73,12 +75,12 @@ alias sxiv='nsxiv'
 alias 00='sudo poweroff'
 alias 01='sudo reboot'
 alias x='startx'
-alias h='htop'
+alias h='hyprland'
 alias ip='ip --color=auto'
 alias grep='grep -i --color=auto'
 alias cat='bat'
 alias xbacklight='sudo xbacklight'
-alias rsync='rsync -auvrP'
+alias rsync='rsync -rPavh'
 alias yt='yt-dlp  -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]" --audio-quality 0'
 alias v='nvim'
 alias timer='tclock timer -d 20m -M'
@@ -96,7 +98,6 @@ source ~/github/somewhere/fzf-tab.plugin.zsh
 source ~/github/powerlevel10k/powerlevel10k.zsh-theme
 source ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-
 ## [Completion]
 ## Completion scripts setup. Remove the following line to uninstall
 ## [/Completion]
