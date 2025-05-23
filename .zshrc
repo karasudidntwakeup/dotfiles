@@ -33,7 +33,7 @@ autoload -U compinit; compinit
 zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
 ##
-PS1="%B%{$fg[red]%}[%{$fg[yellow]%}%n%{$fg[green]%}@%{$fg[blue]%}%M %{$fg[magenta]%}%~%{$fg[red]%}]%{$reset_color%}  $%b "
+PS1="%B%{$fg[red]%}[%{$fg[yellow]%}%n%{$fg[green]%}@%{$fg[blue]%}%M %{$fg[magenta]%}%~%{$fg[red]%}]%{$reset_color%}   $%b "
 
 #
 setopt autocd		# Automatically cd into typed directory.
@@ -95,7 +95,7 @@ unsetopt BEEP
 source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh 
 source ~/github/somewhere/fzf-tab.plugin.zsh
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-source ~/github/powerlevel10k/powerlevel10k.zsh-theme
+#source ~/github/powerlevel10k/powerlevel10k.zsh-theme
 source ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 ## [Completion]
