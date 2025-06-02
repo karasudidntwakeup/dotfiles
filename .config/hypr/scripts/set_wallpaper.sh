@@ -1,6 +1,6 @@
 #!/bin/bash
 
-wallpaper_path=~/wallpaper/wallpaper.png
+wallpaper_path=~/wallpaper/wallpaper.png/japan-crossroads.png
 
 if [ ! -f "$wallpaper_path" ]; then
 	notify-send -a "swww" "No wallpaper found" "$wallpaper_path"
