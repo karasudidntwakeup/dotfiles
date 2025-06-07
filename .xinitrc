@@ -3,7 +3,7 @@ xrandr --auto
 xmodmap ~/.Xmodmap &
 picom -f &
 #slstatus &
-sxbar &
+polybar &
 pipe &
 mpd&
 mpc ls|mpc add & 
@@ -13,4 +13,4 @@ xwallpaper --zoom ~/.config/wall.png
 #while true; do
  #       dwm >/dev/null 2>&1
 #done
-exec dbus-run-session dwm
+exec dbus-run-session sxwm
