@@ -84,7 +84,7 @@ alias rsync='rsync -rPavh'
 alias yt='yt-dlp  -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]" --audio-quality 0'
 alias v='nvim'
 alias timer='tclock timer -d 20m -M'
-alias lf=l'frun'
+alias lf='yazi'
 alias fzf='fzf --preview="bat --color=always {}"'
 
 #eval
