@@ -1,0 +1,8 @@
+[general]
+fixedbars = true
+framerate = 60
+bars = 70 
+autosens = 1
+lower_cuttof_freq = 60
+higher_cutoff_freq = 15000
+

@@ -1,104 +1,81 @@
-// ~/.config/fastfetch/config.jsonc
-// See https://github.com/fastfetch-cli/fastfetch/wiki/Configuration for more details
-// See *.jsonc in https://github.com/fastfetch-cli/fastfetch/tree/dev/presets/examples for more examples
+//    ______           __  ______      __ 
+//   / ____/___ ______/ /_/ ____/___ _/ /_
+//  / /_  / __ `/ ___/ __/ /   / __ `/ __/
+// / __/ / /_/ (__  ) /_/ /___/ /_/ / /_  
+///_/    \__,_/____/\__/\____/\__,_/\__/  
+//  https://github.com/m3tozz/FastCat
 {
-  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
-  "logo": {
-    "source": "~/.config/fastfetch/logo.txt",
-    "color": {
-      "1": "blue"
-    },
-    "type": "file",
-    "padding": {
-      "top": 3
+    "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+    "logo": {
+        "source": "~/.config/fastfetch/ascii.txt",
+            "color": {
+        "1": "1"
     }
-  },
-  "display": {
-    "separator": "    "
-  },
-  "modules": [
-    {
-	  	"type": "custom", // startofinfo
-	  	"format": ""
-	  },
-    {
-	  	"type": "custom", // start
-	  	"format": " あなたには敵がいません"
-	  },
-	  {
-	  	"type": "custom", // start
-	  	"format": " You don't have enimies"
-	  },
-    {
-      "type": "custom",
-      "format": ""
     },
-    "break",
-    {
-      "type": "os",
-      "key": "   ",
-      "keyColor": "blue"
+    "display": {
+        "separator": " "
     },
-    {
-      "type": "kernel",
-      "key": "   ",
-      "keyColor": "white"
-    },
-    {
-      "type": "packages",
-      "key": "  󰮯 ",
-      "keyColor": "yellow"
-    },
-    {
-      "type": "wm",
-      "key": "  󰨇 ",
-      "keyColor": "blue"
-    },
-    {
-      "type": "terminal",
-      "key": "   ",
-      "keyColor": "magenta"
-    },
-    {
-      "type": "shell",
-      "key": "   ",
-      "keyColor": "yellow"
-    },
-    "break",
-    {
-      "type": "custom",
-      "format": ""
-    },
-    "break",
-    {
-      "type": "host",
-      "key": "   ",
-      "keyColor": "bright_blue"
-    },
-    {
-      "type": "cpu",
-      "key": "   ",
-      "keyColor": "bright_green"
-    },
-    {
-      "type": "gpu",
-      "key": "  󱤓 ",
-      "keyColor": "red"
-    },
-    {
-      "type": "memory",
-      "key": "  󰍛 ",
-      "keyColor": "bright_yellow"
-    },
-    {
-      "type": "disk",
-      "key": "   ",
-      "keyColor": "bright_cyan"
-    },
-    "break",
-    {
-      "type": "custom",
-      "format": ""
-    }
-  ]
+    "modules": [
+        {
+            "type": "os",
+            "key": " ",
+            "keyColor": "1",
+        },
+        {
+            "type": "kernel",
+            "key": " ",
+            "keyColor": "1",
+        },
+        {
+            "type": "packages",
+            "key": " ",
+            "keyColor": "1",  
+        },
+        {
+            "type": "shell",
+            "key": " ",
+            "keyColor": "1", 
+        },
+        {
+            "type": "terminal",
+            "key": " ",
+            "keyColor": "1", 
+        },
+        {
+            "type": "wm",
+            "key": " ",
+            "keyColor": "1", 
+        },
+        {
+            "type": "cursor",
+            "key": " ",
+            "keyColor": "1", 
+        },
+        {
+            "type": "terminalfont",
+            "key": " ",
+            "keyColor": "1", 
+        },
+        {
+            "type": "uptime",
+            "key": " ",
+            "keyColor": "1", 
+        },
+        {
+            "type": "datetime",
+            "format": "{1}-{3}-{11}",
+            "key": " ",
+            "keyColor": "1", 
+        },
+                {
+            "type": "memory",
+            "key": "󰍛 ",
+            "keyColor": "1"
+        },
+                {
+            "type": "monitor",
+            "key": " ",
+            "keyColor": "1",
+        },
+        ]
 }
