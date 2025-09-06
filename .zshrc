@@ -6,6 +6,10 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
 fi
 # Enable colors and change prompt:
 autoload -U colors && colors	# Load colors
+setopt COMBINING_CHARS
+# custom colors
+
+
 ################ 
 my-backward-delete-word () {
     local WORDCHARS='~!#$%^&*(){}[]<>?+;'
@@ -64,10 +68,10 @@ alias gpt='tgpt'
 alias z='zathura'
 alias tree='eza --tree --icons --sort=newest --color=always'
 alias u='sudo pacman -Syyu'
-alias yu='yay -Syyu'
+alias yu='paru -Syu'
 alias lta='eza --tree --icons --sort=newest'
 alias ls=' eza -l --icons --color=always --group-directories-first'
-alias l='eza -al --color=always --group-directories-first'
+alias l='ls -al --color=always --group-directories-first'
 alias sl='eza --icons --sort=newest'
 export LESS='-R --use-color -Dd+r$Du+b$'
 alias rec='ffmpeg -f x11grab -r  -i :0.0 -f pulse -i alsa_output.usb-C-Media_Electronics_Inc._USB_Audio_Device-00.analog-stereo.monitor  -ac 2 recording.mp4'
@@ -80,7 +84,8 @@ alias ip='ip --color=auto'
 alias grep='grep -i --color=auto'
 alias cat='bat'
 alias xbacklight='sudo xbacklight'
-alias rsync='rsync -rPavh'
+alias rsyncex='rsync -avh --no-perms --no-owner --no-group --no-times --progress --partial --inplace --append-verify '
+alias rsync='rsync -avh --progress --partial --inplace --append-verify '
 alias yt='yt-dlp  -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]" --audio-quality 0'
 alias v='nvim'
 alias timer='tclock timer -d 20m -M'
@@ -108,3 +113,24 @@ source ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 #         tmux attach-session -t default || tmux new-session -s default
 #     fi
 # fi
+if [ "$TERM" = "linux" ]; then
+	printf %b '\e[40m' '\e[8]' # set default background to color 0 'dracula-bg'
+	printf %b '\e[37m' '\e[8]' # set default foreground to color 7 'dracula-fg'
+	printf %b '\e]P0282a36'    # redefine 'black'          as 'dracula-bg'
+	printf %b '\e]P86272a4'    # redefine 'bright-black'   as 'dracula-comment'
+	printf %b '\e]P1ff5555'    # redefine 'red'            as 'dracula-red'
+	printf %b '\e]P9ff7777'    # redefine 'bright-red'     as '#ff7777'
+	printf %b '\e]P250fa7b'    # redefine 'green'          as 'dracula-green'
+	printf %b '\e]PA70fa9b'    # redefine 'bright-green'   as '#70fa9b'
+	printf %b '\e]P3f1fa8c'    # redefine 'brown'          as 'dracula-yellow'
+	printf %b '\e]PBffb86c'    # redefine 'bright-brown'   as 'dracula-orange'
+	printf %b '\e]P4bd93f9'    # redefine 'blue'           as 'dracula-purple'
+	printf %b '\e]PCcfa9ff'    # redefine 'bright-blue'    as '#cfa9ff'
+	printf %b '\e]P5ff79c6'    # redefine 'magenta'        as 'dracula-pink'
+	printf %b '\e]PDff88e8'    # redefine 'bright-magenta' as '#ff88e8'
+	printf %b '\e]P68be9fd'    # redefine 'cyan'           as 'dracula-cyan'
+	printf %b '\e]PE97e2ff'    # redefine 'bright-cyan'    as '#97e2ff'
+	printf %b '\e]P7f8f8f2'    # redefine 'white'          as 'dracula-fg'
+	printf %b '\e]PFffffff'    # redefine 'bright-white'   as '#ffffff'
+	clear
+fi

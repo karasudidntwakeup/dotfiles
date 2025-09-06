@@ -1,0 +1,10 @@
+{
+	"devices": {
+		"display": {
+			"1": {
+				"NAME": ":0.0",
+				"ICC_PROFILE": "/home/karasu/.config/color/icc/devices/display/DisplayP3Compat-v2-magic.icc"
+			}
+		}
+	}
+}
