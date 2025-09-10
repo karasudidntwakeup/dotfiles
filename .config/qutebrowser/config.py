@@ -40,3 +40,6 @@ config.set("colors.webpage.darkmode.policy.images", "smart")
 
 
 c.statusbar.show = 'never'
+
+c.fonts.statusbar = '10pt "Ndot 57"'
+c.fonts.tabs.selected = '12pt "Ndot 57"'
