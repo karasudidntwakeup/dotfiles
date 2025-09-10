@@ -1,4 +1,6 @@
-
 [mgr]
-ratio = [0,1, 2]   # عمودين متساويين
-
+ratio = [0,1, 2]   
+[plugin]
+prepend_previewers = [
+    { mime = "audio/*",   run = "exifaudio"}
+]
