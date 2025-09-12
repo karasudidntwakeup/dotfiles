@@ -41,6 +41,6 @@ config.set("colors.webpage.darkmode.policy.images", "smart")
 
 c.statusbar.show = 'never'
 
-c.fonts.statusbar = '10pt "Ndot 57"'
-c.fonts.tabs.selected = '12pt "Ndot 57"'
-c.fonts.tabs.unselected = '12pt "Ndot 57"'
+c.fonts.statusbar = '10pt "Px437 IBM VGA 8x16"'
+c.fonts.tabs.selected = '12pt "Px437 IBM VGA 8x16"'
+c.fonts.tabs.unselected = '12pt "Px437 IBM VGA 8x16"'
