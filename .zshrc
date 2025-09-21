@@ -74,7 +74,6 @@ alias ls=' eza -l --icons --color=always --group-directories-first'
 alias l='eza -al --color=always --group-directories-first --sort=newest'
 alias sl='eza --icons --sort=newest'
 export LESS='-R --use-color -Dd+r$Du+b$'
-alias rec='ffmpeg -f x11grab -r  -i :0.0 -f pulse -i alsa_output.usb-C-Media_Electronics_Inc._USB_Audio_Device-00.analog-stereo.monitor  -ac 2 recording.mp4'
 alias sxiv='nsxiv'
 alias 00='sudo poweroff'
 alias 01='sudo reboot'
@@ -86,10 +85,13 @@ alias cat='bat'
 alias xbacklight='sudo xbacklight'
 alias rsyncex='rsync -avh --no-perms --no-owner --no-group --no-times --progress --partial --inplace --append-verify '
 alias rsync='rsync -avh --progress --partial --inplace --append-verify '
-alias yt='yt-dlp  -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]" --audio-quality 0'
+alias yt ='gophertube'
+alias ytd='yt-dlp  -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]" --audio-quality 0'
+alias ytdm='yt-dlp -f "bestaudio[ext=m4a]","bestaudio[ext=webm]" -x '
 alias v='nvim'
 alias timer='tclock timer -d 20m -M'
 alias lf='yazi'
+alias y='yazi'
 alias fzf='fzf --preview="bat --color=always {}"'
 
 #eval
@@ -134,3 +136,5 @@ source ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 	printf %b '\e]PFffffff'    # redefine 'bright-white'   as '#ffffff'
 	clear
 fi
+#### ------------------------------
+
