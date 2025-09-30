@@ -2,3 +2,13 @@
 on   = "F"
 run  = "plugin smart-filter"
 desc = "Smart filter"
+
+[[mgr.prepend_keymap]]
+on   = ["c", "i"]
+run  = "plugin sxiv"
+desc = "Preview images in sxiv"
+
+[[mgr.prepend_keymap]]
+on   = "f"
+run  = "plugin jump-to-char"
+desc = "Jump to char"
