@@ -13,5 +13,15 @@ use = "yazi-rs/plugins:full-border"
 rev = "d7588f6"
 hash = "3996fc74044bc44144b323686f887e1"
 
+[[plugin.deps]]
+use = "NoponyAsked/sxiv"
+rev = "8237d90"
+hash = "c1d3be5032ebd56c0731365241c39bd1"
+
+[[plugin.deps]]
+use = "yazi-rs/plugins:jump-to-char"
+rev = "d1c8baa"
+hash = "ce67445ebb1bf3d97b8e44f50904b2c5"
+
 [flavor]
 deps = []
