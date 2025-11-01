@@ -11,7 +11,7 @@
 @define-color white #ffffff; 
 
 * {
-    font-family: "Spleen 12x24, Symbol Nerd Font";
+    font-family: " Spleen 12x24", "Symbol Nerd Font";
     font-size: 16px;
     font-weight: bold;
 }
