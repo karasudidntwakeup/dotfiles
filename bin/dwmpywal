@@ -1,0 +1,8 @@
+setbg 
+sed -i '17d' ~/.cache/wal/colors-wal-dwm.h
+sed -i -e 31d -e 32d -e 33d -e 34d  ~/.cache/wal/colors-wal-st.h
+cd $HOME/dwm && sudo make clean install
+cd $HOME/github/dotfiles/st && sudo make clean install
+wal-telegram --wal --tiled
+cowsay "YIPPY"
+
