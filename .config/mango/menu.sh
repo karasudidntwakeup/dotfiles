@@ -1,1 +1,1 @@
-wmenu-run -l 2 -f "MxPlus IBM VGA 9x14 font 16" 
+wmenu-run -l 8 -f "MxPlus IBM VGA 9x14 12 " 
