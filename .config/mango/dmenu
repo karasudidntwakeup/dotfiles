@@ -1,1 +1,2 @@
-wmenu-run  -f 8 -f "MxPlus IBM VGA 9x14 15 " -b 
+wmenu-run -f  "MxPlus IBM VGA 9x14 15" -l 8 -b
+
