@@ -73,7 +73,7 @@ input {
 // Find more information on the wiki:
 // https://yalter.github.io/niri/Configuration:-Layout
 layout {
-    gaps 5
+    gaps 8
 
     center-focused-column "never"
 
@@ -83,11 +83,11 @@ layout {
         proportion 0.66667
     }
 
-    default-column-width { proportion 0.5; }
+    default-column-width { proportion 0.9; }
     focus-ring {
-        width 1.5
+        width 3
 
-        active-color "#7fc8ff"
+        active-color "#ffc87f"
 
         inactive-color "#505050"
     }
