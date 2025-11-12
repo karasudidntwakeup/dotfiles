@@ -83,7 +83,7 @@ layout {
         proportion 0.66667
     }
 
-    default-column-width { proportion 0.9; }
+    default-column-width { proportion 0.96; }
     focus-ring {
         width 3
 
@@ -120,6 +120,9 @@ layout {
 // To run a shell command (with variables, pipes, etc.), use spawn-sh-at-startup:
  spawn-sh-at-startup "swaybg -i   wallpaper/wallhaven-4x22vz.jpg -m center"
  spawn-sh-at-startup "dbus-launch waybar"
+ spawn-sh-at-startup "pipewire"
+ spawn-sh-at-startup "pipewire-pulse"
+ spawn-sh-at-startup "wireplumber"
 
 hotkey-overlay {
     // Uncomment this line to disable the "Important Hotkeys" pop-up at startup.
@@ -207,12 +210,8 @@ binds {
     XF86AudioLowerVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1-"; }
     XF86AudioMute        allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"; }
     XF86AudioMicMute     allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; }
-
-    // Example brightness key mappings for brightnessctl.
-    // You can use regular spawn with multiple arguments too (to avoid going through "sh"),
-    // but you need to manually put each argument in separate "" quotes.
-    XF86MonBrightnessUp { spawn "doas brillo -q -A 5"; }
-    XF86MonBrightnessDown { spawn "doas brillo -q -U 5"; }
+    XF86MonBrightnessUp     allow-when-locked=true { spawn "light" "-A" "10"; }
+    XF86MonBrightnessDown     allow-when-locked=true { spawn "light" "-U" "10"; }
     // Open/close the Overview: a zoomed-out view of workspaces and windows.
     // You can also move the mouse into the top-left hot corner,
     // or do a four-finger swipe up on a touchpad.
