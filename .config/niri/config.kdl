@@ -116,11 +116,10 @@ layout {
 }
 
 // This line starts waybar, a commonly used bar for Wayland compositors.
-spawn-at-startup "noctalia-shell"
 
-spawn-at-startup "qs" "-c" "noctalia-shell"
 // To run a shell command (with variables, pipes, etc.), use spawn-sh-at-startup:
  spawn-sh-at-startup "swaybg -i   wallpaper/wallhaven-4x22vz.jpg -m center"
+ spawn-sh-at-startup "dbus-launch waybar"
 
 hotkey-overlay {
     // Uncomment this line to disable the "Important Hotkeys" pop-up at startup.
@@ -177,45 +176,30 @@ window-rule {
 }
 
 
-// workspace "" {
-workspace "c" {
-}
-workspace "b" {
-}
-workspace "a" {
-}
+workspace "󰫢 " 
 
-window-rule {
-    match title="librewolf"
-    open-on-workspace "c"
-    open-maximized true
-}
+
 
 // Example: enable rounded corners for all windows.
 // (This example rule is commented out with a "/-" in front.)
 window-rule {
-    geometry-corner-radius 4
+    geometry-corner-radius 6
     clip-to-geometry true
 }
 
 binds {
     // `niri msg action do-something`.
-
     // Mod-Shift-/, which is usually the same as Mod-?,
     // shows a list of important hotkeys.
     Mod+Shift+Slash { show-hotkey-overlay; }
     Mod+space { spawn "/home/karasu/.config/mango/dmenu"; }
-
     Mod+Return hotkey-overlay-title="Open a Terminal: foot" { spawn "foot"; }
     Super+C hotkey-overlay-title="Open Browser: LibreWolf" { spawn "librewolf"; }
-
     Super+Shift+Q hotkey-overlay-title="Lock the Screen: hyprlock" { spawn "hyprlock"; }
 
     // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.
     // Note: the entire command goes as a single argument. It's passed verbatim to `sh -c`.
     // For example, this is a standard bind to toggle the screen reader (orca).
-    Super+Alt+S allow-when-locked=true hotkey-overlay-title=null { spawn-sh "pkill orca || exec orca"; }
-
     // Example volume keys mappings for PipeWire & WirePlumber.
     // The allow-when-locked=true property makes them work even when the session is locked.
     // Using spawn-sh allows to pass multiple arguments together with the command.
@@ -240,8 +224,6 @@ binds {
     Mod+Up    { focus-window-up; }
     Mod+Right { focus-column-right; }
     Mod+H     { focus-column-left; }
-    Mod+J     { focus-window-down; }
-    Mod+K     { focus-window-up; }
     Mod+L     { focus-column-right; }
 
     Mod+Ctrl+Left  { move-column-left; }
@@ -255,8 +237,8 @@ binds {
 
     // Alternative commands that move across workspaces when reaching
     // the first or last window in a column.
-    // Mod+J     { focus-window-or-workspace-down; }
-    // Mod+K     { focus-window-or-workspace-up; }
+     Mod+J     { focus-window-or-workspace-down; }
+     Mod+K     { focus-window-or-workspace-up; }
     // Mod+Ctrl+J     { move-window-down-or-to-workspace-down; }
     // Mod+Ctrl+K     { move-window-up-or-to-workspace-up; }
 
