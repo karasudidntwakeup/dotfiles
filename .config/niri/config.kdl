@@ -170,23 +170,16 @@ window-rule {
 }
 
 // Open the librewolf picture-in-picture player as floating by default.
-window-rule {
-    // This app-id regular expression will work for both:
-    // - host librewolf (app-id is "firefox")
-    // - Flatpak librewolf (app-id is "org.mozilla.firefox")
-    match app-id=r#"librewolf$"# title="^Picture-in-Picture$"
-    open-floating true
-}
 
 
-workspace "󰫢 " 
+
 
 
 
 // Example: enable rounded corners for all windows.
 // (This example rule is commented out with a "/-" in front.)
 window-rule {
-    geometry-corner-radius 6
+    geometry-corner-radius 5
     clip-to-geometry true
 }
 
