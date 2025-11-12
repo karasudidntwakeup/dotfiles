@@ -79,7 +79,7 @@ export LESS='-R --use-color -Dd+r$Du+b$'
 alias sxiv='nsxiv'
 alias 00='sudo poweroff'
 alias 01='sudo reboot'
-alias x='mango'
+alias x='dbus-launch niri'
 alias ip='ip --color=auto'
 alias grep='grep -i --color=auto'
 alias cat='bat'
@@ -141,3 +141,5 @@ source ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
 #### ------------------------------
 
+
+. "$HOME/.local/bin/env"
