@@ -14,9 +14,7 @@
         "clock",
     ],
 
-	"modules-center": [
-        "niri/workspaces"
-    ],
+	"modules-center": ["niri/workspaces"],
 
 	"modules-right": [
         "network",

@@ -1,7 +1,7 @@
 {
-	"hyprland/workspaces": {
+	"niri/workspaces": {
         "format": "{icon}",
-        "on-click": "activate",
+        "on-click": "disable",
         "all-outputs": true,
         "format-icons": {
         "default": "󰫣 ",
