@@ -83,7 +83,7 @@ layout {
         proportion 0.66667
     }
 
-    default-column-width { proportion 0.6; }
+    default-column-width { proportion 0.53; }
     focus-ring {
         width 3
 
