@@ -1,6 +1,5 @@
 #!/bin/sh
 
-# Disable shell history
 unset HISTFILE
 
 # If no argument is given, get link from clipboard
@@ -15,12 +14,45 @@ else
     LINK="$1"
 fi
 
-# Check if we actually have a link
 if [ -z "$LINK" ]; then
     echo "No link provided or found in clipboard."
     exit 1
 fi
 
-# Run webtorrent with mpv
-webtorrent "$LINK" --mpv
+# Create temporary folder for torrent data
+TMPDIR=$(mktemp -d)
+echo "Using temp directory: $TMPDIR"
+
+# Start webtorrent download in background
+webtorrent "$LINK" --out "$TMPDIR" --quiet &
+WT_PID=$!
+
+# Wait for the first file to appear
+sleep 10
+
+# Find first video file
+VIDEO=$(find "$TMPDIR" -type f \( -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.avi" \) | head -n 1)
+
+if [ -n "$VIDEO" ]; then
+    echo "Downloading Arabic subtitles for: $VIDEO"
+    subliminal download -l ar "$VIDEO"
+
+    # Find the downloaded subtitle file
+    SUBFILE=$(find "$TMPDIR" -type f -iname "*.srt" | head -n 1)
+
+    echo "Opening in MPV..."
+    if [ -n "$SUBFILE" ]; then
+        mpv --sub-file="$SUBFILE" "$VIDEO"
+    else
+        mpv "$VIDEO"
+    fi
+else
+    echo "No video file found yet, streaming directly..."
+    webtorrent "$LINK" --mpv
+fi
+
+# Wait for webtorrent to finish
+wait $WT_PID
+
+rm -rf "$TMPDIR"
 
