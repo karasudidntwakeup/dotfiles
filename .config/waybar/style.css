@@ -28,7 +28,7 @@ tooltip label {
 }
 
 #workspaces {
-    background: alpha(@background, 0.2);
+    background: alpha(@background, 0.0);
     border-radius: 20px;
     margin-top: 4px;
     margin-bottom: 4px;
@@ -86,19 +86,6 @@ tooltip label {
     padding: 0px 14px 0px 14px;
 }
 
-#custom-recording.recording-active {
-    color: #fa5252;
-    background-color: alpha(@background, 0.2);
-    border-radius: 20px;
-    padding: 0 10px;
-    margin-top: 4px;
-    margin-bottom: 4px;
-    margin-left: 3px;
-    font-weight: bold;
-    animation: pulse 2s infinite;
-}
-
-
 @keyframes pulse {
     0% {
         opacity: 1;
@@ -130,11 +117,7 @@ tooltip label {
     color: lighter(@main-color);
     background: transparent;
 }
-
-#bluetooth {
-    color: lighter(@main-color);
-    background: transparent;
-} 
+ 
 
 #battery {
     color: lighter(@main-color);
