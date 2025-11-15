@@ -1,10 +1,10 @@
 {
 	"layer": "top",
 	"position": "top",
-	"margin": "5 5 5",
+	"margin": "15 5 5",
     "fixed center": true,
     "reload_style_on_change": true,
-	"height": 10,
+	"height": 30,
 	"width": 1000,
     "include": [
         "~/.config/waybar/modules.jsonc"
