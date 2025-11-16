@@ -161,14 +161,7 @@ animations {
 // https://yalter.github.io/niri/Configuration:-Window-Rules
 
 // Work around WezTerm's initial configure bug
-// by setting an empty default-column-width.
-window-rule {
-    // This regular expression is intentionally made as specific as possible,
-    // since this is the default config, and we want no false positives.
-    // You can get away with just app-id="wezterm" if you want.
-    match app-id=r#"^org\.wezfurlong\.wezterm$"#
-    default-column-width {}
-}
+// by setting an emp
 
 // Open the librewolf picture-in-picture player as floating by default.
 
@@ -180,6 +173,8 @@ window-rule {
 // Example: enable rounded corners for all windows.
 // (This example rule is commented out with a "/-" in front.)
 window-rule {
+    match is-focused=false
+    opacity 0.75
     geometry-corner-radius 5
     clip-to-geometry true
 }
