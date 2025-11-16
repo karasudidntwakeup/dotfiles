@@ -210,7 +210,7 @@ binds {
     // You can also move the mouse into the top-left hot corner,
     // or do a four-finger swipe up on a touchpad.
     Mod+0 repeat=false { toggle-overview; }
-    Mod+Shift+K repeat=false { toggle-overview; }
+    Mod+Shift+o repeat=false { toggle-overview; }
     Mod+X repeat=false { close-window; }
 
     Mod+Left  { focus-column-left; }
@@ -312,6 +312,8 @@ binds {
     Mod+8 { focus-workspace 8; }
     Mod+9 { focus-workspace 9; }
     Mod+Shift+1 { move-column-to-workspace 1; }
+    Mod+Shift+j { move-column-to-workspace 2; }
+    Mod+Shift+k { move-column-to-workspace 1; }
     Mod+Shift+2 { move-column-to-workspace 2; }
     Mod+Shift+3 { move-column-to-workspace 3; }
     Mod+Shift+4 { move-column-to-workspace 4; }
