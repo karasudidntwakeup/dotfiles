@@ -75,7 +75,7 @@ input {
 layout {
     gaps 15
 
- center-focused-column "always"
+ center-focused-column "never"
 
     preset-column-widths {
         proportion 0.5
