@@ -2,57 +2,33 @@
 
 unset HISTFILE
 
-# If no argument is given, get link from clipboard
-if [ -z "$1" ]; then
-    if command -v wl-paste >/dev/null 2>&1; then
-        LINK=$(wl-paste)
-    else
-        echo "wl-paste not found. Please install wl-clipboard."
-        exit 1
-    fi
-else
-    LINK="$1"
-fi
+cleanup() {
+    [ -n "$PID" ] && kill -9 "$PID" 2>/dev/null
+    [ -n "$TMPDIR" ] && rm -rf "$TMPDIR"
+}
 
-if [ -z "$LINK" ]; then
-    echo "No link provided or found in clipboard."
-    exit 1
-fi
+trap cleanup INT TERM EXIT
 
-# Create temporary folder for torrent data
+LINK="${1:-$(wl-paste)}"
+[ -z "$LINK" ] && { echo "No link provided"; exit 1; }
+
 TMPDIR=$(mktemp -d)
-echo "Using temp directory: $TMPDIR"
 
-# Start webtorrent download in background
-webtorrent "$LINK" --out "$TMPDIR" --quiet &
-WT_PID=$!
+peerflix "$LINK" --path "$TMPDIR" > /dev/null 2>&1 &
+PID=$!
 
-# Wait for the first file to appear
-sleep 10
+echo "Waiting for video..."
+for i in $(seq 1 30); do
+    VIDEO=$(find "$TMPDIR" -type f -size +1M \( -name "*.mp4" -o -name "*.mkv" -o -name "*.avi" \) 2>/dev/null | head -n 1)
+    [ -n "$VIDEO" ] && break
+    sleep 2
+done
 
-# Find first video file
-VIDEO=$(find "$TMPDIR" -type f \( -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.avi" \) | head -n 1)
+[ -z "$VIDEO" ] && { echo "Timeout"; exit 1; }
 
-if [ -n "$VIDEO" ]; then
-    echo "Downloading Arabic subtitles for: $VIDEO"
-    subliminal download -l ar "$VIDEO"
+echo "Downloading subtitles..."
+subliminal download -l ara "$VIDEO" 2>/dev/null
 
-    # Find the downloaded subtitle file
-    SUBFILE=$(find "$TMPDIR" -type f -iname "*.srt" | head -n 1)
+SUB=$(find "$TMPDIR" -name "*.srt" 2>/dev/null | head -n 1)
 
-    echo "Opening in MPV..."
-    if [ -n "$SUBFILE" ]; then
-        mpv --sub-file="$SUBFILE" "$VIDEO"
-    else
-        mpv "$VIDEO"
-    fi
-else
-    echo "No video file found yet, streaming directly..."
-    webtorrent "$LINK" --mpv
-fi
-
-# Wait for webtorrent to finish
-wait $WT_PID
-
-rm -rf "$TMPDIR"
-
+[ -n "$SUB" ] && mpv --sub-file="$SUB" "$VIDEO" || mpv "$VIDEO"
