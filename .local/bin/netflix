@@ -10,25 +10,37 @@ cleanup() {
 trap cleanup INT TERM EXIT
 
 LINK="${1:-$(wl-paste)}"
-[ -z "$LINK" ] && { echo "No link provided"; exit 1; }
+[ -z "$LINK" ] && { echo "No link"; exit 1; }
 
 TMPDIR=$(mktemp -d)
 
+echo "Starting download..."
 peerflix "$LINK" --path "$TMPDIR" > /dev/null 2>&1 &
 PID=$!
 
-echo "Waiting for video..."
-for i in $(seq 1 30); do
-    VIDEO=$(find "$TMPDIR" -type f -size +1M \( -name "*.mp4" -o -name "*.mkv" -o -name "*.avi" \) 2>/dev/null | head -n 1)
+echo "Waiting for video file..."
+VIDEO=""
+for i in $(seq 1 45); do
+    VIDEO=$(find "$TMPDIR" -type f -size +10M \( -name "*.mp4" -o -name "*.mkv" -o -name "*.avi" \) 2>/dev/null | head -n 1)
     [ -n "$VIDEO" ] && break
     sleep 2
 done
 
-[ -z "$VIDEO" ] && { echo "Timeout"; exit 1; }
-
-echo "Downloading subtitles..."
-subliminal download -l ara "$VIDEO" 2>/dev/null
-
-SUB=$(find "$TMPDIR" -name "*.srt" 2>/dev/null | head -n 1)
-
-[ -n "$SUB" ] && mpv --sub-file="$SUB" "$VIDEO" || mpv "$VIDEO"
+if [ -n "$VIDEO" ]; then
+    echo "Downloading Arabic subtitles..."
+    subliminal download -p opensubtitles podnapisi -l ara "$VIDEO" 2>/dev/null
+    
+    SUB=$(find "$TMPDIR" -name "*.srt" 2>/dev/null | head -n 1)
+    
+    if [ -n "$SUB" ]; then
+        echo "Subtitle found, playing with subtitle..."
+        mpv --force-seekable=yes --sub-file="$SUB" "$VIDEO"
+    else
+        echo "No subtitle found, playing without..."
+        mpv --force-seekable=yes "$VIDEO"
+    fi
+else
+    echo "Video file not ready, streaming directly..."
+    kill -9 "$PID" 2>/dev/null
+    peerflix "$LINK" --mpv
+fi
