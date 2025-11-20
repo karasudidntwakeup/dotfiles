@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Set your photos directory
+WALLPAPER_DIR="$HOME/wallpaper/01/wall"
+
+while true; do
+    # Pick a random image from the directory
+    swww img "$(find "$WALLPAPER_DIR" -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.gif" \) | shuf -n 1)"
+    
+    # Wait 60 seconds (1 minute)
+    sleep 60
+done
