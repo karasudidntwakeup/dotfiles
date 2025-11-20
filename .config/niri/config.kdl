@@ -83,22 +83,22 @@ layout {
         proportion 0.5
     }
 
-    default-column-width { proportion 0.53; }
+    default-column-width { proportion 0.5; }
     focus-ring {
         width 4
 
-        active-color "#6272a4"
+        active-color "#ff79c6"
 
-        inactive-color "#6272a4"
+        inactive-color "#bd93f9"
     }
 
     border {
         off
 
         width 4
-        active-color "#ffc87f"
-        inactive-color "#6272a4"
-        urgent-color "#9b0000"
+        active-color "#50fa7b"
+        inactive-color "#f1fa8c"
+        urgent-color "#bd93f9"
 
     }
 
@@ -107,8 +107,8 @@ layout {
 
         softness 30
         spread 5
-        offset x=0 y=5
-        color "#0007"
+        offset x=5 y=5
+        color "#bd93f9"
     }
 
     struts {
@@ -124,6 +124,7 @@ layout {
  spawn-sh-at-startup "pipewire"
  spawn-sh-at-startup "pipewire-pulse"
  spawn-sh-at-startup "wireplumber"
+ spawn-sh-at-startup "doas keyd"
 
 hotkey-overlay {
     // Uncomment this line to disable the "Important Hotkeys" pop-up at startup.
@@ -174,8 +175,10 @@ animations {
 // (This example rule is commented out with a "/-" in front.)
 window-rule {
     match is-focused=false
-    opacity 0.75
-    geometry-corner-radius 5
+    opacity 0.97
+  }
+window-rule {
+    geometry-corner-radius 13
     clip-to-geometry true
 }
 
