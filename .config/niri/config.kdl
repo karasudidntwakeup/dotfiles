@@ -1,5 +1,6 @@
 prefer-no-csd
 
+
 input {
   keyboard {
         repeat-delay 200
@@ -208,6 +209,7 @@ binds {
     // You can also move the mouse into the top-left hot corner,
     // or do a four-finger swipe up on a touchpad.
     Mod+0 repeat=false { toggle-overview; }
+    Mod+W repeat=false { toggle-overview; }
     Mod+Shift+o repeat=false { toggle-overview; }
     Mod+X repeat=false { close-window; }
 
@@ -379,7 +381,6 @@ binds {
     // Toggle tabbed column display mode.
     // Windows in this column will appear as vertical tabs,
     // rather than stacked on top of each other.
-    Mod+W { toggle-column-tabbed-display; }
 
     // Actions to switch layouts.
     // Note: if you uncomment these, make sure you do NOT have
