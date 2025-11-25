@@ -1,6 +1,6 @@
 
-@define-color background #141423;
-@define-color foreground #cdd6f4;
+@define-color background #282a36;
+@define-color foreground #f8f8f2;
 
 
 * {
@@ -13,7 +13,7 @@
 }
 
 window#waybar {
-    border-radius: 30px;
+    border-radius: 20px;
     background: alpha(@background, 0.3);
 }
 
