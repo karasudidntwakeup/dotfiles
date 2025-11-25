@@ -1,6 +1,8 @@
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
+export NO_AT_BRIDGE=1
+setopt extended_glob
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
@@ -37,8 +39,9 @@ autoload -U compinit; compinit
 zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
 ##
-PS1="%B%{$fg[red]%}[%{$fg[yellow]%}%n%{$fg[green]%}@%{$fg[blue]%}%M %{$fg[magenta]%}%~%{$fg[red]%}]%{$reset_color%}   $%b "
+#PS1="%B%{$fg[red]%}[%{$fg[yellow]%}%n%{$fg[green]%}@%{$fg[blue]%}%M %{$fg[magenta]%}%~%{$fg[red]%}]%{$reset_color%}   $%b "
 
+ZSH_THEME="powerlevel10k"
 #
 setopt autocd		# Automatically cd into typed directory.
 setopt interactive_comments
@@ -67,10 +70,9 @@ export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 alias gpt='tgpt'
 alias z='zathura'
 alias tree='eza --tree --icons --sort=newest --color=always'
-alias u='sudo pacman -Syyu'
+alias u='sudo pacman -Syyu ; paru -Syyu --noconfirm'
 alias i='sudo pacman -S '
 alias r='sudo pacman -Rnscu '
-alias yu='paru -Syyu --noconfirm'
 alias lta='eza --tree --icons --sort=newest'
 alias ls=' eza -l --icons --color=always --group-directories-first'
 alias l='eza -al --color=always --group-directories-first --sort=newest'
@@ -79,7 +81,7 @@ export LESS='-R --use-color -Dd+r$Du+b$'
 alias sxiv='nsxiv'
 alias 00='sudo poweroff'
 alias 01='sudo reboot'
-alias x='dbus-launch niri'
+alias x='niri'
 alias ip='ip --color=auto'
 alias grep='grep -i --color=auto'
 alias cat='bat'
@@ -143,3 +145,4 @@ fi
 
 
 . "$HOME/.local/bin/env"
+source ~/powerlevel10k/powerlevel10k.zsh-theme
