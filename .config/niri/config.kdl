@@ -50,10 +50,10 @@ input {
     // for the resolution.
     // If the mode is omitted altogether or is invalid, niri will pick one automatically.
     // Run `niri msg outputs` while inside a niri instance to list all outputs and their modes.
-    mode "1920x1080@120.030"
+    mode "1920x1080@60.060"
 
     // You can use integer or fractional scale, for example use 1.5 for 150% scale.
-    scale 1.5
+    scale 1
 
     // Transform allows to rotate the output counter-clockwise, valid values are:
     // normal, 90, 180, 270, flipped, flipped-90, flipped-180 and flipped-270.
@@ -84,9 +84,9 @@ layout {
         proportion 0.5
     }
 
-    default-column-width { proportion 0.5; }
+    default-column-width { proportion 0.51; }
     focus-ring {
-        width 4
+        width 2
 
         active-color "#ff79c6"
 
@@ -127,10 +127,10 @@ layout {
  spawn-sh-at-startup "wireplumber"
  spawn-sh-at-startup "doas keyd"
 
-hotkey-overlay {
+//hotkey-overlay {
     // Uncomment this line to disable the "Important Hotkeys" pop-up at startup.
     // skip-at-startup
-}
+//}
 
 // Uncomment this line to ask the clients to omit their client-side decorations if possible.
 // If the client will specifically ask for CSD, the request will be honored.
@@ -155,7 +155,7 @@ animations {
     // off
 
     // Slow down all animations by this factor. Values below 1 speed them up instead.
-    // slowdown 3.0
+     slowdown 2.7
 }
 
 // Window rules let you adjust behavior for individual windows.
@@ -176,7 +176,7 @@ animations {
 // (This example rule is commented out with a "/-" in front.)
 window-rule {
     match is-focused=false
-    opacity 0.97
+    opacity 0.90
   }
 window-rule {
     geometry-corner-radius 13
