@@ -76,7 +76,9 @@ input {
 layout {
     gaps 15
 
- center-focused-column "on-overflow"
+ center-focused-column "never"
+ always-center-single-column
+ default-column-display "tabbed"
 
     preset-column-widths {
         proportion 0.5
@@ -104,15 +106,20 @@ layout {
     }
 
     shadow {
-        // on
+       // off
 
         softness 30
-        spread 5
-        offset x=5 y=5
+        spread 3
+        offset x=10 y=10
         color "#bd93f9"
     }
 
     struts {
+      left 10
+      right 10
+      top 3
+      bottom 3
+
     }
 }
 
