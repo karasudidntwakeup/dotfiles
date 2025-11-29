@@ -5,7 +5,7 @@
 
 * {
     border:#141423;
-    border-radius: 10px;
+    border-radius: 30px;
     font-family: "  Ndot 57 , Symbol Nerd Font";
     font-weight: bold;
     font-size: 15px;
@@ -14,13 +14,13 @@
 
 window#waybar {
     border-radius: 20px;
-    background: alpha(@background, 0.3);
+    background: alpha(@background, 0.9);
 }
 
 tooltip {
     background: alpha(@background, 0.3);
     border-radius: 10px;
-    border: 2px solid alpha(lighter(@main-color), 0.5);
+    border: 5px solid alpha(lighter(@main-color), 1);
 }
 
 tooltip label {
