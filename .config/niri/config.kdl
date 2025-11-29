@@ -31,7 +31,7 @@ input {
 
     trackpoint {
     }
-    focus-follows-mouse max-scroll-amount="60%"
+     focus-follows-mouse
 }
 
 // You can configure outputs by their name, which you can find
@@ -87,7 +87,7 @@ layout {
 
     default-column-width { proportion 0.5; }
     focus-ring {
-        width 2
+        width 3
 
         active-color "#ff79c6"
 
@@ -161,7 +161,7 @@ animations {
     // off
 
     // Slow down all animations by this factor. Values below 1 speed them up instead.
-     slowdown 2.7
+     slowdown 2.3
 }
 
 // Window rules let you adjust behavior for individual windows.
@@ -182,7 +182,7 @@ animations {
 // (This example rule is commented out with a "/-" in front.)
 window-rule {
     match is-focused=false
-    opacity 0.90
+    //opacity 0
   }
 window-rule {
     geometry-corner-radius 13
