@@ -14,7 +14,7 @@ typeset -g POWERLEVEL9K_PROMPT_CHAR_FOREGROUND=171 # dusty rose
 typeset -g POWERLEVEL9K_BACKGROUND=''  # remove background, let terminal show through
 
 # ───────── Icons (Nerd Font) ─────────
-typeset -g POWERLEVEL9K_DIR_VISUAL_IDENTIFIER_EXPANSION=''  # folder
+typeset -g POWERLEVEL9K_DIR_VISUAL_IDENTIFIER_EXPANSION=' '  # folder
 typeset -g POWERLEVEL9K_VCS_VISUAL_IDENTIFIER_EXPANSION=''  # git
 
 # ───────── Minimal Style ─────────
