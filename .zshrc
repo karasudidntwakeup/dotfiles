@@ -3,9 +3,9 @@
 # confirmations, etc.) must go above this block; everything else may go below.
 export NO_AT_BRIDGE=1
 setopt extended_glob
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
- source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
+#if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+ #source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+#fi
 # Enable colors and change prompt:
 autoload -U colors && colors	# Load colors
 setopt COMBINING_CHARS
@@ -41,7 +41,7 @@ zle -N down-line-or-beginning-search
 ##
 #PS1="%B%{$fg[red]%}[%{$fg[yellow]%}%n%{$fg[green]%}@%{$fg[blue]%}%M %{$fg[magenta]%}%~%{$fg[red]%}]%{$reset_color%}   $%b "
 
-ZSH_THEME="powerlevel10k"
+#ZSH_THEME="powerlevel10k"
 #
 setopt autocd		# Automatically cd into typed directory.
 setopt interactive_comments
@@ -109,7 +109,7 @@ source ~/github/somewhere/fzf-tab.plugin.zsh
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 #source ~/github/powerlevel10k/powerlevel10k.zsh-theme
 source ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+#[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 ## [Completion]
 ## Completion scripts setup. Remove the following line to uninstall
 ## [/Completion]
@@ -145,4 +145,10 @@ fi
 
 
 . "$HOME/.local/bin/env"
-source ~/powerlevel10k/powerlevel10k.zsh-theme
+#source ~/powerlevel10k/powerlevel10k.zsh-theme
+# .zshrc
+fpath+=($HOME/.zsh/pure)
+# Enable Pure prompt
+autoload -U promptinit; promptinit
+prompt pure
+
