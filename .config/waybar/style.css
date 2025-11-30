@@ -4,21 +4,21 @@
 
 
 * {
-    border:#141423;
-    border-radius: 30px;
+    border:#21222c;
+    border-radius: 20px;
     font-family: "  Ndot 57 , Symbol Nerd Font";
     font-weight: bold;
-    font-size: 15px;
+    font-size: 13px;
     min-height: 0;
 }
 
 window#waybar {
-    border-radius: 20px;
-    background: alpha(@background, 0.9);
+    border-radius: 38px;
+    background: alpha(@background, 0.93);
 }
 
 tooltip {
-    background: alpha(@background, 0.3);
+    background: alpha(@background, 0.9);
     border-radius: 10px;
     border: 5px solid alpha(lighter(@main-color), 1);
 }
@@ -29,7 +29,7 @@ tooltip label {
 
 #workspaces {
     background: alpha(@background, 0.0);
-    border-radius: 20px;
+    border-radius: 38px;
     margin-top: 4px;
     margin-bottom: 4px;
 }
