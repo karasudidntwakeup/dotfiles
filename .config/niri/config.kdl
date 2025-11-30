@@ -81,7 +81,7 @@ layout {
  always-center-single-column
 
     preset-column-widths {
-        proportion 0.3333
+        proportion 0.6
         proportion 0.5
         proportion 0.66667
     }
@@ -98,7 +98,7 @@ layout {
     border {
         off
 
-        width 4
+        width 7
         active-color "#50fa7b"
         inactive-color "#f1fa8c"
         urgent-color "#bd93f9"
@@ -114,8 +114,8 @@ layout {
     }
 
     struts {
-      left 50
-      right 50
+      left 10
+      right 10
       top 0
       bottom 0
 
@@ -188,6 +188,10 @@ window-rule {
     geometry-corner-radius 8
     // open-maximized true
     clip-to-geometry true
+}
+window-rule {
+    match app-id="librewolf"
+    open-maximized true
 }
 // Then, for Alacritty, set open-maximized back to false.
 
