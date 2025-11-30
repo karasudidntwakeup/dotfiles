@@ -73,6 +73,7 @@ input {
 // Settings that influence how windows are positioned and sized.
 // Find more information on the wiki:
 // https://yalter.github.io/niri/Configuration:-Layout
+
 layout {
     gaps 15
 
@@ -80,9 +81,9 @@ layout {
  always-center-single-column
 
     preset-column-widths {
+        proportion 0.3333
         proportion 0.5
-        proportion 0.5
-        proportion 0.5
+        proportion 0.66667
     }
 
     default-column-width { proportion 0.5; }
@@ -105,19 +106,18 @@ layout {
     }
 
     shadow {
-       // off
-
-        softness 30
-        spread 3
-        offset x=10 y=10
-        color "#bd93f9"
+        on
+        softness 15
+        spread 1
+        offset x=12 y=0
+        color "#000000"
     }
 
     struts {
-      left 10
-      right 10
-      top 3
-      bottom 3
+      left 50
+      right 50
+      top 0
+      bottom 0
 
     }
 }
@@ -157,12 +157,16 @@ screenshot-path "/home/karasu/wallpaper/ScreenShot/ from %Y-%m-%d %H-%M-%S.png"
 // The wiki explains how to configure individual animations:
 // https://yalter.github.io/niri/Configuration:-Animations
 animations {
+     workspace-switch {
+        spring damping-ratio=1.0 stiffness=300 epsilon=0.0001
+    }
     // Uncomment to turn off all animations.
     // off
 
     // Slow down all animations by this factor. Values below 1 speed them up instead.
      slowdown 2.3
 }
+
 
 // Window rules let you adjust behavior for individual windows.
 // Find more information on the wiki:
@@ -181,13 +185,12 @@ animations {
 // Example: enable rounded corners for all windows.
 // (This example rule is commented out with a "/-" in front.)
 window-rule {
-    match is-focused=false
-    //opacity 0
-  }
-window-rule {
-    geometry-corner-radius 13
+    geometry-corner-radius 8
+    // open-maximized true
     clip-to-geometry true
 }
+// Then, for Alacritty, set open-maximized back to false.
+
 
 binds {
     // `niri msg action do-something`.
