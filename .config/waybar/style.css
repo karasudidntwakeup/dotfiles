@@ -3,6 +3,7 @@
     font-family: "Ndot 57", "Symbol Nerd Font", sans-serif;
     padding: 0 4px;        /* minimal padding inside modules */
     color: #f8f8f2;
+    font-weight: bold;
 }
 
 /* Entire bar */
