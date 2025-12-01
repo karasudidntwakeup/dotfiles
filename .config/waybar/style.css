@@ -4,17 +4,17 @@
 
 
 * {
-    border:#21222c;
-    border-radius: 20px;
+    border:#282a36;
+    border-radius: 8px;
     font-family: "  Ndot 57 , Symbol Nerd Font";
     font-weight: bold;
-    font-size: 13px;
+    font-size: 14px;
     min-height: 0;
 }
 
 window#waybar {
-    border-radius: 38px;
-    background: alpha(@background, 0.93);
+    border-radius: 8px;
+    background: alpha(@background, 0.50);
 }
 
 tooltip {
@@ -29,26 +29,26 @@ tooltip label {
 
 #workspaces {
     background: alpha(@background, 0.0);
-    border-radius: 38px;
-    margin-top: 4px;
-    margin-bottom: 4px;
+    border-radius: 0px;
+    margin-top: 0px;
+    margin-bottom: 0px;
 }
 
 #workspaces button {
     padding: 0px;
     color: alpha(@foreground, 0.5);
     background: transparent;
-    border-radius: 10px;
-    margin-top: 3px;
-    margin-bottom: 3px;
-    padding-left: 3px;
-    padding-right: 3px;
+    border-radius: 0px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    padding-left: 0px;
+    padding-right: 0px;
     animation: gradient_f 20s ease-in infinite;
     transition: all 0.4s cubic-bezier(0.55, -0.68, 0.48, 1.682);
 }
 
 #workspaces button.active {
-    background: alpha(@background, 0.2);
+    background: alpha(@background, 0.9);
     color: lighter(@main-color);
     border-radius: 20px;
     transition: color 0.5s;
@@ -83,7 +83,7 @@ tooltip label {
 #custom-recording,
 #bluetooth,
 #workspaces {
-    padding: 0px 14px 0px 14px;
+    padding: 0px 11px 0px 11px;
 }
 
 @keyframes pulse {
@@ -100,13 +100,12 @@ tooltip label {
     }
 }
 
+
 #window {
-    margin-left: 60px;
-    margin-right: 60px;
-    background: alpha(@background, 0.3);
-    border-radius: 10px;
+    background: alpha(@background, 0.0);
     color: lighter(@main-color);
 }
+
 
 #clock {
     color: lighter(@main-color);
@@ -130,4 +129,7 @@ tooltip label {
 }
 
 #calendar {
+    color: lighter(@main-color);
+    background: transparent;
+
 }
