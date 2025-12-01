@@ -9,12 +9,12 @@
 /* Entire bar */
 #waybar {
     background-color: rgba(40, 42, 54, 0.0); /* translucent */
-    padding-bottom: 10px;   /* space below modules */
-    border-radius: 10px;
+    padding-bottom: 0px;   /* space below modules */
+    border-radius: 0px;
   }
 /* All modules inside the bar */
 #waybar > * {
-    background-color: rgba(40, 42, 54, 0.7);
+    background-color: rgba(40, 42, 54, 0.4);
     border-radius: 10px;
     margin: 10px 10px;
   }
@@ -24,7 +24,7 @@
 #clock,
 #network {
   font-size: 14px;
-    padding: 0 10px;
+    padding: 0 30px;
 }
 #battery {
     font-size: 15px;
