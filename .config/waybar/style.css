@@ -1,7 +1,6 @@
 /* Base for everything */
 * {
     font-family: "Ndot 57", "Symbol Nerd Font", sans-serif;
-    font-size: 16px;       /* small font for thin bar */
     padding: 0 4px;        /* minimal padding inside modules */
     color: #f8f8f2;
 }
@@ -22,13 +21,24 @@
 /* Specific module tweaks */
 #window,
 #clock,
-#network,
+#network {
+  font-size: 14px;
+    padding: 0 10px;
+}
 #battery {
-    font-size: 14px;
+    font-size: 15px;
     padding: 0 10px;
 }
 
+#window {
+  font-size: 17px;
+}
 /* Active workspace highlight */
-#workspaces button.active {
+#workspaces  {
+      font-size: 15px;
+
 }
 
+#clock {
+  font-size: 15px;
+}
