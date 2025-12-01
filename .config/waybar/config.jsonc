@@ -1,27 +1,23 @@
 {
-	"layer": "top",
-	"position": "top",
-	"margin": "15 5 5",
+    "width": 1600,
     "fixed center": true,
     "reload_style_on_change": true,
-	"height": 27,
-	"width": 1300,
     "include": [
         "~/.config/waybar/modules.jsonc"
     ],
 
-	"modules-left": [
-    "niri/workspaces",
+    "modules-left": [
+        "niri/workspaces"
     ],
 
     "modules-center": [
-    "niri/window"
-  ],
+        "niri/window"
+    ],
 
-
-	"modules-right": [
+    "modules-right": [
         "network",
         "battery",
-        "clock",
+        "clock"
     ]
 }
+
