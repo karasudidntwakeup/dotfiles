@@ -191,7 +191,7 @@ window-rule {
 }
 window-rule {
     match app-id="librewolf"
-    open-maximized true
+     default-column-width { proportion 0.70; }
 }
 // Then, for Alacritty, set open-maximized back to false.
 
