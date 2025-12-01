@@ -4,7 +4,7 @@
 	"margin": "15 5 5",
     "fixed center": true,
     "reload_style_on_change": true,
-	"height": 30,
+	"height": 27,
 	"width": 1300,
     "include": [
         "~/.config/waybar/modules.jsonc"
