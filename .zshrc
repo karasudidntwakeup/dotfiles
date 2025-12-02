@@ -92,8 +92,6 @@ alias ytd='yt-dlp  -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]" --a
 alias ytdm='yt-dlp -f "bestaudio[ext=m4a]","bestaudio[ext=webm]" -x '
 alias v='nvim'
 alias timer='tclock timer -d 20m -M'
-alias lf='yazi'
-alias y='yazi'
 alias fzf='fzf --preview="bat --color=always {}"'
 alias sxiv='imv'
 alias sxiv-t="imv \$(ls | fzf)"
@@ -151,4 +149,12 @@ fpath+=($HOME/.zsh/pure)
 # Enable Pure prompt
 autoload -U promptinit; promptinit
 prompt pure
-
+#yazi
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	yazi "$@" --cwd-file="$tmp"
+	if cwd="$(command cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+		builtin cd -- "$cwd"
+	fi
+	rm -f -- "$tmp"
+}

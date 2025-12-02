@@ -1,6 +1,17 @@
 [mgr]
 ratio = [0,1, 2]   
+show_hidden = true
+sort_by = "mtime"
+sort_reverse = true
+show_symlink = true
+sort_dir_first = true
+mouse_events = ["drag", "click", "scroll"]
+
 [plugin]
 prepend_previewers = [
     { mime = "audio/*",   run = "exifaudio"}
 ]
+[preview]
+wrap = "no"
+max_width = 1200
+max_height =1200
