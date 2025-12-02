@@ -43,6 +43,7 @@ input {
         // disabled-on-external-mouse
     }
 
+
     mouse {
     }
 
@@ -205,11 +206,11 @@ window-rule {
     // open-maximized true
     clip-to-geometry true
 }
-window-rule {
-    match app-id="librewolf"
-     default-column-width { proportion 0.70; }
-}
-// Then, for Alacritty, set open-maximized back to false.
+//window-rule {
+    //match app-id="librewolf"
+     //default-column-width { proportion 0.70; }
+//}
+//// Then, for Alacritty, set open-maximized back to false.
 
 
 binds {
