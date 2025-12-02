@@ -92,6 +92,7 @@ alias ytd='yt-dlp  -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]" --a
 alias ytdm='yt-dlp -f "bestaudio[ext=m4a]","bestaudio[ext=webm]" -x '
 alias v='nvim'
 alias timer='tclock timer -d 20m -M'
+alias lf='yazi'
 alias fzf='fzf --preview="bat --color=always {}"'
 alias sxiv='imv'
 alias sxiv-t="imv \$(ls | fzf)"
