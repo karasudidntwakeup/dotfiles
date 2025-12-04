@@ -3,9 +3,9 @@
 # confirmations, etc.) must go above this block; everything else may go below.
 export NO_AT_BRIDGE=1
 setopt extended_glob
-#if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
- #source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-#fi
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+ source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
 # Enable colors and change prompt:
 autoload -U colors && colors	# Load colors
 setopt COMBINING_CHARS
@@ -108,17 +108,17 @@ source ~/github/somewhere/fzf-tab.plugin.zsh
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 #source ~/github/powerlevel10k/powerlevel10k.zsh-theme
 source ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-#[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 ## [Completion]
 ## Completion scripts setup. Remove the following line to uninstall
 ## [/Completion]
 # Start tmux automatically if it's not already running
 # # Only run in interactive shells
-# if [[ $- == *i* ]]; then
-#     if command -v tmux &> /dev/null && [ -z "$TMUX" ]; then
-#         tmux attach-session -t default || tmux new-session -s default
-#     fi
-# fi
+ #if [[ $- == *i* ]]; then
+     #if command -v tmux &> /dev/null && [ -z "$TMUX" ]; then
+         #tmux attach-session -t default || tmux new-session -s default
+   #fi
+## fi
  if [ "$TERM" = "linux" ]; then
 	printf %b '\e[40m' '\e[8]' # set default background to color 0 'dracula-bg'
 	printf %b '\e[37m' '\e[8]' # set default foreground to color 7 'dracula-fg'
@@ -144,12 +144,7 @@ fi
 
 
 . "$HOME/.local/bin/env"
-#source ~/powerlevel10k/powerlevel10k.zsh-theme
-# .zshrc
-fpath+=($HOME/.zsh/pure)
-# Enable Pure prompt
-autoload -U promptinit; promptinit
-prompt pure
+source ~/powerlevel10k/powerlevel10k.zsh-theme
 #yazi
 function y() {
 	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
