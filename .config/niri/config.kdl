@@ -144,17 +144,17 @@ layout {
 
 // To run a shell command (with variables, pipes, etc.), use spawn-sh-at-startup:
  spawn-sh-at-startup "swww-daemon"
- spawn-sh-at-startup "wlsunset -l 30.0 -L 31.2 "
+ //spawn-sh-at-startup "wlsunset -l 30.0 -L 31.2 "
  spawn-sh-at-startup "dbus-launch waybar"
  spawn-sh-at-startup "pipewire"
  spawn-sh-at-startup "pipewire-pulse"
  spawn-sh-at-startup "wireplumber"
  spawn-sh-at-startup "doas keyd"
 
-//hotkey-overlay {
+hotkey-overlay {
     // Uncomment this line to disable the "Important Hotkeys" pop-up at startup.
-    // skip-at-startup
-//}
+     skip-at-startup
+}
 
 // Uncomment this line to ask the clients to omit their client-side decorations if possible.
 // If the client will specifically ask for CSD, the request will be honored.
