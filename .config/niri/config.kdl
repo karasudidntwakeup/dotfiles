@@ -149,7 +149,6 @@ layout {
  spawn-sh-at-startup "pipewire"
  spawn-sh-at-startup "pipewire-pulse"
  spawn-sh-at-startup "wireplumber"
- spawn-sh-at-startup "doas keyd"
 
 hotkey-overlay {
     // Uncomment this line to disable the "Important Hotkeys" pop-up at startup.
