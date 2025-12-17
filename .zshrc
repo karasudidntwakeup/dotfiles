@@ -42,15 +42,14 @@ zle -N down-line-or-beginning-search
 #PS1="%B%{$fg[red]%}[%{$fg[yellow]%}%n%{$fg[green]%}@%{$fg[blue]%}%M %{$fg[magenta]%}%~%{$fg[red]%}]%{$reset_color%}   $%b "
 
 #ZSH_THEME="powerlevel10k"
-#
-setopt autocd		# Automatically cd into typed directory.
+
+# ── Shell options ─────────────────────────
+setopt autocd
 setopt interactive_comments
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
-zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
-zstyle ':completion:*' menu no
-zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'eza --color $realpath'
-zstyle ':completion:*' menu select
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza --color $realpath'
+zstyle ':fzf-tab:complete:*:*:files' fzf-flags \
+  '--bind=tab:toggle-sort'
+
+
 # History in cache directory:
 HISTSIZE=10000000
 SAVEHIST=10000000
@@ -65,9 +64,7 @@ export PATH="$PATH:/sbin:/usr/sbin:usr/local/sbin"
 export PATH="${PATH}:${HOME}/.local/bin/"
 export PATH="${PATH}:${HOME}/.cargo/bin"
 export OLLAMA_NOPRUNE=true
-export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 #alias
-alias gpt='tgpt'
 alias z='zathura'
 alias sudo='doas'
 alias tree='eza --tree --icons --sort=newest --color=always'
@@ -75,7 +72,7 @@ alias u='doas pacman -Syyu ; paru -Syyu --noconfirm'
 alias i='doas pacman -S '
 alias r='doas pacman -Rnscu '
 alias lta='eza --tree --icons --sort=newest'
-alias ls=' eza  --icons --color=always --group-directories-first'
+alias ls=' eza  --icons --color=always --group-directories-first --classify'
 alias l='eza -al --color=always --group-directories-first --sort=newest'
 alias sl='eza --icons --sort=newest'
 export LESS='-R --use-color -Dd+r$Du+b$'
@@ -85,7 +82,6 @@ alias 01='loginctl poweroff'
 alias x='niri'
 alias ip='ip --color=auto'
 alias grep='grep -i --color=auto'
-alias cat='bat'
 alias rsync='rsync -ravP '
 alias yt='gophertube'
 alias ytd='yt-dlp  -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]" --audio-quality 0'
@@ -94,8 +90,9 @@ alias v='nvim'
 alias timer='tclock timer -d 20m -M'
 alias lf='yazi'
 alias fzf='fzf --preview="bat --color=always {}"'
-alias sxiv='imv'
 alias sxiv-t="imv \$(ls | fzf)"
+alias man=tldr
+
 
 
 #eval
