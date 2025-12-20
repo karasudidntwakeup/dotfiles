@@ -6,14 +6,13 @@ cursor {
 }
 
 overview {
-    zoom 0.3
-    backdrop-color "#262626"
+    zoom 0.6
+    backdrop-color "#f8f8f2"
     workspace-shadow {
         // off
         softness 40
         spread 10
         offset x=0 y=10
-        color "#00000050"
     }
 }
 
@@ -22,8 +21,8 @@ input {
         repeat-delay 200
         repeat-rate 35
         xkb {
-                  layout "us,ara"
-                          options "grp:ctrl_space_toggle,numpad:mac"
+              layout "us,ara"
+              options "grp:ctrl_space_toggle,numpad:mac"
         }
         numlock
     }
@@ -101,6 +100,7 @@ output "eDP-1" {
     focus-at-startup
   }
   output "HDMI-A-1" {
+    mode "1920x1080@60.027"
     scale 1.2
 }
 

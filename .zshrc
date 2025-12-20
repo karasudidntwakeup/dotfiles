@@ -91,7 +91,6 @@ alias timer='tclock timer -d 20m -M'
 alias lf='yazi'
 alias fzf='fzf --preview="bat --color=always {}"'
 alias sxiv-t="imv \$(ls | fzf)"
-alias man=tldr
 
 
 
