@@ -6,7 +6,7 @@ cursor {
 }
 
 overview {
-    zoom 0.6
+    zoom 0.7
     workspace-shadow {
         // off
         softness 40
@@ -16,7 +16,7 @@ overview {
   }   // Put swaybg inside the overview backdrop.
 layer-rule {
       match namespace="^wallpaper$"
-    place-within-backdrop true
+      place-within-backdrop true
 }
 
 input {
@@ -223,7 +223,7 @@ animations {
 // Example: enable rounded corners for all windows.
 // (This example rule is commented out with a "/-" in front.)
 window-rule {
-    geometry-corner-radius 8
+    geometry-corner-radius 0
     // open-maximized true
     clip-to-geometry true
 }

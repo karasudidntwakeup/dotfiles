@@ -15,7 +15,7 @@
 /* All modules inside the bar */
 #waybar > * {
     background-color: rgba(40, 42, 54, 0.4);
-    border-radius: 10px;
+    border-radius: 3px;
     margin: 10px 10px;
   }
 
