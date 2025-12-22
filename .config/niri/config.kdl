@@ -7,13 +7,16 @@ cursor {
 
 overview {
     zoom 0.6
-    backdrop-color "#f8f8f2"
     workspace-shadow {
         // off
         softness 40
         spread 10
         offset x=0 y=10
     }
+  }   // Put swaybg inside the overview backdrop.
+layer-rule {
+      match namespace="^wallpaper$"
+    place-within-backdrop true
 }
 
 input {
@@ -108,11 +111,12 @@ output "eDP-1" {
 // Find more information on the wiki:
 // https://yalter.github.io/niri/Configuration:-Layout
 
+
 layout {
     gaps 15
-
- center-focused-column "never"
- always-center-single-column
+    background-color "transparent"
+    center-focused-column "never"
+    always-center-single-column
 
     preset-column-widths {
         proportion 0.6
@@ -160,6 +164,8 @@ layout {
 
 // To run a shell command (with variables, pipes, etc.), use spawn-sh-at-startup:
  spawn-sh-at-startup "swww-daemon"
+ spawn-sh-at-startup "swaybg -i wallpaper/test.jpg"
+
  //spawn-sh-at-startup "wlsunset -l 30.0 -L 31.2 "
  spawn-sh-at-startup "dbus-launch waybar"
  spawn-sh-at-startup "pipewire"
