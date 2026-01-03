@@ -164,7 +164,7 @@ layout {
 
 // To run a shell command (with variables, pipes, etc.), use spawn-sh-at-startup:
  spawn-sh-at-startup "swww-daemon"
- spawn-sh-at-startup "swaybg -i wallpaper/test.jpg"
+ spawn-sh-at-startup "swaybg -i wallpaper/tg.jpg"
 
  //spawn-sh-at-startup "wlsunset -l 30.0 -L 31.2 "
  spawn-sh-at-startup "dbus-launch waybar"
