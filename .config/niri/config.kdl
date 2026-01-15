@@ -116,7 +116,7 @@ layout {
     gaps 15
     background-color "transparent"
     center-focused-column "never"
-    always-center-single-column
+    //always-center-single-column
 
     preset-column-widths {
         proportion 0.6
@@ -164,6 +164,7 @@ layout {
 
 // To run a shell command (with variables, pipes, etc.), use spawn-sh-at-startup:
  spawn-sh-at-startup "swww-daemon"
+ spawn-sh-at-startup "doas /usr/bin/keyd"
  spawn-sh-at-startup "swaybg -i wallpaper/tg.jpg"
 
  //spawn-sh-at-startup "wlsunset -l 30.0 -L 31.2 "
