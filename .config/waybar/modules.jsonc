@@ -49,5 +49,10 @@
   "niri/window": {
   "format": "{app_id}",
   "icon": false       // optional — hides the icon if you don’t want it
+},
+"custom/wifi-speed": {
+  "exec": "~/.config/waybar/scripts/wifi-speed.sh",
+  "interval": 2
 }
+
 }

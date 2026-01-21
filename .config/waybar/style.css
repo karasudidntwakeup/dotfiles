@@ -1,34 +1,24 @@
-/* Base for everything */
 * {
     font-family: "Ndot 57", "Symbol Nerd Font", sans-serif;
-    padding: 0 4px;        /* minimal padding inside modules */
+    margin: 1px 10px 0px 10px;
     color: #f8f8f2;
     font-weight: bold;
 }
 
 /* Entire bar */
 #waybar {
-    background-color: rgba(40, 42, 54, 0.0); /* translucent */
-    padding-bottom: 0px;   /* space below modules */
-    border-radius: 0px;
-  }
-/* All modules inside the bar */
-#waybar > * {
-    background-color: rgba(40, 42, 54, 0.4);
-    border-radius: 3px;
-    margin: 10px 10px;
-  }
 
+
+    background-color: rgba(30, 31, 41, 230); 
+  }
 /* Specific module tweaks */
-#window,
-#clock,
+#window
+#clock
 #network {
   font-size: 14px;
-    padding: 0 30px;
 }
 #battery {
     font-size: 15px;
-    padding: 0 10px;
 }
 
 #window {
@@ -37,9 +27,14 @@
 /* Active workspace highlight */
 #workspaces  {
       font-size: 15px;
-
 }
-
+#workspaces button {
+  margin: 0px 0px 0px 0px;
+      padding: 1px 0px;
+}
 #clock {
   font-size: 15px;
+}
+#custom-wifi-down {
+    font-size: 14px;      
 }

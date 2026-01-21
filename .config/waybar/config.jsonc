@@ -1,6 +1,5 @@
+
 {
-    "width": 1600,
-    "fixed center": true,
     "reload_style_on_change": true,
     "include": [
         "~/.config/waybar/modules.jsonc"
@@ -15,9 +14,10 @@
     ],
 
     "modules-right": [
+        "custom/wifi-speed",
         "network",
         "battery",
-        "clock"
+        "clock",
     ]
 }
 
