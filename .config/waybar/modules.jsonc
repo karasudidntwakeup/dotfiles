@@ -53,6 +53,17 @@
 "custom/wifi-speed": {
   "exec": "~/.config/waybar/scripts/wifi-speed.sh",
   "interval": 2
+},
+  "custom/memory": {
+  "exec": "~/.config/waybar/scripts/memory.sh",
+  "interval": 5
+},
+"custom/kblayout": {
+  "exec": "~/.config/waybar/scripts/kblayout.sh",
+  "interval": 1,
+  "return-type": "text"
 }
+
+
 
 }

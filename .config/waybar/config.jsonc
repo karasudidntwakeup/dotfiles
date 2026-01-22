@@ -1,12 +1,14 @@
 
 {
+    "layer": "top",
+    "position": "bottom",
     "reload_style_on_change": true,
     "include": [
         "~/.config/waybar/modules.jsonc"
     ],
 
     "modules-left": [
-        "niri/workspaces"
+        "niri/workspaces",
     ],
 
     "modules-center": [
@@ -14,10 +16,13 @@
     ],
 
     "modules-right": [
+        "custom/kblayout",
+        "custom/memory",
         "custom/wifi-speed",
         "network",
         "battery",
         "clock",
     ]
+
 }
 
