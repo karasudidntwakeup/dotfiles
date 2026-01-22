@@ -35,5 +35,11 @@
   font-size: 15px;
 }
 #custom-wifi-down {
-    font-size: 14px;      
+    font-size: 15px;      
+}
+#custom-memory {
+    font-size: 15px;      
+  }
+#custom-kblayout {
+  font-size: 17px;
 }
