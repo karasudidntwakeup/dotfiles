@@ -67,7 +67,17 @@
   "exec": "~/.config/waybar/scripts/date.sh",
   "interval": 180,
   "return-type": "text"
+},
+"pulseaudio": {
+  "format": "{icon}  {volume}%",
+  "format-muted": "󰝟 MUTE",
+  "format-icons": {
+    "default": ["󰕿", "󰖀", "󰕾"]
+  },
+  "scroll-step": 5,
+  "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle"
 }
+
 
 
 

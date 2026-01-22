@@ -9,14 +9,12 @@
 
     "modules-left": [
         "niri/workspaces",
-    ],
-
-    "modules-center": [
         "niri/window"
     ],
 
     "modules-right": [
         "custom/kblayout",
+        "pulseaudio",
         "custom/memory",
         "custom/wifi-speed",
         "network",
