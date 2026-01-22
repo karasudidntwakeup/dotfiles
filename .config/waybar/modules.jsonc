@@ -62,7 +62,13 @@
   "exec": "~/.config/waybar/scripts/kblayout.sh",
   "interval": 1,
   "return-type": "text"
+},
+"custom/date": {
+  "exec": "~/.config/waybar/scripts/date.sh",
+  "interval": 180,
+  "return-type": "text"
 }
+
 
 
 
