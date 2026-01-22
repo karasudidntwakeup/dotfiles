@@ -113,15 +113,15 @@ output "eDP-1" {
 
 
 layout {
-    gaps 15
+    gaps 10
     background-color "transparent"
     center-focused-column "never"
     //always-center-single-column
 
     preset-column-widths {
-        proportion 0.6
         proportion 0.5
-        proportion 0.66667
+        proportion 0.5
+        proportion 0.5
     }
 
     default-column-width { proportion 0.5; }
@@ -219,7 +219,7 @@ animations {
 // Example: enable rounded corners for all windows.
 // (This example rule is commented out with a "/-" in front.)
 window-rule {
-    geometry-corner-radius 0
+    geometry-corner-radius 3
     // open-maximized true
     clip-to-geometry true
 }
