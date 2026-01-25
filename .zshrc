@@ -68,7 +68,7 @@ export OLLAMA_NOPRUNE=true
 alias z='zathura'
 alias sudo='doas'
 alias tree='eza --tree --icons --sort=newest --color=always'
-alias u='doas pacman -Syyu ; paru -Syyu --noconfirm'
+alias u='doas pacman -Syyu && paru -Syyu --noconfirm'
 alias i='doas pacman -S '
 alias r='doas pacman -Rnscu '
 alias lta='eza --tree --icons --sort=newest'
