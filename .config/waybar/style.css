@@ -14,37 +14,37 @@
 #window
 #clock
 #network {
-  font-size: 14px;
+  font-size: 16px;
 }
 #battery {
-    font-size: 15px;
+    font-size: 16px;
 }
 
 #window {
-  font-size: 17px;
+  font-size: 18px;
 }
 /* Active workspace highlight */
 #workspaces  {
-      font-size: 15px;
+      font-size: 16px;
 }
 #workspaces button {
   margin: 0px 0px 0px 0px;
       padding: 1px 0px;
 }
 #clock {
-  font-size: 15px;
+  font-size: 16px;
 }
-#custom-wifi-down {
-    font-size: 15px;      
+#custom-wifi-speed {
+    font-size: 16px;      
 }
 #custom-memory {
-    font-size: 15px;      
+    font-size: 16px;      
   }
 #custom-kblayout {
-  font-size: 17px;
+  font-size: 16px;
 }
 #custom-date {
-    font-size: 15px;
+    font-size: 16px;
   }
   #pulseaudio {
     font-size: 16px;
