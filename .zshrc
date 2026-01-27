@@ -136,6 +136,12 @@ source ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 	printf %b '\e]PFffffff'    # redefine 'bright-white'   as '#ffffff'
 	clear
 fi
+##############
+export YT_X_FZF_OPTS="$FZF_DEFAULT_OPTS \
+--color=fg+:#f8f8f2,bg+:#44475a,hl+:#d6acff \
+--color=info:#ffb86c,prompt:#50fa7b,pointer:#ff79c6 \
+--color=marker:#ff92df,spinner:#ffb86c,header:#6272a4"
+
 #### ------------------------------
 
 
