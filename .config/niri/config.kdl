@@ -4,6 +4,10 @@ cursor {
     xcursor-size 10
     hide-after-inactive-ms 3000
 }
+window-rule {
+    draw-border-with-background false
+}
+
 
 overview {
     zoom 0.5
@@ -98,8 +102,8 @@ input {
 
 output "eDP-1" {
     // off
-    mode "1920x1080@60.027"
-    scale 0.84
+    mode "1920x1080@60"
+    scale 0.77
     focus-at-startup
   }
   //output "HDMI-A-1" {
@@ -113,36 +117,33 @@ output "eDP-1" {
 
 
 layout {
-    gaps 16
+    gaps 20
     //background-color "transparent"
     center-focused-column "never"
     always-center-single-column
-
     //preset-column-widths {
         //proportion 0.5
         //proportion 0.5
         //proportion 0.5
     //}
       preset-column-widths {
-        proportion 0.33333
-        proportion 0.5
-        proportion 0.66667
     }
+
 
 
     default-column-width { proportion 0.5; }
     focus-ring {
-        on
+        off
         active-color "#b1b1b1"
-        width 2
+        width 4
         urgent-color "#9b0000"
 
 
     }
 
     border {
-        off
-
+        on
+        width 4
         active-color "#b1b1b1"
         inactive-color "#333333"
 
@@ -155,14 +156,14 @@ layout {
         offset x=12 y=0
         color "#000000"
     }
+    //
+    struts {
+      left 0
+      right 0
+      top 0
+      bottom 00
 //
-    //struts {
-      //left 10
-      //right 10
-      //top 0
-      //bottom 0
-//
-    //}
+    }
     insert-hint {
         // off
         on
@@ -171,6 +172,7 @@ layout {
     }
 
 }
+
 
 // This line starts waybar, a commonly used bar for Wayland compositors.
 
@@ -294,7 +296,7 @@ animations {
 // Example: enable rounded corners for all windows.
 // (This example rule is commented out with a "/-" in front.)
 window-rule {
-    geometry-corner-radius 3
+    geometry-corner-radius 1
     // open-maximized true
     clip-to-geometry true
 }
@@ -531,4 +533,9 @@ binds {
     // Powers off the monitors. To turn them back on, do any input like
     // moving the mouse or pressing any other key.
     Mod+Shift+P { power-off-monitors; }
+}
+layer-rule {
+    match namespace="waybar"
+    match at-startup=true
+    place-within-backdrop true
 }
