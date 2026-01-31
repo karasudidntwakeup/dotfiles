@@ -1,7 +1,7 @@
 prefer-no-csd
 cursor {
     xcursor-theme "ComixCursors-White"
-    xcursor-size 10
+    xcursor-size 3
     hide-after-inactive-ms 3000
 }
 window-rule {
@@ -10,6 +10,7 @@ window-rule {
 
 
 overview {
+    backdrop-color "#000000"
     zoom 0.5
     workspace-shadow {
         // off
@@ -118,9 +119,10 @@ output "eDP-1" {
 
 layout {
     gaps 20
+    background-color "transparent"
     //background-color "transparent"
     center-focused-column "never"
-    always-center-single-column
+    // always-center-single-column
     //preset-column-widths {
         //proportion 0.5
         //proportion 0.5
@@ -312,7 +314,7 @@ binds {
     // Mod-Shift-/, which is usually the same as Mod-?,
     // shows a list of important hotkeys.
     Mod+Shift+Slash { show-hotkey-overlay; }
-    Mod+space { spawn "fuzzel"; }
+    Mod+space { spawn "bemenu-run"; }
     Mod+Return hotkey-overlay-title="Open a Terminal: foot" { spawn "foot"; }
     Super+C hotkey-overlay-title="Open Browser: LibreWolf" { spawn "librewolf"; }
     Super+Shift+Q hotkey-overlay-title="Lock the Screen: hyprlock" { spawn "hyprlock"; }
