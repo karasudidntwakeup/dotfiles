@@ -7,8 +7,9 @@
 
 /* Entire bar */
 #waybar {
-
-      background-color: rgba(30, 31, 41, 0.0);
+      border-radius: 0px;
+      margin: 8px;
+      background-color: rgba(30, 31, 41, 0.20);
   }
 /* Specific module tweaks */
 #window
