@@ -78,6 +78,6 @@
   "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle"
 },
   "niri/window": {
-  "swap-icon-label": false
+  "swap-icon-label": true
                 }
 }

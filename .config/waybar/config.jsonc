@@ -2,6 +2,7 @@
 {
     "fixed-center": "true",
     "height": 0,
+    "width":1600,
     "margin-bottom": 10,
     "padding-right": 100,
     "padding-left": 0,
