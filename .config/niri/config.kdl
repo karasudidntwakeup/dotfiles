@@ -11,7 +11,7 @@ window-rule {
 
 overview {
     backdrop-color "#000000"
-    zoom 0.5
+    zoom 0.8
     workspace-shadow {
         // off
         softness 40
@@ -298,7 +298,7 @@ animations {
 // Example: enable rounded corners for all windows.
 // (This example rule is commented out with a "/-" in front.)
 window-rule {
-    geometry-corner-radius 1
+    geometry-corner-radius 0
     // open-maximized true
     clip-to-geometry true
 }
@@ -314,7 +314,7 @@ binds {
     // Mod-Shift-/, which is usually the same as Mod-?,
     // shows a list of important hotkeys.
     Mod+Shift+Slash { show-hotkey-overlay; }
-    Mod+space { spawn "bemenu-run"; }
+    Mod+space { spawn "fuzzel"; }
     Mod+Return hotkey-overlay-title="Open a Terminal: foot" { spawn "foot"; }
     Super+C hotkey-overlay-title="Open Browser: LibreWolf" { spawn "librewolf"; }
     Super+Shift+Q hotkey-overlay-title="Lock the Screen: hyprlock" { spawn "hyprlock"; }

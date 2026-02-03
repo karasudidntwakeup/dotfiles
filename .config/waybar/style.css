@@ -1,52 +1,59 @@
 * {
-    font-family: "Ndot 57", "Symbol Nerd Font", sans-serif;
-    padding: 0px 5px 0px 20px;
-    color: #f8f8f2;
-    font-weight: bold;
+    font-family: "Ndot 57", "Symbol Nerd Font";
+    padding: 0px 7px 0px 7px;
+    color: #f2f2f2;
+    font-weight: 900;
 }
 
 /* Entire bar */
 #waybar {
-      border-radius: 0px;
-      margin: 0px;
-      background-color: rgba(30, 31, 41, 0.);
+      border-radius: 10px;
+      background-color: rgba(30, 31, 41, 0.3);
   }
 /* Specific module tweaks */
 #window
 #clock
 #network {
-  font-size: 17px;
+  font-size: 8px;
 }
 #battery {
     font-size: 16px;
+    padding:0px 15px 0px 15px;
 }
 
 #window {
   font-size: 18px;
+    padding:0px 15px 0px 15px;
 }
 /* Active workspace highlight */
 #workspaces  {
       font-size: 16px;
+  margin: 2px 18px 0px 0px;
 }
 #workspaces button {
-  margin: 0px 0px 0px 0px;
 }
 #clock {
   font-size: 16px;
-    padding:0px 70px 0px 0px;
+    padding:0px 15px 0px 15px;
 }
 #custom-wifi-speed {
     font-size: 16px;      
+    padding:0px 15px 0px 15px;
 }
 #custom-memory {
     font-size: 16px;      
+    padding:0px 15px 0px 15px;
   }
 #custom-kblayout {
   font-size: 16px;
+    padding:0px 15px 0px 15px;
 }
 #custom-date {
     font-size: 16px;
+    padding:0px 15px 0px 15px;
   }
   #pulseaudio {
     font-size: 16px;
+    padding:0px 15px 0px 15px;
   }
+
