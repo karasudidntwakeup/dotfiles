@@ -4,8 +4,8 @@
 (
     address: "127.0.0.1:6600",
     password: None,
-    theme: Some("nord"),
-    cache_dir: "/home/nikzo/.cache/rmpc/",
+    theme: Some("catppuccin_mocha"),
+    cache_dir: "/home/karasu/.cache/rmpc/",
     on_song_change: None,
     volume_step: 5,
     max_fps: 30,
