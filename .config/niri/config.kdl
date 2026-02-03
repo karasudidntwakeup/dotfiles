@@ -298,7 +298,7 @@ animations {
 // Example: enable rounded corners for all windows.
 // (This example rule is commented out with a "/-" in front.)
 window-rule {
-    geometry-corner-radius 0
+    geometry-corner-radius 3
     // open-maximized true
     clip-to-geometry true
 }
