@@ -1,6 +1,6 @@
 * {
     font-family: "Ndot 57", "Symbol Nerd Font", sans-serif;
-    margin: 1px 10px 0px 10px;
+    padding: 0px 5px 0px 20px;
     color: #f8f8f2;
     font-weight: bold;
 }
@@ -8,8 +8,8 @@
 /* Entire bar */
 #waybar {
       border-radius: 0px;
-      margin: 8px;
-      background-color: rgba(30, 31, 41, 0.20);
+      margin: 0px;
+      background-color: rgba(30, 31, 41, 0.);
   }
 /* Specific module tweaks */
 #window
@@ -30,10 +30,10 @@
 }
 #workspaces button {
   margin: 0px 0px 0px 0px;
-      padding: 1px 0px;
 }
 #clock {
   font-size: 16px;
+    padding:0px 70px 0px 0px;
 }
 #custom-wifi-speed {
     font-size: 16px;      
