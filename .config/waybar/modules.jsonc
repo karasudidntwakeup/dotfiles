@@ -46,10 +46,6 @@
         "tooltip-format":"Network: <big><b>{essid}</b></big>\nSignal strength: <b>{signaldBm}dBm ({bandwidthDownBytes})</b>\nFrequency: <b>{frequency}MHz</b>\nInterface: <b>{ifname}</b>"	
     },
 
-  "niri/window": {
-  "format": "{app_id}",
-  "icon": false       // optional — hides the icon if you don’t want it
-},
 "custom/wifi-speed": {
   "exec": "~/.config/waybar/scripts/wifi-speed.sh",
   "interval": 2
@@ -81,8 +77,7 @@
   "scroll-step": 5,
   "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle"
 },
-  "niri/window": {
-  "swap-icon-label": false
+ // "swap-icon-label": false
                 }
 },
 "custom/prayer": {
