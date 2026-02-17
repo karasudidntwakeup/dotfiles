@@ -7,7 +7,6 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 # Enable colors and change prompt:
-autoload -U colors && colors	# Load colors
 setopt COMBINING_CHARS
 # custom colors
 
@@ -75,7 +74,6 @@ alias lta='eza --tree --icons --sort=newest'
 alias ls=' eza  --icons --color=always --group-directories-first --classify --sort=newest'
 alias l='eza -al --color=always --group-directories-first --sort=newest'
 alias sl='eza --icons --sort=newest'
-export rESS='-R --use-color -Dd+r$Du+b$'
 alias sxiv='nsxiv'
 alias 00='loginctl poweroff'
 alias 01='loginctl poweroff'
@@ -136,10 +134,6 @@ source ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 	clear
 fi
 ##############
-export YT_X_FZF_OPTS="$FZF_DEFAULT_OPTS \
---color=fg+:#f8f8f2,bg+:#44475a,hl+:#d6acff \
---color=info:#ffb86c,prompt:#50fa7b,pointer:#ff79c6 \
---color=marker:#ff92df,spinner:#ffb86c,header:#6272a4"
 
 #### ------------------------------
 
