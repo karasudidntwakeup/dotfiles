@@ -1,4 +1,3 @@
-
 {
     "fixed-center": "true",
     "height": 0,
@@ -14,12 +13,13 @@
 
     "modules-left": [
         "niri/workspaces",
-        "niri/window"
+        "niri/window",
     ],
 
     "modules-right": [
         "custom/kblayout",
         "pulseaudio",
+        "custom/prayer",
         "custom/memory",
         "custom/wifi-speed",
         "network",

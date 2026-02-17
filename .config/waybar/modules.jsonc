@@ -54,6 +54,10 @@
   "exec": "~/.config/waybar/scripts/wifi-speed.sh",
   "interval": 2
 },
+"custom/prayer": {
+  "exec": "~/.config/waybar/scripts/prayer.sh",
+  "interval": 5 
+},
   "custom/memory": {
   "exec": "~/.config/waybar/scripts/memory.sh",
   "interval": 5
@@ -78,6 +82,10 @@
   "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle"
 },
   "niri/window": {
-  "swap-icon-label": true
+  "swap-icon-label": false
                 }
+},
+"custom/prayer": {
+    "exec": "/home/karasu/.config/waybar/scripts/prayer.sh",
 }
+
