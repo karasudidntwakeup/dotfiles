@@ -32,6 +32,7 @@ bindkey "\e[1;3C" forward-word      # ⌥→
 bindkey "^[[1;9D" beginning-of-line # cmd+←
 bindkey "^[[1;9C" end-of-line       # cmd+→
 #
+#
 autoload -U up-line-or-beginning-search
 autoload -U down-line-or-beginning-search
 autoload -U compinit; compinit
@@ -45,8 +46,18 @@ zle -N down-line-or-beginning-search
 # ── Shell options ─────────────────────────
 setopt autocd
 setopt interactive_comments
-zstyle ':fzf-tab:complete:*:*:files' fzf-flags \
-  '--bind=tab:toggle-sort'
+zstyle ':fzf-tab:*' fzf-flags \
+  --height=80% \
+  --layout=reverse \
+  --border=rounded \
+  --border \
+  --info=hidden \
+  --info=inline \
+  --prompt='❯ ' \
+  --pointer='▶ ' \
+  --marker='✓ ' \
+  --no-separator \
+  --height=30%
 
 
 # History in cache directory:

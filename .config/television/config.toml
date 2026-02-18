@@ -253,8 +253,7 @@ fallback_channel = "files"
 # for command history
 "command_history" = "ctrl-r"
 # Entry: "file.txt:42:error message"
-[preview]
-command = "bat -H {1} '{0}'"  # Open file.txt, highlight line 42
-# Entry: "path/file.txt|42|info"
 [source]
 output = "{split:|:2}"  # Outputs: path/file.txt
+[preview]
+command = ["bat -n --color=always '{}'", "cat '{}'", "head -50 '{}'"]
