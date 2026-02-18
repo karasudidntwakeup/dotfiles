@@ -1,0 +1,15 @@
+[metadata]
+name = "man"
+description = "Search system man pages"
+
+[source]
+command = "apropos ."
+
+[format]
+# apropos output format: name (section) - description
+delimiter = " - "
+fields = ["entry", "description"]
+
+[preview]
+command = "echo '{entry}' | awk '{print $1}' | xargs -r man | col -bx | bat -l man --color=always"
+
