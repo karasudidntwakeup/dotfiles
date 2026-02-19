@@ -1,0 +1,77 @@
+#!/bin/sh
+
+query=$(printf '%s' "$*" | tr ' ' '+')
+
+# ---------------------------
+# 1337x
+# ---------------------------
+get_from_1337x() {
+    curl -s "https://1337x.to/search/$query/1/" \
+    | grep -Eo "torrent/[0-9]+/[^\"']*/" \
+    | head -n 5 \
+    | while read -r movie; do
+        title=$(echo "$movie" | cut -d'/' -f3 | tr '-' ' ')
+        magnet=$(curl -s "https://1337x.to/$movie" \
+                 | grep -oP 'magnet:\?xt=urn:btih:[a-zA-Z0-9]+[^"]*' \
+                 | head -n 1)
+        echo "$title|$magnet"
+      done
+}
+
+# ---------------------------
+# YTS (Movies)
+# ---------------------------
+get_from_yts() {
+    curl -s "https://yts.mx/api/v2/list_movies.json?limit=5&query_term=$query" \
+    | grep -oP '"title_long":"[^"]*"|"hash":"[A-Fa-f0-9]+"' \
+    | paste - - \
+    | head -n 5 \
+    | while IFS=$'\t' read -r title hash; do
+        title=$(echo "$title" | cut -d'"' -f4)
+        hash=$(echo "$hash" | cut -d'"' -f4)
+        echo "$title|magnet:?xt=urn:btih:$hash"
+      done
+}
+
+# ---------------------------
+# EZTV (TV Shows)
+# ---------------------------
+get_from_eztv() {
+    curl -s "https://eztv.re/api/get-torrents?limit=5&keywords=$query" \
+    | grep -oP '"title":"[^"]*"|"magnet_url":"[^"]*' \
+    | sed 's/\"magnet_url\":\"/magnet:/' \
+    | paste - - \
+    | head -n 5 \
+    | while IFS=$'\t' read -r title magnet; do
+        title=$(echo "$title" | cut -d'"' -f4)
+        echo "$title|$magnet"
+      done
+}
+
+# ---------------------------
+# Build options
+# ---------------------------
+options=$( (get_from_1337x; get_from_yts; get_from_eztv) | grep '|')
+
+if [ -z "$options" ]; then
+    echo "❌ مفيش لينكات متاحة - جرّب VPN أو كلمة تانية"
+    exit 1
+fi
+
+echo "اختر من القائمة (1-5):"
+echo "$options" | nl -w2 -s'. '
+
+read -r choice
+
+magnet=$(echo "$options" | sed -n "${choice}p" | cut -d'|' -f2)
+
+if [ -z "$magnet" ]; then
+    echo "❌ اختيار غير صحيح"
+    exit 1
+fi
+
+# ---------------------------
+# تشغيل Peerflix
+# ---------------------------
+peerflix -k "$magnet"
+
