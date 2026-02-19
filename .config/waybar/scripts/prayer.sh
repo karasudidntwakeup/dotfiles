@@ -29,13 +29,24 @@ def time_to_minutes(t):
     h, m = map(int, t.split(":"))
     return h*60 + m
 
-# تحديد الصلاة الجاية
 next_prayer = "Fajr"
 for prayer in prayers:
     if time_to_minutes(timings[prayer]) > now_minutes:
         next_prayer = prayer
         break
 
-# Output واحد مناسب Waybar
-print(f"{next_prayer} {timings[next_prayer]}")
+t = timings[next_prayer]
+hour, minute = map(int, t.split(":"))
+suffix = "AM"
+if hour == 0:
+    hour = 12
+elif hour == 12:
+    suffix = "PM"
+elif hour > 12:
+    hour -= 12
+    suffix = "PM"
+
+time_12h = f"{hour}:{minute:02d} {suffix}"
+
+print(f"{next_prayer} {time_12h}")
 
