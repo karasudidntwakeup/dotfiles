@@ -2,21 +2,21 @@
 import requests
 from datetime import datetime
 
-LAT = 30.0444
-LON = 31.2357
+LAT = 30.7865
+LON = 31.0004
 METHOD = 5
 
-URL = f"https://api.aladhan.com/v1/timings?latitude={LAT}&longitude={LON}&method={METHOD}"
-
 try:
-    resp = requests.get(URL, timeout=5)
-    data = resp.json()
+    data = requests.get(
+        f"https://api.aladhan.com/v1/timings?latitude={LAT}&longitude={LON}&method={METHOD}",
+        timeout=5
+    ).json()
 except Exception:
-    print("  API error")
+    print("API error")
     exit(1)
 
 if data.get("code") != 200:
-    print("  API error")
+    print("API error")
     exit(1)
 
 timings = data["data"]["timings"]
@@ -27,13 +27,15 @@ now_minutes = now.hour * 60 + now.minute
 
 def time_to_minutes(t):
     h, m = map(int, t.split(":"))
-    return h * 60 + m
+    return h*60 + m
 
+# تحديد الصلاة الجاية
+next_prayer = "Fajr"
 for prayer in prayers:
-    t = timings[prayer]
-    if time_to_minutes(t) > now_minutes:
-        print(f"  {prayer} {t}")
-        exit(0)
+    if time_to_minutes(timings[prayer]) > now_minutes:
+        next_prayer = prayer
+        break
 
-print(f"  Fajr {timings['Fajr']}")
+# Output واحد مناسب Waybar
+print(f"{next_prayer} {timings[next_prayer]}")
 
