@@ -1,5 +1,0 @@
- for file in *; do
-    if [[ -f "$file" && "$file" != *.pdf ]]; then
-        pandoc "$file" -o "${file}.pdf" --pdf-engine=xelatex
-    fi
-done
