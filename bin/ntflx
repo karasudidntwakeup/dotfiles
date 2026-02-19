@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Fetch the clipboard content (assumes you have copied the magnet link using wl-copy)
+MAGNET_LINK=$(wl-paste)
+
+# Check if the clipboard has a valid magnet link
+if [[ -z "$MAGNET_LINK" || ! "$MAGNET_LINK" =~ ^magnet: ]]; then
+  echo "No valid magnet link found in clipboard!"
+  exit 1
+fi
+
+# Stream the torrent via WebTorrent and mpv
+echo "Streaming from: $MAGNET_LINK"
+webtorrent "$MAGNET_LINK" --mpv
+

@@ -98,7 +98,7 @@ alias ytdm='yt-dlp -f "bestaudio[ext=m4a]","bestaudio[ext=webm]" -x '
 alias v='nvim'
 alias timer='tclock timer -d 20m -M'
 alias lf='yazi'
-alias fzf='fzf --preview="bat --color=always {}"'
+alias fzf='fzf --preview "bat --color=always   {}"'
 alias sxiv-t="imv \$(ls | fzf)"
 
 
@@ -160,6 +160,7 @@ function y() {
 	fi
 	rm -f -- "$tmp"
 }
+export MANPAGER="bat -plman"
 export LESS_TERMCAP_mb=$'\e[1;32m'
 export LESS_TERMCAP_md=$'\e[1;32m'
 export LESS_TERMCAP_me=$'\e[0m'

@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+import requests
+from datetime import datetime
+
+CITY = "Tanta"
+COUNTRY = "Egypt"
+METHOD = 5
+
+url = "https://api.aladhan.com/v1/timingsByCity"
+params = {
+    "city": CITY,
+    "country": COUNTRY,
+    "method": METHOD
+}
+
+response = requests.get(url, params=params)
+timings = response.json()["data"]["timings"]
+
+prayers = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]
+
+now = datetime.now().strftime("%H:%M")
+
+def get_current_prayer():
+    current = None
+    for prayer in prayers:
+        if now >= timings[prayer]:
+            current = prayer
+    return current
+
+current_prayer = get_current_prayer()
+
+GREEN = "\033[92m"
+RESET = "\033[0m"
+
+print("\n" + "="*32)
+print("        🕌 TANTA 🕌")
+print("="*32)
+
+for prayer in prayers:
+    if prayer == current_prayer:
+        print(GREEN + f"{prayer:<10} {timings[prayer]} ◀ NOW" + RESET)
+    else:
+        print(f"{prayer:<10} {timings[prayer]}")
+
+print("="*32)
+print("Current Time:", now)
+print("="*32)
+
