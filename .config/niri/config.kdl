@@ -122,7 +122,7 @@ layout {
     background-color "transparent"
     //background-color "transparent"
     center-focused-column "never"
-    // always-center-single-column
+    always-center-single-column
     //preset-column-widths {
         //proportion 0.5
         //proportion 0.5
