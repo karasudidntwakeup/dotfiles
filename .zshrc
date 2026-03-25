@@ -121,14 +121,16 @@ alias sxiv-t="imv \$(ls | fzf)"
 
 #eval
 eval "$(zoxide init --cmd cd zsh)"
+eval "$(tv init zsh)"
 #variables
 unsetopt BEEP
 source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh 
 source ~/github/somewhere/fzf-tab.plugin.zsh
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-#source ~/github/powerlevel10k/powerlevel10k.zsh-theme
+source $HOME/.config/television/shell/integration.zsh
+source ~/powerlevel10k/powerlevel10k.zsh-theme
 source ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+. "$HOME/.local/bin/env"
 ## [Completion]
 ## Completion scripts setup. Remove the following line to uninstall
 ## [/Completion]
@@ -165,8 +167,6 @@ fi
 #### ------------------------------
 
 
-. "$HOME/.local/bin/env"
-source ~/powerlevel10k/powerlevel10k.zsh-theme
 #yazi
 function y() {
 	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
@@ -184,5 +184,3 @@ export LESS_TERMCAP_se=$'\e[0m'
 export LESS_TERMCAP_so=$'\e[01;33m'
 export LESS_TERMCAP_ue=$'\e[0m'
 export LESS_TERMCAP_us=$'\e[1;4;31m'
-eval "$(tv init zsh)"
-source $HOME/.config/television/shell/integration.zsh
