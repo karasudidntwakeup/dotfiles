@@ -10,7 +10,7 @@ window-rule {
 
 
 overview {
-    backdrop-color "#000000"
+    backdrop-color "#001f1f1f"
     zoom 0.8
     workspace-shadow {
         // off
@@ -119,8 +119,8 @@ output "eDP-1" {
 
 layout {
     gaps 22
-    background-color "#003300"
-    //background-color "transparent"
+   // background-color "#003300"
+    background-color "transparent"
     center-focused-column "never"
     always-center-single-column
     preset-column-widths {
