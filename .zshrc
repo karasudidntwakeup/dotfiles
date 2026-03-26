@@ -1,6 +1,7 @@
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
+PROMPT='%F{red}❯%F{yellow}❯%F{green}❯ %F{white}%~ %f'
 export NO_AT_BRIDGE=1
 setopt extended_glob
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
@@ -74,6 +75,10 @@ export PATH="$PATH:/sbin:/usr/sbin:usr/local/sbin"
 export PATH="${PATH}:${HOME}/.local/bin/"
 export PATH="${PATH}:${HOME}/.cargo/bin"
 export OLLAMA_NOPRUNE=true
+export XDG_SESSION_TYPE=wayland
+export SDL_VIDEODRIVER=wayland
+export QT_QPA_PLATFORM=wayland
+
 #alias
 alias cat ='bat'
 alias z='zathura'
@@ -89,7 +94,7 @@ alias sl='eza --icons --sort=newest'
 alias sxiv='nsxiv'
 alias 00='loginctl poweroff'
 alias 01='loginctl poweroff'
-alias x='niri'
+alias x='dbus-run-session niri'
 alias ip='ip --color=auto'
 alias netstat='/usr/bin/grc --colour=auto netstat'
 alias df='/usr/bin/grc --colour=auto df'
