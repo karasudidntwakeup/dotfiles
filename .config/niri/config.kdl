@@ -118,34 +118,30 @@ output "eDP-1" {
 
 
 layout {
-    gaps 20
-    background-color "transparent"
+    gaps 22
+    background-color "#003300"
     //background-color "transparent"
     center-focused-column "never"
     always-center-single-column
-    //preset-column-widths {
-        //proportion 0.5
-        //proportion 0.5
-        //proportion 0.5
-    //}
-      preset-column-widths {
+    preset-column-widths {
+      proportion 0.5
+      proportion 0.5
+      proportion 0.5
     }
-
-
 
     default-column-width { proportion 0.5; }
     focus-ring {
-        off
+        on
         active-color "#b1b1b1"
+        inactive-color "#333333"
         width 4
         urgent-color "#9b0000"
-
-
     }
 
     border {
-        on
+        off
         width 4
+        active-gradient from="#f00f" to="#0f05" angle=45 in="oklch longer hue"
         active-color "#b1b1b1"
         inactive-color "#333333"
 
@@ -160,16 +156,17 @@ layout {
     }
     //
     struts {
-      left 0
-      right 0
+      left 30
+      right 30
       top 0
-      bottom 00
+      bottom 0
 //
     }
     insert-hint {
         // off
         on
         color "#ffc87f80"
+        gradient from="#ffbb6680" to="#ffc88080" angle=45 relative-to="workspace-view"
         // gradient from="#ffbb6680" to="#ffc88080" angle=45 relative-to="workspace-view"
     }
 
@@ -181,7 +178,6 @@ layout {
 // To run a shell command (with variables, pipes, etc.), use spawn-sh-at-startup:
  spawn-sh-at-startup "swww-daemon"
  spawn-sh-at-startup "doas /usr/bin/keyd"
- spawn-sh-at-startup "swaybg -i wallpaper/tg.jpg"
 
  //spawn-sh-at-startup "wlsunset -l 30.0 -L 31.2 "
  spawn-sh-at-startup "dbus-launch waybar"
@@ -541,3 +537,4 @@ layer-rule {
     match at-startup=true
     place-within-backdrop true
 }
+
