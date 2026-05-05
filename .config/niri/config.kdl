@@ -10,7 +10,7 @@ window-rule {
 
 
 overview {
-    backdrop-color "#001f1f1f"
+    backdrop-color "#1f1f1f"
     zoom 0.8
     workspace-shadow {
         // off
@@ -21,7 +21,7 @@ overview {
   }   // Put swaybg inside the overview backdrop.
 layer-rule {
       match namespace="^wallpaper$"
-      place-within-backdrop true
+      place-within-backdrop false
 }
 
 input {
@@ -55,9 +55,8 @@ input {
 
     trackpoint {
     }
-     focus-follows-mouse
+    // focus-follows-mouse
 }
-
 // You can configure outputs by their name, which you can find
 // by running `niri msg outputs` while inside a niri instance.
 // The built-in laptop monitor is usually called "eDP-1".
@@ -104,7 +103,7 @@ input {
 output "eDP-1" {
     // off
     mode "1920x1080@60"
-    scale 0.77
+    scale 1
     focus-at-startup
   }
   //output "HDMI-A-1" {
@@ -119,8 +118,8 @@ output "eDP-1" {
 
 layout {
     gaps 22
-   // background-color "#003300"
-    background-color "transparent"
+    background-color "1f1f1f"
+   // background-color "transparent"
     center-focused-column "never"
     always-center-single-column
     preset-column-widths {
@@ -176,7 +175,7 @@ layout {
 // This line starts waybar, a commonly used bar for Wayland compositors.
 
 // To run a shell command (with variables, pipes, etc.), use spawn-sh-at-startup:
- spawn-sh-at-startup "swww-daemon"
+ spawn-sh-at-startup "awww-daemon"
  spawn-sh-at-startup "doas /usr/bin/keyd"
 
  //spawn-sh-at-startup "wlsunset -l 30.0 -L 31.2 "
