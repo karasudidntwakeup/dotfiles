@@ -84,7 +84,8 @@ alias cat ='bat'
 alias z='zathura'
 alias sudo='doas'
 alias tree='eza --tree --icons --sort=newest --color=always'
-alias u='doas pacman -Syyu && paru -Syyu --noconfirm'
+alias lst='tree -L 2 -u -g  -d'
+alias u='topgrade'
 alias i='doas pacman -S '
 alias r='doas pacman -Rnscu '
 alias lta='eza --tree --icons --sort=newest'
@@ -146,28 +147,28 @@ source ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
          #tmux attach-session -t default || tmux new-session -s default
    #fi
 ## fi
- if [ "$TERM" = "linux" ]; then
-	printf %b '\e[40m' '\e[8]' # set default background to color 0 'dracula-bg'
-	printf %b '\e[37m' '\e[8]' # set default foreground to color 7 'dracula-fg'
-	printf %b '\e]P0282a36'    # redefine 'black'          as 'dracula-bg'
-	printf %b '\e]P86272a4'    # redefine 'bright-black'   as 'dracula-comment'
-	printf %b '\e]P1ff5555'    # redefine 'red'            as 'dracula-red'
-	printf %b '\e]P9ff7777'    # redefine 'bright-red'     as '#ff7777'
-	printf %b '\e]P250fa7b'    # redefine 'green'          as 'dracula-green'
-	printf %b '\e]PA70fa9b'    # redefine 'bright-green'   as '#70fa9b'
-	printf %b '\e]P3f1fa8c'    # redefine 'brown'          as 'dracula-yellow'
-	printf %b '\e]PBffb86c'    # redefine 'bright-brown'   as 'dracula-orange'
-	printf %b '\e]P4bd93f9'    # redefine 'blue'           as 'dracula-purple'
-	printf %b '\e]PCcfa9ff'    # redefine 'bright-blue'    as '#cfa9ff'
-	printf %b '\e]P5ff79c6'    # redefine 'magenta'        as 'dracula-pink'
-	printf %b '\e]PDff88e8'    # redefine 'bright-magenta' as '#ff88e8'
-	printf %b '\e]P68be9fd'    # redefine 'cyan'           as 'dracula-cyan'
-	printf %b '\e]PE97e2ff'    # redefine 'bright-cyan'    as '#97e2ff'
-	printf %b '\e]P7f8f8f2'    # redefine 'white'          as 'dracula-fg'
-	printf %b '\e]PFffffff'    # redefine 'bright-white'   as '#ffffff'
-	clear
-fi
-##############
+ #if [ "$TERM" = "linux" ]; then
+	#printf %b '\e[40m' '\e[8]' # set default background to color 0 'dracula-bg'
+	#printf %b '\e[37m' '\e[8]' # set default foreground to color 7 'dracula-fg'
+	#printf %b '\e]P0282a36'    # redefine 'black'          as 'dracula-bg'
+	#printf %b '\e]P86272a4'    # redefine 'bright-black'   as 'dracula-comment'
+	#printf %b '\e]P1ff5555'    # redefine 'red'            as 'dracula-red'
+	#printf %b '\e]P9ff7777'    # redefine 'bright-red'     as '#ff7777'
+	#printf %b '\e]P250fa7b'    # redefine 'green'          as 'dracula-green'
+	#printf %b '\e]PA70fa9b'    # redefine 'bright-green'   as '#70fa9b'
+	#printf %b '\e]P3f1fa8c'    # redefine 'brown'          as 'dracula-yellow'
+	#printf %b '\e]PBffb86c'    # redefine 'bright-brown'   as 'dracula-orange'
+	#printf %b '\e]P4bd93f9'    # redefine 'blue'           as 'dracula-purple'
+	#printf %b '\e]PCcfa9ff'    # redefine 'bright-blue'    as '#cfa9ff'
+	#printf %b '\e]P5ff79c6'    # redefine 'magenta'        as 'dracula-pink'
+	#printf %b '\e]PDff88e8'    # redefine 'bright-magenta' as '#ff88e8'
+	#printf %b '\e]P68be9fd'    # redefine 'cyan'           as 'dracula-cyan'
+	#printf %b '\e]PE97e2ff'    # redefine 'bright-cyan'    as '#97e2ff'
+	#printf %b '\e]P7f8f8f2'    # redefine 'white'          as 'dracula-fg'
+	#printf %b '\e]PFffffff'    # redefine 'bright-white'   as '#ffffff'
+	#clear
+#fi
+###############
 
 #### ------------------------------
 
@@ -189,3 +190,7 @@ export LESS_TERMCAP_se=$'\e[0m'
 export LESS_TERMCAP_so=$'\e[01;33m'
 export LESS_TERMCAP_ue=$'\e[0m'
 export LESS_TERMCAP_us=$'\e[1;4;31m'
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
