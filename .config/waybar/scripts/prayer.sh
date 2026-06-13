@@ -9,7 +9,7 @@ METHOD = 5
 try:
     data = requests.get(
         f"https://api.aladhan.com/v1/timings?latitude={LAT}&longitude={LON}&method={METHOD}",
-        timeout=1000
+        timeout=2000
     ).json()
 except Exception:
     print("API error")
