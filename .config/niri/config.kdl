@@ -25,6 +25,7 @@ layer-rule {
 }
 
 input {
+      focus-follows-mouse
     keyboard {
         repeat-delay 200
         repeat-rate 40
