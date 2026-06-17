@@ -1,13 +1,18 @@
 {
-	"niri/workspaces": {
-        "format": "{icon}",
-        "on-click": "enable",
-        "all-outputs": true,
-        "format-icons": {
-        "default": "󰫣 ",
-        "active": "󰫢 "
-		}
+  "niri/workspaces": {
+    "format": "{index}",
+    "format-icons": {
+        "default": "🔲",
+        "focused": "🔳"
+    }
+
 	},
+  "niri/window": {
+        "format": "{title}",
+        "icon": false,
+        "icon-size": 18
+    },
+
 
 	"clock": {
 		"format": "󰥔  {:%I:%M %p}",

@@ -1,67 +1,124 @@
 * {
     font-family: "Ndot 57", "Symbol Nerd Font";
-    padding: 0px 7px 0px 7px;
+    padding: 0px 7px 0px 80px;
     color: #f2f2f2;
     font-weight: 900;
 }
 
 /* Entire bar */
 #waybar {
-      border-radius: 10px;
-      background-color: rgba(30, 31, 41, 0.3);
+      border-radius: 20px;
+      background-color: transparent; /* Removes the dark background tint */
+      border: 1px solid transparent; /* Removes the bar's outer frame border */
   }
-/* Specific module tweaks */
-#window
+
+
+/* ---- Rest of your standard modules styled as Capsules ---- */
 #clock {
-
+    font-size: 16px;
+    padding: 2px 16px;
+    margin: 4px 3px;
+    border: 1px solid rgba(242, 242, 242, 0.2);
+    background-color: rgba(30, 31, 41, 0.5);
+    border-radius: 99px; /* Makes it a pill/capsule */
 }
-
 
 #network {
-  font-size: 16px;
-  padding:0px 15px 0px 15px;
+    font-size: 16px;
+    padding: 2px 16px;
+    margin: 4px 3px;
+    border: 1px solid rgba(242, 242, 242, 0.2);
+    background-color: rgba(30, 31, 41, 0.5);
+    border-radius: 99px;
 }
+
 #battery {
     font-size: 16px;
-    padding:0px 15px 0px 15px;
+    padding: 2px 16px;
+    margin: 4px 3px;
+    border: 1px solid rgba(242, 242, 242, 0.2);
+    background-color: rgba(30, 31, 41, 0.5);
+    border-radius: 99px;
 }
 
-#window {
-  font-size: 18px;
-    padding:0px 15px 0px 15px;
-}
-/* Active workspace highlight */
-#workspaces  {
-      font-size: 16px;
-  margin: 2px 18px 0px 0px;
-}
-#workspaces button {
-}
-#clock {
-  font-size: 16px;
-    padding:0px 15px 0px 15px;
-}
 #custom-wifi-speed {
     font-size: 16px;      
-    padding:0px 15px 0px 15px;
-}
-#custom-memory {
-    font-size: 16px;      
-    padding:0px 15px 0px 15px;
-  }
-#custom-kblayout {
-  font-size: 16px;
-    padding:0px 15px 0px 15px;
-}
-#custom-date {
-    font-size: 16px;
-    padding:0px 15px 0px 15px;
-  }
-  #pulseaudio {
-    font-size: 16px;
-    padding:0px 15px 0px 15px;
-  }
-#custom-prayer {
-    font-size: 16px;
+    padding: 2px 16px;
+    margin: 4px 3px;
+    border: 1px solid rgba(242, 242, 242, 0.2);
+    background-color: rgba(30, 31, 41, 0.5);
+    border-radius: 99px;
 }
 
+#custom-memory {
+    font-size: 16px;      
+    padding: 2px 16px;
+    margin: 4px 3px;
+    border: 1px solid rgba(242, 242, 242, 0.2);
+    background-color: rgba(30, 31, 41, 0.5);
+    border-radius: 99px;
+}
+
+#custom-kblayout {
+    font-size: 16px;
+    padding: 2px 16px;
+    margin: 4px 3px;
+    border: 1px solid rgba(242, 242, 242, 0.2);
+    background-color: rgba(30, 31, 41, 0.5);
+    border-radius: 99px;
+}
+
+
+#pulseaudio {
+    font-size: 16px;
+    padding: 2px 16px;
+    margin: 4px 3px;
+    border: 1px solid rgba(242, 242, 242, 0.2);
+    background-color: rgba(30, 31, 41, 0.5);
+    border-radius: 99px;
+}
+
+#custom-prayer {
+    font-size: 16px;
+    padding: 2px 16px;
+    margin: 4px 3px;
+    border: 1px solid rgba(242, 242, 242, 0.2);
+    background-color: rgba(30, 31, 41, 0.5);
+    border-radius: 99px;
+}
+
+#workspaces {
+    font-size: 16px;
+    margin: 5px 18px 4px 0px; /* Aligns vertically with your other capsule modules */
+    padding: 0px;
+}
+
+#workspaces button {
+    padding: 0px;
+    margin: 4px 4px;
+    
+    /* Shape and dimensions */
+    min-height: 24px;
+    min-width: 48px;
+    border-radius: 99px;
+    
+    /* Styling */
+    color: #7f849c;
+    border: 1px solid rgba(242, 242, 242, 0.2);
+    background-color: rgba(30, 31, 41, 0.5);
+    transition: all 0.15s ease-in-out;
+}
+
+/* Valid GTK centering for the internal label */
+#workspaces button label {
+    margin: 0px;
+    padding: 0px;
+}
+
+/* Focused Highlight */
+#workspaces button.focused {
+    background-color: rgba(203, 166, 247, 0.1);
+}
+
+#workspaces button.urgent {
+}
