@@ -18,11 +18,6 @@ overview {
 }
 
 
-layer-rule {
-    match namespace="waybar"
-    match at-startup=false
-    place-within-backdrop false
-}
 
 input {
       focus-follows-mouse
@@ -76,7 +71,7 @@ layout {
         on
         active-color "#b1b1b1"
         inactive-color "#333333"
-        width 4
+        width 3
         urgent-color "#9b0000"
     }
 
@@ -173,9 +168,23 @@ animations {
 }
 
 window-rule {
-    geometry-corner-radius 3
+   match app-id="^foot$"
+    opacity 0.90
+
+    background-effect {
+        blur true
+    }
+    geometry-corner-radius 20
     open-maximized false
-    clip-to-geometry false
+    clip-to-geometry true
+}
+window-rule {
+    match app-id="^waybar$"
+    
+    opacity 0.95
+    background-effect {
+        blur true
+    }
 }
 
 binds {
@@ -308,7 +317,7 @@ recent-windows {
         urgent-color "#999999ff"
         active-color "#ff9999ff"
         padding 20
-        corner-radius 14
+        corner-radius 30
     }
 
     previews {
