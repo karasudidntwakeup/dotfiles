@@ -166,17 +166,18 @@ animations {
     }
 
 }
+window-rule {
+    geometry-corner-radius 12
+    clip-to-geometry true
+}
 
 window-rule {
    match app-id="^foot$"
-    opacity 0.90
+    opacity 0.899
 
     background-effect {
         blur true
     }
-    geometry-corner-radius 20
-    open-maximized false
-    clip-to-geometry true
 }
 window-rule {
     match app-id="^waybar$"
