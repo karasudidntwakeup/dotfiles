@@ -1,9 +1,9 @@
 {
-    "fixed-center": "true",
-    "height": 0,
-    "width":1600,
-    "margin-bottom": 10,
-    "padding-right": 100,
+    "fixed-center": "false:",
+    "height": 47,
+    "width":1100,
+    "margin-bottom": 0,
+    "padding-right": 0,
     "padding-left": 0,
     "position": "bottom",
     "reload_style_on_change": true,
@@ -23,7 +23,6 @@
         "custom/wifi-speed",
         "network",
         "battery",
-        "custom/date",
         "clock",
     ]
 
