@@ -71,7 +71,7 @@ layout {
         proportion 0.5
     }
 
-    default-column-width { proportion 0.5; }
+    default-column-width { proportion 0.60; }
     focus-ring {
         on
         active-color "#b1b1b1"
@@ -170,9 +170,6 @@ animations {
         spring damping-ratio=1.0 stiffness=500 epsilon=0.0001
     }
 
-    recent-windows-close {
-        spring damping-ratio=1.0 stiffness=100 epsilon=0.001
-    }
 }
 
 window-rule {
@@ -277,7 +274,7 @@ binds {
     Mod+Shift+R { switch-preset-window-height; }
     Mod+Ctrl+R { reset-window-height; }
     Mod+S { maximize-column; }
-    Mod+Shift+F { fullscreen-window; }
+    Mod+F { fullscreen-window; }
 
     Mod+Ctrl+F { expand-column-to-available-width; }
     Mod+b { center-column; }
@@ -300,4 +297,34 @@ binds {
     Ctrl+Alt+Delete { quit; }
 
     Mod+Shift+P { power-off-monitors; }
+}
+recent-windows {
+    // off
+    debounce-ms 2
+
+    open-delay-ms 0
+
+    highlight {
+        urgent-color "#999999ff"
+        active-color "#ff9999ff"
+        padding 20
+        corner-radius 14
+    }
+
+    previews {
+        max-height 500
+        max-scale 0.4
+    }
+
+    binds {
+        Alt+Tab         { next-window; }
+        Alt+Shift+Tab   { previous-window; }
+        Alt+grave       { next-window     filter="app-id"; }
+        Alt+Shift+grave { previous-window filter="app-id"; }
+
+        Mod+Tab         { next-window; }
+        Mod+Shift+Tab   { previous-window; }
+        Mod+grave       { next-window     filter="app-id"; }
+        Mod+Shift+grave { previous-window filter="app-id"; }
+    }
 }
