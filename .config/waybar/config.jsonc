@@ -1,19 +1,25 @@
 {
-    "fixed-center": "false:",
-    "height": 47,
-    "width":1100,
-    "margin-bottom": 0,
-    "padding-right": 0,
-    "padding-left": 0,
+    "layer": "top",
     "position": "bottom",
-    "reload_style_on_change": true,
+    "height": 32,
+    "width": 1100,
+    "fixed-center": true, 
+
+    // Use the unified margin string to force the lift from the bottom
+    "margin": "0 0 10 0", 
+
     "include": [
         "~/.config/waybar/modules.jsonc"
     ],
 
     "modules-left": [
-        "niri/workspaces",
+        "niri/workspaces"
     ],
+
+    // ─── ADD A DUMMY CENTER SPACER ───
+    "modules-center": [
+        "custom/spacer"
+    ], 
 
     "modules-right": [
         "custom/kblayout",
@@ -23,8 +29,11 @@
         "custom/wifi-speed",
         "network",
         "battery",
-        "clock",
-    ]
+        "clock"
+    ],
 
+    // ─── DEFINE THE SPACER ───
+    "custom/spacer": {
+        "format": " " // Just an empty space to balance the bar layout
+    }
 }
-
