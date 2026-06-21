@@ -1,25 +1,25 @@
 * {
     font-family: "Ndot 57", "Symbol Nerd Font";
-    padding: 0px 7px 0px 80px;
+    padding: 0px 0px 0px 0px;
     color: #ffffff;
-    font-weight: 800;
+    font-weight: 900;
 }
 
 /* Entire bar */
 #waybar {
       border-radius: 30px;
-      background: rgba(0, 0, 0, 0.0);
-      border: 15px solid transparent; /* Removes the bar's outer frame border */
+      background: rgba(0, 0, 0, 0.1);
+      border: 0px solid ; /* Removes the bar's outer frame border */
+      border-radius: 18px;
   }
 
 
-/* ---- Rest of your standard modules styled as Capsules ---- */
 #clock {
     font-size: 16px;
     padding: 2px 16px;
     margin: 4px 3px;
-    border: 1px solid rgba(242, 242, 242, 0.2);
-    background-color: rgba(30, 31, 41, 1);
+    border: 2px solid #f1f1f1;
+    background-color: rgba(30, 31, 41, 0.2);
     border-radius: 99px; /* Makes it a pill/capsule */
 }
 
@@ -27,8 +27,8 @@
     font-size: 16px;
     padding: 2px 16px;
     margin: 4px 3px;
-    border: 1px solid rgba(242, 242, 242, 0.2);
-    background-color: rgba(30, 31, 41, 1);
+    border: 1px solid #f1f1f1;
+    background-color: rgba(30, 31, 41, 0.1);
     border-radius: 99px;
 }
 
@@ -36,8 +36,8 @@
     font-size: 16px;
     padding: 2px 16px;
     margin: 4px 3px;
-    border: 1px solid rgba(242, 242, 242, 0.2);
-    background-color: rgba(30, 31, 41, 1);
+    border: 1px solid #f1f1f1;
+    background-color: rgba(30, 31, 41, 0.1);
     border-radius: 99px;
 }
 
@@ -45,8 +45,8 @@
     font-size: 16px;      
     padding: 2px 16px;
     margin: 4px 3px;
-    border: 1px solid rgba(242, 242, 242, 0.2);
-    background-color: rgba(30, 31, 41, 1);
+    border: 1px solid #f1f1f1;
+    background-color: rgba(30, 31, 41, 0.1);
     border-radius: 99px;
 }
 
@@ -54,8 +54,8 @@
     font-size: 16px;      
     padding: 2px 16px;
     margin: 4px 3px;
-    border: 1px solid rgba(242, 242, 242, 0.2);
-    background-color: rgba(30, 31, 41, 1);
+    border: 1px solid #f1f1f1;
+    background-color: rgba(30, 31, 41, 0.1);
     border-radius: 99px;
 }
 
@@ -63,8 +63,8 @@
     font-size: 16px;
     padding: 2px 16px;
     margin: 4px 3px;
-    border: 1px solid rgba(242, 242, 242, 0.2);
-    background-color: rgba(30, 31, 41, 1);
+    border: 1px solid #f1f1f1;
+    background-color: rgba(30, 31, 41, 0.1);
     border-radius: 99px;
 }
 
@@ -73,8 +73,8 @@
     font-size: 16px;
     padding: 2px 16px;
     margin: 4px 3px;
-    border: 1px solid rgba(242, 242, 242, 0.0);
-    background-color: rgba(30, 31, 41, 1);
+    border: 2px solid #f1f1f1;
+    background-color: rgba(30, 31, 41, 0.1);
     border-radius: 99px;
 }
 
@@ -82,42 +82,36 @@
     font-size: 16px;
     padding: 2px 16px;
     margin: 4px 3px;
-    border: 1px solid rgba(242, 242, 242, 0.2);
-    background-color: rgba(30, 31, 41, 1);
+    border: 1px solid #f1f1f1;
+    background-color: rgba(30, 31, 41, 0.1);
     border-radius: 99px;
 }
 
 #workspaces {
-    font-size: 16px;
-    margin: 5px 18px 4px 0px; /* Aligns vertically with your other capsule modules */
-    padding: 0px;
+      min-width: 10px;
+
 }
 
 #workspaces button {
-    padding: 0px;
-    margin: 4px 4px;
+    padding: 00px;
+    margin: 2px 2px;
     
     /* Shape and dimensions */
-    min-height: 24px;
+    min-height: 0px;
     min-width: 48px;
-    border-radius: 99px;
+    border-radius: 15px;
     
     /* Styling */
     color: #000000;
-    border: 1px solid rgba(242, 242, 242, 0.2);
-    background-color: rgba(30, 31, 41, 1);
+    border: 1px solid #f1f1f1;
+    background-color: rgba(30, 31, 41, 0.1);
     transition: all 0.15s ease-in-out;
 }
 
-/* Valid GTK centering for the internal label */
-#workspaces button label {
-    margin: 0px;
-    padding: 0px;
-}
 
 /* Focused Highlight */
 #workspaces button.focused {
-    background-color: rgba(203, 166, 157, 0.5);
+    background-color: rgba(0, 10, 10, 0.6);
 }
 
 #workspaces button.urgent {

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INTERFACE="wlan0"
+INTERFACE="wlan1"
 TMP_FILE="/tmp/wifi-speed-stats"
 
 # load previous value
