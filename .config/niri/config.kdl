@@ -1,22 +1,38 @@
 prefer-no-csd
-
+environment {
+    QT_QPA_PLATFORM "wayland"
+    ELECTRON_OZONE_PLATFORM_HINT "auto"
+}
 cursor {
     xcursor-theme "ComixCursors-White"
     xcursor-size 3
     hide-after-inactive-ms 3000
 }
-
 overview {
-    backdrop-color "#1f1f1f"
-    zoom 0.8
+    backdrop-color "#777777"
+    zoom 0.50
     workspace-shadow {
-        off
+      // off
         softness 40
-        spread 10
-        offset x=0 y=10
+        spread 60
+        offset x=0 y=60
+         color "#00000050"
     }
 }
-
+xwayland-satellite {
+    // off
+    path "xwayland-satellite"
+}
+clipboard {
+    disable-primary
+}
+blur {
+    // off
+    passes 1
+    offset 3.0
+    noise 0
+    saturation 1.5
+}
 
 
 input {
@@ -44,8 +60,10 @@ input {
 
 gestures {
     hot-corners {
-        off
+        top-left
     }
+
+
 }
 
 output "eDP-1" {
@@ -66,7 +84,7 @@ layout {
         proportion 0.5
     }
 
-    default-column-width { proportion 0.60; }
+    default-column-width { proportion 0.50; }
     focus-ring {
         on
         active-color "#b1b1b1"
@@ -123,37 +141,37 @@ screenshot-path null
 
 animations {
     workspace-switch {
-        spring damping-ratio=1.0 stiffness=100 epsilon=0.0001
+        spring damping-ratio=1.0 stiffness=60 epsilon=0.0001
     }
 
     window-open {
-        duration-ms 800
-        curve "ease-out-expo"
+        duration-ms 600
+        curve "ease-out-cubic"
     }
 
     window-close {
-        duration-ms 800
-        curve "ease-out-quad"
+        duration-ms 600
+        curve "ease-out-cubic"
     }
 
     horizontal-view-movement {
-        spring damping-ratio=1.0 stiffness=100 epsilon=0.0001
+        spring damping-ratio=1.0 stiffness=60 epsilon=0.0001
     }
 
     window-movement {
-        spring damping-ratio=1.0 stiffness=100 epsilon=0.0001
+        spring damping-ratio=1.0 stiffness=60 epsilon=0.0001
     }
 
     window-resize {
-        spring damping-ratio=1.0 stiffness=100 epsilon=0.0001
+        spring damping-ratio=1.0 stiffness=60 epsilon=0.0001
     }
 
     config-notification-open-close {
-        spring damping-ratio=0.6 stiffness=100 epsilon=0.001
+        spring damping-ratio=0.6 stiffness=60 epsilon=0.001
     }
 
     exit-confirmation-open-close {
-        spring damping-ratio=0.6 stiffness=100 epsilon=0.01
+        spring damping-ratio=0.6 stiffness=60 epsilon=0.01
     }
 
     screenshot-ui-open {
@@ -162,9 +180,65 @@ animations {
     }
 
     overview-open-close {
-        spring damping-ratio=1.0 stiffness=500 epsilon=0.0001
+        spring damping-ratio=1.0 stiffness=100 epsilon=0.0001
     }
 
+        recent-windows-close {
+        spring damping-ratio=1.0 stiffness=100 epsilon=0.001
+    }
+}
+
+layer-rule {
+    match namespace="waybar"
+    match at-startup=true
+    match layer="top"
+
+    // Properties that apply continuously.
+    opacity 0.7
+    block-out-from "screencast"
+    // block-out-from "screen-capture"
+
+    shadow {
+        off
+        // off
+        softness 900
+        spread 0
+        offset x=0 y=0
+        draw-behind-window false
+        color "#00000064"
+        // inactive-color "#00000064"
+    }
+
+    geometry-corner-radius 12
+    place-within-backdrop true
+
+    background-effect {
+        xray true
+        blur true
+        noise 0
+        saturation 1
+    }
+
+    popups {
+        opacity 0.9
+        geometry-corner-radius 6
+
+        background-effect {
+            xray true
+            blur true
+            noise 0
+            saturation 0
+        }
+    }
+}
+
+
+layer-rule {
+    match namespace="^launcher$"
+
+    background-effect {
+        blur true
+    }
 }
 window-rule {
     geometry-corner-radius 12
@@ -173,7 +247,6 @@ window-rule {
 
 window-rule {
    match app-id="^foot$"
-    opacity 0.899
 
     background-effect {
         blur true
@@ -299,9 +372,9 @@ binds {
     Mod+V       { toggle-window-floating; }
     Mod+Shift+V { switch-focus-between-floating-and-tiling; }
 
-    Print { screenshot; }
+    Print { screenshot-window write-to-disk=false; }
 
-    Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
+    Mod+Escape { toggle-keyboard-shortcuts-inhibit; }
 
     Mod+Shift+E { quit; }
     Ctrl+Alt+Delete { quit; }
@@ -310,7 +383,7 @@ binds {
 }
 recent-windows {
     // off
-    debounce-ms 2
+    debounce-ms 60
 
     open-delay-ms 0
 
@@ -323,7 +396,7 @@ recent-windows {
 
     previews {
         max-height 500
-        max-scale 0.4
+        max-scale 0.5
     }
 
     binds {
