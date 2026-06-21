@@ -26,13 +26,6 @@ xwayland-satellite {
 clipboard {
     disable-primary
 }
-blur {
-    // off
-    passes 1
-    offset 3.0
-    noise 0
-    saturation 1.5
-}
 
 
 input {

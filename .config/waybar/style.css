@@ -1,6 +1,7 @@
 * {
     font-family: "Ndot 57", "Symbol Nerd Font";
     padding: 0px 0px 0px 0px;
+    background-color: transparent;
     color: #ffffff;
     font-weight: 900;
 }
@@ -8,7 +9,7 @@
 /* Entire bar */
 #waybar {
       border-radius: 30px;
-      background: rgba(0, 0, 0, 0.1);
+      background-color: rgba(43, 48, 59, 0.2);
       border: 0px solid ; /* Removes the bar's outer frame border */
       border-radius: 18px;
   }
