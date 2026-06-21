@@ -2,7 +2,7 @@
     "layer": "top",
     "position": "bottom",
     "height": 37,
-    "width": 1100,
+    "width": 100,
     "fixed-center": true, 
 
     // Use the unified margin string to force the lift from the bottom
