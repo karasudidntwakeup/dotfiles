@@ -9,14 +9,12 @@ cursor {
     hide-after-inactive-ms 3000
 }
 overview {
-    backdrop-color "#777777"
     zoom 0.50
     workspace-shadow {
       // off
         softness 40
         spread 60
         offset x=0 y=60
-         color "#00000050"
     }
 }
 xwayland-satellite {
@@ -61,14 +59,15 @@ gestures {
 
 output "eDP-1" {
     mode "1920x1080@60"
-    scale 1
+    backdrop-color "#1f1f1f"
+    scale 1.0
     focus-at-startup
+    
 }
 
 layout {
     gaps 22
     // CRITICAL FIX: Changed from solid "#1f1f1f" to transparent so awww isn't hidden
-    background-color "transparent" 
     center-focused-column "never"
     always-center-single-column
     preset-column-widths {
@@ -79,18 +78,18 @@ layout {
 
     default-column-width { proportion 0.50; }
     focus-ring {
-        on
-        active-color "#b1b1b1"
-        inactive-color "#333333"
+        off
+        active-color "#7fc8ff"
+        inactive-color "#505050"
+
         width 3
         urgent-color "#9b0000"
     }
 
     border {
-        off
-        width 4
-        active-gradient from="#f00f" to="#0f05" angle=45 in="oklch longer hue"
-        active-color "#b1b1b1"
+        on
+        width 2
+        active-color "#f1f1f1"
         inactive-color "#333333"
     }
 
