@@ -12,11 +12,9 @@
         "~/.config/waybar/modules.jsonc"
     ],
 
-    "modules-left": [
-        "niri/workspaces", 
-    ],
 
-    "modules-right": [
+    "modules-center": [
+        "niri/workspaces", 
         "custom/kblayout",
         "pulseaudio",
         "custom/prayer",
