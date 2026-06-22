@@ -59,21 +59,18 @@ gestures {
 
 output "eDP-1" {
     mode "1920x1080@60"
-    backdrop-color "#1f1f1f"
     scale 1.0
-    focus-at-startup
     
 }
 
 layout {
-    gaps 22
-    // CRITICAL FIX: Changed from solid "#1f1f1f" to transparent so awww isn't hidden
+    gaps 18
     center-focused-column "never"
     always-center-single-column
     preset-column-widths {
-        proportion 0.5
-        proportion 0.5
-        proportion 0.5
+        proportion 0.2
+        proportion 0.2
+        proportion 0.2
     }
 
     default-column-width { proportion 0.50; }
@@ -102,16 +99,13 @@ layout {
     }
     
     struts {
-        left 30
-        right 30
+        left 0
+        right 0
         top 0
         bottom 0
     }
     
     insert-hint {
-        on
-        color "#ffc87f80"
-        gradient from="#ffbb6680" to="#ffc88080" angle=45 relative-to="workspace-view"
     }
 }
 
@@ -122,15 +116,12 @@ spawn-sh-at-startup "pipewire"
 spawn-sh-at-startup "pipewire-pulse"
 spawn-sh-at-startup "wireplumber"
 
-// Starts the wallpaper daemon smoothly
 spawn-at-startup "awww-daemon"
-
+spawn-at-startup "/home/karasu/github/niri-wallpaper/build/niri-wallpaper" "/home/karasu/wallpaper" "-i" "50" "--workspaces-process-args" "--transition-type grow" "--blur-backdrop"
 hotkey-overlay {
      skip-at-startup
 }
-
 screenshot-path null
-
 animations {
     workspace-switch {
         spring damping-ratio=1.0 stiffness=60 epsilon=0.0001
@@ -184,12 +175,10 @@ layer-rule {
     match namespace="waybar"
     match at-startup=true
     match layer="top"
-
     // Properties that apply continuously.
-    opacity 0.7
+    opacity 0.89
     block-out-from "screencast"
-    // block-out-from "screen-capture"
-
+    
     shadow {
         off
         // off
@@ -197,13 +186,10 @@ layer-rule {
         spread 0
         offset x=0 y=0
         draw-behind-window false
-        color "#00000064"
+        color "#000000"
         // inactive-color "#00000064"
     }
-
     geometry-corner-radius 12
-    place-within-backdrop true
-
     background-effect {
         xray true
         blur true
@@ -227,29 +213,28 @@ layer-rule {
 
 layer-rule {
     match namespace="^launcher$"
-
     background-effect {
         blur true
     }
 }
 window-rule {
-    geometry-corner-radius 12
+    geometry-corner-radius 15
     clip-to-geometry true
 }
 
 window-rule {
    match app-id="^foot$"
-
     background-effect {
         blur true
+        xray true
     }
 }
 window-rule {
     match app-id="^waybar$"
-    
-    opacity 0.95
+    opacity 0.99
     background-effect {
         blur true
+        xray true
     }
 }
 
@@ -376,9 +361,7 @@ binds {
 recent-windows {
     // off
     debounce-ms 60
-
     open-delay-ms 0
-
     highlight {
         urgent-color "#999999ff"
         active-color "#ff9999ff"
@@ -396,7 +379,6 @@ recent-windows {
         Alt+Shift+Tab   { previous-window; }
         Alt+grave       { next-window     filter="app-id"; }
         Alt+Shift+grave { previous-window filter="app-id"; }
-
         Mod+Tab         { next-window; }
         Mod+Shift+Tab   { previous-window; }
         Mod+grave       { next-window     filter="app-id"; }
