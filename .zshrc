@@ -33,6 +33,7 @@ bindkey "\e[1;3C" forward-word      # ⌥→
 bindkey "^[[1;9D" beginning-of-line # cmd+←
 bindkey "^[[1;9C" end-of-line       # cmd+→
 #
+bindkey '^H' kill-line
 #
 autoload -U up-line-or-beginning-search
 autoload -U down-line-or-beginning-search
@@ -80,7 +81,8 @@ export SDL_VIDEODRIVER=wayland
 export QT_QPA_PLATFORM=wayland
 
 #alias
-alias cat ='bat'
+alias cal='calcurse'
+alias cat='bat'
 alias z='zathura'
 alias sudo='doas'
 alias tree='eza --tree --icons --sort=newest --color=always'
@@ -90,7 +92,7 @@ alias i='doas pacman -S '
 alias r='doas pacman -Rnscu '
 alias lta='eza --tree --icons --sort=newest'
 alias ls=' eza  --icons --color=always --group-directories-first --classify --sort=newest'
-alias l='eza -al --color=always --group-directories-first --sort=newest'
+alias l='eza -al --icons --color=always --group-directories-first --sort=newest'
 alias sl='eza --icons --sort=newest'
 alias sxiv='nsxiv'
 alias 00='loginctl poweroff'
