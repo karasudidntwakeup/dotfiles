@@ -33,7 +33,7 @@ bindkey "\e[1;3C" forward-word      # ⌥→
 bindkey "^[[1;9D" beginning-of-line # cmd+←
 bindkey "^[[1;9C" end-of-line       # cmd+→
 #
-bindkey '^H' kill-line
+bindkey '^K' kill-line
 #
 autoload -U up-line-or-beginning-search
 autoload -U down-line-or-beginning-search
