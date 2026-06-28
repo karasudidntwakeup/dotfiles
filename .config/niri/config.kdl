@@ -57,10 +57,8 @@ input {
        click-method "clickfinger"
         tap
     }
-
     mouse {
     }
-
     trackpoint {
     }
 }
@@ -69,8 +67,6 @@ gestures {
     hot-corners {
         top-left
     }
-
-
 }
 
 output "eDP-1" {
@@ -130,8 +126,12 @@ spawn-sh-at-startup "dbus-launch waybar"
 spawn-sh-at-startup "pipewire"
 spawn-sh-at-startup "pipewire-pulse"
 spawn-sh-at-startup "wireplumber"
-
 spawn-at-startup "awww-daemon"
+spawn-at-startup "awww-daemon" "--namespace" "backdrop"
+layer-rule {
+    match namespace="^awww-daemonbackdrop$"
+    place-within-backdrop true
+}
 hotkey-overlay {
      skip-at-startup
 }
@@ -189,48 +189,21 @@ layer-rule {
     match namespace="waybar"
     match at-startup=true
     match layer="top"
-    // Properties that apply continuously.
-    opacity 0.89
     block-out-from "screencast"
-    
-    shadow {
-        off
-        // off
-        softness 900
-        spread 0
-        offset x=0 y=0
-        draw-behind-window false
-        color "#000000"
-        // inactive-color "#00000064"
-    }
-    geometry-corner-radius 12
+    geometry-corner-radius 20
     background-effect {
         xray true
         blur true
         noise 0
-        saturation 1
-    }
-
-    popups {
-        opacity 0.9
-        geometry-corner-radius 6
-
-        background-effect {
-            xray true
-            blur true
-            noise 0
-            saturation 0
+        saturation 2
+                liquid-glass {
+                    refraction-strength 80.0
+                    power-factor  9
+                    refraction-power 1.0
         }
     }
-}
+  }
 
-
-layer-rule {
-    match namespace="^launcher$"
-    background-effect {
-        blur true
-    }
-}
 window-rule {
     geometry-corner-radius 10
     clip-to-geometry true
@@ -238,27 +211,13 @@ window-rule {
         blur true
         xray true
         liquid-glass {
-            refraction-strength 9.9
+            refraction-strength 10.0
             power-factor  1
-            refraction-power 0.2
+            refraction-power 1.0
         }
     }
-      }
+ }
 
-window-rule {
-    match app-id="^waybar$"
-    opacity 0.4
-    background-effect {
-        blur true
-        xray true
-              liquid-glass {
-            refraction-strength 99.0
-            power-factor  1
-            refraction-power 0.2
-        }
-    }
-
-}
 
 binds {
     Mod+Shift+Slash { show-hotkey-overlay; }
@@ -273,19 +232,17 @@ binds {
     XF86AudioMicMute     allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; }
     XF86MonBrightnessUp     allow-when-locked=true { spawn "light" "-A" "10"; }
     XF86MonBrightnessDown     allow-when-locked=true { spawn "light" "-U" "10"; }
-    
+    Mod+Shift+W { spawn "~/.local/bin/wallpaper random"; }   
     Mod+0 repeat=false { toggle-overview; }
     Mod+W repeat=true { toggle-overview; }
     Mod+Shift+o repeat=false { toggle-overview; }
     Mod+X repeat=false { close-window; }
-
     Mod+Left  { focus-column-left; }
     Mod+Down  { focus-window-down; }
     Mod+Up    { focus-window-up; }
     Mod+Right { focus-column-right; }
     Mod+H     { focus-column-left; }
     Mod+L     { focus-column-right; }
-
     Mod+Ctrl+Left  { move-column-left; }
     Mod+Shift+Return { move-column-left; }
     Mod+Ctrl+Down  { move-window-down; }
@@ -297,15 +254,12 @@ binds {
     Mod+Ctrl+K     { move-window-up; }
     Mod+Ctrl+L     { move-column-right; }
     Mod+Shift+L     { move-column-right; }
-
     Mod+J     { focus-window-or-workspace-down; }
     Mod+K     { focus-window-or-workspace-up; }
-
     Mod+Home { focus-column-first; }
     Mod+End  { focus-column-last; }
     Mod+Ctrl+Home { move-column-to-first; }
     Mod+Ctrl+End  { move-column-to-last; }
-
     Mod+Page_Down      { focus-workspace-down; }
     Mod+Page_Up        { focus-workspace-up; }
     Mod+U              { focus-workspace-down; }
@@ -314,17 +268,14 @@ binds {
     Mod+Ctrl+Page_Up   { move-column-to-workspace-up; }
     Mod+Ctrl+U         { move-column-to-workspace-down; }
     Mod+Ctrl+I         { move-column-to-workspace-up; }
-
     Mod+WheelScrollRight      { focus-column-right; }
     Mod+WheelScrollLeft       { focus-column-left; }
     Mod+Ctrl+WheelScrollRight { move-column-right; }
     Mod+Ctrl+WheelScrollLeft  { move-column-left; }
-
     Mod+Shift+WheelScrollDown      { focus-column-right; }
     Mod+Shift+WheelScrollUp        { focus-column-left; }
     Mod+Ctrl+Shift+WheelScrollDown { move-column-right; }
     Mod+Ctrl+Shift+WheelScrollUp   { move-column-left; }
-
     Mod+1 { focus-workspace 1; }
     Mod+2 { focus-workspace 2; }
     Mod+3 { focus-workspace 3; }
@@ -345,39 +296,28 @@ binds {
     Mod+Shift+7 { move-column-to-workspace 7; }
     Mod+Shift+8 { move-column-to-workspace 8; }
     Mod+Shift+9 { move-column-to-workspace 9; }
-
     Mod+BracketLeft  { consume-or-expel-window-left; }
     Mod+BracketRight { consume-or-expel-window-right; }
-
     Mod+Comma  { consume-window-into-column; }
     Mod+Period { expel-window-from-column; }
-
     Mod+R { switch-preset-column-width; }
     Mod+Shift+R { switch-preset-window-height; }
     Mod+Ctrl+R { reset-window-height; }
     Mod+S { maximize-column; }
     Mod+F { fullscreen-window; }
-
     Mod+Ctrl+F { expand-column-to-available-width; }
     Mod+b { center-column; }
     Mod+Ctrl+C { center-visible-columns; }
-
     Mod+Minus { set-column-width "-10%"; }
     Mod+Equal { set-column-width "+10%"; }
-
     Mod+Shift+Minus { set-window-height "-10%"; }
     Mod+Shift+Equal { set-window-height "+10%"; }
-
     Mod+V       { toggle-window-floating; }
     Mod+Shift+V { switch-focus-between-floating-and-tiling; }
-
     Print { screenshot-window write-to-disk=false; }
-
     Mod+Escape { toggle-keyboard-shortcuts-inhibit; }
-
     Mod+Shift+E { quit; }
     Ctrl+Alt+Delete { quit; }
-
     Mod+Shift+P { power-off-monitors; }
 }
 recent-windows {
