@@ -1,12 +1,12 @@
 {
     "layer": "top",
-    "position": "bottom",
+    "position": "top",
     "height": 37,
     "width": 100,
     "fixed-center": true, 
 
     // Use the unified margin string to force the lift from the bottom
-    "margin": "0 0 7 0", 
+    "margin": "7 0 0 0", 
 
     "include": [
         "~/.config/waybar/modules.jsonc"
