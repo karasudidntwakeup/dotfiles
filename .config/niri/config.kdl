@@ -79,7 +79,7 @@ output "eDP-1" {
 }
 
 layout {
-    gaps 8
+    gaps 32
     center-focused-column "never"
     always-center-single-column
     preset-column-widths {
@@ -101,7 +101,7 @@ layout {
     border {
         on
         width 2
-        active-color "#f5e0dc"
+        active-color "#000000"
         inactive-color "#333333"
     }
 
