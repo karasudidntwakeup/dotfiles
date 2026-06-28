@@ -238,20 +238,26 @@ window-rule {
         blur true
         xray true
         liquid-glass {
-            refraction-strength 8.0
-            power-factor  9.9
-            refraction-power 9.9
+            refraction-strength 9.9
+            power-factor  1
+            refraction-power 0.2
         }
     }
       }
 
 window-rule {
     match app-id="^waybar$"
-    opacity 0.99
+    opacity 0.4
     background-effect {
         blur true
         xray true
+              liquid-glass {
+            refraction-strength 99.0
+            power-factor  1
+            refraction-power 0.2
+        }
     }
+
 }
 
 binds {
