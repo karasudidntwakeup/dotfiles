@@ -9,8 +9,8 @@
 /* Entire bar */
 #waybar {
       border-radius: 30px;
-      background-color: rgba(43, 48, 59, 0.0);
-      border: 0px solid ; /* Removes the bar's outer frame border */
+      background-color: rgba(45, 59, 59, 0.0);
+      border: 2px solid #1f1f1f; /* Removes the bar's outer frame border */
       border-radius: 20px;
   }
 
@@ -20,7 +20,7 @@
     padding: 2px 16px;
     margin: 4px 3px;
     border: 0px solid #000000;
-    background-color: rgba(30, 31, 41, 0.4);
+    background-color: rgba(45, 45, 45, 0.4);
     border-radius: 99px; /* Makes it a pill/capsule */
 }
 
