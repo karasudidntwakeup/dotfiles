@@ -101,7 +101,7 @@ layout {
     border {
         on
         width 2
-        active-color "#f1f1f1"
+        active-color "#000000"
         inactive-color "#333333"
     }
 
@@ -232,17 +232,19 @@ layer-rule {
     }
 }
 window-rule {
-    geometry-corner-radius 15
+    geometry-corner-radius 10
     clip-to-geometry true
-}
-
-window-rule {
-   match app-id="^foot$"
     background-effect {
         blur true
         xray true
+        liquid-glass {
+            refraction-strength 8.0
+            power-factor  9.9
+            refraction-power 9.9
+        }
     }
-}
+      }
+
 window-rule {
     match app-id="^waybar$"
     opacity 0.99
