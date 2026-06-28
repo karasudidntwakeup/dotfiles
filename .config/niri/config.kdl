@@ -1,3 +1,16 @@
+debug {
+    // preview-render "screencast"
+    // preview-render "screen-capture"
+    // dbus-interfaces-in-non-session-instances
+    // wait-for-frame-completion-before-queueing
+    // enable-overlay-planes
+    disable-cursor-plane
+    // disable-direct-scanout
+    // render-drm-device "/dev/dri/renderD129"
+    // render-drm-device "/dev/dri/card1"
+    // enable-color-transformations-capability
+    // emulate-zero-presentation-time
+}
 prefer-no-csd
 environment {
     QT_QPA_PLATFORM "wayland"
@@ -9,7 +22,7 @@ cursor {
     hide-after-inactive-ms 3000
 }
 overview {
-    zoom 0.50
+    zoom 0.70
     workspace-shadow {
       // off
         softness 40
@@ -39,6 +52,9 @@ input {
     }
 
     touchpad {
+       // natural-scroll
+       accel-speed 0.2
+       click-method "clickfinger"
         tap
     }
 
@@ -60,11 +76,10 @@ gestures {
 output "eDP-1" {
     mode "1920x1080@60"
     scale 1.0
-    
 }
 
 layout {
-    gaps 18
+    gaps 8
     center-focused-column "never"
     always-center-single-column
     preset-column-widths {
@@ -117,7 +132,6 @@ spawn-sh-at-startup "pipewire-pulse"
 spawn-sh-at-startup "wireplumber"
 
 spawn-at-startup "awww-daemon"
-spawn-at-startup "/home/karasu/github/niri-wallpaper/build/niri-wallpaper" "/home/karasu/wallpaper" "-i" "50" "--workspaces-process-args" "--transition-type grow" "--blur-backdrop"
 hotkey-overlay {
      skip-at-startup
 }
@@ -385,3 +399,5 @@ recent-windows {
         Mod+Shift+grave { previous-window filter="app-id"; }
     }
 }
+
+
