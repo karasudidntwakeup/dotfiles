@@ -2,14 +2,14 @@
     font-family: "Ndot 57", "Symbol Nerd Font";
     padding: 0px 0px 0px 0px;
     background-color: transparent;
-    color: #ffffff;
+    color: #f5e0dc;
     font-weight: 900;
 }
 
 /* Entire bar */
 #waybar {
       border-radius: 30px;
-      background-color: rgba(43, 48, 59, 0.2);
+      background-color: rgba(43, 48, 59, 0.4);
       border: 0px solid ; /* Removes the bar's outer frame border */
       border-radius: 18px;
   }
@@ -19,8 +19,8 @@
     font-size: 16px;
     padding: 2px 16px;
     margin: 4px 3px;
-    border: 2px solid #f1f1f1;
-    background-color: rgba(30, 31, 41, 0.2);
+    border: 0px solid #000000;
+    background-color: rgba(30, 31, 41, 0.4);
     border-radius: 99px; /* Makes it a pill/capsule */
 }
 
@@ -28,8 +28,8 @@
     font-size: 16px;
     padding: 2px 16px;
     margin: 4px 3px;
-    border: 1px solid #f1f1f1;
-    background-color: rgba(30, 31, 41, 0.1);
+    border: 0px solid #000000;
+    background-color: rgba(30, 31, 41, 0.4);
     border-radius: 99px;
 }
 
@@ -37,8 +37,8 @@
     font-size: 16px;
     padding: 2px 16px;
     margin: 4px 3px;
-    border: 1px solid #f1f1f1;
-    background-color: rgba(30, 31, 41, 0.1);
+    border: 0px solid #000000;
+    background-color: rgba(30, 31, 41, 0.4);
     border-radius: 99px;
 }
 
@@ -46,8 +46,8 @@
     font-size: 16px;      
     padding: 2px 16px;
     margin: 4px 3px;
-    border: 1px solid #f1f1f1;
-    background-color: rgba(30, 31, 41, 0.1);
+    border: 0px solid #000000;
+    background-color: rgba(30, 31, 41, 0.4);
     border-radius: 99px;
 }
 
@@ -55,8 +55,8 @@
     font-size: 16px;      
     padding: 2px 16px;
     margin: 4px 3px;
-    border: 1px solid #f1f1f1;
-    background-color: rgba(30, 31, 41, 0.1);
+    border: 0px solid #000000;
+    background-color: rgba(30, 31, 41, 0.4);
     border-radius: 99px;
 }
 
@@ -64,8 +64,8 @@
     font-size: 16px;
     padding: 2px 16px;
     margin: 4px 3px;
-    border: 1px solid #f1f1f1;
-    background-color: rgba(30, 31, 41, 0.1);
+    border: 0px solid #000000;
+    background-color: rgba(30, 31, 41, 0.4);
     border-radius: 99px;
 }
 
@@ -74,8 +74,8 @@
     font-size: 16px;
     padding: 2px 16px;
     margin: 4px 3px;
-    border: 2px solid #f1f1f1;
-    background-color: rgba(30, 31, 41, 0.1);
+    border: 0px solid #000000;
+    background-color: rgba(30, 31, 41, 0.4);
     border-radius: 99px;
 }
 
@@ -83,8 +83,8 @@
     font-size: 16px;
     padding: 2px 16px;
     margin: 4px 3px;
-    border: 1px solid #f1f1f1;
-    background-color: rgba(30, 31, 41, 0.1);
+    border: 0px solid #000000;
+    background-color: rgba(30, 31, 41, 0.4);
     border-radius: 99px;
 }
 
@@ -104,15 +104,15 @@
     
     /* Styling */
     color: #000000;
-    border: 1px solid #f1f1f1;
-    background-color: rgba(30, 31, 41, 0.1);
-    transition: all 0.15s ease-in-out;
+    border: 0px solid #000000;
+    background-color: rgba(30, 31, 41, 0.0);
+    transition: all 0.45s ease-in-out;
 }
 
 
 /* Focused Highlight */
 #workspaces button.focused {
-    background-color: rgba(0, 10, 10, 0.6);
+    background-color: rgba(0, 10, 10, 0.4);
 }
 
 #workspaces button.urgent {
