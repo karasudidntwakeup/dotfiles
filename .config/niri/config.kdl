@@ -1,16 +1,4 @@
-debug {
-    // preview-render "screencast"
-    // preview-render "screen-capture"
-    // dbus-interfaces-in-non-session-instances
-    // wait-for-frame-completion-before-queueing
-    // enable-overlay-planes
-    disable-cursor-plane
-    // disable-direct-scanout
-    // render-drm-device "/dev/dri/renderD129"
-    // render-drm-device "/dev/dri/card1"
-    // enable-color-transformations-capability
-    // emulate-zero-presentation-time
-}
+include "borders.kdl"
 prefer-no-csd
 environment {
     QT_QPA_PLATFORM "wayland"
@@ -85,21 +73,7 @@ layout {
     }
 
     default-column-width { proportion 0.50; }
-    focus-ring {
-        off
-        active-color "#7fc8ff"
-        inactive-color "#505050"
 
-        width 3
-        urgent-color "#9b0000"
-    }
-
-    border {
-        on
-        width 2
-        active-color "#000000"
-        inactive-color "#333333"
-    }
 
     shadow {
         on
@@ -347,5 +321,6 @@ recent-windows {
         Mod+Shift+grave { previous-window filter="app-id"; }
     }
 }
+
 
 
