@@ -9,9 +9,9 @@
 /* Entire bar */
 #waybar {
       border-radius: 30px;
-      background-color: rgba(43, 48, 59, 0.4);
+      background-color: rgba(43, 48, 59, 0.0);
       border: 0px solid ; /* Removes the bar's outer frame border */
-      border-radius: 18px;
+      border-radius: 20px;
   }
 
 
