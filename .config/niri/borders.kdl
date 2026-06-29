@@ -3,23 +3,23 @@
 
 layout {
     // Gap sizes
-    gaps 16
+    gaps 0
 
     // Configure the border thickness and colors using Matugen variables
     border {
         off
         width 4
         // Active border using primary color
-        active-color "#ffb1c8"
+        active-color "#83d2e4"
         // Inactive border using a subtle surface or outline color
-        inactive-color "#514347"
+        inactive-color "#3f484b"
     }
 
     // Alternatively, if you prefer a subtle focus-ring instead of full borders:
     focus-ring {
         // omni
         width 4
-        active-color "#ffb1c8"
-        inactive-color "#3c3235"
+        active-color "#83d2e4"
+        inactive-color "#303637"
     }
 }

@@ -63,7 +63,7 @@ output "eDP-1" {
 }
 
 layout {
-    gaps 32
+    gaps 22
     center-focused-column "never"
     always-center-single-column
     preset-column-widths {
@@ -169,7 +169,7 @@ layer-rule {
         xray true
         blur true
         noise 0
-        saturation 2
+        saturation 3
                 liquid-glass {
                     refraction-strength 80.0
                     power-factor  9
@@ -184,6 +184,7 @@ window-rule {
     background-effect {
         blur true
         xray true
+        saturation 3
         liquid-glass {
             refraction-strength 10.0
             power-factor  1
