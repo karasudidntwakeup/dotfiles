@@ -10,16 +10,16 @@ layout {
         off
         width 4
         // Active border using primary color
-        active-color "#fcb974"
+        active-color "#d7c870"
         // Inactive border using a subtle surface or outline color
-        inactive-color "#51453a"
+        inactive-color "#4a4739"
     }
 
     // Alternatively, if you prefer a subtle focus-ring instead of full borders:
     focus-ring {
         // omni
         width 4
-        active-color "#fcb974"
-        inactive-color "#3c332c"
+        active-color "#d7c870"
+        inactive-color "#37352b"
     }
 }
