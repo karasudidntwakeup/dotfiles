@@ -1,0 +1,20 @@
+
+[config]
+# Adjust contrast from -1.0 to 1.0
+contrast = 0.0
+# Fallback if image extraction fails
+fallback_color = "#ffbf9b"
+ 
+[config.wallpaper]
+# Automatically set wallpaper using a command
+set = true
+command = "awww img {{ image }}"
+ [templates.niri]
+input_path = '~/.config/matugen/templates/config.kdl'
+output_path = '~/.config/niri/borders.kdl'
+[templates.foot]
+input_path = '/home/karasu/.config/matugen/templates/foot.ini'
+output_path = '/home/karasu/.config/foot/colors.ini'
+[templates.firefox_colors]
+input_path = '~/.config/matugen/templates/firefox-colors.css'
+output_path = '~/.librewolf/fuoz9ly2.default-default/chrome/colors.css'
