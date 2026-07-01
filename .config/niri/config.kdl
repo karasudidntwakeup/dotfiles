@@ -12,12 +12,14 @@ cursor {
 }
 overview {
     zoom 0.70
+
     workspace-shadow {
       // off
         softness 40
         spread 60
         offset x=0 y=60
     }
+
 }
 xwayland-satellite {
     // off
@@ -78,10 +80,10 @@ layout {
 
     shadow {
         on
-        softness 15
-        spread 1
-        offset x=12 y=0
-        color "#000000"
+        softness 20
+        spread 5
+        offset x=4 y=0
+        color "#1f1f1f"
     }
     
     struts {
@@ -103,6 +105,8 @@ spawn-sh-at-startup "pipewire-pulse"
 spawn-sh-at-startup "wireplumber"
 spawn-at-startup "awww-daemon"
 spawn-at-startup "awww-daemon" "--namespace" "backdrop"
+spawn-at-startup "sh" "-c" "wl-paste --type text --watch cliphist store"
+spawn-at-startup "sh" "-c" "wl-paste --type image --watch cliphist store"
 layer-rule {
     match namespace="^awww-daemonbackdrop$"
     place-within-backdrop true
@@ -191,19 +195,19 @@ animations {
 }
 
 layer-rule {
-    match namespace="fuzzel"
+    match namespace="rofi"
     match at-startup=true
     match layer="top"
     block-out-from "screencast"
-    geometry-corner-radius 20
+    geometry-corner-radius 10
     background-effect {
         xray true
         blur true
         noise 0
-        saturation 2
+        saturation 1.5
                 liquid-glass {
                     refraction-strength 80.0
-                    power-factor  9
+                    power-factor  2
                     refraction-power 1.0
         }
     }
@@ -221,15 +225,14 @@ layer-rule {
     background-effect {
         xray true
         blur true
-        noise 0
-        saturation 1.5
+        saturation 1.0
                 liquid-glass {
                     refraction-strength 80.0
                     power-factor  9
                     refraction-power 1.0
                     glow-weight 0.9
                     edge-lighting 0
-                    saturation 2
+                    saturation 1.0
                     vibrancy 3
                     adaptive-dim 0.1
                     adaptive-boost 0.7
@@ -238,21 +241,21 @@ layer-rule {
   }
 
 window-rule {
-    geometry-corner-radius 25
+    geometry-corner-radius 15
     clip-to-geometry true
     background-effect {
         blur true
         xray true
         liquid-glass {
-            refraction-strength 10.0
+            refraction-strength 30.8
             power-factor 10
             vibrancy 0.9
             adaptive-dim 0.25
             adaptive-boost 0.25
-            refraction-power 50
-            glow-weight 0.4
-            edge-lighting 9.0
-            saturation 0.9
+            refraction-power 10
+            glow-weight 0.3
+            edge-lighting 0.8
+            saturation 1.1
             fringing 0
         }
     }
@@ -262,6 +265,7 @@ window-rule {
 binds {
     Mod+Shift+Slash { show-hotkey-overlay; }
     Mod+space { spawn "rofi" "-show" "drun"; }
+    Mod+V { spawn "sh" "-c" "cliphist list | rofi -dmenu | cliphist decode | wl-copy"; }
     Mod+Return hotkey-overlay-title="Open a Terminal: foot" { spawn "foot"; }
     Super+C hotkey-overlay-title="Open Browser: LibreWolf" { spawn "librewolf"; }
     Super+Shift+Q hotkey-overlay-title="Lock the Screen: hyprlock" { spawn "hyprlock"; }
@@ -352,9 +356,9 @@ binds {
     Mod+Equal { set-column-width "+10%"; }
     Mod+Shift+Minus { set-window-height "-10%"; }
     Mod+Shift+Equal { set-window-height "+10%"; }
-    Mod+V       { toggle-window-floating; }
+    Mod+N       { toggle-window-floating; }
     Mod+Shift+V { switch-focus-between-floating-and-tiling; }
-    Print { screenshot-window write-to-disk=false; }
+    Print { screenshot; }
     Mod+Escape { toggle-keyboard-shortcuts-inhibit; }
     Mod+Shift+E { quit; }
     Ctrl+Alt+Delete { quit; }
@@ -390,3 +394,9 @@ recent-windows {
 
 
 
+blur {
+    passes 2
+    offset 1 
+    noise 0.0 
+    saturation 1.1 
+}
