@@ -72,6 +72,7 @@ set encoding=utf-8
 LANG=en_US.UTF-8 
 #PATH
 export EDITOR=nvim
+export PATH="$PATH:$HOME/.npm-global/bin"
 export PATH="$PATH:/sbin:/usr/sbin:usr/local/sbin"
 export PATH="${PATH}:${HOME}/.local/bin/"
 export PATH="${PATH}:${HOME}/.cargo/bin"
@@ -135,7 +136,7 @@ unsetopt BEEP
 source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh 
 source ~/github/somewhere/fzf-tab.plugin.zsh
 source $HOME/.config/television/shell/integration.zsh
-source ~/powerlevel10k/powerlevel10k.zsh-theme
+source ~/github/powerlevel10k/powerlevel10k.zsh-theme
 source ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 . "$HOME/.local/bin/env"
@@ -184,6 +185,7 @@ function y() {
 	fi
 	rm -f -- "$tmp"
 }
+export YT_X_FZF_OPTS="--color=bg:-1,bg+:-1,gutter:-1,prompt:-1,pointer:-1,marker:-1,spinner:-1,info:-1"
 export MANPAGER="bat -plman"
 export LESS_TERMCAP_mb=$'\e[1;32m'
 export LESS_TERMCAP_md=$'\e[1;32m'
