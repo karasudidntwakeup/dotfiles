@@ -134,7 +134,7 @@ animations {
             }
 "
 
-            duration-ms 900
+            duration-ms 1000
     }
 
     window-close {
@@ -153,7 +153,7 @@ animations {
                 return win * reveal;
             }
 "
-        duration-ms 1000
+        duration-ms 700
     }
 
     horizontal-view-movement {
@@ -222,26 +222,38 @@ layer-rule {
         xray true
         blur true
         noise 0
-        saturation 2
+        saturation 1.5
                 liquid-glass {
                     refraction-strength 80.0
                     power-factor  9
                     refraction-power 1.0
+                    glow-weight 0.9
+                    edge-lighting 0
+                    saturation 2
+                    vibrancy 3
+                    adaptive-dim 0.1
+                    adaptive-boost 0.7
         }
     }
   }
 
 window-rule {
-    geometry-corner-radius 20
+    geometry-corner-radius 25
     clip-to-geometry true
     background-effect {
         blur true
         xray true
-        saturation 2
         liquid-glass {
             refraction-strength 10.0
-            power-factor  1
-            refraction-power 1.0
+            power-factor 10
+            vibrancy 0.9
+            adaptive-dim 0.25
+            adaptive-boost 0.25
+            refraction-power 50
+            glow-weight 0.4
+            edge-lighting 9.0
+            saturation 0.9
+            fringing 0
         }
     }
  }
