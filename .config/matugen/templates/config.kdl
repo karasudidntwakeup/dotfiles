@@ -18,7 +18,7 @@ layout {
     // Alternatively, if you prefer a subtle focus-ring instead of full borders:
     focus-ring {
         // omni
-        width 4
+        width 0.0
         active-color "{{colors.primary.default.hex}}"
         inactive-color "{{colors.surface_container_highest.default.hex}}"
     }
