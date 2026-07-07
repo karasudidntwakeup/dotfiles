@@ -18,3 +18,7 @@ output_path = '/home/karasu/.config/foot/colors.ini'
 [templates.firefox_colors]
 input_path = '~/.config/matugen/templates/firefox-colors.css'
 output_path = '~/.librewolf/fuoz9ly2.default-default/chrome/colors.css'
+# ...
+[templates.rofi]
+input_path = '~/.config/matugen/templates/rofi.rasi'
+output_path = '~/.config/rofi/colors.rasi'
