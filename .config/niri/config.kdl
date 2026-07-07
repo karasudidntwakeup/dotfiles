@@ -2,13 +2,13 @@
 include "borders.kdl"
 prefer-no-csd
 environment {
-    QT_QPA_PLATFORM "wayland"
+    QT_QPA_PLATFORM "niri"
     ELECTRON_OZONE_PLATFORM_HINT "auto"
 }
 cursor {
-    xcursor-theme "ComixCursors-White"
-    xcursor-size 3
-    hide-after-inactive-ms 3000
+    xcursor-theme "MacTahoe-dark"
+    xcursor-size 28
+    hide-after-inactive-ms 300
 }
 overview {
     zoom 0.70
@@ -104,7 +104,7 @@ spawn-sh-at-startup "pipewire"
 spawn-sh-at-startup "pipewire-pulse"
 spawn-sh-at-startup "wireplumber"
 spawn-at-startup "awww-daemon"
-spawn-at-startup "awww-daemon" "--namespace" "backdrop"
+spawn-at-startup "awww-daemon" "-n" "awww-daemon-backdrop"
 spawn-at-startup "sh" "-c" "wl-paste --type text --watch cliphist store"
 spawn-at-startup "sh" "-c" "wl-paste --type image --watch cliphist store"
 layer-rule {
@@ -123,7 +123,6 @@ animations {
 
     window-open {
               custom-shader r"
-            // Ported from skwd-wall fadecolor transition
 
             vec4 open_color(vec3 coords_geo, vec3 size_geo) {
                 float p = niri_clamped_progress;
@@ -247,16 +246,18 @@ window-rule {
         blur true
         xray true
         liquid-glass {
-            refraction-strength 30.8
-            power-factor 10
-            vibrancy 0.9
-            adaptive-dim 0.25
-            adaptive-boost 0.25
-            refraction-power 10
-            glow-weight 0.3
-            edge-lighting 0.8
-            saturation 1.1
-            fringing 0
+            refraction-strength 20.0
+            power-factor 9.0
+            refraction-power 9.0
+            glow-weight 0.0001
+            edge-lighting 1
+            saturation 1
+            vibrancy 0.1
+            adaptive-dim 0.0
+            adaptive-boost 0.0
+            physical-refraction 2
+            lens-distortion 0.1
+            fringing 10
         }
     }
  }
@@ -264,8 +265,9 @@ window-rule {
 
 binds {
     Mod+Shift+Slash { show-hotkey-overlay; }
-    Mod+space { spawn "rofi" "-show" "drun"; }
-    Mod+V { spawn "sh" "-c" "cliphist list | rofi -dmenu | cliphist decode | wl-copy"; }
+    Mod+space { spawn "~/.config/rofi/applauncher/launcher.sh" "||" "pkill" "rofi"; }
+    Mod+V { spawn "~/.config/rofi/cliphist/launcher.sh" "||" "pkill" "rofi"; }
+    Mod+g { spawn "~/.config/rofi/wallpaper-changer/launcher.sh" "||" "pkill" "rofi"; }
     Mod+Return hotkey-overlay-title="Open a Terminal: foot" { spawn "foot"; }
     Super+C hotkey-overlay-title="Open Browser: LibreWolf" { spawn "librewolf"; }
     Super+Shift+Q hotkey-overlay-title="Lock the Screen: hyprlock" { spawn "hyprlock"; }
