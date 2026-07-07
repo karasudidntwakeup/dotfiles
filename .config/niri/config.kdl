@@ -203,11 +203,21 @@ layer-rule {
         xray true
         blur true
         noise 0
-        saturation 1.5
+        saturation 1
                 liquid-glass {
-                    refraction-strength 80.0
-                    power-factor  2
-                    refraction-power 1.0
+            refraction-strength 90.0
+            power-factor 9.0
+            refraction-power 9.0
+            glow-weight 0.0001
+            edge-lighting 0.0
+            saturation 1
+            vibrancy 0.9
+            adaptive-dim 0.0
+            adaptive-boost 0.0
+            physical-refraction 2
+            lens-distortion 0.09
+            fringing 10  
+
         }
     }
   }
@@ -224,17 +234,20 @@ layer-rule {
     background-effect {
         xray true
         blur true
-        saturation 1.0
                 liquid-glass {
-                    refraction-strength 80.0
-                    power-factor  9
-                    refraction-power 1.0
-                    glow-weight 0.9
-                    edge-lighting 0
-                    saturation 1.0
-                    vibrancy 3
-                    adaptive-dim 0.1
-                    adaptive-boost 0.7
+            refraction-strength 90.0
+            power-factor 9.0
+            refraction-power 9.0
+            glow-weight 0.0001
+            edge-lighting 0.0
+            saturation 1
+            vibrancy 0.9
+            adaptive-dim 0.0
+            adaptive-boost 0.0
+            physical-refraction 2
+            lens-distortion 0.09
+            fringing 10
+
         }
     }
   }
@@ -246,17 +259,17 @@ window-rule {
         blur true
         xray true
         liquid-glass {
-            refraction-strength 20.0
+            refraction-strength 90.0
             power-factor 9.0
             refraction-power 9.0
             glow-weight 0.0001
-            edge-lighting 1
+            edge-lighting 0.0
             saturation 1
-            vibrancy 0.1
+            vibrancy 0.9
             adaptive-dim 0.0
             adaptive-boost 0.0
             physical-refraction 2
-            lens-distortion 0.1
+            lens-distortion 0.09
             fringing 10
         }
     }
