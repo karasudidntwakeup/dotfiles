@@ -278,7 +278,7 @@ window-rule {
 
 binds {
     Mod+Shift+Slash { show-hotkey-overlay; }
-    Mod+space { spawn "~/.config/rofi/applauncher/launcher.sh" "||" "pkill" "rofi"; }
+    Mod+space { spawn "rofi" "-show" "drun"; }
     Mod+V { spawn "~/.config/rofi/cliphist/launcher.sh" "||" "pkill" "rofi"; }
     Mod+g { spawn "~/.config/rofi/wallpaper-changer/launcher.sh" "||" "pkill" "rofi"; }
     Mod+Return hotkey-overlay-title="Open a Terminal: foot" { spawn "foot"; }
