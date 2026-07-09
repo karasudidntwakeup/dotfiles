@@ -2,22 +2,26 @@
 include "borders.kdl"
 prefer-no-csd
 environment {
-    QT_QPA_PLATFORM "niri"
+    QT_QPA_PLATFORM "wayland"
+    DISPLAY null
     ELECTRON_OZONE_PLATFORM_HINT "auto"
 }
 cursor {
     xcursor-theme "MacTahoe-dark"
-    xcursor-size 28
-    hide-after-inactive-ms 300
+    xcursor-size 30
+    hide-after-inactive-ms 500
+    hide-when-typing
 }
 overview {
-    zoom 0.70
+    zoom 0.50
+    backdrop-color "#000000"
 
     workspace-shadow {
       // off
         softness 40
         spread 60
         offset x=0 y=60
+        color "#00000050"
     }
 
 }
@@ -44,9 +48,9 @@ input {
 
     touchpad {
        // natural-scroll
-       accel-speed 0.2
+       accel-speed 0.25
        click-method "clickfinger"
-        tap
+       tap
     }
     mouse {
     }
@@ -55,6 +59,7 @@ input {
 }
 
 gestures {
+
     hot-corners {
         top-left
     }
@@ -62,13 +67,22 @@ gestures {
 
 output "eDP-1" {
     mode "1920x1080@60"
-    scale 1.0
+    scale 1
 }
 
+
 layout {
-    gaps 22
+      background-color "#003300"
+  tab-indicator {
+        width 15
+        gap 20
+        length total-proportion=1.0
+        position "top"
+        place-within-column
+    }
+    gaps 10
     center-focused-column "never"
-    always-center-single-column
+    always-center-single-column 
     preset-column-widths {
         proportion 0.2
         proportion 0.2
@@ -87,10 +101,10 @@ layout {
     }
     
     struts {
-        left 0
-        right 0
-        top 0
-        bottom 0
+        left 10
+        right 10
+        top 10
+        bottom 10
     }
     
     insert-hint {
@@ -406,12 +420,13 @@ recent-windows {
         Mod+Shift+grave { previous-window filter="app-id"; }
     }
 }
+spawn-at-startup "foot"
 
 
 
 blur {
     passes 2
-    offset 1 
+    offset 5 
     noise 0.0 
     saturation 1.1 
 }

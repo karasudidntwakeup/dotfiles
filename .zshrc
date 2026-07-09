@@ -147,7 +147,6 @@ command -v exa >/dev/null && alias ls='exa --color=auto --icons' && alias ll='ex
 
 
 # --- ripgrep sane defaults ---
-export RIPGREP_CONFIG_PATH="$HOME/.ripgreprc"
 alias rg='rg --pretty --smart-case'
 
 # --- git colors ---
