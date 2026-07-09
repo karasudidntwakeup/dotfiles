@@ -14,7 +14,7 @@ input_path = '~/.config/matugen/templates/config.kdl'
 output_path = '~/.config/niri/borders.kdl'
 [templates.foot]
 input_path = '/home/karasu/.config/matugen/templates/foot.ini'
-output_path = '/home/karasu/.config/foot/colors.ini'
+output_path = '/home/karasu/.config/foot/foot.ini'
 [templates.firefox_colors]
 input_path = '~/.config/matugen/templates/firefox-colors.css'
 output_path = '~/.librewolf/fuoz9ly2.default-default/chrome/colors.css'
@@ -22,3 +22,6 @@ output_path = '~/.librewolf/fuoz9ly2.default-default/chrome/colors.css'
 [templates.rofi]
 input_path = '~/.config/matugen/templates/rofi.rasi'
 output_path = '~/.config/rofi/colors.rasi'
+[templates.kitty]
+input_path = '~/.config/matugen/templates/kitty.conf'
+output_path = '~/.config/kitty/theme.conf'
