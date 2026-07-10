@@ -34,6 +34,10 @@ output_path = "~/.config/swaync/colors.css"
 post_hook = "swaync-client -rs"
 # ...
 [templates.television]
-input_path = 'templates/television.toml'
+input_path = '~/.config/matugen/templates/television.toml'
 output_path = '~/.config/television/themes/matugen.toml'
 # ...
+
+[templates.gtk4]
+input_path = "~/.config/matugen/templates/gtk-4.0.css"
+output_path = "~/.config/gtk-4.0/gtk.css"
