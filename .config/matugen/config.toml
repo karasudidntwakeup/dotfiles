@@ -1,10 +1,8 @@
 
 [config]
 # Adjust contrast from -1.0 to 1.0
-contrast = 1.0
+contrast = 0.5
 # Fallback if image extraction fails
-fallback_color = "#ffbf9b"
- 
 [config.wallpaper]
 # Automatically set wallpaper using a command
 set = true
@@ -37,6 +35,9 @@ post_hook = "swaync-client -rs"
 input_path = '~/.config/matugen/templates/television.toml'
 output_path = '~/.config/television/themes/matugen.toml'
 # ...
+[templates.gtk3]
+input_path = "~/.config/matugen/templates/gtk-3.0.css"
+output_path = "~/.config/gtk-3.0/gtk.css"
 
 [templates.gtk4]
 input_path = "~/.config/matugen/templates/gtk-4.0.css"

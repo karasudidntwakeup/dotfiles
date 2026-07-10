@@ -207,7 +207,6 @@ animations {
         spring damping-ratio=1.0 stiffness=100 epsilon=0.001
     }
 }
-
 layer-rule {
     match namespace="rofi"
     match at-startup=true
@@ -236,6 +235,8 @@ layer-rule {
         }
     }
   }
+
+
 
 
 
@@ -269,6 +270,7 @@ layer-rule {
 
 window-rule {
     geometry-corner-radius 15
+    open-maximized false
     clip-to-geometry true
     background-effect {
         blur true
