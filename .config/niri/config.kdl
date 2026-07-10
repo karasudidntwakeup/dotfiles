@@ -113,18 +113,14 @@ layout {
 
 // Startup Applications
 spawn-sh-at-startup "doas /usr/bin/keyd"
+spawn-sh-at-startup "swaync"
 spawn-sh-at-startup "dbus-launch waybar"
 spawn-sh-at-startup "pipewire"
 spawn-sh-at-startup "pipewire-pulse"
 spawn-sh-at-startup "wireplumber"
-spawn-at-startup "awww-daemon"
-spawn-at-startup "awww-daemon" "-n" "awww-daemon-backdrop"
+spawn-at-startup "skwd-daemon"
 spawn-at-startup "sh" "-c" "wl-paste --type text --watch cliphist store"
 spawn-at-startup "sh" "-c" "wl-paste --type image --watch cliphist store"
-layer-rule {
-    match namespace="^awww-daemonbackdrop$"
-    place-within-backdrop true
-}
 hotkey-overlay {
      skip-at-startup
 }
@@ -206,7 +202,35 @@ animations {
         spring damping-ratio=1.0 stiffness=100 epsilon=0.001
     }
 }
+layer-rule {
+    match namespace="swaync"
+    match at-startup=true
+    match layer="top"
+    block-out-from "screencast"
+    geometry-corner-radius 10
+    background-effect {
+        xray true
+        blur true
+        noise 0
+        saturation 1
+                liquid-glass {
+            refraction-strength 90.0
+            power-factor 10.0
+            refraction-power 9.0
+            glow-weight 0.0001
+            edge-lighting 0.0
+            saturation 1
+            vibrancy 0.9
+            adaptive-dim 0.0
+            adaptive-boost 0.0
+            physical-refraction 2
+            lens-distortion 0.09
+            fringing 10  
 
+        }
+    }
+  }
+ 
 layer-rule {
     match namespace="rofi"
     match at-startup=true
@@ -220,7 +244,7 @@ layer-rule {
         saturation 1
                 liquid-glass {
             refraction-strength 90.0
-            power-factor 9.0
+            power-factor 10.0
             refraction-power 9.0
             glow-weight 0.0001
             edge-lighting 0.0
@@ -275,7 +299,7 @@ window-rule {
         liquid-glass {
             refraction-strength 90.0
             power-factor 9.0
-            refraction-power 9.0
+            refraction-power 10.0
             glow-weight 0.0001
             edge-lighting 0.0
             saturation 1
@@ -283,7 +307,7 @@ window-rule {
             adaptive-dim 0.0
             adaptive-boost 0.0
             physical-refraction 2
-            lens-distortion 0.09
+            lens-distortion 0.2
             fringing 10
         }
     }
@@ -294,7 +318,7 @@ binds {
     Mod+Shift+Slash { show-hotkey-overlay; }
     Mod+space { spawn "rofi" "-show" "drun"; }
     Mod+V { spawn "~/.config/rofi/cliphist/launcher.sh" "||" "pkill" "rofi"; }
-    Mod+g { spawn "~/.config/rofi/wallpaper-changer/launcher.sh" "||" "pkill" "rofi"; }
+    Mod+g { spawn "skwd" "wall" "toggle"; }
     Mod+Return hotkey-overlay-title="Open a Terminal: foot" { spawn "foot"; }
     Super+C hotkey-overlay-title="Open Browser: LibreWolf" { spawn "librewolf"; }
     Super+Shift+Q hotkey-overlay-title="Lock the Screen: hyprlock" { spawn "hyprlock"; }
@@ -426,7 +450,7 @@ spawn-at-startup "foot"
 
 blur {
     passes 2
-    offset 5 
+    offset 2.5 
     noise 0.0 
     saturation 1.1 
 }

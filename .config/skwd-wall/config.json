@@ -4,7 +4,10 @@
   "general": {
     "locale": "",
     "closeOnSelection": false,
-    "reopenAtLastSelection": false
+    "reopenAtLastSelection": false,
+    "uiScale": 1,
+    "searchBarAlwaysVisible": false,
+    "filterBarAlwaysVisible": false
   },
   "paths": {
     "wallpaper": "/home/karasu/wallpaper",
@@ -36,8 +39,9 @@
     "apiKey": ""
   },
   "matugen": {
-    "schemeType": "scheme-vibrant",
-    "mode": "dark"
+    "schemeType": "scheme-expressive",
+    "mode": "dark",
+    "colorIndex": 3
   },
   "integrations": [
     {
@@ -126,7 +130,8 @@
       "sliceWidth": 180,
       "visibleCount": 9,
       "skewOffset": 45,
-      "gridColumns": 6
+      "gridColumns": 6,
+      "hexArc": false
     }
   },
   "wallpaperMute": true,
@@ -146,6 +151,13 @@
     "autoDeleteVideoTrash": false
   },
   "effects": {
-    "autoRecolor": true
+    "autoRecolor": true,
+    "autoTheme": "Catppuccin Frappe"
+  },
+  "paper": {
+    "engine": "skwd-paper"
+  },
+  "display": {
+    "fillMode": "fill"
   }
 }
