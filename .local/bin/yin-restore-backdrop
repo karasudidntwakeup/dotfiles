@@ -1,0 +1,36 @@
+#!/bin/bash
+# yin-restore-backdrop - regenerates the blurred awww backdrop
+# using the last wallpaper path saved by yin-set.
+# Run this AFTER `yinctl --restore` on session startup.
+
+LAST_FILE="$HOME/.cache/yin-last-wallpaper"
+
+if [[ ! -f "$LAST_FILE" ]]; then
+    echo "No saved wallpaper path found at $LAST_FILE. Run yin-set at least once first."
+    exit 0
+fi
+
+SRC="$(cat "$LAST_FILE")"
+
+if [[ ! -f "$SRC" ]]; then
+    echo "Saved wallpaper path no longer exists: $SRC"
+    exit 0
+fi
+
+BLUR_CACHE="$HOME/.cache/yin-backdrop-blur.png"
+EXT="${SRC##*.}"
+EXT_LOWER="$(echo "$EXT" | tr '[:upper:]' '[:lower:]')"
+
+case "$EXT_LOWER" in
+    mp4|mov|mkv|webm|avi|gif)
+        ffmpeg -y -i "$SRC" -vframes 1 -vf "gblur=sigma=25" "$BLUR_CACHE" -loglevel error
+        ;;
+    png|jpg|jpeg|bmp|webp)
+        magick "$SRC" -blur 0x25 "$BLUR_CACHE"
+        ;;
+    *)
+        exit 0
+        ;;
+esac
+
+awww img "$BLUR_CACHE" --namespace backdrop

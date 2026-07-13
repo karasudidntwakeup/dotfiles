@@ -1,0 +1,71 @@
+#!/bin/bash
+# yin-set - sets the yin wallpaper AND updates the blurred awww backdrop to match
+# Usage: yin-set /path/to/wallpaper.(mp4|gif|png|jpg)
+
+set -e
+
+SRC="$1"
+if [[ -z "$SRC" ]]; then
+    echo "Usage: yin-set <path-to-image-or-video>"
+    exit 1
+fi
+
+if [[ ! -f "$SRC" ]]; then
+    echo "File not found: $SRC"
+    exit 1
+fi
+
+BLUR_CACHE="$HOME/.cache/yin-backdrop-blur.png"
+mkdir -p "$(dirname "$BLUR_CACHE")"
+
+EXT="${SRC##*.}"
+EXT_LOWER="$(echo "$EXT" | tr '[:upper:]' '[:lower:]')"
+
+case "$EXT_LOWER" in
+    mp4|mov|mkv|webm|avi|gif)
+        # extract a frame, blur it
+        ffmpeg -y -i "$SRC" -vframes 1 -vf "gblur=sigma=25" "$BLUR_CACHE" -loglevel error
+        ;;
+    png|jpg|jpeg|bmp|webp)
+        # blur the static image directly (needs imagemagick)
+        magick "$SRC" -blur 0x25 "$BLUR_CACHE"
+        ;;
+    *)
+        echo "Unsupported file type: $EXT_LOWER"
+        exit 1
+        ;;
+esac
+
+# make sure the yin daemon is actually running before we talk to it
+if ! pgrep -x yin > /dev/null; then
+    echo "yin daemon not running, starting it..."
+    nohup yin > /dev/null 2>&1 &
+    disown
+    sleep 1
+fi
+
+# 1. set the actual wallpaper via yin
+#    --play is for animated media (mp4/gif), --img is for static images
+case "$EXT_LOWER" in
+    mp4|mov|mkv|webm|avi|gif)
+        yinctl --play "$SRC"
+        ;;
+    png|jpg|jpeg|bmp|webp)
+        yinctl --img "$SRC"
+        ;;
+esac
+
+# 2. update the blurred backdrop via awww
+awww img "$BLUR_CACHE" --namespace backdrop
+
+# 3. regenerate color scheme via matugen (also has its own "set wallpaper"
+#    command configured, which is harmless/redundant for static images and
+#    will just fail silently for videos since --img only supports images)
+if command -v matugen > /dev/null; then
+    matugen image "$SRC" || echo "matugen failed to run (check its config), continuing anyway"
+fi
+
+# 4. remember this path so we can re-sync the backdrop on session restart
+echo "$SRC" > "$HOME/.cache/yin-last-wallpaper"
+
+echo "Wallpaper + backdrop + colors updated: $SRC"
