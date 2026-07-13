@@ -51,7 +51,7 @@ case "$EXT_LOWER" in
         yinctl --play "$SRC"
         ;;
     png|jpg|jpeg|bmp|webp)
-        yinctl --img "$SRC"
+        yinctl --img "$SRC" --trans static
         ;;
 esac
 
