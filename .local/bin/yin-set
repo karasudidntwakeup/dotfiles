@@ -4,6 +4,12 @@
 
 set -e
 
+# matugen (and other tools installed via cargo/pipx/etc) may live in a
+# directory that's only added to PATH in interactive shell configs
+# (~/.zshrc, ~/.bashrc), which a script like this won't source.
+# Add common install locations explicitly so `command -v matugen` can find it.
+export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"
+
 SRC="$1"
 if [[ -z "$SRC" ]]; then
     echo "Usage: yin-set <path-to-image-or-video>"
@@ -39,7 +45,7 @@ esac
 # make sure the yin daemon is actually running before we talk to it
 if ! pgrep -x yin > /dev/null; then
     echo "yin daemon not running, starting it..."
-    nohup yin > /dev/null 2>&1 &
+    nohup yin --use-cuda-copy > /dev/null 2>&1 &
     disown
     sleep 1
 fi
@@ -63,6 +69,8 @@ awww img "$BLUR_CACHE" --namespace backdrop
 #    will just fail silently for videos since --img only supports images)
 if command -v matugen > /dev/null; then
     matugen image "$SRC" || echo "matugen failed to run (check its config), continuing anyway"
+else
+    echo "matugen not found on PATH ($PATH) - colors not updated. Check where matugen is installed."
 fi
 
 # 4. remember this path so we can re-sync the backdrop on session restart
