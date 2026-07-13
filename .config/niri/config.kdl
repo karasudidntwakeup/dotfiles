@@ -13,7 +13,7 @@ cursor {
     hide-when-typing
 }
 overview {
-    zoom 0.50
+    zoom 0.7
     backdrop-color "#000000"
 
     workspace-shadow {
@@ -117,17 +117,18 @@ spawn-sh-at-startup "dbus-launch waybar"
 spawn-sh-at-startup "pipewire"
 spawn-sh-at-startup "pipewire-pulse"
 spawn-sh-at-startup "wireplumber"
-spawn-at-startup "awww-daemon"
-spawn-at-startup "awww-daemon" "-n" "awww-daemon-backdrop"
+spawn-at-startup "yin"
+spawn-at-startup "awww-daemon" "--namespace" "backdrop"
+spawn-at-startup "sh" "-c" "sleep 1 && yinctl --restore && yin-set-restore-backdrop"
 spawn-at-startup "swaync"
 spawn-at-startup "sh" "-c" "wl-paste --type text --watch cliphist store"
 spawn-at-startup "sh" "-c" "wl-paste --type image --watch cliphist store"
+hotkey-overlay {
+     skip-at-startup
+}
 layer-rule {
     match namespace="^awww-daemonbackdrop$"
     place-within-backdrop true
-}
-hotkey-overlay {
-     skip-at-startup
 }
 screenshot-path null
 animations {
@@ -423,7 +424,6 @@ recent-windows {
         Mod+Shift+grave { previous-window filter="app-id"; }
     }
 }
-spawn-at-startup "foot"
 
 
 
