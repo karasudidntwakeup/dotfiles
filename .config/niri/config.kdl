@@ -270,6 +270,7 @@ layer-rule {
   }
 
 window-rule {
+    match app-id=r#".*"#
     geometry-corner-radius 15
     open-maximized false
     clip-to-geometry true
@@ -292,6 +293,25 @@ window-rule {
         }
     }
  }
+ window-rule {
+    match app-id=r#"thunar"#
+    default-column-width { proportion 0.65; }
+}
+// Rules for xdg-desktop-portal-gtk
+window-rule {
+    match app-id=r#"xdg-desktop-portal-gtk"#
+    open-floating true
+    default-floating-position x=0 y=0
+    min-width 400
+    min-height 600
+}
+window-rule {
+    match is-active=false
+    opacity 0.9
+}
+
+ 
+
 
 
 binds {
