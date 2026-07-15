@@ -3,8 +3,20 @@ include "borders.kdl"
 prefer-no-csd
 environment {
     QT_QPA_PLATFORM "wayland"
-    DISPLAY null
+    XDG_CURRENT_DESKTOP "niri"
+    DISPLAY ":0"
     ELECTRON_OZONE_PLATFORM_HINT "auto"
+
+    QT_QPA_PLATFORM "wayland"
+    QT_QPA_PLATFORMTHEME "gtk3"
+    QT_QPA_PLATFORMTHEME_QT6 "gtk3"
+    QT_WAYLAND_DISABLE_WINDOWDECORATION "1"
+    QT_AUTO_SCREEN_SCALE_FACTOR "1"
+
+    GDK_BACKEND "wayland,x11"
+
+    MOZ_ENABLE_WAYLAND "1"
+    MOZ_DBUS_REMOTE "1"
 }
 cursor {
     xcursor-theme "MacTahoe-dark"
@@ -18,10 +30,10 @@ overview {
 
     workspace-shadow {
       // off
-        softness 40
-        spread 60
-        offset x=0 y=60
-        color "#00000050"
+        softness 60
+        spread 12
+        offset x=0 y=10
+        color "#000000ee"
     }
 
 }
@@ -72,21 +84,29 @@ output "eDP-1" {
 
 
 layout {
-      background-color "#003300"
-  tab-indicator {
-        width 15
-        gap 20
-        length total-proportion=1.0
-        position "top"
-        place-within-column
-    }
-    gaps 10
+   background-color "#003300"
+   gaps 10
     center-focused-column "never"
     always-center-single-column 
     preset-column-widths {
-        proportion 0.2
-        proportion 0.2
-        proportion 0.2
+        proportion 0.3
+        proportion 0.5
+        proportion 0.66667
+      }
+    tab-indicator {
+        on
+
+        hide-when-single-tab
+        place-within-column
+        gap 10
+        width 4
+        length total-proportion=1.0
+        position "right"
+        gaps-between-tabs 4
+        corner-radius 16
+        active-color "red"
+        inactive-color "gray"
+        urgent-color "blue"
     }
 
     default-column-width { proportion 0.50; }
@@ -94,10 +114,10 @@ layout {
 
     shadow {
         on
-        softness 20
+        softness 30
         spread 5
-        offset x=4 y=0
-        color "#1f1f1f"
+        offset x=5 y=10
+        color "#0007"
     }
     
     struts {
@@ -307,7 +327,7 @@ window-rule {
 }
 window-rule {
     match is-active=false
-    opacity 0.9
+    opacity 0.959
 }
 
  
