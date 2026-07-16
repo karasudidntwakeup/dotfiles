@@ -323,7 +323,11 @@ window-rule {
         }
     }
  }
- window-rule {
+  window-rule {
+    match app-id=r#"telegram"#
+    default-column-width { proportion 0.3;}
+  }
+window-rule {
     match app-id=r#"thunar"#
     default-column-width { proportion 0.65;}
   }
