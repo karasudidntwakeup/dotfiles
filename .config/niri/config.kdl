@@ -162,83 +162,83 @@ layer-rule {
     place-within-backdrop true
 }
 screenshot-path null
-animations {
-    workspace-switch {
-        spring damping-ratio=1.0 stiffness=60 epsilon=0.0001
-
-    }
-
-    window-open {
-              custom-shader r"
-
-            vec4 open_color(vec3 coords_geo, vec3 size_geo) {
-                float p = niri_clamped_progress;
-                vec2 uv = coords_geo.xy;
-                float colorPhase = 0.4;
-
-                vec3 tc = niri_geo_to_tex * vec3(uv, 1.0);
-                vec4 win = texture2D(niri_tex, tc.st);
-
-                float reveal = smoothstep(colorPhase, 1.0, p);
-                return win * reveal;
-            }
-"
-
-            duration-ms 1000
-    }
-
-    window-close {
-      custom-shader r"
-            // Ported from skwd-wall fadecolor transition
-
-            vec4 close_color(vec3 coords_geo, vec3 size_geo) {
-                float p = 1.0 - niri_clamped_progress;
-                vec2 uv = coords_geo.xy;
-                float colorPhase = 0.4;
-
-                vec3 tc = niri_geo_to_tex * vec3(uv, 1.0);
-                vec4 win = texture2D(niri_tex, tc.st);
-
-                float reveal = smoothstep(colorPhase, 1.0, p);
-                return win * reveal;
-            }
-"
-        duration-ms 700
-    }
-
-    horizontal-view-movement {
-        spring damping-ratio=1.0 stiffness=60 epsilon=0.0001
-    }
-
-    window-movement {
-        spring damping-ratio=1.0 stiffness=60 epsilon=0.0001
-    }
-
-    window-resize {
-        spring damping-ratio=1.0 stiffness=60 epsilon=0.0001
-    }
-
-    config-notification-open-close {
-        spring damping-ratio=0.6 stiffness=60 epsilon=0.001
-    }
-
-    exit-confirmation-open-close {
-        spring damping-ratio=0.6 stiffness=60 epsilon=0.01
-    }
-
-    screenshot-ui-open {
-        duration-ms 200
-        curve "ease-out-quad"
-    }
-
-    overview-open-close {
-        spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
-    }
-
-        recent-windows-close {
-        spring damping-ratio=1.0 stiffness=100 epsilon=0.001
-    }
-}
+// animations {
+//     workspace-switch {
+//         spring damping-ratio=1.0 stiffness=60 epsilon=0.0001
+// 
+//     }
+// 
+//     window-open {
+//               custom-shader r"
+// 
+//             vec4 open_color(vec3 coords_geo, vec3 size_geo) {
+//                 float p = niri_clamped_progress;
+//                 vec2 uv = coords_geo.xy;
+//                 float colorPhase = 0.4;
+// 
+//                 vec3 tc = niri_geo_to_tex * vec3(uv, 1.0);
+//                 vec4 win = texture2D(niri_tex, tc.st);
+// 
+//                 float reveal = smoothstep(colorPhase, 1.0, p);
+//                 return win * reveal;
+//             }
+// "
+// 
+//             duration-ms 1000
+//     }
+// 
+//     window-close {
+//       custom-shader r"
+//             // Ported from skwd-wall fadecolor transition
+// 
+//             vec4 close_color(vec3 coords_geo, vec3 size_geo) {
+//                 float p = 1.0 - niri_clamped_progress;
+//                 vec2 uv = coords_geo.xy;
+//                 float colorPhase = 0.4;
+// 
+//                 vec3 tc = niri_geo_to_tex * vec3(uv, 1.0);
+//                 vec4 win = texture2D(niri_tex, tc.st);
+// 
+//                 float reveal = smoothstep(colorPhase, 1.0, p);
+//                 return win * reveal;
+//             }
+// "
+//         duration-ms 700
+//     }
+// 
+//     horizontal-view-movement {
+//         spring damping-ratio=1.0 stiffness=60 epsilon=0.0001
+//     }
+// 
+//     window-movement {
+//         spring damping-ratio=1.0 stiffness=60 epsilon=0.0001
+//     }
+// 
+//     window-resize {
+//         spring damping-ratio=1.0 stiffness=60 epsilon=0.0001
+//     }
+// 
+//     config-notification-open-close {
+//         spring damping-ratio=0.6 stiffness=60 epsilon=0.001
+//     }
+// 
+//     exit-confirmation-open-close {
+//         spring damping-ratio=0.6 stiffness=60 epsilon=0.01
+//     }
+// 
+//     screenshot-ui-open {
+//         duration-ms 200
+//         curve "ease-out-quad"
+//     }
+// 
+//     overview-open-close {
+//         spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
+//     }
+// 
+//         recent-windows-close {
+//         spring damping-ratio=1.0 stiffness=100 epsilon=0.001
+//     }
+// }
 layer-rule {
     match namespace="rofi"
     match at-startup=true
@@ -250,8 +250,8 @@ layer-rule {
         blur true
         noise 0
         saturation 1
-                liquid-glass {
-            refraction-strength 90.0
+        liquid-glass {
+            refraction-strength 80.0
             power-factor 10.0
             refraction-power 9.0
             glow-weight 0.0001
@@ -303,24 +303,23 @@ layer-rule {
 window-rule {
     match app-id=r#".*"#
     geometry-corner-radius 15
-    open-maximized false
     clip-to-geometry true
     background-effect {
         blur true
         xray true
         liquid-glass {
-            refraction-strength 90.0
-            power-factor 9.0
-            refraction-power 10.0
+            refraction-strength 3.0
+            power-factor 10.0
+            refraction-power 1.0
             glow-weight 0.0001
-            edge-lighting 0.0
-            saturation 1
-            vibrancy 0.9
-            adaptive-dim 0.0
-            adaptive-boost 0.0
-            physical-refraction 2
-            lens-distortion 0.2
-            fringing 10
+            edge-lighting 0.2
+            saturation 0.9
+            vibrancy 0.2
+            adaptive-dim 0.2
+            adaptive-boost 0.2
+            physical-refraction 0
+            lens-distortion 0
+            fringing 1
         }
     }
  }
