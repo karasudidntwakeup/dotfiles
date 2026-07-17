@@ -328,7 +328,7 @@ window-rule {
     default-column-width { proportion 0.3;}
   }
 window-rule {
-    match app-id=r#"thunar"#
+    match app-id=r#"pcmanfm"#
     default-column-width { proportion 0.65;}
   }
 window-rule {
