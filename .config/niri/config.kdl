@@ -92,10 +92,14 @@ output "eDP-1" {
     mode "1920x1080@60"
     scale 1
 }
+layer-rule {
+    place-within-backdrop true
+}
+
 
 
 layout {
-   background-color "#003300"
+   background-color "transparent"
    gaps 10
     center-focused-column "never"
     always-center-single-column 
@@ -156,10 +160,6 @@ spawn-at-startup "sh" "-c" "wl-paste --type text --watch cliphist store"
 spawn-at-startup "sh" "-c" "wl-paste --type image --watch cliphist store"
 hotkey-overlay {
      skip-at-startup
-}
-layer-rule {
-    match namespace="^awww-daemonbackdrop$"
-    place-within-backdrop true
 }
 screenshot-path null
  animations {
