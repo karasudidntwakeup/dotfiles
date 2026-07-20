@@ -1,4 +1,3 @@
-
 include "borders.kdl"
 prefer-no-csd
 environment {
@@ -6,21 +5,13 @@ environment {
     XDG_CURRENT_DESKTOP "niri"
     DISPLAY ":0"
     ELECTRON_OZONE_PLATFORM_HINT "auto"
-
-    QT_QPA_PLATFORM "wayland"
-    QT_QPA_PLATFORMTHEME "gtk3"
-    QT_QPA_PLATFORMTHEME_QT6 "gtk3"
-    QT_WAYLAND_DISABLE_WINDOWDECORATION "1"
-    QT_AUTO_SCREEN_SCALE_FACTOR "1"
-
     GDK_BACKEND "wayland,x11"
-
     MOZ_ENABLE_WAYLAND "1"
     MOZ_DBUS_REMOTE "1"
 }
 cursor {
     xcursor-theme "MacTahoe-dark"
-    xcursor-size 30
+    xcursor-size 22
     hide-after-inactive-ms 500
     hide-when-typing
 }
@@ -29,10 +20,6 @@ overview {
 
     workspace-shadow {
        off
-        softness 60
-        spread 12
-        offset x=0 y=10
-        color "#000000ee"
     }
 
 }
@@ -98,50 +85,29 @@ layer-rule {
 
 
 layout {
-   background-color "transparent"
    gaps 10
     center-focused-column "never"
+    background-color "transparent"
     always-center-single-column 
     preset-column-widths {
-        proportion 0.3
-        proportion 0.5
-        proportion 0.66667
+        proportion 0.0
+        proportion 0.0
+        proportion 0.0
       }
-    tab-indicator {
-        on
-
-        hide-when-single-tab
-        place-within-column
-        gap 10
-        width 4
-        length total-proportion=1.0
-        position "right"
-        gaps-between-tabs 4
-        corner-radius 16
-        active-color "red"
-        inactive-color "gray"
-        urgent-color "blue"
-    }
 
     default-column-width { proportion 0.50; }
 
-
     shadow {
-        off
+        on
         softness 30
-        spread 5
-        offset x=5 y=10
-        color "#0007"
+        spread 10
+        offset x=3 y=10
     }
-    
     struts {
         left 10
         right 10
         top 10
         bottom 10
-    }
-    
-    insert-hint {
     }
 }
 
@@ -151,9 +117,7 @@ spawn-sh-at-startup "dbus-launch waybar"
 spawn-sh-at-startup "pipewire"
 spawn-sh-at-startup "pipewire-pulse"
 spawn-sh-at-startup "wireplumber"
-spawn-at-startup "yin"
-spawn-at-startup "awww-daemon" "--namespace" "backdrop"
-spawn-at-startup "sh" "-c" "sleep 1 && yinctl --restore && yin-set-restore-backdrop"
+spawn-at-startup "awww-daemon" 
 spawn-at-startup "swaync"
 spawn-at-startup "sh" "-c" "wl-paste --type text --watch cliphist store"
 spawn-at-startup "sh" "-c" "wl-paste --type image --watch cliphist store"
@@ -163,33 +127,27 @@ hotkey-overlay {
 screenshot-path null
  animations {
      workspace-switch {
-         spring damping-ratio=1.0 stiffness=60 epsilon=0.0001
- 
+     spring damping-ratio=1.0 stiffness=100 epsilon=0.0001
      }
- 
      window-open {
                custom-shader r"
+                vec4 open_color(vec3 coords_geo, vec3 size_geo) {
+                float p = niri_clamped_progress;
+                vec2 uv = coords_geo.xy;
+                float colorPhase = 0.4;
  
-             vec4 open_color(vec3 coords_geo, vec3 size_geo) {
-                 float p = niri_clamped_progress;
-                 vec2 uv = coords_geo.xy;
-                 float colorPhase = 0.4;
+                vec3 tc = niri_geo_to_tex * vec3(uv, 1.0);
+                vec4 win = texture2D(niri_tex, tc.st);
  
-                 vec3 tc = niri_geo_to_tex * vec3(uv, 1.0);
-                 vec4 win = texture2D(niri_tex, tc.st);
- 
-                 float reveal = smoothstep(colorPhase, 1.0, p);
-                 return win * reveal;
-             }
- "
+                float reveal = smoothstep(colorPhase, 1.0, p);
+                return win * reveal;
+             }"
  
              duration-ms 1000
      }
  
      window-close {
        custom-shader r"
-             // Ported from skwd-wall fadecolor transition
- 
              vec4 close_color(vec3 coords_geo, vec3 size_geo) {
                  float p = 1.0 - niri_clamped_progress;
                  vec2 uv = coords_geo.xy;
@@ -200,29 +158,28 @@ screenshot-path null
  
                  float reveal = smoothstep(colorPhase, 1.0, p);
                  return win * reveal;
-             }
- "
-         duration-ms 700
+             }"
+         duration-ms 1000
      }
  
      horizontal-view-movement {
-         spring damping-ratio=1.0 stiffness=60 epsilon=0.0001
+         spring damping-ratio=1.0 stiffness=100 epsilon=0.0001
      }
  
      window-movement {
-         spring damping-ratio=1.0 stiffness=60 epsilon=0.0001
+         spring damping-ratio=1.0 stiffness=100 epsilon=0.0001
      }
  
      window-resize {
-         spring damping-ratio=1.0 stiffness=60 epsilon=0.0001
+         spring damping-ratio=1.0 stiffness=100 epsilon=0.0001
      }
  
      config-notification-open-close {
-         spring damping-ratio=0.6 stiffness=60 epsilon=0.001
+         spring damping-ratio=0.6 stiffness=100 epsilon=0.001
      }
  
      exit-confirmation-open-close {
-         spring damping-ratio=0.6 stiffness=60 epsilon=0.01
+         spring damping-ratio=0.6 stiffness=100 epsilon=0.01
      }
  
      screenshot-ui-open {
@@ -240,10 +197,9 @@ screenshot-path null
  }
 layer-rule {
     match namespace="rofi"
-    match at-startup=true
     match layer="top"
     block-out-from "screencast"
-    geometry-corner-radius 10
+    geometry-corner-radius 20
     background-effect {
         xray true
         blur true
@@ -261,21 +217,16 @@ layer-rule {
             adaptive-boost 0.0
             physical-refraction 2
             lens-distortion 0.09
-            fringing 10  
-
+            fringing 10 
         }
     }
   }
-
-
-
-
 
 layer-rule {
     match namespace="waybar"
     match at-startup=true
     match layer="top"
-    opacity 0.9
+    opacity 0.95
     block-out-from "screencast"
     geometry-corner-radius 20
     background-effect {
@@ -291,34 +242,41 @@ layer-rule {
             vibrancy 0.9
             adaptive-dim 0.0
             adaptive-boost 0.0
-            physical-refraction 2
+            physical-refraction 99
             lens-distortion 0.09
             fringing 10
 
         }
     }
-  }
+    shadow {
+        on
+        softness 60
+        spread 8
+        offset x=10 y=5
+        color "#00000070"
+    }
+}
 
 window-rule {
     match app-id=r#".*"#
-    geometry-corner-radius 15
+    geometry-corner-radius 20
     clip-to-geometry true
     background-effect {
         blur true
         xray true
         liquid-glass {
-            refraction-strength 3.0
+            refraction-strength 80.0
             power-factor 10.0
-            refraction-power 1.0
-            glow-weight 0.0001
-            edge-lighting 0.2
+            refraction-power 9.0
+            glow-weight 0.005
+            edge-lighting 0
             saturation 0.9
             vibrancy 0.2
             adaptive-dim 0.2
             adaptive-boost 0.2
-            physical-refraction 0
+            physical-refraction 90
             lens-distortion 0
-            fringing 1
+            fringing 10
         }
     }
  }
@@ -332,11 +290,11 @@ window-rule {
   }
 window-rule {
     match app-id=r#"librewolf"#
-    default-column-width { proportion 0.65; }
+    default-column-width { proportion 0.60; }
   }
 window-rule {
     match app-id=r#"sxiv"#
-    default-column-width { proportion 0.65; }
+    default-column-width { proportion 0.7; }
 }
 
 // Rules for xdg-desktop-portal-gtk
@@ -347,24 +305,16 @@ window-rule {
     min-width 400
     min-height 600
 }
-window-rule {
-    match is-active=false
-    opacity 0.959
-}
-
- 
-
-
 
 binds {
     Mod+Shift+Slash { show-hotkey-overlay; }
-    Mod+space { spawn "rofi" "-show" "drun"; }
+    Mod+space { spawn "rofi" "-show" "run"; }
     Mod+V { spawn "~/.config/rofi/cliphist/launcher.sh" "||" "pkill" "rofi"; }
     Mod+g { spawn "~/.config/rofi/wallpaper-changer/launcher.sh" "||" "pkill" "rofi"; }
     Mod+Return hotkey-overlay-title="Open a Terminal: foot" { spawn "foot"; }
     Super+C hotkey-overlay-title="Open Browser: LibreWolf" { spawn "librewolf"; }
     Super+Shift+Q hotkey-overlay-title="Lock the Screen: hyprlock" { spawn "hyprlock"; }
-
+    /////////
     XF86AudioRaiseVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1+"; }
     XF86AudioLowerVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1-"; }
     XF86AudioMute        allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"; }
@@ -447,17 +397,17 @@ binds {
     Mod+Ctrl+F { expand-column-to-available-width; }
     Mod+b { center-column; }
     Mod+Ctrl+C { center-visible-columns; }
-    Mod+Minus { set-column-width "-10%"; }
-    Mod+Equal { set-column-width "+10%"; }
-    Mod+Shift+Minus { set-window-height "-10%"; }
-    Mod+Shift+Equal { set-window-height "+10%"; }
+    Mod+Minus { set-column-width "-5%"; }
+    Mod+Equal { set-column-width "+5%"; }
+    Mod+Shift+Minus { set-window-height "-5%"; }
+    Mod+Shift+Equal { set-window-height "+5%"; }
     Mod+N       { toggle-window-floating; }
     Mod+Shift+V { switch-focus-between-floating-and-tiling; }
     Print { screenshot; }
     Mod+Escape { toggle-keyboard-shortcuts-inhibit; }
     Mod+Shift+E { quit; }
     Ctrl+Alt+Delete { quit; }
-    Mod+Shift+P { power-off-monitors; }
+    Mod+P { power-off-monitors; }
 }
 recent-windows {
     // off
@@ -465,14 +415,14 @@ recent-windows {
     open-delay-ms 0
     highlight {
         urgent-color "#999999ff"
-        active-color "#ff9999ff"
+        active-color "#000000"
         padding 20
-        corner-radius 30
+        corner-radius 20
     }
 
     previews {
         max-height 500
-        max-scale 0.5
+        max-scale 0.4
     }
 
     binds {
@@ -487,11 +437,9 @@ recent-windows {
     }
 }
 
-
-
 blur {
     passes 2
-    offset 2.5 
+    offset 3.5 
     noise 0.0 
-    saturation 1.1 
+    saturation 1.0 
 }
