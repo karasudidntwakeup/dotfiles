@@ -25,11 +25,10 @@ cursor {
     hide-when-typing
 }
 overview {
-    zoom 0.7
-    backdrop-color "#000000"
+    zoom 0.5
 
     workspace-shadow {
-      // off
+       off
         softness 60
         spread 12
         offset x=0 y=10
@@ -128,7 +127,7 @@ layout {
 
 
     shadow {
-        on
+        off
         softness 30
         spread 5
         offset x=5 y=10
