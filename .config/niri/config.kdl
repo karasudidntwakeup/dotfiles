@@ -127,7 +127,7 @@ hotkey-overlay {
 screenshot-path null
  animations {
      workspace-switch {
-     spring damping-ratio=1.0 stiffness=100 epsilon=0.0001
+     spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
      }
      window-open {
                custom-shader r"
@@ -163,23 +163,23 @@ screenshot-path null
      }
  
      horizontal-view-movement {
-         spring damping-ratio=1.0 stiffness=100 epsilon=0.0001
+         spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
      }
  
      window-movement {
-         spring damping-ratio=1.0 stiffness=100 epsilon=0.0001
+         spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
      }
  
      window-resize {
-         spring damping-ratio=1.0 stiffness=100 epsilon=0.0001
+         spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
      }
  
      config-notification-open-close {
-         spring damping-ratio=0.6 stiffness=100 epsilon=0.001
+         spring damping-ratio=0.6 stiffness=800 epsilon=0.001
      }
  
      exit-confirmation-open-close {
-         spring damping-ratio=0.6 stiffness=100 epsilon=0.01
+         spring damping-ratio=0.6 stiffness=800 epsilon=0.01
      }
  
      screenshot-ui-open {
@@ -192,7 +192,7 @@ screenshot-path null
      }
  
          recent-windows-close {
-         spring damping-ratio=1.0 stiffness=100 epsilon=0.001
+         spring damping-ratio=1.0 stiffness=700 epsilon=0.001
      }
  }
 layer-rule {
