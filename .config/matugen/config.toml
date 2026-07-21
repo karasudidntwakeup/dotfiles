@@ -48,3 +48,6 @@ output_path = '~/.config/vesktop/themes/midnight-discord.css'
 input_path = '~/.config/matugen/templates/matugen-zathurarc'
 output_path = '~/.config/zathura/zathurarc'
 # ...
+[templates.qutebrowser]
+input_path = '~/.config/matugen/templates/qutebrowser-colors.py'
+output_path = '~/.config/qutebrowser/colors.py'
