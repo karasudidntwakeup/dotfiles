@@ -1,4 +1,3 @@
-include "borders.kdl"
 prefer-no-csd
 environment {
     QT_QPA_PLATFORMTHEME "qt6ct"
@@ -87,7 +86,14 @@ layer-rule {
 
 
 layout {
-   gaps 10
+   gaps 20
+   border {
+   off
+  }
+  focus-ring {
+    width 0
+
+  }
     center-focused-column "never"
     always-center-single-column 
     preset-column-widths {
