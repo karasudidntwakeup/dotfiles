@@ -92,3 +92,4 @@ map [normal]     i set recolor
 map [fullscreen] i set recolor
 set default-bg              "{{colors.on_primary.default.rgba | set_alpha: 1.0}}"
 set recolor-lightcolor      "{{colors.on_primary.default.rgba | set_alpha: 1.0}}"
+set recolor false
