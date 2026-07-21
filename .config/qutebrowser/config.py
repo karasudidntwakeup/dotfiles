@@ -23,6 +23,6 @@ config.set("colors.webpage.darkmode.policy.images", "smart")
 
 c.statusbar.show = 'never'
 
-c.fonts.statusbar = '10pt "Departure Mono"'
-c.fonts.tabs.selected = '12pt "Departure Mono"'
-c.fonts.tabs.unselected = '12pt "Departure Mono"'
+c.fonts.statusbar = '7pt "Departure Mono"'
+c.fonts.tabs.selected = '10pt "Departure Mono"'
+c.fonts.tabs.unselected = '10pt "Departure Mono"'
