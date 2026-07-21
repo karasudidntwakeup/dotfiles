@@ -38,6 +38,6 @@ output_path = '~/.config/television/themes/matugen.toml'
 input_path = "~/.config/matugen/templates/gtk-3.0.css"
 output_path = "~/.config/gtk-3.0/gtk.css"
 
-[templates.gtk4]
-input_path = "~/.config/matugen/templates/gtk-4.0.css"
-output_path = "~/.config/gtk-4.0/gtk.css"
+#[templates.gtk4]
+#input_path = "~/.config/matugen/templates/gtk-4.0.css"
+#output_path = "~/.config/gtk-4.0/gtk.css"
