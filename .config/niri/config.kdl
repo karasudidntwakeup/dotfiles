@@ -292,6 +292,10 @@ window-rule {
     default-column-width { proportion 0.3;}
   }
 window-rule {
+    match app-id=r#"mpv"#
+    default-column-width { proportion 0.70;}
+  }
+window-rule {
     match app-id=r#"pcmanfm"#
     default-column-width { proportion 0.65;}
   }
