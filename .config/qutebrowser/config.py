@@ -1,23 +1,11 @@
 config.load_autoconfig(False)
-# تفعيل ثيم Dracula
-import dracula.draw
+config.set("qt.args", ["disable-gpu"])
 
-# لتحميل إعدادات :set السابقة تلقائيًا
-config.load_autoconfig()
-
-dracula.draw.blood(c, {
-    'spacing': {
-        'vertical': 6,
-        'horizontal': 8
-    }
-})
-
-
-
-# تفعيل مانع الإعلانات
+try:
+    config.source("colors.py")
+except FileNotFoundError:
+    pass
 config.set('content.blocking.enabled', True)
-
-# تحميل قوائم حظر الإعلانات (EasyList + EasyPrivacy)
 config.set('content.blocking.method', 'adblock')
 config.set('content.blocking.adblock.lists', [
     'https://easylist.to/easylist/easylist.txt',
@@ -26,14 +14,8 @@ config.set('content.blocking.adblock.lists', [
     'https://easylist-downloads.adblockplus.org/antiadblockfilters.txt',
 ])
 
-c.colors.tabs.bar.bg = '#1e1e1e'
-c.colors.tabs.odd.bg = '#2d2d2d'
-c.colors.tabs.even.bg = '#2d2d2d'
-c.colors.tabs.selected.odd.bg = '#44475a'
-c.colors.tabs.selected.even.bg = '#44475a'
 
 
-# تفعيل الوضع الداكن لمحتوى الصفحات
 config.set("colors.webpage.preferred_color_scheme", "dark")
 config.set("colors.webpage.darkmode.enabled", True)
 config.set("colors.webpage.darkmode.policy.images", "smart")
@@ -41,6 +23,6 @@ config.set("colors.webpage.darkmode.policy.images", "smart")
 
 c.statusbar.show = 'never'
 
-c.fonts.statusbar = '10pt "Px437 IBM VGA 8x16"'
-c.fonts.tabs.selected = '12pt "Px437 IBM VGA 8x16"'
-c.fonts.tabs.unselected = '12pt "Px437 IBM VGA 8x16"'
+c.fonts.statusbar = '10pt "Departure Mono"'
+c.fonts.tabs.selected = '12pt "Departure Mono"'
+c.fonts.tabs.unselected = '12pt "Departure Mono"'
