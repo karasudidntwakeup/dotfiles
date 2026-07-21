@@ -1,6 +1,7 @@
 include "borders.kdl"
 prefer-no-csd
 environment {
+    QT_QPA_PLATFORMTHEME "qt6ct"
     QT_QPA_PLATFORM "wayland"
     XDG_CURRENT_DESKTOP "niri"
     DISPLAY ":0"
@@ -17,7 +18,7 @@ cursor {
 }
 overview {
     zoom 0.5
-
+    backdrop-color "#26233a"
     workspace-shadow {
        off
     }
@@ -80,6 +81,7 @@ output "eDP-1" {
 }
 layer-rule {
     place-within-backdrop true
+        match namespace="^awww$"
 }
 
 
@@ -87,7 +89,6 @@ layer-rule {
 layout {
    gaps 10
     center-focused-column "never"
-    background-color "transparent"
     always-center-single-column 
     preset-column-widths {
         proportion 0.0
@@ -127,7 +128,7 @@ hotkey-overlay {
 screenshot-path null
  animations {
      workspace-switch {
-     spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
+     spring damping-ratio=1.0 stiffness=100 epsilon=0.0001
      }
      window-open {
                custom-shader r"
@@ -163,23 +164,23 @@ screenshot-path null
      }
  
      horizontal-view-movement {
-         spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
+         spring damping-ratio=1.0 stiffness=100 epsilon=0.0001
      }
  
      window-movement {
-         spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
+         spring damping-ratio=1.0 stiffness=100 epsilon=0.0001
      }
  
      window-resize {
-         spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
+         spring damping-ratio=1.0 stiffness=100 epsilon=0.0001
      }
  
      config-notification-open-close {
-         spring damping-ratio=0.6 stiffness=800 epsilon=0.001
+         spring damping-ratio=0.6 stiffness=100 epsilon=0.001
      }
  
      exit-confirmation-open-close {
-         spring damping-ratio=0.6 stiffness=800 epsilon=0.01
+         spring damping-ratio=0.6 stiffness=100 epsilon=0.01
      }
  
      screenshot-ui-open {
@@ -188,7 +189,7 @@ screenshot-path null
      }
  
      overview-open-close {
-         spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
+         spring damping-ratio=1.0 stiffness=500 epsilon=0.0001
      }
  
          recent-windows-close {
@@ -267,9 +268,9 @@ window-rule {
         liquid-glass {
             refraction-strength 80.0
             power-factor 10.0
-            refraction-power 9.0
-            glow-weight 0.005
-            edge-lighting 0
+            refraction-power 20
+            glow-weight 0.0
+            edge-lighting 0.9
             saturation 0.9
             vibrancy 0.2
             adaptive-dim 0.2
