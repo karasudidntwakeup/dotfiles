@@ -1,0 +1,15 @@
+/* ~/.librewolf/fuoz9ly2.default-default/chrome/userChrome.css */
+@import "colors.css";
+@import "websites/github.css";
+@import "websites/youtube.css";
+
+:root {
+  --lwt-accent-color: var(--surface) !important;
+}
+
+#TabsToolbar,
+#nav-bar,
+#titlebar {
+  background-color: var(--surface) !important;
+  color: var(--on_surface) !important;
+}
