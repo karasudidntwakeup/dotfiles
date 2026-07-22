@@ -272,18 +272,18 @@ window-rule {
         blur true
         xray true
         liquid-glass {
-            refraction-strength 80.0
+            refraction-strength 3.0
             power-factor 10.0
-            refraction-power 20
+            refraction-power 90
             glow-weight 0.0
-            edge-lighting 0.9
-            saturation 0.9
-            vibrancy 0.2
+            edge-lighting 0.7
+            saturation 1
+            vibrancy 0
             adaptive-dim 0.2
             adaptive-boost 0.2
-            physical-refraction 90
-            lens-distortion 0
-            fringing 10
+            physical-refraction 99
+            lens-distortion 0.2
+            fringing 0
         }
     }
  }
@@ -293,15 +293,11 @@ window-rule {
   }
 window-rule {
     match app-id=r#"mpv"#
-    default-column-width { proportion 0.70;}
-  }
-window-rule {
-    match app-id=r#"pcmanfm"#
-    default-column-width { proportion 0.65;}
+    default-column-width { proportion 1.0;}
   }
 window-rule {
     match app-id=r#"librewolf"#
-    default-column-width { proportion 0.60; }
+    default-column-width { proportion 0.55; }
   }
 window-rule {
     match app-id=r#"sxiv"#
@@ -450,7 +446,7 @@ recent-windows {
 
 blur {
     passes 2
-    offset 3.5 
+    offset 2.9 
     noise 0.0 
-    saturation 1.0 
+    saturation 1.1 
 }
