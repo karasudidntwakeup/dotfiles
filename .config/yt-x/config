@@ -23,11 +23,11 @@ CONFIG_AUTOLOADED_EXTENSIONS=""
 
 # Enable or disable colored/formatted output
 # Options: true, false (Default: true)
-CONFIG_ENABLE_COLORS="true"
+CONFIG_ENABLE_COLORS="false"
 
 # The menu launcher tool used for the ui
 # Options: fzf, rofi, gum (Default: fzf)
-CONFIG_LAUNCHER="rofi"
+CONFIG_LAUNCHER="fzf"
 
 # Enable image/video previews within the selector
 # Options: true, false (Default: false)
@@ -67,7 +67,7 @@ CONFIG_PER_PAGE="30"
 # passed to --cookies-from-browser yt-dlp option
 # Currently supported browsers are: brave, chrome, chromium, edge, firefox, opera, safari, vivaldi, whale
 # NOTE: this option is entirely dependent on what yt-dlp supports
-CONFIG_BROWSER=""
+CONFIG_BROWSER="firefox:/home/karasu/.librewolf/fuoz9ly2.default-default"
 
 # Text editor for manual configuration/metadata editing
 # Options: vim, nano, code ... (Default: $EDITOR or vi)
@@ -103,8 +103,8 @@ CONFIG_ENABLE_SEARCH_HISTORY="true"
 #CONFIG_GUM_CONFIRM_OPTS="--prompt.foreground #2ac3de --selected.foreground #1a1b26 --selected.background #2ac3de --unselected.foreground #585858"
 
 # Custom options passed directly to fzf
-CONFIG_FZF_HEADER="\
-"
+CONFIG_FZF_HEADER=""
+CONFIG_FZF_OPTS="--color=bg:-1,bg+:-1,preview-bg:-1,border:-1,gutter:-1"
 
 # Rofi config all are required to run rofi as a launcher
 # get the official ones from https://github.com/Benexl/yt-x
