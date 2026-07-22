@@ -418,7 +418,7 @@ binds {
 }
 recent-windows {
     // off
-    debounce-ms 60
+    debounce-ms 70
     open-delay-ms 0
     highlight {
         urgent-color "#999999ff"
