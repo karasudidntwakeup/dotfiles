@@ -1,0 +1,6 @@
+:root {
+  --background-primary: {{colors.surface.default.hex}};
+  --background-secondary: {{colors.surface_variant.default.hex}};
+  --text-normal: {{colors.on_surface.default.hex}};
+  --brand-experiment: {{colors.primary.default.hex}};
+}
