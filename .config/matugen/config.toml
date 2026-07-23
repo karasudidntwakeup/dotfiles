@@ -48,3 +48,6 @@ output_path = '~/.config/zathura/zathurarc'
 [templates.qutebrowser]
 input_path = '~/.config/matugen/templates/qutebrowser-colors.py'
 output_path = '~/.config/qutebrowser/colors.py'
+[templates.niri]
+input_path = '~/.config/matugen/templates/overview.kdl'
+output_path = '~/.config/niri/colors.kdl'
