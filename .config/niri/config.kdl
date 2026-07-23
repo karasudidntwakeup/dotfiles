@@ -1,3 +1,4 @@
+include "colors.kdl"
 prefer-no-csd
 environment {
     QT_QPA_PLATFORMTHEME "qt6ct"
@@ -15,14 +16,7 @@ cursor {
     hide-after-inactive-ms 500
     hide-when-typing
 }
-overview {
-    zoom 0.5
-    backdrop-color "#26233a"
-    workspace-shadow {
-       off
-    }
 
-}
 xwayland-satellite {
     // off
     path "xwayland-satellite"
@@ -77,6 +71,7 @@ gestures {
 output "eDP-1" {
     mode "1920x1080@60"
     scale 1
+
 }
 layer-rule {
     place-within-backdrop true
@@ -272,21 +267,29 @@ window-rule {
         blur true
         xray true
         liquid-glass {
-            refraction-strength 3.0
-            power-factor 10.0
-            refraction-power 90
-            glow-weight 0.0
-            edge-lighting 0.7
-            saturation 1
+            refraction-strength 3
+            power-factor 3
+            refraction-power 9.0
+            glow-weight 0.0001
+            edge-lighting 0.9
+            saturation 0.9
             vibrancy 0
             adaptive-dim 0.2
             adaptive-boost 0.2
-            physical-refraction 99
-            lens-distortion 0.2
+            physical-refraction 0
+            lens-distortion 0.03
             fringing 0
         }
     }
- }
+    shadow {
+        on
+        softness 60
+        spread 8
+        offset x=10 y=5
+        color "#00000070"
+    }
+  }
+
   window-rule {
     match app-id=r#"telegram"#
     default-column-width { proportion 0.3;}
@@ -294,10 +297,6 @@ window-rule {
 window-rule {
     match app-id=r#"mpv"#
     default-column-width { proportion 1.0;}
-  }
-window-rule {
-    match app-id=r#"librewolf"#
-    default-column-width { proportion 0.55; }
   }
 window-rule {
     match app-id=r#"sxiv"#
