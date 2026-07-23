@@ -1,5 +1,0 @@
-* {
-    accent: {{colors.primary.default.hex}};
-    background: {{colors.background.default.hex}};
-    foreground: {{colors.on_background.default.hex}};
-}
