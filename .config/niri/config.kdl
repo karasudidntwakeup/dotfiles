@@ -80,39 +80,6 @@ layer-rule {
 
 
 
-layout {
-   gaps 20
-   border {
-   off
-  }
-  focus-ring {
-    width 0
-
-  }
-    center-focused-column "never"
-    always-center-single-column 
-    preset-column-widths {
-        proportion 0.0
-        proportion 0.0
-        proportion 0.0
-      }
-
-    default-column-width { proportion 0.50; }
-
-    shadow {
-        on
-        softness 30
-        spread 10
-        offset x=3 y=10
-    }
-    struts {
-        left 10
-        right 10
-        top 10
-        bottom 10
-    }
-}
-
 // Startup Applications
 spawn-sh-at-startup "doas /usr/bin/keyd"
 spawn-sh-at-startup "dbus-launch waybar"
