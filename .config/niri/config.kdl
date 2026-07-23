@@ -444,8 +444,8 @@ recent-windows {
 }
 
 blur {
-    passes 2
-    offset 2.9 
+    passes 3
+    offset 1.0
     noise 0.0 
     saturation 1.1 
 }
