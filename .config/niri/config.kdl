@@ -75,8 +75,9 @@ output "eDP-1" {
 }
 layer-rule {
     place-within-backdrop true
-        match namespace="^awww$"
-}
+ //       match namespace="^awww$"
+    match namespace="^awww-daemonbackdrop$"
+  }
 
 
 
@@ -87,6 +88,7 @@ spawn-sh-at-startup "pipewire"
 spawn-sh-at-startup "pipewire-pulse"
 spawn-sh-at-startup "wireplumber"
 spawn-at-startup "awww-daemon" 
+spawn-at-startup "awww-daemon" "--namespace" "backdrop"
 spawn-at-startup "swaync"
 spawn-at-startup "sh" "-c" "wl-paste --type text --watch cliphist store"
 spawn-at-startup "sh" "-c" "wl-paste --type image --watch cliphist store"

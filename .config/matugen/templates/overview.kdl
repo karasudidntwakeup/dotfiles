@@ -1,5 +1,6 @@
 overview {
-    backdrop-color "{{colors.surface_container_lowest.default.hex}}"
+ //   backdrop-color "{{colors.surface_container_lowest.default.hex}}"
+ backdrop-color "transparent"
 }
 layout {
    gaps 20

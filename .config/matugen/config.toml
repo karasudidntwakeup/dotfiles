@@ -4,7 +4,7 @@
 [config.wallpaper]
 # Automatically set wallpaper using a command
 set = true
-command = "awww img  {{ image }}"
+command = "sh ~/.config/matugen/set-wallpaper.sh {{ image }}"
 #[templates.niri]
 #input_path = '~/.config/matugen/templates/config.kdl'
 #output_path = '~/.config/niri/borders.kdl'
