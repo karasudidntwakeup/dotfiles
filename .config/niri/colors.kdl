@@ -1,5 +1,6 @@
 overview {
-    backdrop-color "#120d11"
+ //   backdrop-color "#0e0f08"
+ backdrop-color "transparent"
 }
 layout {
    gaps 20
