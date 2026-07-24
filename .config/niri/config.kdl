@@ -204,18 +204,18 @@ layer-rule {
         xray true
         blur true
                 liquid-glass {
-            refraction-strength 90.0
-            power-factor 9.0
-            refraction-power 9.0
-            glow-weight 0.0001
+            refraction-strength 4.5
+            power-factor 1.0
+            refraction-power 1.0
+            glow-weight 0.001
             edge-lighting 0.0
             saturation 1
-            vibrancy 0.9
+            vibrancy 0.0
             adaptive-dim 0.0
             adaptive-boost 0.0
-            physical-refraction 99
-            lens-distortion 0.09
-            fringing 10
+            physical-refraction 0
+            lens-distortion 0.2
+            fringing 3
 
         }
     }
@@ -236,18 +236,18 @@ window-rule {
         blur true
         xray true
         liquid-glass {
-            refraction-strength 3
-            power-factor 3
-            refraction-power 9.0
-            glow-weight 0.0001
-            edge-lighting 0.9
-            saturation 0.9
+            refraction-strength 4.5
+            power-factor 1
+            refraction-power 1.0
+            glow-weight 0.001
+            edge-lighting 0.0
+            saturation 0.8
             vibrancy 0
-            adaptive-dim 0.2
-            adaptive-boost 0.2
+            adaptive-dim 0.0
+            adaptive-boost 0.0
             physical-refraction 0
-            lens-distortion 0.03
-            fringing 0
+            lens-distortion 0.00
+            fringing 0.2
         }
     }
     shadow {
