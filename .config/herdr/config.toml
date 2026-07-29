@@ -1,0 +1,21 @@
+onboarding = false
+# ~/.config/herdr/config.toml
+
+[theme]
+name = "rose-pine"
+
+auto_switch = false
+[keys]
+resize_mode = "prefix+shift+r"  
+rename_workspace = "prefix+r"
+new_workspace = "prefix+n"
+next_tab      = "prefix+shift+n"
+prefix = "ctrl+s"
+split_horizontal = "prefix+minus"
+split_vertical = "prefix+|"
+focus_pane_left  = "ctrl+h"
+focus_pane_down  = "ctrl+j"
+focus_pane_up    = "ctrl+k"
+focus_pane_right = "ctrl+l"
+[ui]
+mouse_capture = true   # default is already true, included for parity with `set -g mouse on`

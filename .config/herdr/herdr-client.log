@@ -1,0 +1,45 @@
+2026-07-06T14:14:14.470495Z  INFO herdr::logging: herdr starting event="app.startup" subsystem="client" outcome="started" pid=4178
+2026-07-06T14:14:14.470536Z  INFO herdr::client: connecting to server path=/home/karasu/.config/herdr/herdr-client.sock
+2026-07-06T14:14:14.641904Z  INFO herdr::client: handshake succeeded version=14 encoding=SemanticFrame
+2026-07-29T12:23:19.681633Z  INFO herdr::logging: herdr starting event="app.startup" subsystem="client" outcome="started" pid=12852
+2026-07-29T12:23:19.681832Z  INFO herdr::client: connecting to server path=/home/karasu/.config/herdr/herdr-client.sock
+2026-07-29T12:23:19.758988Z  INFO herdr::client: handshake succeeded version=17 encoding=SemanticFrame
+2026-07-29T12:26:23.967498Z  INFO herdr::logging: herdr exiting event="app.shutdown" subsystem="client" outcome="completed" pid=12852
+2026-07-29T12:26:26.477778Z  INFO herdr::logging: herdr starting event="app.startup" subsystem="client" outcome="started" pid=16736
+2026-07-29T12:26:26.477974Z  INFO herdr::client: connecting to server path=/home/karasu/.config/herdr/herdr-client.sock
+2026-07-29T12:26:26.502358Z  INFO herdr::client: handshake succeeded version=17 encoding=SemanticFrame
+2026-07-29T12:26:29.034098Z  INFO herdr::logging: herdr exiting event="app.shutdown" subsystem="client" outcome="completed" pid=16736
+2026-07-29T12:26:31.340007Z  INFO herdr::logging: herdr starting event="app.startup" subsystem="client" outcome="started" pid=16825
+2026-07-29T12:26:31.340122Z  INFO herdr::client: connecting to server path=/home/karasu/.config/herdr/herdr-client.sock
+2026-07-29T12:26:31.567475Z  INFO herdr::client: handshake succeeded version=17 encoding=SemanticFrame
+2026-07-29T15:32:51.415191Z  INFO herdr::logging: herdr starting event="app.startup" subsystem="client" outcome="started" pid=6046
+2026-07-29T15:32:51.415485Z  INFO herdr::client: connecting to server path=/home/karasu/.config/herdr/herdr-client.sock
+2026-07-29T15:32:51.504769Z  INFO herdr::client: handshake succeeded version=17 encoding=SemanticFrame
+2026-07-29T15:32:55.496375Z  INFO herdr::logging: herdr exiting event="app.shutdown" subsystem="client" outcome="completed" pid=6046
+2026-07-29T15:33:41.903090Z  INFO herdr::logging: herdr starting event="app.startup" subsystem="client" outcome="started" pid=7110
+2026-07-29T15:33:41.903211Z  INFO herdr::client: connecting to server path=/home/karasu/.config/herdr/herdr-client.sock
+2026-07-29T15:33:41.990365Z  INFO herdr::client: handshake succeeded version=17 encoding=SemanticFrame
+2026-07-29T15:33:55.252651Z  INFO herdr::logging: herdr starting event="app.startup" subsystem="client" outcome="started" pid=7412
+2026-07-29T15:33:55.252730Z  INFO herdr::client: connecting to server path=/home/karasu/.config/herdr/herdr-client.sock
+2026-07-29T15:33:55.292302Z  INFO herdr::client: handshake succeeded version=17 encoding=SemanticFrame
+2026-07-29T15:34:46.713256Z  INFO herdr::logging: herdr starting event="app.startup" subsystem="client" outcome="started" pid=8461
+2026-07-29T15:34:46.713315Z  INFO herdr::client: connecting to server path=/home/karasu/.config/herdr/herdr-client.sock
+2026-07-29T15:34:46.950565Z  INFO herdr::client: handshake succeeded version=17 encoding=SemanticFrame
+2026-07-29T15:35:29.646049Z  INFO herdr::logging: herdr starting event="app.startup" subsystem="client" outcome="started" pid=9388
+2026-07-29T15:35:29.646109Z  INFO herdr::client: connecting to server path=/home/karasu/.config/herdr/herdr-client.sock
+2026-07-29T15:35:29.704263Z  INFO herdr::client: handshake succeeded version=17 encoding=SemanticFrame
+2026-07-29T15:35:45.001353Z  INFO herdr::logging: herdr starting event="app.startup" subsystem="client" outcome="started" pid=9831
+2026-07-29T15:35:45.001414Z  INFO herdr::client: connecting to server path=/home/karasu/.config/herdr/herdr-client.sock
+2026-07-29T15:35:45.151337Z  INFO herdr::client: handshake succeeded version=17 encoding=SemanticFrame
+2026-07-29T15:36:38.801075Z  INFO herdr::logging: herdr starting event="app.startup" subsystem="client" outcome="started" pid=10830
+2026-07-29T15:36:38.801093Z  INFO herdr::client: connecting to server path=/home/karasu/.config/herdr/herdr-client.sock
+2026-07-29T15:36:38.842657Z  INFO herdr::client: handshake succeeded version=17 encoding=SemanticFrame
+2026-07-29T15:37:06.067420Z  INFO herdr::logging: herdr starting event="app.startup" subsystem="client" outcome="started" pid=11691
+2026-07-29T15:37:06.067475Z  INFO herdr::client: connecting to server path=/home/karasu/.config/herdr/herdr-client.sock
+2026-07-29T15:37:06.156071Z  INFO herdr::client: handshake succeeded version=17 encoding=SemanticFrame
+2026-07-29T15:37:41.372447Z  INFO herdr::logging: herdr starting event="app.startup" subsystem="client" outcome="started" pid=12589
+2026-07-29T15:37:41.372464Z  INFO herdr::client: connecting to server path=/home/karasu/.config/herdr/herdr-client.sock
+2026-07-29T15:37:41.425489Z  INFO herdr::client: handshake succeeded version=17 encoding=SemanticFrame
+2026-07-29T15:42:44.059154Z  INFO herdr::logging: herdr starting event="app.startup" subsystem="client" outcome="started" pid=18521
+2026-07-29T15:42:44.059217Z  INFO herdr::client: connecting to server path=/home/karasu/.config/herdr/herdr-client.sock
+2026-07-29T15:42:44.290846Z  INFO herdr::client: handshake succeeded version=17 encoding=SemanticFrame
