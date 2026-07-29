@@ -2,8 +2,6 @@
   "niri/workspaces": {
     "format": "{index}",
     "format-icons": {
-        "default": "🔲",
-        "focused": "🔳"
     }
 
 	},
@@ -13,18 +11,20 @@
         "icon-size": 18
     },
 
-
 	"clock": {
-		"format": "󰥔  {:%I:%M %p}",
-		"tooltip-format": "<tt><small>{calendar}</small></tt>",
-		"calendar": {
-			"format": {
-				"months": "<span color='#ffead3'><b>{}</b></span>",
-				"weekdays": "<span color='#ffcc66'><b>{}</b></span>",
-				"today": "<span color='#ffcc66'><b><u>{}</u></b></span>"
-			}
-		}
-	},
+    "format": "󰥔  {:%I:%M %p}",
+    "tooltip-format": "<tt><small>{calendar}</small></tt>",
+    "calendar": {
+        "format": {
+            "months": "<span color='#ffead3'><b>{}</b></span>",
+            "weekdays": "<span color='#ffcc66'><b>{}</b></span>",
+            "today": "<span color='#ffcc66'><b><u>{}</u></b></span>"
+        }
+    },
+    "on-click": "waybar-ycal --next-month",
+    "on-click-right": "waybar-ycal --prev-month"
+},
+
 
 	"battery": {
 		"states": {
@@ -51,13 +51,9 @@
         "tooltip-format":"Network: <big><b>{essid}</b></big>\nSignal strength: <b>{signaldBm}dBm ({bandwidthDownBytes})</b>\nFrequency: <b>{frequency}MHz</b>\nInterface: <b>{ifname}</b>"	
     },
 
-"custom/wifi-speed": {
-  "exec": "~/.config/waybar/scripts/wifi-speed.sh",
-  "interval": 2
-},
 "custom/prayer": {
   "exec": "~/.config/waybar/scripts/prayer.sh",
-  "interval": 5 
+  "interval": 80 
 },
   "custom/memory": {
   "exec": "~/.config/waybar/scripts/memory.sh",
@@ -66,11 +62,6 @@
 "custom/kblayout": {
   "exec": "~/.config/waybar/scripts/kblayout.sh",
   "interval": 1,
-  "return-type": "text"
-},
-"custom/date": {
-  "exec": "~/.config/waybar/scripts/date.sh",
-  "interval": 180,
   "return-type": "text"
 },
 "pulseaudio": {
@@ -82,10 +73,10 @@
   "scroll-step": 5,
   "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle"
 },
- // "swap-icon-label": false
-                }
+"custom/weather": {
+  "exec": "~/.config/waybar/scripts/weather.sh",
+  "interval": 1740,
+  "tooltip": true
 },
-"custom/prayer": {
-    "exec": "/home/karasu/.config/waybar/scripts/prayer.sh",
 }
 

@@ -19,7 +19,7 @@
         "pulseaudio",
         "custom/prayer",
         "custom/memory",
-        "custom/wifi-speed",
+        "custom/weather",
         "network",
         "battery",
         "clock"

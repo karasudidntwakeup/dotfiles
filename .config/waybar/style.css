@@ -1,4 +1,5 @@
 * {
+   font-size: 15px;
     font-family: "Ndot 57", "Symbol Nerd Font";
     padding: 0px 0px 0px 0px;
     background-color: @primary_container;
@@ -16,7 +17,6 @@
 
 
 #clock {
-    font-size: 16px;
     padding: 2px 16px;
     margin: 4px 3px;
     border: 0px solid #000000;
@@ -25,7 +25,6 @@
 }
 
 #network {
-    font-size: 16px;
     padding: 2px 16px;
     margin: 4px 3px;
     border: 0px solid #000000;
@@ -34,7 +33,6 @@
 }
 
 #battery {
-    font-size: 16px;
     padding: 2px 16px;
     margin: 4px 3px;
     border: 0px solid #000000;
@@ -42,17 +40,8 @@
     border-radius: 99px;
 }
 
-#custom-wifi-speed {
-    font-size: 16px;      
-    padding: 2px 16px;
-    margin: 4px 3px;
-    border: 0px solid #000000;
-    background-color: rgba(30, 31, 41, 0.4);
-    border-radius: 99px;
-}
 
 #custom-memory {
-    font-size: 16px;      
     padding: 2px 16px;
     margin: 4px 3px;
     border: 0px solid #000000;
@@ -61,7 +50,6 @@
 }
 
 #custom-kblayout {
-    font-size: 16px;
     padding: 2px 16px;
     margin: 4px 3px;
     border: 0px solid #000000;
@@ -71,7 +59,6 @@
 
 
 #pulseaudio {
-    font-size: 16px;
     padding: 2px 16px;
     margin: 4px 3px;
     border: 0px solid #000000;
@@ -80,7 +67,6 @@
 }
 
 #custom-prayer {
-    font-size: 16px;
     padding: 2px 16px;
     margin: 4px 3px;
     border: 0px solid #000000;
@@ -116,4 +102,22 @@
 }
 
 #workspaces button.urgent {
+}
+#clock tooltip {
+    background: rgba(15, 15, 23, 0.50);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+}
+
+#clock tooltip label {
+    background: rgba(0, 0, 0, 0);
+    font-family: "JetBrainsMono Nerd Font", monospace;
+    padding: 6px;
+}
+#custom-weather {
+    padding: 2px 16px;
+    margin: 4px 3px;
+    border: 0px solid #000000;
+    background-color: rgba(30, 31, 41, 0.4);
+    border-radius: 99px;
 }
