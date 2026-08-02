@@ -276,7 +276,7 @@ arch_package_manager = "pacman"
      "~/github/Niri-glass",
       "~/github/zsh-syntax-highlighting",
       "~/github/somewhere/fzf-tab.plugin.zsh",
-#     "~/.config/something"
+     "~/.config/something",
 ]
 
 # Set to `false` to skip pulling/fetching the predefined git repos
