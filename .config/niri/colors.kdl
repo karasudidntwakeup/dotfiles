@@ -1,8 +1,9 @@
 overview {
- //   backdrop-color "#0e0f08"
  backdrop-color "transparent"
+ zoom 0.3
 }
 layout {
+      background-color "transparent"
    gaps 20
    border {
    off
