@@ -1,21 +1,17 @@
 * {
-   font-size: 15px;
+    font-size: 13px;
     font-family: "Ndot 57", "Symbol Nerd Font";
     padding: 0px 0px 0px 0px;
     background-color: @primary_container;
     color: #f5e0dc;
     font-weight: 900;
+    margin: 0;
+
 }
 
-/* Entire bar */
-#waybar {
-      border-radius: 30px;
-      background-color: rgba(45, 59, 59, 0.0);
-      border: 0px solid #1f1f1f; /* Removes the bar's outer frame border */
-      border-radius: 20px;
+.modules-center > widget {
+    margin-left: 8px;
   }
-
-
 #clock {
     padding: 2px 16px;
     margin: 4px 3px;
