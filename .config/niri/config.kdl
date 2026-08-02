@@ -82,7 +82,7 @@ overview {
         off
     }
  backdrop-color "transparent"
- zoom 0.25
+ zoom 0.5
 }
 layout {
    background-color "transparent"
@@ -189,11 +189,9 @@ layer-rule {
     match namespace="waybar"
     match at-startup=true
     match layer="top"
-    opacity 0.95
     block-out-from "screencast"
-    geometry-corner-radius 20
     background-effect {
-        xray true
+        xray false
         blur true
                 liquid-glass {
             refraction-strength 4.5
