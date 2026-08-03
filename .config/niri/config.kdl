@@ -63,7 +63,7 @@ gestures {
     }
 
     hot-corners {
-        top-left
+        off
     }
 }
 
@@ -87,7 +87,7 @@ overview {
 layout {
    background-color "transparent"
   focus-ring {
-    width 0
+    width 1.5
   }
     center-focused-column "never"
     always-center-single-column 
