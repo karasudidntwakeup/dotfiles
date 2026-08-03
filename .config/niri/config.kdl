@@ -276,7 +276,7 @@ binds {
     Mod+space { spawn "rofi" "-show" "run"; }
     Mod+V { spawn "~/.config/rofi/cliphist/launcher.sh" "||" "pkill" "rofi"; }
     Mod+g { spawn "~/.config/rofi/wallpaper-changer/launcher.sh" "||" "pkill" "rofi"; }
-    Mod+Return hotkey-overlay-title="Open a Terminal: foot" { spawn "foot"; }
+    Mod+Return hotkey-overlay-title="Open a Terminal: foot" { spawn "kitty"; }
     Super+C hotkey-overlay-title="Open Browser: LibreWolf" { spawn "librewolf"; }
     Super+Shift+Q hotkey-overlay-title="Lock the Screen: hyprlock" { spawn "hyprlock"; }
     /////////
