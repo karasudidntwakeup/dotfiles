@@ -272,6 +272,7 @@ arch_package_manager = "pacman"
 
 # Additional git repositories to pull or fetch
  repos = [
+     "~/github/ani-cli",
      "~/github/powerlevel10k",
      "~/github/Niri-glass",
       "~/github/zsh-syntax-highlighting",
