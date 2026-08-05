@@ -71,6 +71,8 @@ HISTDUP=erase
 set encoding=utf-8
 LANG=en_US.UTF-8 
 #PATH
+export CHAFA_FORMAT=sixel
+export TERM=foot
 export EDITOR=nvim
 export PATH="$PATH:$HOME/.npm-global/bin"
 export PATH="$PATH:/sbin:/usr/sbin:usr/local/sbin"
@@ -82,6 +84,7 @@ export SDL_VIDEODRIVER=wayland
 export QT_QPA_PLATFORM=wayland
 
 #alias
+alias cp='cp -a'
 alias cal='calcurse'
 alias cat='bat'
 alias z='zathura'
@@ -98,7 +101,7 @@ alias sl='eza --icons --sort=newest'
 alias sxiv='nsxiv'
 alias 00='loginctl poweroff'
 alias 01='loginctl reboot'
-alias x='dbus-run-session niri'
+alias x='dbus-run-session niri-glass'
 alias ip='ip --color=auto'
 alias netstat='/usr/bin/grc --colour=auto netstat'
 alias df='/usr/bin/grc --colour=auto df'
@@ -199,3 +202,13 @@ function y() {
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+export PNPM_HOME="/home/karasu/.local/share/pnpm"
+export PATH="$PNPM_HOME:$PATH"
+export QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu"
+# pnpm
+export PNPM_HOME="/home/karasu/.local/share/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME/bin:"*) ;;
+  *) export PATH="$PNPM_HOME/bin:$PATH" ;;
+esac
+# pnpm end
