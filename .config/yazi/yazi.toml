@@ -1,6 +1,5 @@
 [mgr]
 ratio = [0,1, 2]   
-show_hidden = true
 sort_by = "mtime"
 sort_reverse = true
 show_symlink = true
@@ -15,3 +14,14 @@ prepend_previewers = [
 wrap = "no"
 max_width = 1200
 max_height =1200
+
+[ opener ]
+set_wallpaper   =   [
+    {   run   =   "wallr img %s" ,   orphan   =   true ,   for   =   "unix"   }
+]
+
+[open]
+rules = [
+    # Image rules (interactive menu: Press 'o' in Yazi to pick default vs wallpaper)
+    { mime = "image/*", use = ["open", "set_wallpaper"] }
+]

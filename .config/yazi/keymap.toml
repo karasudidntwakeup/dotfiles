@@ -12,3 +12,4 @@ desc = "Preview images in sxiv"
 on   = "f"
 run  = "plugin jump-to-char"
 desc = "Jump to char"
+
