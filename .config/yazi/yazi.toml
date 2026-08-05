@@ -14,6 +14,7 @@ prepend_previewers = [
 wrap = "no"
 max_width = 1200
 max_height =1200
+image_preview_method = "sixel"
 
 [ opener ]
 set_wallpaper   =   [
