@@ -1,28 +1,29 @@
 {
     "layer": "top",
     "position": "top",
-    "height": 37,
-    "width": 100,
-    "fixed-center": true, 
-
-    // Use the unified margin string to force the lift from the bottom
-    "margin": "7 0 0 0", 
+    "height": 40,
+    "fixed-center": true,
+    "margin": "10 500 0 500",
 
     "include": [
         "~/.config/waybar/modules.jsonc"
     ],
 
+    "modules-left": [
+        "niri/workspaces"
+    ],
 
     "modules-center": [
-        "niri/workspaces", 
+        "custom/weather",
+        "custom/prayer"
+    ],
+
+    "modules-right": [
         "custom/kblayout",
         "pulseaudio",
-        "custom/prayer",
         "custom/memory",
-        "custom/weather",
         "network",
         "battery",
         "clock"
-    ],
-
+    ]
 }
