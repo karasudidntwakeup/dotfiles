@@ -1,0 +1,43 @@
+* {
+    font-family: "SF Arabic", "SF Pro Text", sans-serif;
+}
+.notification-row {
+  background: @background;
+  color: @foreground;
+}
+
+.notification {
+  background-color: rgba(30, 30, 46, 1);
+  font-family: "SF Arabic", sans-serif;
+  background: @surface_variant;
+  border: 1px solid @outline;
+  border-radius: 12px;
+}
+
+.notification .notification-content {
+  color: @foreground;
+}
+
+.notification-action {
+  background: @primary_container;
+  color: @on_primary;
+  border-radius: 8px;
+}
+
+.control-center {
+  background: @background;
+}
+
+.widget-title {
+  color: @primary;
+}
+
+button {
+  background: @secondary_container;
+  color: @foreground;
+}
+
+.close-button {
+  background: @error;
+  color: @on_error;
+}
