@@ -2,8 +2,10 @@
     "layer": "top",
     "position": "top",
     "height": 40,
+    "width": 80,
     "fixed-center": true,
-    "margin": "10 500 0 500",
+
+    "margin": "9 0 0 0",
 
     "include": [
         "~/.config/waybar/modules.jsonc"
