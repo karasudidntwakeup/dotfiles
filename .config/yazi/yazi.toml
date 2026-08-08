@@ -16,13 +16,3 @@ max_width = 1200
 max_height =1200
 image_preview_method = "sixel"
 
-[ opener ]
-set_wallpaper   =   [
-    {   run   =   "awww img %s" ,   orphan   =   true ,   for   =   "unix"   }
-]
-
-[open]
-rules = [
-    # Image rules (interactive menu: Press 'o' in Yazi to pick default vs wallpaper)
-    { mime = "image/*", use = ["open", "set_wallpaper"] }
-]
