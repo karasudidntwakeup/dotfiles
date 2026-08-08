@@ -17,7 +17,7 @@ cursor {
 }
 
 xwayland-satellite {
-    on
+   off
     path "xwayland-satellite"
 }
 clipboard {
@@ -86,10 +86,15 @@ overview {
 }
 layout {
   background-color "transparent"
-  focus-ring {
-  active-color "#ced4da"
-    width 1.5
-  }
+      border {
+        //off
+        on
+        width 0.1
+        active-color "#505050"
+        inactive-color "#000000"
+        urgent-color "#9b0000"
+    }
+
     center-focused-column "never"
     always-center-single-column 
     preset-column-widths {
@@ -97,6 +102,15 @@ layout {
         proportion 0.0
         proportion 0.0
       }
+      
+    focus-ring {
+        // off
+        on
+        width 0
+        active-color "#7fc8ff"
+        inactive-color "#505050"
+        urgent-color "#9b0000"
+    }
 
     default-column-width { proportion 0.50; }
 
@@ -105,6 +119,9 @@ layout {
         softness 30
         spread 10
         offset x=3 y=10
+        draw-behind-window true
+        color "#00000070"
+        inactive-color "#00000054"
     }
 }
 
@@ -114,7 +131,7 @@ spawn-sh-at-startup "dbus-launch waybar"
 spawn-sh-at-startup "pipewire"
 spawn-sh-at-startup "pipewire-pulse"
 spawn-sh-at-startup "wireplumber"
-spawn-at-startup "wallr" "daemon" 
+spawn-at-startup "awww-daemon" 
 spawn-at-startup "swaync"
 spawn-at-startup "sh" "-c" "wl-paste --type text --watch cliphist store"
 spawn-at-startup "sh" "-c" "wl-paste --type image --watch cliphist store"
@@ -239,18 +256,18 @@ window-rule {
         blur true
         xray true
         liquid-glass {
-            refraction-strength 10.5
+            refraction-strength 33
             power-factor 1
-            refraction-power 1.0
+            refraction-power 9
             glow-weight 0.000
             edge-lighting 0.0
             saturation 0.8
             vibrancy 0
             adaptive-dim 0.0
             adaptive-boost 0.0
-            physical-refraction 0
+            physical-refraction 0.4
             lens-distortion 0.00
-            fringing 0.2
+            fringing 0.1
         }
     }
     shadow {
@@ -417,7 +434,7 @@ recent-windows {
 
 blur {
     passes 3
-    offset 1.0
+    offset 0.12
     noise 0.0 
-    saturation 1.1 
+    saturation 1.0 
 }

@@ -18,7 +18,7 @@ image_preview_method = "sixel"
 
 [ opener ]
 set_wallpaper   =   [
-    {   run   =   "wallr img %s" ,   orphan   =   true ,   for   =   "unix"   }
+    {   run   =   "awww img %s" ,   orphan   =   true ,   for   =   "unix"   }
 ]
 
 [open]
