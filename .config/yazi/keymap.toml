@@ -13,3 +13,7 @@ on   = "f"
 run  = "plugin jump-to-char"
 desc = "Jump to char"
 
+[[mgr.prepend_keymap]]
+on   = ["c", "w"]
+run  = 'shell "matugen image \"$0\"; read -p \"Press enter to continue...\"" --block'
+desc = "Test matugen"
