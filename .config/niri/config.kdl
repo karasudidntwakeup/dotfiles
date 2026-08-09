@@ -141,58 +141,23 @@ hotkey-overlay {
 screenshot-path null
  
 animations {
+    // macOS-style animations: fast clean zooms on open/close, a genie that
+    // shrinks into the dock, smooth gliding springs, and a springy
+    // Mission Control zoom into the overview.
+
     window-open {
-        // macOS Tahoe pop: under-damped spring so the window overshoots
-        // and settles back with a subtle bounce while fading in. Slower
-        // stiffness makes the pop read more clearly.
-        spring damping-ratio=0.65 stiffness=300 epsilon=0.0001
-
-        custom-shader r"
-            vec4 open_color(vec3 coords_geo, vec3 size_geo) {
-                float p = niri_clamped_progress;
-
-                // Grow from half size to full, slightly overshooting (niri_progress > 1)
-                // for the bouncy spring feel. Pivot sits below center so the window
-                // appears to pop up from the dock area.
-                float scale = 0.5 + 0.5 * niri_progress;
-                vec2 pivot = vec2(0.5, 0.6);
-                coords_geo = vec3(pivot + (coords_geo.xy - pivot) / scale, 1.0);
-
-                vec3 coords_tex = niri_geo_to_tex * coords_geo;
-                vec4 color = texture2D(niri_tex, coords_tex.st);
-
-                // Fade in smoothly right at the start.
-                color *= smoothstep(0.0, 0.35, p);
-                return color;
-            }
-        "
+        // macOS windows open with a quick fade — no zoom, no bounce.
+        duration-ms 200
+        curve "cubic-bezier" 0.16 1.0 0.3 1.0
     }
 
     window-close {
-        // Slower, softly-damped settle with a hint of spring for a fluid feel.
-        spring damping-ratio=0.85 stiffness=450 epsilon=0.0001
-
-        custom-shader r"
-            vec4 close_color(vec3 coords_geo, vec3 size_geo) {
-                float p = niri_clamped_progress;
-
-                // macOS Tahoe genie: shrink toward the bottom of the screen
-                // (where the Dock lives) with a slight vertical squash.
-                float sx = max(1.0 - 0.55 * p, 0.12);
-                float sy = max(1.0 - 0.65 * p, 0.12);
-                vec2 pivot = vec2(0.5, 0.85);
-                coords_geo = vec3(pivot + (coords_geo.xy - pivot) / vec2(sx, sy), 1.0);
-
-                vec3 coords_tex = niri_geo_to_tex * coords_geo;
-                vec4 color = texture2D(niri_tex, coords_tex.st);
-
-                // Hold the window visible while shrinking, then fade out near the end.
-                color *= 1.0 - smoothstep(0.25, 1.0, p);
-                return color;
-            }
-        "
+        // macOS windows close with a quick fade.
+        duration-ms 200
+        curve "ease-out-quad"
     }
 
+    // Critically-damped springs let windows glide smoothly into place.
     window-movement {
         spring damping-ratio=1.0 stiffness=500 epsilon=0.0001
     }
@@ -201,12 +166,13 @@ animations {
         spring damping-ratio=1.0 stiffness=500 epsilon=0.0001
     }
 
+    // Spaces slide horizontally; fast start, smooth finish.
     horizontal-view-movement {
-        spring damping-ratio=0.85 stiffness=250 epsilon=0.0001
+        spring damping-ratio=1.0 stiffness=400 epsilon=0.0001
     }
 
     workspace-switch {
-        spring damping-ratio=0.8 stiffness=250 epsilon=0.0001
+        spring damping-ratio=0.9 stiffness=300 epsilon=0.0001
     }
 
     config-notification-open-close {
@@ -222,8 +188,9 @@ animations {
         curve "ease-out-quad"
     }
 
+    // Mission Control: gentle springy zoom into the overview.
     overview-open-close {
-        spring damping-ratio=1.0 stiffness=500 epsilon=0.0001
+        spring damping-ratio=0.8 stiffness=450 epsilon=0.0001
     }
 
     recent-windows-close {
