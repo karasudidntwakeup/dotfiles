@@ -19,7 +19,7 @@
     padding: 2px 16px;
     margin: 4px 3px;
     border: 0px solid alpha(@outline, 0.0);
-    background-color: alpha(@primary, 0.21);
+    background-color: alpha(@primary, 0.44);
     color: #ffffff;
     border-radius: 99px; /* Makes it a pill/capsule */
 }
@@ -28,7 +28,7 @@
     padding: 2px 16px;
     margin: 4px 3px;
     border: 0px solid alpha(@outline, 0.0);
-    background-color: alpha(@tertiary, 0.21);
+    background-color: alpha(@tertiary, 0.44);
     color: #ffffff;
     border-radius: 99px;
 }
@@ -37,7 +37,7 @@
     padding: 2px 16px;
     margin: 4px 3px;
     border: 0px solid alpha(@outline, 0.0);
-    background-color: alpha(@secondary, 0.21);
+    background-color: alpha(@secondary, 0.44);
     color: #ffffff;
     border-radius: 99px;
 }
@@ -46,7 +46,7 @@
     padding: 2px 16px;
     margin: 4px 3px;
     border: 0px solid alpha(@outline, 0.0);
-    background-color: alpha(@error, 0.21);
+    background-color: alpha(@error, 0.44);
     color: #ffffff;
     border-radius: 99px;
 }
@@ -55,7 +55,7 @@
     padding: 2px 16px;
     margin: 4px 3px;
     border: 0px solid alpha(@outline, 0.0);
-    background-color: alpha(@tertiary_container, 0.21);
+    background-color: alpha(@tertiary_container, 0.44);
     color: #ffffff;
     border-radius: 99px;
 }
@@ -64,7 +64,7 @@
     padding: 2px 16px;
     margin: 4px 3px;
     border: 0px solid alpha(@outline, 0.0);
-    background-color: alpha(@secondary_container, 0.21);
+    background-color: alpha(@secondary_container, 0.44);
     color: #ffffff;
     border-radius: 99px;
 }
@@ -73,7 +73,7 @@
     padding: 2px 16px;
     margin: 4px 3px;
     border: 0px solid alpha(@outline, 0.0);
-    background-color: alpha(@error_container, 0.21);
+    background-color: alpha(@error_container, 0.44);
     color: #ffffff;
     border-radius: 99px;
 }
@@ -95,7 +95,7 @@
     color: #ffffff;
     border: 0px solid alpha(@outline, 0.0);
     background-color: alpha(@surface_container, 0.0);
-    transition: all 0.21s ease-in-out;
+    transition: all 0.44s ease-in-out;
 }
 
 /* Focused Highlight */
@@ -125,7 +125,7 @@
     padding: 2px 16px;
     margin: 4px 3px;
     border: 0px solid alpha(@outline, 0.0);
-    background-color: alpha(@primary_container, 0.21);
+    background-color: alpha(@primary_container, 0.44);
     color: #ffffff;
     border-radius: 99px;
 }
