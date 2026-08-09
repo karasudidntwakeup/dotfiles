@@ -18,7 +18,7 @@
 #clock {
     padding: 2px 16px;
     margin: 4px 3px;
-    border: 0px solid #000000;
+    border: 0px solid alpha(@outline, 0.0);
     background-color: alpha(@primary, 0.21);
     color: #ffffff;
     border-radius: 99px; /* Makes it a pill/capsule */
@@ -27,8 +27,8 @@
 #network {
     padding: 2px 16px;
     margin: 4px 3px;
-    border: 0px solid #000000;
-    background-color: alpha(@primary, 0.21);
+    border: 0px solid alpha(@outline, 0.0);
+    background-color: alpha(@tertiary, 0.21);
     color: #ffffff;
     border-radius: 99px;
 }
@@ -36,8 +36,8 @@
 #battery {
     padding: 2px 16px;
     margin: 4px 3px;
-    border: 0px solid #000000;
-    background-color: alpha(@primary, 0.21);
+    border: 0px solid alpha(@outline, 0.0);
+    background-color: alpha(@secondary, 0.21);
     color: #ffffff;
     border-radius: 99px;
 }
@@ -45,8 +45,8 @@
 #custom-memory {
     padding: 2px 16px;
     margin: 4px 3px;
-    border: 0px solid #000000;
-    background-color: alpha(@primary, 0.21);
+    border: 0px solid alpha(@outline, 0.0);
+    background-color: alpha(@error, 0.21);
     color: #ffffff;
     border-radius: 99px;
 }
@@ -54,8 +54,8 @@
 #custom-kblayout {
     padding: 2px 16px;
     margin: 4px 3px;
-    border: 0px solid #000000;
-    background-color: alpha(@primary, 0.21);
+    border: 0px solid alpha(@outline, 0.0);
+    background-color: alpha(@tertiary_container, 0.21);
     color: #ffffff;
     border-radius: 99px;
 }
@@ -63,8 +63,8 @@
 #pulseaudio {
     padding: 2px 16px;
     margin: 4px 3px;
-    border: 0px solid #000000;
-    background-color: alpha(@primary, 0.21);
+    border: 0px solid alpha(@outline, 0.0);
+    background-color: alpha(@secondary_container, 0.21);
     color: #ffffff;
     border-radius: 99px;
 }
@@ -72,8 +72,8 @@
 #custom-prayer {
     padding: 2px 16px;
     margin: 4px 3px;
-    border: 0px solid #000000;
-    background-color: alpha(@primary, 0.21);
+    border: 0px solid alpha(@outline, 0.0);
+    background-color: alpha(@error_container, 0.21);
     color: #ffffff;
     border-radius: 99px;
 }
@@ -93,7 +93,7 @@
     
     /* Styling */
     color: #ffffff;
-    border: 0px solid #000000;
+    border: 0px solid alpha(@outline, 0.0);
     background-color: alpha(@surface_container, 0.0);
     transition: all 0.21s ease-in-out;
 }
@@ -124,8 +124,8 @@
 #custom-weather {
     padding: 2px 16px;
     margin: 4px 3px;
-    border: 0px solid #000000;
-    background-color: alpha(@primary, 0.21);
+    border: 0px solid alpha(@outline, 0.0);
+    background-color: alpha(@primary_container, 0.21);
     color: #ffffff;
     border-radius: 99px;
 }
@@ -134,13 +134,12 @@
     margin: 3;  /* Adjust margin */
 }
 .modules-right {
-  margin-left: 80px;
-    padding: 5px; /* Adjust padding */
-    margin: 3px ;  /* Adjust margin */
-  }
+  padding: 5px;
+  padding-left: 10px;
+  margin: 3px;
+}
 
 .modules-center {
-  margin-right: 80px;
   padding: 5px;
   margin: 3px;
 }
