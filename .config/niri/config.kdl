@@ -17,7 +17,7 @@ cursor {
 }
 
 xwayland-satellite {
-   off
+   on
     path "xwayland-satellite"
 }
 clipboard {
