@@ -4,8 +4,8 @@
 }
 
 window {
-    width: 50%;
-    height: 250px;
+    width: 720px;
+    height: 720px;
     anchor: center;
     location: center;
     background-color: transparent;
@@ -18,15 +18,19 @@ mainbox {
 }
 
 listview {
-    layout: horizontal;
-    spacing: 21px; 
+    layout: vertical;
+    columns: 6;
+    lines: 6;
+    fixed-columns: true;
+    fixed-height: true;
+    spacing: 12px; 
     scrollbar: true;
     background-color: transparent;
     cycle: false;
 }
 
 element {
-    orientation: horizontal;
+    orientation: vertical;
     padding: 0px ;
     border: 0px;
     background-color: transparent;
@@ -35,12 +39,13 @@ element {
 
 element selected {
     background-color: transparent;
-    border: 0px 0px 4px 0px;
+    border: 4px;
     border-color: #89b4fa;
+    border-radius: 8px;
 }
 
 element-icon {
-    size: 220px; 
+    size: 100px; 
     horizontal-align: 0.5;
     vertical-align: 0.5;
 }
