@@ -1,8 +1,7 @@
 {
     "layer": "top",
     "position": "bottom",
-    "height": 40,
-    "width": 3,
+    "width": 500,
     "fixed-center": true,
 
     "margin": "0 0 10 0",
@@ -12,13 +11,11 @@
     ],
 
     "modules-left": [
-        "niri/workspaces"
-    ],
-
-    "modules-center": [
+        "niri/workspaces",
         "custom/weather",
         "custom/prayer"
     ],
+
 
     "modules-right": [
         "custom/kblayout",

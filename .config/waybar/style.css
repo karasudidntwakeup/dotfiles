@@ -1,20 +1,18 @@
 @import "colors.css";
 
 * {
-    border-radius: 15px;
+    border-radius: 10px;
     font-size: 13px;
     font-family: "Ndot 57", "Symbol Nerd Font";
     padding: 2px 2px 2px 2px;
-    background-color: alpha(@primary_container, 0.2);
-    color: #ffffff;
-    font-weight: 900;
+    background-color: alpha(@primary_container, 0.0);
+    font-weight: 600;
 }
 
 /* Entire bar */
 #waybar {
     background-color: alpha(@surface, 0.0);
-    border: 0px solid #1f1f1f; /* Removes the bar's outer frame border */
-    border-radius: 20px;
+    border-radius: 10px;
 }
 
 #clock {
@@ -112,14 +110,13 @@
 }
 
 #clock tooltip {
-    background: alpha(@surface, 0.5);
-    border: 1px solid alpha(@outline, 0.15);
+    background: alpha(@surface, 0.99);
+    border: 3px solid alpha(@outline, 0.15);
     border-radius: 12px;
 }
 
 #clock tooltip label {
     background: alpha(@surface, 0.0);
-    font-family: "JetBrainsMono Nerd Font", monospace;
     color: #ffffff;
     padding: 6px;
 }
@@ -131,4 +128,17 @@
     background-color: alpha(@primary, 0.21);
     color: #ffffff;
     border-radius: 99px;
+}
+.modules-left {
+    padding: 5; /* Adjust padding */
+    margin: 3;  /* Adjust margin */
+}
+.modules-right {
+    padding: 5; /* Adjust padding */
+    margin: 3;  /* Adjust margin */
+  }
+
+.modules-center {
+  padding: 5;
+  margin: 3;
 }
