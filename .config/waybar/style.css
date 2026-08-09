@@ -6,7 +6,7 @@
     font-family: "Ndot 57", "Symbol Nerd Font";
     padding: 2px 2px 2px 2px;
     background-color: alpha(@primary_container, 0.0);
-    font-weight: 600;
+    font-weight: 900;
 }
 
 /* Entire bar */
