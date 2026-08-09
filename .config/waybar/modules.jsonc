@@ -78,5 +78,10 @@
   "interval": 1740,
   "tooltip": true
 },
+"custom/spacer": {
+    "format": " ",
+    "tooltip": false
+},
 }
+
 
