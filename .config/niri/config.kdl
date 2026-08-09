@@ -115,7 +115,7 @@ layout {
     default-column-width { proportion 0.50; }
 
     shadow {
-        on
+        off
         softness 30
         spread 10
         offset x=3 y=10
@@ -186,19 +186,19 @@ animations {
     }
 
     window-movement {
-        spring damping-ratio=1.0 stiffness=100 epsilon=0.0001
+        spring damping-ratio=1.0 stiffness=500 epsilon=0.0001
     }
 
     window-resize {
-        spring damping-ratio=1.0 stiffness=100 epsilon=0.0001
+        spring damping-ratio=1.0 stiffness=500 epsilon=0.0001
     }
 
     horizontal-view-movement {
-        spring damping-ratio=1.0 stiffness=100 epsilon=0.0001
+        spring damping-ratio=1.0 stiffness=500 epsilon=0.0001
     }
 
     workspace-switch {
-        spring damping-ratio=1.0 stiffness=100 epsilon=0.0001
+        spring damping-ratio=1.0 stiffness=500 epsilon=0.0001
     }
 
     config-notification-open-close {
@@ -441,7 +441,7 @@ recent-windows {
 }
 
 blur {
-    passes 4
+    passes 2
     offset 0.32
     noise 0.0 
     saturation 1.0 
