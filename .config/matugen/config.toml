@@ -51,3 +51,6 @@ post_hook = 'killall -USR1 kitty || :'
 input_path = './templates/colors.css'
 output_path = '~/.config/waybar/colors.css'
 post_hook = 'pkill -SIGUSR2 waybar'
+[templates.ddg_css]
+input_path = '~/.config/matugen/templates/ddg.css'
+output_path = '~/.librewolf/fuoz9ly2.default-default/chrome/websites/duckduckgo.css'
