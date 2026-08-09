@@ -1,12 +1,12 @@
 @-moz-document domain("duckduckgo.com") {
   body, .site-wrapper {
-    background-color: #101418 !important;
-    color: #e0e2e8 !important;
+    background-color: #0f1417 !important;
+    color: #dfe3e7 !important;
   }
   .header-wrap {
-    background-color: #1c2024 !important;
+    background-color: #1b2023 !important;
   }
   a, .result__title a {
-    color: #9ccbfb !important;
+    color: #8ecff2 !important;
   }
 }

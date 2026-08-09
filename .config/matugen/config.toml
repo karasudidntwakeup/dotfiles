@@ -54,3 +54,6 @@ post_hook = 'pkill -SIGUSR2 waybar'
 [templates.ddg_css]
 input_path = '~/.config/matugen/templates/ddg.css'
 output_path = '~/.librewolf/fuoz9ly2.default-default/chrome/websites/duckduckgo.css'
+[templates.claude]
+input_path = '~/.config/matugen/templates/claude.css'
+output_path = '~/.librewolf/fuoz9ly2.default-default/chrome/websites/claude.css'
