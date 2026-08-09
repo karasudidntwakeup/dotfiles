@@ -15,5 +15,5 @@ desc = "Jump to char"
 
 [[mgr.prepend_keymap]]
 on   = ["c", "w"]
-run  = 'shell --orphan "awww img %s && matugen image %s --prefer lightness"'
+run  = 'shell --orphan "awww img %s && matugen image %s --type scheme-tonal-spot --prefer lightness"'
 desc = "Set wallpaper and generate palette"
