@@ -14,6 +14,8 @@ FULL_PATH=$(find "$WALLPAPER_DIR" -type f ! -name ".*" \( -name "*.jpg" -o -name
 
 [ -z "$FULL_PATH" ] && exit 1
 
+matugen image "$FULL_PATH" --prefer saturation
+
 awww img "$FULL_PATH" --transition-type random --transition-duration 2.5
 
 base=$(basename "$FULL_PATH")

@@ -10,7 +10,7 @@ configuration {
     display-window: "   Window ";
     sidebar-mode: true;
     window-format: "{w} | {c} | {t}";
-    cycle: false;
+    cycle: true;
 }
 
 @theme "hakutheme"
