@@ -2,7 +2,9 @@
 
 WALLPAPER_DIR="$HOME/wallpaper"
 
-SELECTED=$(find "$WALLPAPER_DIR" -type f ! -name ".*" \( -name "*.jpg" -o -name "*.png" -o -name "*.jpeg" -o -name "*.webp" \) \
+SELECTED=$(find "$WALLPAPER_DIR" -type f ! -name ".*" \( -name "*.jpg" -o -name "*.png" -o -name "*.jpeg" -o -name "*.webp" \) -printf '%T@ %p\n' \
+  | sort -rn \
+  | cut -d' ' -f2- \
   | while read -r img; do
       echo -en "$(basename "${img%.*}")\0icon\x1f$img\n"
     done \
