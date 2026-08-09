@@ -142,44 +142,52 @@ screenshot-path null
  
 animations {
     window-open {
-        duration-ms 220
-        curve "cubic-bezier" 0.22 1.0 0.36 1.0
+        // macOS Tahoe pop: under-damped spring so the window overshoots
+        // and settles back with a subtle bounce while fading in. Slower
+        // stiffness makes the pop read more clearly.
+        spring damping-ratio=0.65 stiffness=300 epsilon=0.0001
 
         custom-shader r"
             vec4 open_color(vec3 coords_geo, vec3 size_geo) {
                 float p = niri_clamped_progress;
 
-                // Grow from 92% to 100% size, centered.
-                float scale = 0.92 + 0.08 * p;
-                coords_geo = vec3((coords_geo.xy - vec2(0.5)) / scale + vec2(0.5), 1.0);
+                // Grow from half size to full, slightly overshooting (niri_progress > 1)
+                // for the bouncy spring feel. Pivot sits below center so the window
+                // appears to pop up from the dock area.
+                float scale = 0.5 + 0.5 * niri_progress;
+                vec2 pivot = vec2(0.5, 0.6);
+                coords_geo = vec3(pivot + (coords_geo.xy - pivot) / scale, 1.0);
 
                 vec3 coords_tex = niri_geo_to_tex * coords_geo;
                 vec4 color = texture2D(niri_tex, coords_tex.st);
 
-                // Fade in.
-                color *= p;
+                // Fade in smoothly right at the start.
+                color *= smoothstep(0.0, 0.35, p);
                 return color;
             }
         "
     }
 
     window-close {
-        duration-ms 150
-        curve "cubic-bezier" 0.22 1.0 0.36 1.0
+        // Slower, softly-damped settle with a hint of spring for a fluid feel.
+        spring damping-ratio=0.85 stiffness=450 epsilon=0.0001
 
         custom-shader r"
             vec4 close_color(vec3 coords_geo, vec3 size_geo) {
                 float p = niri_clamped_progress;
 
-                // Shrink from 100% to 92% size, centered.
-                float scale = 1.0 - 0.08 * p;
-                coords_geo = vec3((coords_geo.xy - vec2(0.5)) / scale + vec2(0.5), 1.0);
+                // macOS Tahoe genie: shrink toward the bottom of the screen
+                // (where the Dock lives) with a slight vertical squash.
+                float sx = max(1.0 - 0.55 * p, 0.12);
+                float sy = max(1.0 - 0.65 * p, 0.12);
+                vec2 pivot = vec2(0.5, 0.85);
+                coords_geo = vec3(pivot + (coords_geo.xy - pivot) / vec2(sx, sy), 1.0);
 
                 vec3 coords_tex = niri_geo_to_tex * coords_geo;
                 vec4 color = texture2D(niri_tex, coords_tex.st);
 
-                // Fade out.
-                color *= (1.0 - p);
+                // Hold the window visible while shrinking, then fade out near the end.
+                color *= 1.0 - smoothstep(0.25, 1.0, p);
                 return color;
             }
         "
@@ -194,11 +202,11 @@ animations {
     }
 
     horizontal-view-movement {
-        spring damping-ratio=1.0 stiffness=500 epsilon=0.0001
+        spring damping-ratio=0.85 stiffness=250 epsilon=0.0001
     }
 
     workspace-switch {
-        spring damping-ratio=1.0 stiffness=500 epsilon=0.0001
+        spring damping-ratio=0.8 stiffness=250 epsilon=0.0001
     }
 
     config-notification-open-close {
