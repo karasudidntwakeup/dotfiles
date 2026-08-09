@@ -1,17 +1,17 @@
 @import "colors.css";
 
 * {
+    border-radius: 15px;
     font-size: 13px;
     font-family: "Ndot 57", "Symbol Nerd Font";
-    padding: 0px 0px 0px 0px;
-    background-color: alpha(@primary_container, 0.0);
+    padding: 2px 2px 2px 2px;
+    background-color: alpha(@primary_container, 0.2);
     color: #ffffff;
     font-weight: 900;
 }
 
 /* Entire bar */
 #waybar {
-    border-radius: 30px;
     background-color: alpha(@surface, 0.0);
     border: 0px solid #1f1f1f; /* Removes the bar's outer frame border */
     border-radius: 20px;
@@ -21,7 +21,7 @@
     padding: 2px 16px;
     margin: 4px 3px;
     border: 0px solid #000000;
-    background-color: alpha(@primary, 0.45);
+    background-color: alpha(@primary, 0.21);
     color: #ffffff;
     border-radius: 99px; /* Makes it a pill/capsule */
 }
@@ -30,7 +30,7 @@
     padding: 2px 16px;
     margin: 4px 3px;
     border: 0px solid #000000;
-    background-color: alpha(@primary, 0.45);
+    background-color: alpha(@primary, 0.21);
     color: #ffffff;
     border-radius: 99px;
 }
@@ -39,7 +39,7 @@
     padding: 2px 16px;
     margin: 4px 3px;
     border: 0px solid #000000;
-    background-color: alpha(@primary, 0.45);
+    background-color: alpha(@primary, 0.21);
     color: #ffffff;
     border-radius: 99px;
 }
@@ -48,7 +48,7 @@
     padding: 2px 16px;
     margin: 4px 3px;
     border: 0px solid #000000;
-    background-color: alpha(@primary, 0.45);
+    background-color: alpha(@primary, 0.21);
     color: #ffffff;
     border-radius: 99px;
 }
@@ -57,7 +57,7 @@
     padding: 2px 16px;
     margin: 4px 3px;
     border: 0px solid #000000;
-    background-color: alpha(@primary, 0.45);
+    background-color: alpha(@primary, 0.21);
     color: #ffffff;
     border-radius: 99px;
 }
@@ -66,7 +66,7 @@
     padding: 2px 16px;
     margin: 4px 3px;
     border: 0px solid #000000;
-    background-color: alpha(@primary, 0.45);
+    background-color: alpha(@primary, 0.21);
     color: #ffffff;
     border-radius: 99px;
 }
@@ -75,7 +75,7 @@
     padding: 2px 16px;
     margin: 4px 3px;
     border: 0px solid #000000;
-    background-color: alpha(@primary, 0.45);
+    background-color: alpha(@primary, 0.21);
     color: #ffffff;
     border-radius: 99px;
 }
@@ -97,7 +97,7 @@
     color: #ffffff;
     border: 0px solid #000000;
     background-color: alpha(@surface_container, 0.0);
-    transition: all 0.45s ease-in-out;
+    transition: all 0.21s ease-in-out;
 }
 
 /* Focused Highlight */
@@ -128,7 +128,7 @@
     padding: 2px 16px;
     margin: 4px 3px;
     border: 0px solid #000000;
-    background-color: alpha(@primary, 0.45);
+    background-color: alpha(@primary, 0.21);
     color: #ffffff;
     border-radius: 99px;
 }

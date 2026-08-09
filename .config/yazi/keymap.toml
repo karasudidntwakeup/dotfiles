@@ -15,5 +15,5 @@ desc = "Jump to char"
 
 [[mgr.prepend_keymap]]
 on   = ["c", "w"]
-run  = 'shell "matugen image \"$0\" --prefer lightness; read -p \"Press enter to continue...\"" --block'
+run  = 'shell "matugen image \"$0\" --prefer value; read -p \"Press enter to continue...\"" --block'
 desc = "Test matugen"
