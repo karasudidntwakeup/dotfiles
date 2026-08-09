@@ -1,0 +1,139 @@
+@-moz-document domain("claude.ai") {
+    :root, html, .cds-root, .darkTheme, [data-theme="dark"] {
+        /* ---------- Claude Design System (CDS) tokens ---------- */
+
+        /* Surfaces */
+        --cds-surface-0: {{ colors.surface_dim.default.hex }} !important;
+        --cds-surface-1: {{ colors.surface.default.hex }} !important;
+        --cds-surface-2: {{ colors.surface_container.default.hex }} !important;
+        --cds-surface-3: {{ colors.surface_container_high.default.hex }} !important;
+
+        /* Text */
+        --cds-text-primary: {{ colors.on_surface.default.hex }} !important;
+        --cds-text-secondary: {{ colors.on_surface_variant.default.hex }} !important;
+        --cds-text-muted: {{ colors.outline.default.hex }} !important;
+        --cds-text-disabled: {{ colors.outline_variant.default.hex }} !important;
+
+        /* Borders */
+        --cds-border: {{ colors.outline_variant.default.hex }} !important;
+        --cds-border-strong: {{ colors.outline.default.hex }} !important;
+        --cds-border-stronger: {{ colors.outline.default.hex }} !important;
+
+        /* Accent (primary) */
+        --cds-bg-accent: {{ palettes.primary._40.hex }} !important;
+        --cds-bg-accent-chip: {{ colors.primary_container.default.hex }} !important;
+        --cds-text-accent: {{ colors.primary.default.hex }} !important;
+        --cds-border-accent: {{ colors.primary.default.hex }} !important;
+
+        /* Brand */
+        --cds-clay: {{ colors.primary.default.hex }} !important;
+        --cds-clay-emphasized: {{ palettes.primary._40.hex }} !important;
+
+        /* Neutral buttons / chips */
+        --cds-bg-neutral: {{ colors.surface_container_high.default.hex }} !important;
+        --cds-bg-neutral-hover: {{ colors.surface_container_highest.default.hex }} !important;
+        --cds-bg-neutral-chip: {{ colors.surface_container_high.default.hex }} !important;
+        --cds-bg-neutral-chip-hover: {{ colors.surface_container_highest.default.hex }} !important;
+
+        /* Danger */
+        --cds-bg-danger: {{ colors.error_container.default.hex }} !important;
+        --cds-bg-danger-chip: {{ colors.error_container.default.hex }} !important;
+        --cds-text-danger: {{ colors.error.default.hex }} !important;
+        --cds-border-danger: {{ colors.error.default.hex }} !important;
+
+        /* Legacy mode-adaptive neutrals (used by bg-300/bg-400 levels) */
+        --cds-neutral-30: {{ colors.surface_container_low.default.hex }} !important;
+        --cds-neutral-50: {{ colors.surface_container.default.hex }} !important;
+        --cds-neutral-600: {{ colors.outline.default.hex }} !important;
+        --cds-neutral-700: {{ colors.on_surface_variant.default.hex }} !important;
+        --cds-neutral-900: {{ colors.on_surface.default.hex }} !important;
+
+        /* ---------- Legacy HSL tokens (sidebar, composer) ---------- */
+
+        /* Backgrounds */
+        --bg-000: {{ colors.surface_dim.default.hue }} {{ colors.surface_dim.default.saturation }}% {{ colors.surface_dim.default.lightness }}% !important;
+        --bg-100: {{ colors.surface_container_lowest.default.hue }} {{ colors.surface_container_lowest.default.saturation }}% {{ colors.surface_container_lowest.default.lightness }}% !important;
+        --bg-200: {{ colors.surface_container_low.default.hue }} {{ colors.surface_container_low.default.saturation }}% {{ colors.surface_container_low.default.lightness }}% !important;
+        --bg-300: {{ colors.surface.default.hue }} {{ colors.surface.default.saturation }}% {{ colors.surface.default.lightness }}% !important;
+        --bg-400: {{ colors.surface_container.default.hue }} {{ colors.surface_container.default.saturation }}% {{ colors.surface_container.default.lightness }}% !important;
+        --bg-500: {{ colors.surface_container_high.default.hue }} {{ colors.surface_container_high.default.saturation }}% {{ colors.surface_container_high.default.lightness }}% !important;
+
+        /* Text */
+        --text-000: {{ colors.on_surface.default.hue }} {{ colors.on_surface.default.saturation }}% {{ colors.on_surface.default.lightness }}% !important;
+        --text-100: {{ colors.on_surface.default.hue }} {{ colors.on_surface.default.saturation }}% {{ colors.on_surface.default.lightness }}% !important;
+        --text-200: {{ colors.on_surface_variant.default.hue }} {{ colors.on_surface_variant.default.saturation }}% {{ colors.on_surface_variant.default.lightness }}% !important;
+        --text-300: {{ colors.on_surface_variant.default.hue }} {{ colors.on_surface_variant.default.saturation }}% {{ colors.on_surface_variant.default.lightness }}% !important;
+        --text-400: {{ colors.outline.default.hue }} {{ colors.outline.default.saturation }}% {{ colors.outline.default.lightness }}% !important;
+        --text-500: {{ colors.outline_variant.default.hue }} {{ colors.outline_variant.default.saturation }}% {{ colors.outline_variant.default.lightness }}% !important;
+
+        /* Brand accent */
+        --accent-brand: {{ colors.primary.default.hue }} {{ colors.primary.default.saturation }}% {{ colors.primary.default.lightness }}% !important;
+
+        /* Primary accent scale */
+        --accent-main-000: {{ palettes.primary._100.hue }} {{ palettes.primary._100.saturation }}% {{ palettes.primary._100.lightness }}% !important;
+        --accent-main-100: {{ palettes.primary._90.hue }} {{ palettes.primary._90.saturation }}% {{ palettes.primary._90.lightness }}% !important;
+        --accent-main-200: {{ palettes.primary._80.hue }} {{ palettes.primary._80.saturation }}% {{ palettes.primary._80.lightness }}% !important;
+        --accent-main-300: {{ palettes.primary._70.hue }} {{ palettes.primary._70.saturation }}% {{ palettes.primary._70.lightness }}% !important;
+        --accent-main-400: {{ palettes.primary._60.hue }} {{ palettes.primary._60.saturation }}% {{ palettes.primary._60.lightness }}% !important;
+        --accent-main-500: {{ palettes.primary._50.hue }} {{ palettes.primary._50.saturation }}% {{ palettes.primary._50.lightness }}% !important;
+        --accent-main-600: {{ palettes.primary._40.hue }} {{ palettes.primary._40.saturation }}% {{ palettes.primary._40.lightness }}% !important;
+        --accent-main-700: {{ palettes.primary._30.hue }} {{ palettes.primary._30.saturation }}% {{ palettes.primary._30.lightness }}% !important;
+        --accent-main-800: {{ palettes.primary._20.hue }} {{ palettes.primary._20.saturation }}% {{ palettes.primary._20.lightness }}% !important;
+        --accent-main-900: {{ palettes.primary._10.hue }} {{ palettes.primary._10.saturation }}% {{ palettes.primary._10.lightness }}% !important;
+
+        /* Secondary accent scale */
+        --accent-secondary-000: {{ palettes.secondary._100.hue }} {{ palettes.secondary._100.saturation }}% {{ palettes.secondary._100.lightness }}% !important;
+        --accent-secondary-100: {{ palettes.secondary._90.hue }} {{ palettes.secondary._90.saturation }}% {{ palettes.secondary._90.lightness }}% !important;
+        --accent-secondary-200: {{ palettes.secondary._80.hue }} {{ palettes.secondary._80.saturation }}% {{ palettes.secondary._80.lightness }}% !important;
+        --accent-secondary-300: {{ palettes.secondary._70.hue }} {{ palettes.secondary._70.saturation }}% {{ palettes.secondary._70.lightness }}% !important;
+        --accent-secondary-400: {{ palettes.secondary._60.hue }} {{ palettes.secondary._60.saturation }}% {{ palettes.secondary._60.lightness }}% !important;
+        --accent-secondary-500: {{ palettes.secondary._50.hue }} {{ palettes.secondary._50.saturation }}% {{ palettes.secondary._50.lightness }}% !important;
+        --accent-secondary-600: {{ palettes.secondary._40.hue }} {{ palettes.secondary._40.saturation }}% {{ palettes.secondary._40.lightness }}% !important;
+        --accent-secondary-700: {{ palettes.secondary._30.hue }} {{ palettes.secondary._30.saturation }}% {{ palettes.secondary._30.lightness }}% !important;
+        --accent-secondary-800: {{ palettes.secondary._20.hue }} {{ palettes.secondary._20.saturation }}% {{ palettes.secondary._20.lightness }}% !important;
+        --accent-secondary-900: {{ palettes.secondary._10.hue }} {{ palettes.secondary._10.saturation }}% {{ palettes.secondary._10.lightness }}% !important;
+
+        /* Pro accent scale */
+        --accent-pro-000: {{ palettes.tertiary._100.hue }} {{ palettes.tertiary._100.saturation }}% {{ palettes.tertiary._100.lightness }}% !important;
+        --accent-pro-100: {{ palettes.tertiary._90.hue }} {{ palettes.tertiary._90.saturation }}% {{ palettes.tertiary._90.lightness }}% !important;
+        --accent-pro-200: {{ palettes.tertiary._80.hue }} {{ palettes.tertiary._80.saturation }}% {{ palettes.tertiary._80.lightness }}% !important;
+        --accent-pro-300: {{ palettes.tertiary._70.hue }} {{ palettes.tertiary._70.saturation }}% {{ palettes.tertiary._70.lightness }}% !important;
+        --accent-pro-400: {{ palettes.tertiary._60.hue }} {{ palettes.tertiary._60.saturation }}% {{ palettes.tertiary._60.lightness }}% !important;
+        --accent-pro-500: {{ palettes.tertiary._50.hue }} {{ palettes.tertiary._50.saturation }}% {{ palettes.tertiary._50.lightness }}% !important;
+        --accent-pro-600: {{ palettes.tertiary._40.hue }} {{ palettes.tertiary._40.saturation }}% {{ palettes.tertiary._40.lightness }}% !important;
+        --accent-pro-700: {{ palettes.tertiary._30.hue }} {{ palettes.tertiary._30.saturation }}% {{ palettes.tertiary._30.lightness }}% !important;
+        --accent-pro-800: {{ palettes.tertiary._20.hue }} {{ palettes.tertiary._20.saturation }}% {{ palettes.tertiary._20.lightness }}% !important;
+        --accent-pro-900: {{ palettes.tertiary._10.hue }} {{ palettes.tertiary._10.saturation }}% {{ palettes.tertiary._10.lightness }}% !important;
+
+        /* Borders */
+        --border-100: {{ colors.outline_variant.default.hue }} {{ colors.outline_variant.default.saturation }}% {{ colors.outline_variant.default.lightness }}% !important;
+        --border-200: {{ colors.outline_variant.default.hue }} {{ colors.outline_variant.default.saturation }}% {{ colors.outline_variant.default.lightness }}% !important;
+        --border-300: {{ colors.outline.default.hue }} {{ colors.outline.default.saturation }}% {{ colors.outline.default.lightness }}% !important;
+        --border-400: {{ colors.outline.default.hue }} {{ colors.outline.default.saturation }}% {{ colors.outline.default.lightness }}% !important;
+
+        /* Text on colored backgrounds */
+        --oncolor-100: {{ colors.on_primary.default.hue }} {{ colors.on_primary.default.saturation }}% {{ colors.on_primary.default.lightness }}% !important;
+        --oncolor-200: {{ colors.on_primary.default.hue }} {{ colors.on_primary.default.saturation }}% {{ colors.on_primary.default.lightness }}% !important;
+        --oncolor-300: {{ colors.on_primary.default.hue }} {{ colors.on_primary.default.saturation }}% {{ colors.on_primary.default.lightness }}% !important;
+
+        /* Icons */
+        --pictogram-100: {{ colors.on_surface.default.hue }} {{ colors.on_surface.default.saturation }}% {{ colors.on_surface.default.lightness }}% !important;
+        --pictogram-200: {{ colors.on_surface_variant.default.hue }} {{ colors.on_surface_variant.default.saturation }}% {{ colors.on_surface_variant.default.lightness }}% !important;
+        --pictogram-300: {{ colors.outline.default.hue }} {{ colors.outline.default.saturation }}% {{ colors.outline.default.lightness }}% !important;
+        --pictogram-400: {{ colors.outline_variant.default.hue }} {{ colors.outline_variant.default.saturation }}% {{ colors.outline_variant.default.lightness }}% !important;
+
+        /* ---------- Legacy hex variables (window chrome / body) ---------- */
+        --claude-accent-clay: {{ colors.primary.default.hex }} !important;
+        --claude-foreground-color: {{ colors.on_surface.default.hex }} !important;
+        --claude-background-color: {{ colors.background.default.hex }} !important;
+        --claude-secondary-color: {{ colors.on_surface_variant.default.hex }} !important;
+        --claude-border: {{ colors.outline_variant.default.hex }} !important;
+        --claude-border-300: {{ colors.outline.default.hex }} !important;
+        --claude-border-300-more: {{ colors.outline.default.hex }} !important;
+        --claude-text-100: {{ colors.on_surface.default.hex }} !important;
+        --claude-text-200: {{ colors.on_surface_variant.default.hex }} !important;
+        --claude-text-400: {{ colors.outline.default.hex }} !important;
+        --claude-text-500: {{ colors.outline_variant.default.hex }} !important;
+        --claude-description-text: {{ colors.on_surface_variant.default.hex }} !important;
+    }
+}
