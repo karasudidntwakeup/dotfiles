@@ -2,7 +2,7 @@
 @import "colors.css";
 @import "websites/github.css";
 @import "websites/youtube.css";
-
+@import "websites/duckduckgo.css";
 :root {
   --lwt-accent-color: var(--surface) !important;
 }
