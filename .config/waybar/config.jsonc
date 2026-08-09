@@ -1,5 +1,6 @@
 {
     "layer": "top",
+    "spacing": 2,
     "position": "bottom",
     "width": 500,
     "fixed-center": true,
@@ -11,13 +12,16 @@
     ],
 
     "modules-left": [
-        "niri/workspaces",
+        "niri/workspaces"
+    ],
+
+    "modules-center": [
         "custom/weather",
         "custom/prayer"
     ],
 
-
     "modules-right": [
+      "custom/spacer",
         "custom/kblayout",
         "pulseaudio",
         "custom/memory",

@@ -83,7 +83,7 @@
 }
 
 #workspaces button {
-    padding: 00px;
+    padding: 0px;
     margin: 2px 2px;
     
     /* Shape and dimensions */
@@ -134,11 +134,13 @@
     margin: 3;  /* Adjust margin */
 }
 .modules-right {
-    padding: 5; /* Adjust padding */
-    margin: 3;  /* Adjust margin */
+  margin-left: 80px;
+    padding: 5px; /* Adjust padding */
+    margin: 3px ;  /* Adjust margin */
   }
 
 .modules-center {
-  padding: 5;
-  margin: 3;
+  margin-right: 80px;
+  padding: 5px;
+  margin: 3px;
 }
