@@ -1,16 +1,26 @@
 overview {
-    backdrop-color "{{colors.surface_container_lowest.default.hex}}"
+    backdrop-color "{{colors.surface_container_lowest.light.hex}}"
 }
 
 layout {
+    border {
+        active-color "{{colors.primary.light.hex}}"
+        inactive-color "{{colors.on_surface_variant.light.hex}}"
+        urgent-color "{{colors.error.light.hex}}"
+    }
+    focus-ring {
+        active-color "{{colors.primary.light.hex}}"
+        inactive-color "{{colors.on_surface_variant.light.hex}}"
+        urgent-color "{{colors.error.light.hex}}"
+    }
     shadow {
-        color "{{colors.shadow.default.hex}}"
+        color "{{colors.shadow.light.hex}}"
     }
 }
 
 recent-windows {
     highlight {
-        active-color "{{colors.primary.default.hex}}"
-        urgent-color "{{colors.error.default.hex}}"
+        active-color "{{colors.primary.light.hex}}"
+        urgent-color "{{colors.error.light.hex}}"
     }
 }

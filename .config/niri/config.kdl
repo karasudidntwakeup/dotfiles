@@ -89,7 +89,7 @@ layout {
       border {
         //off
         on
-        width 0.1
+        width 2
         active-color "#505050"
         inactive-color "#000000"
         urgent-color "#9b0000"
@@ -424,3 +424,5 @@ blur {
     noise 0.0 
     saturation 1.0 
 }
+
+include "colors.kdl"
