@@ -1,37 +1,26 @@
 overview {
- backdrop-color "transparent"
- zoom 0.3
+    backdrop-color "#ffffff"
 }
+
 layout {
-      background-color "transparent"
-   gaps 20
-   border {
-   off
-  }
-  focus-ring {
-    width 0
-  }
-    center-focused-column "never"
-    always-center-single-column 
-    preset-column-widths {
-        proportion 0.0
-        proportion 0.0
-        proportion 0.0
-      }
-
-    default-column-width { proportion 0.50; }
-
+    border {
+        active-color "#00696f"
+        inactive-color "#3f4849"
+        urgent-color "#ba1a1a"
+    }
+    focus-ring {
+        active-color "#00696f"
+        inactive-color "#3f4849"
+        urgent-color "#ba1a1a"
+    }
     shadow {
-        on
         color "#000000"
-        softness 30
-        spread 10
-        offset x=3 y=10
     }
-    struts {
-        left 10
-        right 10
-        top 10
-        bottom 10
+}
+
+recent-windows {
+    highlight {
+        active-color "#00696f"
+        urgent-color "#ba1a1a"
     }
-} 
+}
