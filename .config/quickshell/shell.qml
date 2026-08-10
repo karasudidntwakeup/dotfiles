@@ -33,9 +33,9 @@ ShellRoot {
     readonly property int fontSize: 13
 
     // Layout (matches waybar config.jsonc)
-    readonly property int barHeight: 40
-    readonly property int pillHeight: 32
-    readonly property int groupSpacing: 12
+    readonly property int barHeight: 44
+    readonly property int pillHeight: 29
+    readonly property int groupSpacing: 15
 
     readonly property color textColor: "#ffffff"
     readonly property color darkText: Matugen.shadow
@@ -293,8 +293,8 @@ ShellRoot {
         readonly property bool urgent: ws ? ws.urgent : false
 
         width: 48
-        height: root.pillHeight
-        radius: 15
+        height: root.pillHeight  + 10
+        radius: 20
         border.width: 0
         color: focused ? root.withAlpha(root.primary, root.pillAlpha)
             : urgent ? root.withAlpha(root.error, root.pillAlpha) : "transparent"
@@ -361,6 +361,7 @@ ShellRoot {
                 id: barContent
                 width: leftGroup.width + centerGroup.width + rightGroup.width + root.groupSpacing * 2
                 height: root.barHeight
+                anchors.horizontalCenter: parent.horizontalCenter
 
                 // modules-left: niri/workspaces
                 Row {
@@ -400,11 +401,11 @@ ShellRoot {
                 // modules-right: spacer, kblayout, pulseaudio, memory, network, battery, clock
                 Row {
                     id: rightGroup
-                    x: leftGroup.width + centerGroup.width + root.groupSpacing * 2
+                    x: leftGroup.width + centerGroup.width + root.groupSpacing * 1
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: root.groupSpacing
 
-                    Item { width: 1; height: 1 }
+                    Item { width: 3; height: 2 }
 
                     Module {
                         id: kbPill
