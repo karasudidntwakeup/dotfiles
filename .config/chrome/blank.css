@@ -1,0 +1,6 @@
+@-moz-document url(about:blank) {
+  html, body {
+    background-color: var(--surface) !important;
+    color: var(--on_surface) !important;
+  }
+}
