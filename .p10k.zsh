@@ -1702,14 +1702,75 @@
   # really need it.
   typeset -g POWERLEVEL9K_DISABLE_HOT_RELOAD=true
 
-  #####################[ quickshell / Material You palette ]#####################
-  # Matches ~/.config/quickshell. Each segment is a "pill": the module tint blended
-  # at 45% alpha over the bar background #0f1417 with #ffffff text (see shell.qml).
-  #   primary #8ecff2 @ 45% -> #486879   (clock/workspaces modules)
-  #   secondary #b5c9d7 @ 45% -> #5a656d (battery module)
-  #   tertiary #c9c1ea @ 45% -> #636276  (network module)
-  #   error #ffb4ab @ 45% -> #7b5c5a     (memory module)
-  #   secondary_container #364954 @ 45% -> #212c32 (volume module)
+  #####################[ matugen / Material You dynamic palette ]#####################
+  # Colors are generated from the wallpaper by matugen into
+  # ~/.config/matugen/p10k-colors.zsh on every wallpaper change (see
+  # ~/.config/matugen/templates/p10k.zsh), then blended toward a cool blue-teal
+  # anchor so the prompt always reads cool and cohesive. Each segment is a rounded
+  # "pill"; existing shells pick up new colors automatically on the next prompt.
+
+  # Load the matugen palette; fall back to a cool static palette until the first
+  # matugen run.
+  local mtg_dir="${XDG_CONFIG_HOME:-$HOME/.config}/matugen"
+  if [[ -r "$mtg_dir/p10k-colors.zsh" ]]; then
+    source "$mtg_dir/p10k-colors.zsh"
+  fi
+  : ${P10K_MTG_PRIMARY:=#8ecff2}
+  : ${P10K_MTG_PRIMARY_CONTAINER:=#24617f}
+  : ${P10K_MTG_ON_PRIMARY:=#ffffff}
+  : ${P10K_MTG_SECONDARY:=#b5c9d7}
+  : ${P10K_MTG_SECONDARY_CONTAINER:=#2f4454}
+  : ${P10K_MTG_ON_SECONDARY:=#ffffff}
+  : ${P10K_MTG_TERTIARY:=#c9c1ea}
+  : ${P10K_MTG_TERTIARY_CONTAINER:=#443b5c}
+  : ${P10K_MTG_ON_TERTIARY:=#ffffff}
+  : ${P10K_MTG_ERROR:=#ffb4ab}
+  : ${P10K_MTG_ERROR_CONTAINER:=#7b3b3b}
+  : ${P10K_MTG_ON_ERROR:=#ffffff}
+  : ${P10K_MTG_SURFACE:=#12181f}
+  : ${P10K_MTG_ON_SURFACE:=#e3eaf2}
+  : ${P10K_MTG_SURFACE_VARIANT:=#33414f}
+  : ${P10K_MTG_ON_SURFACE_VARIANT:=#b7c3cf}
+  : ${P10K_MTG_OUTLINE:=#5f6e7d}
+  : ${P10K_MTG_OUTLINE_VARIANT:=#33414f}
+  : ${P10K_MTG_INVERSE_PRIMARY:=#3d4a58}
+  : ${P10K_MTG_SURFACE_CONTAINER_LOWEST:=#1b242d}
+  : ${P10K_MTG_SURFACE_CONTAINER_LOW:=#1e2731}
+  : ${P10K_MTG_SURFACE_CONTAINER:=#212b36}
+  : ${P10K_MTG_SURFACE_CONTAINER_HIGH:=#28333f}
+  : ${P10K_MTG_SURFACE_CONTAINER_HIGHEST:=#303c49}
+
+  # Fixed cool anchors. Every role is blended toward these so the result is always
+  # blue-leaning, muted and harmonious regardless of the wallpaper's own hue.
+  local mtg_fg='#ffffff'
+  local cool_primary='#4f9bd9'
+  local cool_secondary='#6f9bb8'
+  local cool_tertiary='#8f8fc9'
+  local cool_error='#cf6a6a'
+  local cool_surface='#1b2531'
+  local cool_surface_elev='#263242'
+
+  # Blend two hex colors t% toward $2; result in $REPLY.
+  function _mtg_blend() {
+    local r1 g1 b1 r2 g2 b2 t=$3
+    (( r1 = 16#${1:1:2}, g1 = 16#${1:3:2}, b1 = 16#${1:5:2} ))
+    (( r2 = 16#${2:1:2}, g2 = 16#${2:3:2}, b2 = 16#${2:5:2} ))
+    REPLY=$(printf '#%02x%02x%02x' \
+      $(( (r1*(100-t)+r2*t)/100 )) \
+      $(( (g1*(100-t)+g2*t)/100 )) \
+      $(( (b1*(100-t)+b2*t)/100 )))
+  }
+
+  local c_primary c_secondary c_tertiary c_error
+  local c_surface c_surface_low c_surface_mid c_surface_hi
+  _mtg_blend $P10K_MTG_PRIMARY $cool_primary 45; c_primary=$REPLY
+  _mtg_blend $P10K_MTG_SECONDARY $cool_secondary 50; c_secondary=$REPLY
+  _mtg_blend $P10K_MTG_TERTIARY $cool_tertiary 55; c_tertiary=$REPLY
+  _mtg_blend $P10K_MTG_ERROR $cool_error 40; c_error=$REPLY
+  _mtg_blend $P10K_MTG_SURFACE_CONTAINER_LOWEST $cool_surface 55; c_surface_low=$REPLY
+  _mtg_blend $P10K_MTG_SURFACE_CONTAINER $cool_surface 65; c_surface=$REPLY
+  _mtg_blend $P10K_MTG_SECONDARY_CONTAINER $cool_surface_elev 60; c_surface_mid=$REPLY
+  _mtg_blend $P10K_MTG_SURFACE_CONTAINER_HIGH $cool_surface_elev 55; c_surface_hi=$REPLY
 
   # Rounded borders (powerline round glyphs): segments join with rounded corners,
   # and each prompt gets rounded end caps.
@@ -1724,80 +1785,80 @@
   typeset -g POWERLEVEL9K_LEFT_RIGHT_WHITESPACE=' '
   typeset -g POWERLEVEL9K_RIGHT_LEFT_WHITESPACE=' '
 
-  # dir — primary pill
-  typeset -g POWERLEVEL9K_DIR_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_DIR_BACKGROUND='#486879'
-  typeset -g POWERLEVEL9K_DIR_SHORTENED_FOREGROUND='#c2e8ff'
-  typeset -g POWERLEVEL9K_DIR_ANCHOR_FOREGROUND='#ffffff'
+  # dir — cool primary pill
+  typeset -g POWERLEVEL9K_DIR_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_DIR_BACKGROUND=$c_primary
+  typeset -g POWERLEVEL9K_DIR_SHORTENED_FOREGROUND='#cfe6f7'
+  typeset -g POWERLEVEL9K_DIR_ANCHOR_FOREGROUND=$mtg_fg
   typeset -g POWERLEVEL9K_DIR_ANCHOR_BOLD=true
-  typeset -g POWERLEVEL9K_DIR_NOT_WRITABLE_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_DIR_NOT_WRITABLE_BACKGROUND='#7b5c5a'
+  typeset -g POWERLEVEL9K_DIR_NOT_WRITABLE_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_DIR_NOT_WRITABLE_BACKGROUND=$c_error
 
-  # vcs — secondary pill when clean, error pill when dirty/untracked
-  typeset -g POWERLEVEL9K_VCS_CLEAN_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_VCS_CLEAN_BACKGROUND='#5a656d'
-  typeset -g POWERLEVEL9K_VCS_UNTRACKED_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_VCS_UNTRACKED_BACKGROUND='#7b5c5a'
-  typeset -g POWERLEVEL9K_VCS_MODIFIED_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_VCS_MODIFIED_BACKGROUND='#7b5c5a'
+  # vcs — cool secondary pill when clean, cool error pill when dirty/untracked
+  typeset -g POWERLEVEL9K_VCS_CLEAN_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_VCS_CLEAN_BACKGROUND=$c_secondary
+  typeset -g POWERLEVEL9K_VCS_UNTRACKED_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_VCS_UNTRACKED_BACKGROUND=$c_error
+  typeset -g POWERLEVEL9K_VCS_MODIFIED_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_VCS_MODIFIED_BACKGROUND=$c_error
 
-  # prompt_char — primary pill on success, error pill on failure
-  typeset -g POWERLEVEL9K_PROMPT_CHAR_OK_{VIINS,VICMD,VIVIS,VIOWR}_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_PROMPT_CHAR_OK_{VIINS,VICMD,VIVIS,VIOWR}_BACKGROUND='#486879'
-  typeset -g POWERLEVEL9K_PROMPT_CHAR_ERROR_{VIINS,VICMD,VIVIS,VIOWR}_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_PROMPT_CHAR_ERROR_{VIINS,VICMD,VIVIS,VIOWR}_BACKGROUND='#7b5c5a'
+  # prompt_char — cool primary pill on success, cool error pill on failure
+  typeset -g POWERLEVEL9K_PROMPT_CHAR_OK_{VIINS,VICMD,VIVIS,VIOWR}_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_PROMPT_CHAR_OK_{VIINS,VICMD,VIVIS,VIOWR}_BACKGROUND=$c_primary
+  typeset -g POWERLEVEL9K_PROMPT_CHAR_ERROR_{VIINS,VICMD,VIVIS,VIOWR}_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_PROMPT_CHAR_ERROR_{VIINS,VICMD,VIVIS,VIOWR}_BACKGROUND=$c_error
   typeset -g POWERLEVEL9K_PROMPT_CHAR_OK_VIINS_CONTENT_EXPANSION='❯❯❯'
   typeset -g POWERLEVEL9K_PROMPT_CHAR_ERROR_VIINS_CONTENT_EXPANSION='❯❯❯'
 
   # status / background_jobs / command_execution_time
-  typeset -g POWERLEVEL9K_STATUS_OK_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_STATUS_OK_BACKGROUND='#486879'
-  typeset -g POWERLEVEL9K_STATUS_OK_PIPE_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_STATUS_OK_PIPE_BACKGROUND='#486879'
-  typeset -g POWERLEVEL9K_STATUS_ERROR_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_STATUS_ERROR_BACKGROUND='#7b5c5a'
-  typeset -g POWERLEVEL9K_STATUS_ERROR_SIGNAL_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_STATUS_ERROR_SIGNAL_BACKGROUND='#7b5c5a'
-  typeset -g POWERLEVEL9K_STATUS_ERROR_PIPE_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_STATUS_ERROR_PIPE_BACKGROUND='#7b5c5a'
-  typeset -g POWERLEVEL9K_COMMAND_EXECUTION_TIME_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_COMMAND_EXECUTION_TIME_BACKGROUND='#636276'
-  typeset -g POWERLEVEL9K_BACKGROUND_JOBS_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_BACKGROUND_JOBS_BACKGROUND='#7b5c5a'
+  typeset -g POWERLEVEL9K_STATUS_OK_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_STATUS_OK_BACKGROUND=$c_primary
+  typeset -g POWERLEVEL9K_STATUS_OK_PIPE_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_STATUS_OK_PIPE_BACKGROUND=$c_primary
+  typeset -g POWERLEVEL9K_STATUS_ERROR_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_STATUS_ERROR_BACKGROUND=$c_error
+  typeset -g POWERLEVEL9K_STATUS_ERROR_SIGNAL_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_STATUS_ERROR_SIGNAL_BACKGROUND=$c_error
+  typeset -g POWERLEVEL9K_STATUS_ERROR_PIPE_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_STATUS_ERROR_PIPE_BACKGROUND=$c_error
+  typeset -g POWERLEVEL9K_COMMAND_EXECUTION_TIME_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_COMMAND_EXECUTION_TIME_BACKGROUND=$c_tertiary
+  typeset -g POWERLEVEL9K_BACKGROUND_JOBS_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_BACKGROUND_JOBS_BACKGROUND=$c_error
 
-  # direnv / context — subtle volume-module pill
-  typeset -g POWERLEVEL9K_DIRENV_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_DIRENV_BACKGROUND='#212c32'
-  typeset -g POWERLEVEL9K_CONTEXT_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_CONTEXT_BACKGROUND='#212c32'
-  typeset -g POWERLEVEL9K_CONTEXT_ROOT_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_CONTEXT_ROOT_BACKGROUND='#7b5c5a'
-  typeset -g POWERLEVEL9K_CONTEXT_{REMOTE,REMOTE_SUDO}_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_CONTEXT_{REMOTE,REMOTE_SUDO}_BACKGROUND='#5a656d'
+  # direnv / context — subtle cool surface pills
+  typeset -g POWERLEVEL9K_DIRENV_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_DIRENV_BACKGROUND=$c_surface_low
+  typeset -g POWERLEVEL9K_CONTEXT_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_CONTEXT_BACKGROUND=$c_surface_low
+  typeset -g POWERLEVEL9K_CONTEXT_ROOT_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_CONTEXT_ROOT_BACKGROUND=$c_error
+  typeset -g POWERLEVEL9K_CONTEXT_{REMOTE,REMOTE_SUDO}_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_CONTEXT_{REMOTE,REMOTE_SUDO}_BACKGROUND=$c_surface_hi
 
-  # asdf — tertiary pill (network module)
-  typeset -g POWERLEVEL9K_ASDF_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_ASDF_BACKGROUND='#636276'
-  typeset -g POWERLEVEL9K_ASDF_{RUBY,PYTHON,GOLANG,NODEJS,RUST,DOTNET_CORE,FLUTTER,LUA,JAVA,PERL,ERLANG,ELIXIR,POSTGRES,PHP,HASKELL,JULIA}_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_ASDF_{RUBY,PYTHON,GOLANG,NODEJS,RUST,DOTNET_CORE,FLUTTER,LUA,JAVA,PERL,ERLANG,ELIXIR,POSTGRES,PHP,HASKELL,JULIA}_BACKGROUND='#636276'
+  # asdf — cool tertiary pill (version manager)
+  typeset -g POWERLEVEL9K_ASDF_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_ASDF_BACKGROUND=$c_tertiary
+  typeset -g POWERLEVEL9K_ASDF_{RUBY,PYTHON,GOLANG,NODEJS,RUST,DOTNET_CORE,FLUTTER,LUA,JAVA,PERL,ERLANG,ELIXIR,POSTGRES,PHP,HASKELL,JULIA}_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_ASDF_{RUBY,PYTHON,GOLANG,NODEJS,RUST,DOTNET_CORE,FLUTTER,LUA,JAVA,PERL,ERLANG,ELIXIR,POSTGRES,PHP,HASKELL,JULIA}_BACKGROUND=$c_tertiary
 
-  # language / cloud / tool env pills
-  typeset -g POWERLEVEL9K_{VIRTUALENV,ANACONDA,PYENV}_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_{VIRTUALENV,ANACONDA,PYENV}_BACKGROUND='#636276'
-  typeset -g POWERLEVEL9K_{GOENV,NODENV,NVM,NODEENV,NODE_VERSION,RBENV,RVM,PERLBREW,PLENV}_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_{GOENV,NODENV,NVM,NODEENV,NODE_VERSION,RBENV,RVM,PERLBREW,PLENV}_BACKGROUND='#5a656d'
-  typeset -g POWERLEVEL9K_{FVM,LUAENV,JENV,SCALAENV,PHPENV,HASKELL_STACK}_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_{FVM,LUAENV,JENV,SCALAENV,PHPENV,HASKELL_STACK}_BACKGROUND='#212c32'
-  typeset -g POWERLEVEL9K_{KUBECONTEXT,TERRAFORM,TERRAFORM_VERSION,AWS,AWS_EB_ENV,AZURE,GCLOUD,GOOGLE_APP_CRED,TOOLBOX}_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_{KUBECONTEXT,TERRAFORM,TERRAFORM_VERSION,AWS,AWS_EB_ENV,AZURE,GCLOUD,GOOGLE_APP_CRED,TOOLBOX}_BACKGROUND='#636276'
-  typeset -g POWERLEVEL9K_TERRAFORM_OTHER_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_AWS_DEFAULT_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_AZURE_OTHER_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_GOOGLE_APP_CRED_DEFAULT_FOREGROUND='#ffffff'
+  # language / cloud / tool env pills — cool surface elevations
+  typeset -g POWERLEVEL9K_{VIRTUALENV,ANACONDA,PYENV}_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_{VIRTUALENV,ANACONDA,PYENV}_BACKGROUND=$c_tertiary
+  typeset -g POWERLEVEL9K_{GOENV,NODENV,NVM,NODEENV,NODE_VERSION,RBENV,RVM,PERLBREW,PLENV}_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_{GOENV,NODENV,NVM,NODEENV,NODE_VERSION,RBENV,RVM,PERLBREW,PLENV}_BACKGROUND=$c_surface_hi
+  typeset -g POWERLEVEL9K_{FVM,LUAENV,JENV,SCALAENV,PHPENV,HASKELL_STACK}_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_{FVM,LUAENV,JENV,SCALAENV,PHPENV,HASKELL_STACK}_BACKGROUND=$c_surface_mid
+  typeset -g POWERLEVEL9K_{KUBECONTEXT,TERRAFORM,TERRAFORM_VERSION,AWS,AWS_EB_ENV,AZURE,GCLOUD,GOOGLE_APP_CRED,TOOLBOX}_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_{KUBECONTEXT,TERRAFORM,TERRAFORM_VERSION,AWS,AWS_EB_ENV,AZURE,GCLOUD,GOOGLE_APP_CRED,TOOLBOX}_BACKGROUND=$c_tertiary
+  typeset -g POWERLEVEL9K_TERRAFORM_OTHER_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_AWS_DEFAULT_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_AZURE_OTHER_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_GOOGLE_APP_CRED_DEFAULT_FOREGROUND=$mtg_fg
 
-  # remaining active segments — subtle secondary-container pill
-  typeset -g POWERLEVEL9K_{NORDVPN,RANGER,YAZI,NNN,LF,XPLR,VIM_SHELL,MIDNIGHT_COMMANDER,NIX_SHELL,CHEZMOI_SHELL,TODO,TIMEWARRIOR,TASKWARRIOR,PER_DIRECTORY_HISTORY_LOCAL,PER_DIRECTORY_HISTORY_GLOBAL}_FOREGROUND='#ffffff'
-  typeset -g POWERLEVEL9K_{NORDVPN,RANGER,YAZI,NNN,LF,XPLR,VIM_SHELL,MIDNIGHT_COMMANDER,NIX_SHELL,CHEZMOI_SHELL,TODO,TIMEWARRIOR,TASKWARRIOR,PER_DIRECTORY_HISTORY_LOCAL,PER_DIRECTORY_HISTORY_GLOBAL}_BACKGROUND='#212c32'
+  # remaining active segments — subtle cool surface pill
+  typeset -g POWERLEVEL9K_{NORDVPN,RANGER,YAZI,NNN,LF,XPLR,VIM_SHELL,MIDNIGHT_COMMANDER,NIX_SHELL,CHEZMOI_SHELL,TODO,TIMEWARRIOR,TASKWARRIOR,PER_DIRECTORY_HISTORY_LOCAL,PER_DIRECTORY_HISTORY_GLOBAL}_FOREGROUND=$mtg_fg
+  typeset -g POWERLEVEL9K_{NORDVPN,RANGER,YAZI,NNN,LF,XPLR,VIM_SHELL,MIDNIGHT_COMMANDER,NIX_SHELL,CHEZMOI_SHELL,TODO,TIMEWARRIOR,TASKWARRIOR,PER_DIRECTORY_HISTORY_LOCAL,PER_DIRECTORY_HISTORY_GLOBAL}_BACKGROUND=$c_surface
 
   # If p10k is already loaded, reload configuration.
   # This works even with POWERLEVEL9K_DISABLE_HOT_RELOAD=true.
@@ -1809,3 +1870,22 @@ typeset -g POWERLEVEL9K_CONFIG_FILE=${${(%):-%x}:a}
 
 (( ${#p10k_config_opts} )) && setopt ${p10k_config_opts[@]}
 'builtin' 'unset' 'p10k_config_opts'
+
+# Live-reload prompt colors when matugen regenerates the palette on wallpaper
+# change. Detects the change on the next prompt and re-sources this config.
+typeset -g _MTG_HASH=
+function _mtg_reload() {
+  local file="${XDG_CONFIG_HOME:-$HOME/.config}/matugen/p10k-colors.zsh"
+  [[ -r $file ]] || return 0
+  local hash=$(cksum < "$file")
+  if [[ $hash != "$_MTG_HASH" ]]; then
+    _MTG_HASH=$hash
+    source ~/.p10k.zsh
+  fi
+}
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd _mtg_reload
+{
+  local mtg_file="${XDG_CONFIG_HOME:-$HOME/.config}/matugen/p10k-colors.zsh"
+  if [[ -r $mtg_file ]]; then _MTG_HASH=$(cksum < "$mtg_file"); else _MTG_HASH=; fi
+}
