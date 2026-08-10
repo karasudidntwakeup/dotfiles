@@ -11,7 +11,7 @@ import "colors.js" as Matugen
 // Mirrors ~/.config/waybar (modules + Material You pill styling).
 // Palette comes from matugen via colors.js (regenerated on wallpaper change).
 
-// matugen 1786342795
+// matugen 1786346875
 
 ShellRoot {
     id: root
@@ -241,17 +241,17 @@ ShellRoot {
 
         readonly property color pillTextColor: root.luminance(tint) > 0.5 ? root.darkText : root.textColor
 
-        implicitWidth: pillRow.implicitWidth + 33
-        implicitHeight: root.pillHeight - 3
+        implicitWidth: pillRow.implicitWidth + 25
+        implicitHeight: root.pillHeight - 2
         radius: height / 0
         border.width: 0
         color: root.withAlpha(tint, root.pillAlpha)
-        opacity: 1
+        opacity: 0.9
 
         Row {
             id: pillRow
             anchors.centerIn: parent
-            spacing: 5
+            spacing: 3
 
             Text {
                 id: pillIcon
