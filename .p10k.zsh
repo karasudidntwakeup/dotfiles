@@ -1767,6 +1767,17 @@
   _mtg_blend $P10K_MTG_SECONDARY $cool_secondary 50; c_secondary=$REPLY
   _mtg_blend $P10K_MTG_TERTIARY $cool_tertiary 55; c_tertiary=$REPLY
   _mtg_blend $P10K_MTG_ERROR $cool_error 40; c_error=$REPLY
+  # Muted pass: pull every colored pill 45% toward the dark surface so the
+  # prompt stops glowing.
+  _mtg_blend $c_primary $cool_surface 45; c_primary=$REPLY
+  _mtg_blend $c_secondary $cool_surface 45; c_secondary=$REPLY
+  _mtg_blend $c_tertiary $cool_surface 45; c_tertiary=$REPLY
+  _mtg_blend $c_error $cool_surface 45; c_error=$REPLY
+  # Distinct light accent colors for the prompt_char arrows: blue, teal, purple.
+  local c_arrow_1 c_arrow_2 c_arrow_3
+  _mtg_blend $cool_primary     '#ffffff' 40; c_arrow_1=$REPLY
+  _mtg_blend $P10K_MTG_PRIMARY '#ffffff' 45; c_arrow_2=$REPLY
+  _mtg_blend $cool_tertiary    '#ffffff' 35; c_arrow_3=$REPLY
   _mtg_blend $P10K_MTG_SURFACE_CONTAINER_LOWEST $cool_surface 55; c_surface_low=$REPLY
   _mtg_blend $P10K_MTG_SURFACE_CONTAINER $cool_surface 65; c_surface=$REPLY
   _mtg_blend $P10K_MTG_SECONDARY_CONTAINER $cool_surface_elev 60; c_surface_mid=$REPLY
@@ -1807,8 +1818,8 @@
   typeset -g POWERLEVEL9K_PROMPT_CHAR_OK_{VIINS,VICMD,VIVIS,VIOWR}_BACKGROUND=$c_primary
   typeset -g POWERLEVEL9K_PROMPT_CHAR_ERROR_{VIINS,VICMD,VIVIS,VIOWR}_FOREGROUND=$mtg_fg
   typeset -g POWERLEVEL9K_PROMPT_CHAR_ERROR_{VIINS,VICMD,VIVIS,VIOWR}_BACKGROUND=$c_error
-  typeset -g POWERLEVEL9K_PROMPT_CHAR_OK_VIINS_CONTENT_EXPANSION='❯❯❯'
-  typeset -g POWERLEVEL9K_PROMPT_CHAR_ERROR_VIINS_CONTENT_EXPANSION='❯❯❯'
+  typeset -g POWERLEVEL9K_PROMPT_CHAR_OK_VIINS_CONTENT_EXPANSION="%F{$c_arrow_1}❯%F{$c_arrow_2}❯%F{$c_arrow_3}❯"
+  typeset -g POWERLEVEL9K_PROMPT_CHAR_ERROR_VIINS_CONTENT_EXPANSION="%F{$c_arrow_1}❯%F{$c_arrow_2}❯%F{$c_arrow_3}❯"
 
   # status / background_jobs / command_execution_time
   typeset -g POWERLEVEL9K_STATUS_OK_FOREGROUND=$mtg_fg
