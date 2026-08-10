@@ -33,13 +33,13 @@ ShellRoot {
     readonly property int fontSize: 13
 
     // Layout (matches waybar config.jsonc)
-    readonly property int barHeight: 34
-    readonly property int pillHeight: 26
-    readonly property int groupSpacing: 6
+    readonly property int barHeight: 40
+    readonly property int pillHeight: 32
+    readonly property int groupSpacing: 12
 
     readonly property color textColor: "#ffffff"
     readonly property color darkText: Matugen.shadow
-    readonly property real pillAlpha: 0.9
+    readonly property real pillAlpha: 0.45
 
     function luminance(color) {
         return 0.299 * color.r + 0.587 * color.g + 0.114 * color.b
@@ -236,12 +236,12 @@ ShellRoot {
 
         readonly property color pillTextColor: root.luminance(tint) > 0.5 ? root.darkText : root.textColor
 
-        implicitWidth: pillRow.implicitWidth + 32
-        implicitHeight: root.pillHeight
-        radius: height / 2
+        implicitWidth: pillRow.implicitWidth + 33
+        implicitHeight: root.pillHeight - 3
+        radius: height / 0
         border.width: 0
         color: root.withAlpha(tint, root.pillAlpha)
-        opacity: 1.0
+        opacity: 1
 
         Row {
             id: pillRow
@@ -291,8 +291,8 @@ ShellRoot {
         height: root.pillHeight
         radius: 15
         border.width: 0
-        color: focused ? root.withAlpha(root.primary, 0.9)
-            : urgent ? root.withAlpha(root.error, 0.9) : "transparent"
+        color: focused ? root.withAlpha(root.primary, root.pillAlpha)
+            : urgent ? root.withAlpha(root.error, root.pillAlpha) : "transparent"
 
         Text {
             text: wsBtn.ws ? wsBtn.ws.idx : ""
