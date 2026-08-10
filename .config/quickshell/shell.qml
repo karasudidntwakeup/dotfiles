@@ -128,6 +128,11 @@ ShellRoot {
         command: ["true"]
     }
 
+    Process {
+        id: netCmd
+        command: ["true"]
+    }
+
     Timer {
         interval: 2000
         running: true
@@ -439,6 +444,11 @@ ShellRoot {
                         icon: root.networkConnected ? "󰖩" : "󰖪"
                         label: root.networkText
                         tint: root.tertiary
+
+                        clickArea.onClicked: {
+                            netCmd.command = ["kitty", "impala"]
+                            netCmd.running = true
+                        }
                     }
 
                     Module {
