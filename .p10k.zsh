@@ -137,7 +137,7 @@
   typeset -g POWERLEVEL9K_ICON_BEFORE_CONTENT=true
 
   # Add an empty line before each prompt.
-  typeset -g POWERLEVEL9K_PROMPT_ADD_NEWLINE=false
+  typeset -g POWERLEVEL9K_PROMPT_ADD_NEWLINE=true
 
   # Connect left prompt lines with these symbols.
   typeset -g POWERLEVEL9K_MULTILINE_FIRST_PROMPT_PREFIX=
@@ -1797,6 +1797,7 @@
   typeset -g POWERLEVEL9K_RIGHT_LEFT_WHITESPACE=' '
 
   # dir — cool primary pill
+  typeset -g POWERLEVEL9K_HOME_FOLDER_ABBREVIATION=$'\uF015'
   typeset -g POWERLEVEL9K_DIR_FOREGROUND=$mtg_fg
   typeset -g POWERLEVEL9K_DIR_BACKGROUND=$c_primary
   typeset -g POWERLEVEL9K_DIR_SHORTENED_FOREGROUND='#cfe6f7'

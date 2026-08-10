@@ -1,7 +1,7 @@
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
-PROMPT='%F{red}❯%F{yellow}❯%F{green}❯ %F{white}%~ %f'
+PROMPT=$'\n%F{red}❯ %F{yellow}❯ %F{green}❯ %F{cyan}%~ %f'
 export NO_AT_BRIDGE=1
 setopt extended_glob
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
