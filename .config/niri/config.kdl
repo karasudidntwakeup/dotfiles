@@ -82,7 +82,7 @@ overview {
         off
     }
  backdrop-color "transparent"
- zoom 0.26
+ zoom 0.40
 }
 layout {
   background-color "transparent"

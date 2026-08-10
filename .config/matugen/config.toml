@@ -53,7 +53,11 @@ output_path = '~/.config/niri/colors.kdl'
 [templates.waybar]
 input_path = './templates/colors.css'
 output_path = '~/.config/waybar/colors.css'
-post_hook = 'pkill -SIGUSR2 waybar'
+post_hook = 'pkill -SIGUSR2 waybar 2>/dev/null || true'
+[templates.quickshell]
+input_path = '~/.config/matugen/templates/quickshell-colors.js'
+output_path = '~/.config/quickshell/colors.js'
+post_hook = 'sed -i "s|// matugen [[:xdigit:]]*|// matugen $(date +%s)|" ~/.config/quickshell/shell.qml'
 [templates.ddg_css]
 input_path = '~/.config/matugen/templates/ddg.css'
 output_path = '~/.librewolf/fuoz9ly2.default-default/chrome/websites/duckduckgo.css'
