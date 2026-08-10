@@ -11,7 +11,7 @@ import "colors.js" as Matugen
 // Mirrors ~/.config/waybar (modules + Material You pill styling).
 // Palette comes from matugen via colors.js (regenerated on wallpaper change).
 
-// matugen 1786377605
+// matugen 1786378720
 
 ShellRoot {
     id: root
@@ -193,12 +193,17 @@ ShellRoot {
 
     // Clock (updates every second, like waybar)
     property string clockText: ""
+    property bool showClockDate: false
 
     Timer {
         interval: 1000
         running: true
         repeat: true
-        onTriggered: root.clockText = Qt.formatDateTime(new Date(), "hh:mm AP")
+        onTriggered: {
+            root.clockText = root.showClockDate
+                ? Qt.formatDateTime(new Date(), "ddd MMM d")
+                : Qt.formatDateTime(new Date(), "hh:mm AP")
+        }
     }
 
     Component.onCompleted: {
@@ -466,6 +471,8 @@ ShellRoot {
                         icon: "󰥔"
                         label: root.clockText
                         tint: root.primary
+
+                        clickArea.onClicked: root.showClockDate = !root.showClockDate
                     }
                 }
             }

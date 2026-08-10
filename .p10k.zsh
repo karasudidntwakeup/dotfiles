@@ -1747,8 +1747,23 @@
   local cool_secondary='#6f9bb8'
   local cool_tertiary='#8f8fc9'
   local cool_error='#cf6a6a'
-  local cool_surface='#1b2531'
-  local cool_surface_elev='#263242'
+  # Lighter, more neutral (off-grey) surfaces so the pills read softer.
+  local cool_surface='#2e3a46'
+  local cool_surface_elev='#394655'
+
+  # Terminal background (kitty, from matugen) used to simulate a frosted,
+  # semi-translucent pill. Tracks wallpaper changes.
+  local mtg_bg='#0e1416'
+  local kitty_palette="${XDG_CONFIG_HOME:-$HOME/.config}/kitty/matugen-colors.conf"
+  if [[ -r $kitty_palette ]]; then
+    local line match
+    while IFS= read -r line; do
+      if [[ $line =~ '^[[:space:]]*background[[:space:]]+(#[0-9a-fA-F]{6})' ]]; then
+        mtg_bg=${match[1]:l}
+        break
+      fi
+    done < "$kitty_palette"
+  fi
 
   # Blend two hex colors t% toward $2; result in $REPLY.
   function _mtg_blend() {
@@ -1783,6 +1798,17 @@
   _mtg_blend $P10K_MTG_SECONDARY_CONTAINER $cool_surface_elev 60; c_surface_mid=$REPLY
   _mtg_blend $P10K_MTG_SURFACE_CONTAINER_HIGH $cool_surface_elev 55; c_surface_hi=$REPLY
 
+  # Frosted pass: pull every pill background toward the terminal background so
+  # the segments read as semi-translucent glass over the wallpaper.
+  _mtg_blend $c_primary $mtg_bg 25; c_primary=$REPLY
+  _mtg_blend $c_secondary $mtg_bg 25; c_secondary=$REPLY
+  _mtg_blend $c_tertiary $mtg_bg 25; c_tertiary=$REPLY
+  _mtg_blend $c_error $mtg_bg 25; c_error=$REPLY
+  _mtg_blend $c_surface_low $mtg_bg 20; c_surface_low=$REPLY
+  _mtg_blend $c_surface $mtg_bg 20; c_surface=$REPLY
+  _mtg_blend $c_surface_mid $mtg_bg 20; c_surface_mid=$REPLY
+  _mtg_blend $c_surface_hi $mtg_bg 20; c_surface_hi=$REPLY
+
   # Rounded borders (powerline round glyphs): segments join with rounded corners,
   # and each prompt gets rounded end caps.
   typeset -g POWERLEVEL9K_LEFT_PROMPT_FIRST_SEGMENT_START_SYMBOL=$'\uE0B6'
@@ -1797,7 +1823,7 @@
   typeset -g POWERLEVEL9K_RIGHT_LEFT_WHITESPACE=' '
 
   # dir — cool primary pill
-  typeset -g POWERLEVEL9K_HOME_FOLDER_ABBREVIATION=$'\uF015'
+  typeset -g POWERLEVEL9K_HOME_FOLDER_ABBREVIATION=$'\uF015 '
   typeset -g POWERLEVEL9K_DIR_FOREGROUND=$mtg_fg
   typeset -g POWERLEVEL9K_DIR_BACKGROUND=$c_primary
   typeset -g POWERLEVEL9K_DIR_SHORTENED_FOREGROUND='#cfe6f7'
