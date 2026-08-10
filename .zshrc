@@ -71,8 +71,8 @@ HISTDUP=erase
 set encoding=utf-8
 LANG=en_US.UTF-8 
 #PATH
-export CHAFA_FORMAT=sixel
-export TERM=foot
+#export CHAFA_FORMAT=sixel
+#export TERM=foot
 export EDITOR=nvim
 export PATH="$PATH:$HOME/.npm-global/bin"
 export PATH="$PATH:/sbin:/usr/sbin:usr/local/sbin"
@@ -212,3 +212,6 @@ case ":$PATH:" in
   *) export PATH="$PNPM_HOME/bin:$PATH" ;;
 esac
 # pnpm end
+
+# opencode
+export PATH=/home/karasu/.opencode/bin:$PATH
