@@ -1,6 +1,9 @@
-@-moz-document url(about:blank) {
+@-moz-document url(about:blank), url(about:newtab), url(about:home) {
   html, body {
     background-color: var(--surface) !important;
     color: var(--on_surface) !important;
+  }
+  :root {
+    --newtab-background-color: var(--surface) !important;
   }
 }
