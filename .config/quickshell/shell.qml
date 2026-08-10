@@ -11,7 +11,7 @@ import "colors.js" as Matugen
 // Mirrors ~/.config/waybar (modules + Material You pill styling).
 // Palette comes from matugen via colors.js (regenerated on wallpaper change).
 
-// matugen 1786346875
+// matugen 1786377605
 
 ShellRoot {
     id: root
@@ -292,9 +292,9 @@ ShellRoot {
         readonly property bool focused: ws ? ws.focused : false
         readonly property bool urgent: ws ? ws.urgent : false
 
-        width: 48
-        height: root.pillHeight  + 10
-        radius: 20
+        width: 30
+        height: root.pillHeight  + 0
+        radius: 30
         border.width: 0
         color: focused ? root.withAlpha(root.primary, root.pillAlpha)
             : urgent ? root.withAlpha(root.error, root.pillAlpha) : "transparent"
@@ -366,7 +366,7 @@ ShellRoot {
                 // modules-left: niri/workspaces
                 Row {
                     id: leftGroup
-                    x: 0
+                    x: 7
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: root.groupSpacing
 
