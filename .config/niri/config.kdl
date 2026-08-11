@@ -89,7 +89,7 @@ layout {
       border {
         //off
         on
-        width 2
+        width 4
         active-color "#505050"
         inactive-color "#000000"
         urgent-color "#9b0000"
