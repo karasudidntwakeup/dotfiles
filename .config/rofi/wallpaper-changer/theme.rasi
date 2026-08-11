@@ -1,3 +1,10 @@
+configuration {
+    kb-row-up: "Up,Control+p,k";
+    kb-row-down: "Down,Control+n,j";
+    kb-row-left: "Control+Page_Up,h";
+    kb-row-right: "Control+Page_Down,l";
+}
+
 * {
     background-color: transparent;
     text-color: #000000; 
