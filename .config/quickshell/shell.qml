@@ -4,6 +4,7 @@ import Quickshell.Io
 import Quickshell.Niri._Ipc
 import Quickshell.Services.UPower
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import "colors.js" as Matugen
 
@@ -11,7 +12,7 @@ import "colors.js" as Matugen
 // Mirrors ~/.config/waybar (modules + Material You pill styling).
 // Palette comes from matugen via colors.js (regenerated on wallpaper change).
 
-// matugen 1786378720
+// matugen 1786390380
 
 ShellRoot {
     id: root
@@ -128,11 +129,6 @@ ShellRoot {
         command: ["true"]
     }
 
-    Process {
-        id: netCmd
-        command: ["true"]
-    }
-
     Timer {
         interval: 2000
         running: true
@@ -193,16 +189,13 @@ ShellRoot {
 
     // Clock (updates every second, like waybar)
     property string clockText: ""
-    property bool showClockDate: false
 
     Timer {
         interval: 1000
         running: true
         repeat: true
         onTriggered: {
-            root.clockText = root.showClockDate
-                ? Qt.formatDateTime(new Date(), "ddd MMM d")
-                : Qt.formatDateTime(new Date(), "hh:mm AP")
+            root.clockText = Qt.formatDateTime(new Date(), "hh:mm AP")
         }
     }
 
@@ -329,6 +322,7 @@ ShellRoot {
             id: bar
             property var modelData
             screen: modelData
+            focusable: true
 
             anchors.bottom: true
             margins.bottom: 10
@@ -450,11 +444,6 @@ ShellRoot {
                         icon: root.networkConnected ? "󰖩" : "󰖪"
                         label: root.networkText
                         tint: root.tertiary
-
-                        clickArea.onClicked: {
-                            netCmd.command = ["kitty", "impala"]
-                            netCmd.running = true
-                        }
                     }
 
                     Module {
@@ -472,7 +461,512 @@ ShellRoot {
                         label: root.clockText
                         tint: root.primary
 
-                        clickArea.onClicked: root.showClockDate = !root.showClockDate
+                        clickArea.onClicked: calPopup.open()
+                    }
+                }
+            }
+
+            // Calendar popup, opens above the clock pill
+            PopupWindow {
+                id: calPopup
+                visible: false
+                grabFocus: true
+                implicitWidth: 200
+                color: "transparent"
+
+                BackgroundEffect.blurRegion: Region {
+                    item: calPopupBody
+                    radius: 16
+                }
+
+                property bool dismissedByOutside: false
+                property bool closingBySelf: false
+                property int shownYear: new Date().getFullYear()
+                property int shownMonth: new Date().getMonth()
+
+                // Date -> note text, keyed by "YYYY-MM-DD". Reassigned on every
+                // change (never mutated in place) so day-delegate bindings refresh.
+                property var notes: ({})
+                property string selectedKey: ""
+
+                readonly property int editorHeight: 140
+
+                FileView {
+                    id: notesFile
+                    path: Quickshell.env("HOME") + "/.cache/quickshell/calendar-notes.json"
+                    preload: true
+                    printErrors: false
+
+                    onLoaded: {
+                        console.log("[cal] notesFile loaded, adapter keys=" + Object.keys(notesAdapter.notes).length)
+                        calPopup.notes = notesAdapter.notes
+                    }
+
+                    onLoadFailed: error => {
+                        console.log("[cal] notesFile loadFailed error=" + error)
+                        if (error === FileViewError.FileNotFound) notesFile.writeAdapter()
+                    }
+
+                    onAdapterUpdated: notesFile.writeAdapter()
+
+                    onSaved: console.log("[cal] notesFile saved")
+                    onSaveFailed: error => console.log("[cal] notesFile saveFailed error=" + error)
+
+                    JsonAdapter {
+                        id: notesAdapter
+                        property var notes: ({})
+                    }
+                }
+
+                Component.onCompleted: {
+                    Quickshell.execDetached(["mkdir", "-p", Quickshell.env("HOME") + "/.cache/quickshell"])
+                }
+
+                function open() {
+                    if (calPopup.dismissedByOutside) {
+                        calPopup.dismissedByOutside = false
+                        return
+                    }
+                    if (calPopup.visible) {
+                        calPopup.close()
+                        return
+                    }
+                    calPopup.shownYear = new Date().getFullYear()
+                    calPopup.shownMonth = new Date().getMonth()
+                    calPopup.visible = true
+                }
+
+                function close() {
+                    calPopup.closingBySelf = true
+                    calPopupOut.restart()
+                }
+
+                function monthName(m) {
+                    var names = ["January", "February", "March", "April", "May", "June",
+                        "July", "August", "September", "October", "November", "December"]
+                    return names[m]
+                }
+
+                function rebuildModel() {
+                    calDays.clear()
+                    var first = new Date(calPopup.shownYear, calPopup.shownMonth, 1).getDay()
+                    var days = new Date(calPopup.shownYear, calPopup.shownMonth + 1, 0).getDate()
+                    for (var i = 0; i < first; i++) calDays.append({ day: 0 })
+                    for (var d = 1; d <= days; d++) calDays.append({ day: d })
+                }
+
+                function shiftMonth(amount) {
+                    calPopup.shownMonth += amount
+                    if (calPopup.shownMonth < 0) {
+                        calPopup.shownMonth = 11
+                        calPopup.shownYear--
+                    } else if (calPopup.shownMonth > 11) {
+                        calPopup.shownMonth = 0
+                        calPopup.shownYear++
+                    }
+                    calPopup.rebuildModel()
+                }
+
+                function dateKey(y, m, d) {
+                    function pad(n) { return n < 10 ? "0" + n : "" + n }
+                    return y + "-" + pad(m + 1) + "-" + pad(d)
+                }
+
+                function selectDay(key) {
+                    console.log("[cal] selectDay key=" + key)
+                    calPopup.selectedKey = key
+                    noteInput.text = calPopup.notes[key] || ""
+                    Qt.callLater(() => noteInput.forceActiveFocus())
+                }
+
+                function saveCurrent() {
+                    console.log("[cal] saveCurrent selectedKey='" + calPopup.selectedKey + "' text='" + (noteInput.text || "") + "'")
+                    if (calPopup.selectedKey.length === 0) return
+                    var copy = Object.assign({}, calPopup.notes || {})
+                    var text = noteInput.text.trim()
+                    if (text.length > 0) copy[calPopup.selectedKey] = text
+                    else delete copy[calPopup.selectedKey]
+                    calPopup.notes = copy
+                    notesAdapter.notes = copy
+                    console.log("[cal] saveCurrent done, note='" + calPopup.notes[calPopup.selectedKey] + "' keys=" + Object.keys(calPopup.notes).length)
+                }
+
+                function clearCurrent() {
+                    noteInput.text = ""
+                    calPopup.saveCurrent()
+                }
+
+                function selectedDateLabel() {
+                    if (calPopup.selectedKey.length === 0) return ""
+                    var parts = calPopup.selectedKey.split("-")
+                    var y = parseInt(parts[0], 10)
+                    var m = parseInt(parts[1], 10) - 1
+                    var d = parseInt(parts[2], 10)
+                    return Qt.formatDate(new Date(y, m, d), "ddd, MMM d")
+                }
+
+                implicitHeight: 280 + (calPopup.selectedKey.length > 0 ? calPopup.editorHeight : 0)
+
+                onVisibleChanged: {
+                    if (visible) {
+                        calPopup.rebuildModel()
+                        calPopupBody.opacity = 0
+                        calPopupSlide.y = 14
+                        calPopupScale.xScale = 0.92
+                        calPopupScale.yScale = 0.92
+                        calPopupIn.restart()
+                    } else {
+                        calPopup.dismissedByOutside = !calPopup.closingBySelf
+                        calPopup.closingBySelf = false
+                        calPopup.selectedKey = ""
+                        noteInput.text = ""
+                    }
+                }
+
+                anchor {
+                    item: clockPill
+                    edges: Edges.Top
+                    gravity: Edges.Top
+                    adjustment: PopupAdjustment.All
+                    rect.x: 0
+                    rect.y: -10
+                    rect.w: clockPill.width
+                    rect.h: clockPill.height + 10
+                }
+
+                ParallelAnimation {
+                    id: calPopupIn
+                    running: false
+                    NumberAnimation { target: calPopupBody; property: "opacity"; to: 1; duration: 180; easing.type: Easing.OutCubic }
+                    NumberAnimation { target: calPopupSlide; property: "y"; to: 0; duration: 180; easing.type: Easing.OutCubic }
+                    NumberAnimation { target: calPopupScale; property: "xScale"; to: 1; duration: 180; easing.type: Easing.OutCubic }
+                    NumberAnimation { target: calPopupScale; property: "yScale"; to: 1; duration: 180; easing.type: Easing.OutCubic }
+                }
+
+                ParallelAnimation {
+                    id: calPopupOut
+                    running: false
+                    NumberAnimation { target: calPopupBody; property: "opacity"; to: 0; duration: 140; easing.type: Easing.InCubic }
+                    NumberAnimation { target: calPopupSlide; property: "y"; to: 14; duration: 140; easing.type: Easing.InCubic }
+                    NumberAnimation { target: calPopupScale; property: "xScale"; to: 0.92; duration: 140; easing.type: Easing.InCubic }
+                    NumberAnimation { target: calPopupScale; property: "yScale"; to: 0.92; duration: 140; easing.type: Easing.InCubic }
+                    onFinished: calPopup.visible = false
+                }
+
+                Rectangle {
+                    id: calPopupBody
+                    anchors.fill: parent
+                    radius: 16
+                    color: root.withAlpha(root.surface, 0.55)
+                    border.width: 1
+                    border.color: root.withAlpha(root.textColor, 0.08)
+                    clip: true
+                    opacity: 0
+
+                    transform: [
+                        Translate { id: calPopupSlide; y: 14 },
+                        Scale {
+                            id: calPopupScale
+                            xScale: 0.92
+                            yScale: 0.92
+                            origin.x: width / 2
+                            origin.y: height
+                        }
+                    ]
+
+                    ColumnLayout {
+                        anchors.fill: parent
+                        anchors.margins: 12
+                        spacing: 6
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 26
+                            spacing: 8
+
+                            Text {
+                                text: "󰁍"
+                                color: root.textColor
+                                font.family: root.iconFont
+                                font.pixelSize: root.fontSize + 1
+                                Layout.preferredWidth: 24
+                                Layout.preferredHeight: 26
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: calPopup.shiftMonth(-1)
+                                }
+                            }
+
+                            Text {
+                                text: calPopup.monthName(calPopup.shownMonth) + " " + calPopup.shownYear
+                                color: root.textColor
+                                font.family: root.fontFamily
+                                font.pixelSize: root.fontSize
+                                font.weight: Font.Black
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                Layout.fillWidth: true
+                            }
+
+                            Text {
+                                text: "󰁔"
+                                color: root.textColor
+                                font.family: root.iconFont
+                                font.pixelSize: root.fontSize + 1
+                                Layout.preferredWidth: 24
+                                Layout.preferredHeight: 26
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: calPopup.shiftMonth(1)
+                                }
+                            }
+
+                            Text {
+                                text: "󰅖"
+                                color: root.textColor
+                                font.family: root.iconFont
+                                font.pixelSize: root.fontSize + 1
+                                Layout.preferredWidth: 24
+                                Layout.preferredHeight: 26
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: calPopup.close()
+                                }
+                            }
+                        }
+
+                        Row {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 18
+
+                            Repeater {
+                                model: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
+                                delegate: Text {
+                                    width: (calPopupBody.width - 24) / 7
+                                    horizontalAlignment: Text.AlignHCenter
+                                    text: modelData
+                                    color: root.withAlpha(root.textColor, 0.5)
+                                    font.family: root.fontFamily
+                                    font.pixelSize: root.fontSize - 2
+                                }
+                            }
+                        }
+
+                        Grid {
+                            id: calGrid
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 190
+                            columns: 7
+                            columnSpacing: 0
+                            rowSpacing: 2
+
+                            Repeater {
+                                model: ListModel { id: calDays }
+
+                                delegate: Item {
+                                    required property int day
+
+                                    readonly property string key: day > 0
+                                        ? calPopup.dateKey(calPopup.shownYear, calPopup.shownMonth, day)
+                                        : ""
+                                    readonly property bool isToday: {
+                                        if (day === 0) return false
+                                        var t = new Date(calPopup.shownYear, calPopup.shownMonth, day)
+                                        var n = new Date()
+                                        return t.getFullYear() === n.getFullYear()
+                                            && t.getMonth() === n.getMonth()
+                                            && t.getDate() === n.getDate()
+                                    }
+                                    readonly property bool isSelected: key.length > 0 && calPopup.selectedKey === key
+                                    readonly property bool hasNote: key.length > 0 && calPopup.notes[key] !== undefined
+
+                                    width: (calPopupBody.width - 24) / 7
+                                    height: 30
+
+                                    Rectangle {
+                                        anchors.fill: parent
+                                        anchors.margins: 2
+                                        radius: 8
+                                        visible: day > 0
+                                        color: isSelected
+                                            ? root.primary
+                                            : dayHover.containsMouse
+                                                ? root.withAlpha(root.primary, 0.18)
+                                                : isToday ? root.withAlpha(root.primary, 0.4) : "transparent"
+
+                                        Text {
+                                            id: dayNum
+                                            anchors.centerIn: parent
+                                            visible: day > 0
+                                            text: day
+                                            color: isSelected
+                                                ? (root.luminance(root.primary) > 0.5 ? root.darkText : root.textColor)
+                                                : root.textColor
+                                            font.family: root.fontFamily
+                                            font.pixelSize: root.fontSize
+                                            font.weight: isSelected || isToday ? Font.Black : Font.Normal
+                                        }
+
+                                        Rectangle {
+                                            anchors.horizontalCenter: parent.horizontalCenter
+                                            anchors.bottom: parent.bottom
+                                            anchors.bottomMargin: 3
+                                            visible: hasNote
+                                            width: 4
+                                            height: 4
+                                            radius: 2
+                                            color: isSelected
+                                                ? (root.luminance(root.primary) > 0.5 ? root.darkText : root.textColor)
+                                                : root.primary
+                                        }
+
+                                        MouseArea {
+                                            id: dayHover
+                                            anchors.fill: parent
+                                            visible: day > 0
+                                            hoverEnabled: true
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: calPopup.selectDay(key)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 134
+                            visible: calPopup.selectedKey.length > 0
+                            spacing: 6
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 22
+                                spacing: 8
+
+                                Text {
+                                    text: calPopup.selectedDateLabel()
+                                    color: root.textColor
+                                    font.family: root.fontFamily
+                                    font.pixelSize: root.fontSize
+                                    font.weight: Font.Black
+                                }
+
+                                Item { Layout.fillWidth: true }
+
+                                Text {
+                                    text: "󰅖"
+                                    color: root.withAlpha(root.textColor, 0.7)
+                                    font.family: root.iconFont
+                                    font.pixelSize: root.fontSize + 1
+                                    Layout.preferredWidth: 20
+                                    Layout.preferredHeight: 22
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: calPopup.close()
+                                    }
+                                }
+                            }
+
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 64
+                                radius: 8
+                                color: root.withAlpha(root.textColor, 0.08)
+                                border.width: 1
+                                border.color: noteInput.activeFocus ? root.primary : root.withAlpha(root.textColor, 0.15)
+
+                                TextEdit {
+                                    id: noteInput
+                                    anchors.fill: parent
+                                    anchors.margins: 8
+                                    color: root.textColor
+                                    font.family: root.fontFamily
+                                    font.pixelSize: root.fontSize
+                                    wrapMode: TextEdit.Wrap
+                                    selectByMouse: true
+                                }
+
+                                Text {
+                                    anchors.fill: noteInput
+                                    visible: noteInput.text.length === 0 && !noteInput.activeFocus
+                                    text: "What do you plan to do?"
+                                    color: root.withAlpha(root.textColor, 0.4)
+                                    font.family: root.fontFamily
+                                    font.pixelSize: root.fontSize
+                                }
+                            }
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 30
+                                spacing: 6
+
+                                Item { Layout.fillWidth: true }
+
+                                Rectangle {
+                                    Layout.preferredWidth: 64
+                                    Layout.fillHeight: true
+                                    radius: 8
+                                    color: root.withAlpha(root.textColor, 0.08)
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "Clear"
+                                        color: root.textColor
+                                        font.family: root.fontFamily
+                                        font.pixelSize: root.fontSize
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: calPopup.clearCurrent()
+                                    }
+                                }
+
+                                Rectangle {
+                                    Layout.preferredWidth: 64
+                                    Layout.fillHeight: true
+                                    radius: 8
+                                    color: root.primary
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "Save"
+                                        color: root.luminance(root.primary) > 0.5 ? root.darkText : root.textColor
+                                        font.family: root.fontFamily
+                                        font.pixelSize: root.fontSize
+                                        font.weight: Font.Black
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            calPopup.saveCurrent()
+                                            calPopup.close()
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
