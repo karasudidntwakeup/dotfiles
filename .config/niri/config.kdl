@@ -88,14 +88,14 @@ layout {
   background-color "transparent"
       border {
         //off
-        on
-        width 4
+        off
+        width 2
         active-color "#505050"
         inactive-color "#000000"
         urgent-color "#9b0000"
     }
 
-    center-focused-column "never"
+    center-focused-column "on-overflow"
     always-center-single-column 
     preset-column-widths {
         proportion 0.0
@@ -106,7 +106,7 @@ layout {
     focus-ring {
         // off
         on
-        width 0
+        width 2
         active-color "#7fc8ff"
         inactive-color "#505050"
         urgent-color "#9b0000"
@@ -261,7 +261,7 @@ window-rule {
     opacity 0.98
 }
 window-rule {
-    match is-active=false
+    match is-active=true
     opacity 0.96
 }
 
