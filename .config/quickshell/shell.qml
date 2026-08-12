@@ -649,12 +649,19 @@ ShellRoot {
                 property int shownYear: new Date().getFullYear()
                 property int shownMonth: new Date().getMonth()
 
-                // Date -> note text, keyed by "YYYY-MM-DD". Reassigned on every
-                // change (never mutated in place) so day-delegate bindings refresh.
+                // Date -> reminder list, keyed by "YYYY-MM-DD". Each entry is
+                // { id, text, saved }. Reassigned on every change (never mutated
+                // in place) so day-delegate bindings refresh.
                 property var notes: ({})
                 property string selectedKey: ""
 
-                readonly property int editorHeight: 140
+                // Reminder entries of the currently selected date.
+                property var entries: []
+                property int selectedEntryId: -1
+                property int newEntryId: -1
+                property int entrySeq: 0
+
+                readonly property int editorHeight: 164
 
                 FileView {
                     id: notesFile
@@ -663,8 +670,25 @@ ShellRoot {
                     printErrors: false
 
                     onLoaded: {
-                        console.log("[cal] notesFile loaded, adapter keys=" + Object.keys(notesAdapter.notes).length)
-                        calPopup.notes = notesAdapter.notes
+                        // Migrate the old "date -> string" format to entry lists.
+                        var raw = notesAdapter.notes || {}
+                        var converted = {}
+                        var maxId = 0
+                        for (var k in raw) {
+                            var v = raw[k]
+                            if (typeof v === "string")
+                                converted[k] = [{ id: ++maxId, text: v, saved: true }]
+                            else
+                                converted[k] = calPopup.toEntryList(v)
+                        }
+                        for (var d in converted) {
+                            var list = converted[d]
+                            for (var i = 0; i < list.length; i++)
+                                if (list[i].id > maxId) maxId = list[i].id
+                        }
+                        calPopup.entrySeq = maxId
+                        calPopup.notes = converted
+                        console.log("[cal] notesFile loaded, keys=" + Object.keys(converted).length)
                     }
 
                     onLoadFailed: error => {
@@ -737,28 +761,98 @@ ShellRoot {
                     return y + "-" + pad(m + 1) + "-" + pad(d)
                 }
 
+                function toEntryList(v) {
+                    var out = []
+                    if (v === null || v === undefined) return out
+                    if (typeof v === "string") {
+                        out.push({ id: 0, text: v, saved: true })
+                        return out
+                    }
+                    var n = typeof v.length === "number" ? v.length : 0
+                    for (var i = 0; i < n; i++) {
+                        var e = v[i]
+                        if (e === null || e === undefined) continue
+                        out.push({
+                            id: typeof e.id === "number" ? e.id : 0,
+                            text: e.text !== undefined && e.text !== null ? String(e.text) : "",
+                            saved: !!e.saved
+                        })
+                    }
+                    return out
+                }
+
                 function selectDay(key) {
                     console.log("[cal] selectDay key=" + key)
                     calPopup.selectedKey = key
-                    noteInput.text = calPopup.notes[key] || ""
-                    Qt.callLater(() => noteInput.forceActiveFocus())
+                    calPopup.selectedEntryId = -1
+                    calPopup.newEntryId = -1
+                    calPopup.entries = calPopup.toEntryList(calPopup.notes[key])
+                    calPopup.rebuildEntries()
                 }
 
-                function saveCurrent() {
-                    console.log("[cal] saveCurrent selectedKey='" + calPopup.selectedKey + "' text='" + (noteInput.text || "") + "'")
-                    if (calPopup.selectedKey.length === 0) return
+                function syncNotes() {
                     var copy = Object.assign({}, calPopup.notes || {})
-                    var text = noteInput.text.trim()
-                    if (text.length > 0) copy[calPopup.selectedKey] = text
-                    else delete copy[calPopup.selectedKey]
+                    if ((calPopup.entries || []).length === 0)
+                        delete copy[calPopup.selectedKey]
+                    else
+                        copy[calPopup.selectedKey] = calPopup.entries.slice()
                     calPopup.notes = copy
-                    notesAdapter.notes = copy
-                    console.log("[cal] saveCurrent done, note='" + calPopup.notes[calPopup.selectedKey] + "' keys=" + Object.keys(calPopup.notes).length)
+                    notesAdapter.notes = JSON.parse(JSON.stringify(copy))
                 }
 
-                function clearCurrent() {
-                    noteInput.text = ""
-                    calPopup.saveCurrent()
+                function rebuildEntries() {
+                    entriesModel.clear()
+                    var list = calPopup.entries || []
+                    for (var i = 0; i < list.length; i++) {
+                        entriesModel.append({ entryId: list[i].id, entryText: list[i].text, saved: list[i].saved })
+                    }
+                }
+
+                function selectEntry(eid) {
+                    if (calPopup.selectedEntryId !== eid) calPopup.selectedEntryId = eid
+                }
+
+                function addEntry() {
+                    if (calPopup.selectedKey.length === 0) return
+                    var entry = { id: ++calPopup.entrySeq, text: "", saved: false }
+                    calPopup.entries = calPopup.entries.concat([entry])
+                    calPopup.selectedEntryId = entry.id
+                    calPopup.newEntryId = entry.id
+                    calPopup.syncNotes()
+                    calPopup.rebuildEntries()
+                }
+
+                function saveEntry(eid, text) {
+                    var list = calPopup.entries || []
+                    for (var i = 0; i < list.length; i++) {
+                        if (list[i].id !== eid) continue
+                        var trimmed = (text || "").trim()
+                        if (trimmed.length === 0) return
+                        var updated = list.slice()
+                        updated[i] = { id: eid, text: trimmed, saved: true }
+                        calPopup.entries = updated
+                        calPopup.selectedEntryId = eid
+                        calPopup.syncNotes()
+                        calPopup.rebuildEntries()
+                        return
+                    }
+                }
+
+                function removeSelectedEntry() {
+                    if (calPopup.selectedEntryId < 0) return
+                    var list = calPopup.entries || []
+                    var out = []
+                    var removed = false
+                    for (var i = 0; i < list.length; i++) {
+                        if (list[i].id === calPopup.selectedEntryId) { removed = true; continue }
+                        out.push(list[i])
+                    }
+                    if (!removed) return
+                    calPopup.selectedEntryId = -1
+                    calPopup.newEntryId = -1
+                    calPopup.entries = out
+                    calPopup.syncNotes()
+                    calPopup.rebuildEntries()
                 }
 
                 function selectedDateLabel() {
@@ -770,7 +864,7 @@ ShellRoot {
                     return Qt.formatDate(new Date(y, m, d), "ddd, MMM d")
                 }
 
-                implicitHeight: 280 + (calPopup.selectedKey.length > 0 ? calPopup.editorHeight : 0)
+                implicitHeight: 294 + (calPopup.selectedKey.length > 0 ? calPopup.editorHeight + 6 : 0)
 
                 onVisibleChanged: {
                     if (visible) {
@@ -784,7 +878,10 @@ ShellRoot {
                         calPopup.dismissedByOutside = !calPopup.closingBySelf
                         calPopup.closingBySelf = false
                         calPopup.selectedKey = ""
-                        noteInput.text = ""
+                        calPopup.selectedEntryId = -1
+                        calPopup.newEntryId = -1
+                        calPopup.entries = []
+                        entriesModel.clear()
                     }
                 }
 
@@ -915,6 +1012,29 @@ ShellRoot {
                         Row {
                             Layout.fillWidth: true
                             Layout.preferredHeight: 18
+                            spacing: 6
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: "󰥔"
+                                color: root.withAlpha(root.textColor, 0.85)
+                                font.family: root.iconFont
+                                font.pixelSize: root.fontSize + 1
+                            }
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: Qt.formatDate(new Date(), "dddd, MMMM d, yyyy")
+                                color: root.withAlpha(root.textColor, 0.85)
+                                font.family: root.fontFamily
+                                font.pixelSize: root.fontSize - 1
+                                font.weight: Font.Black
+                            }
+                        }
+
+                        Row {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 18
 
                             Repeater {
                                 model: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
@@ -1012,7 +1132,7 @@ ShellRoot {
 
                         ColumnLayout {
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 134
+                            Layout.preferredHeight: calPopup.editorHeight
                             visible: calPopup.selectedKey.length > 0
                             spacing: 6
 
@@ -1022,14 +1142,35 @@ ShellRoot {
                                 spacing: 8
 
                                 Text {
+                                    text: "󰃭"
+                                    color: root.primary
+                                    font.family: root.iconFont
+                                    font.pixelSize: root.fontSize + 1
+                                    Layout.preferredWidth: 22
+                                    Layout.preferredHeight: 22
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+
+                                Text {
                                     text: calPopup.selectedDateLabel()
                                     color: root.textColor
                                     font.family: root.fontFamily
                                     font.pixelSize: root.fontSize
                                     font.weight: Font.Black
+                                    Layout.fillWidth: true
+                                    verticalAlignment: Text.AlignVCenter
                                 }
 
-                                Item { Layout.fillWidth: true }
+                                Text {
+                                    text: (calPopup.entries || []).length === 1
+                                        ? "1 reminder"
+                                        : (calPopup.entries || []).length + " reminders"
+                                    color: root.withAlpha(root.textColor, 0.5)
+                                    font.family: root.fontFamily
+                                    font.pixelSize: root.fontSize - 2
+                                    verticalAlignment: Text.AlignVCenter
+                                }
 
                                 Text {
                                     text: "󰅖"
@@ -1049,86 +1190,208 @@ ShellRoot {
                                 }
                             }
 
-                            Rectangle {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 64
-                                radius: 8
-                                color: root.withAlpha(root.textColor, 0.08)
-                                border.width: 1
-                                border.color: noteInput.activeFocus ? root.primary : root.withAlpha(root.textColor, 0.15)
-
-                                TextEdit {
-                                    id: noteInput
-                                    anchors.fill: parent
-                                    anchors.margins: 8
-                                    color: root.textColor
-                                    font.family: root.fontFamily
-                                    font.pixelSize: root.fontSize
-                                    wrapMode: TextEdit.Wrap
-                                    selectByMouse: true
-                                }
-
-                                Text {
-                                    anchors.fill: noteInput
-                                    visible: noteInput.text.length === 0 && !noteInput.activeFocus
-                                    text: "What do you plan to do?"
-                                    color: root.withAlpha(root.textColor, 0.4)
-                                    font.family: root.fontFamily
-                                    font.pixelSize: root.fontSize
-                                }
-                            }
-
                             RowLayout {
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 30
+                                Layout.preferredHeight: 24
                                 spacing: 6
 
-                                Item { Layout.fillWidth: true }
-
                                 Rectangle {
-                                    Layout.preferredWidth: 64
+                                    id: addBtn
+                                    Layout.preferredWidth: 26
                                     Layout.fillHeight: true
-                                    radius: 8
-                                    color: root.withAlpha(root.textColor, 0.08)
+                                    radius: 7
+                                    color: addHover.containsMouse
+                                        ? root.withAlpha(root.primary, 0.35)
+                                        : root.withAlpha(root.primary, 0.22)
 
                                     Text {
                                         anchors.centerIn: parent
-                                        text: "Clear"
-                                        color: root.textColor
-                                        font.family: root.fontFamily
-                                        font.pixelSize: root.fontSize
-                                    }
-
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: calPopup.clearCurrent()
-                                    }
-                                }
-
-                                Rectangle {
-                                    Layout.preferredWidth: 64
-                                    Layout.fillHeight: true
-                                    radius: 8
-                                    color: root.primary
-
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: "Save"
+                                        text: "+"
                                         color: root.luminance(root.primary) > 0.5 ? root.darkText : root.textColor
                                         font.family: root.fontFamily
-                                        font.pixelSize: root.fontSize
+                                        font.pixelSize: root.fontSize + 2
                                         font.weight: Font.Black
                                     }
 
                                     MouseArea {
+                                        id: addHover
                                         anchors.fill: parent
+                                        hoverEnabled: true
                                         cursorShape: Qt.PointingHandCursor
-                                        onClicked: {
-                                            calPopup.saveCurrent()
-                                            calPopup.close()
+                                        onClicked: calPopup.addEntry()
+                                    }
+                                }
+
+                                Rectangle {
+                                    id: minusBtn
+                                    Layout.preferredWidth: 26
+                                    Layout.fillHeight: true
+                                    radius: 7
+                                    color: minusHover.containsMouse && calPopup.selectedEntryId >= 0
+                                        ? root.withAlpha(root.error, 0.35)
+                                        : root.withAlpha(root.textColor, calPopup.selectedEntryId >= 0 ? 0.12 : 0.05)
+                                    enabled: calPopup.selectedEntryId >= 0
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "-"
+                                        color: calPopup.selectedEntryId >= 0 ? root.error : root.withAlpha(root.textColor, 0.3)
+                                        font.family: root.fontFamily
+                                        font.pixelSize: root.fontSize + 2
+                                        font.weight: Font.Black
+                                    }
+
+                                    MouseArea {
+                                        id: minusHover
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: calPopup.removeSelectedEntry()
+                                    }
+                                }
+
+                                Item { Layout.fillWidth: true }
+
+                                Text {
+                                    text: "Enter to save"
+                                    color: root.withAlpha(root.textColor, 0.4)
+                                    font.family: root.fontFamily
+                                    font.pixelSize: root.fontSize - 2
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+                            }
+
+                            Flickable {
+                                id: entriesList
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                Layout.preferredHeight: 100
+                                clip: true
+                                contentWidth: width
+                                contentHeight: entriesCol.height
+                                boundsBehavior: Flickable.StopAtBounds
+
+                                ScrollBar.vertical: ScrollBar {
+                                    width: 3
+                                    policy: ScrollBar.AsNeeded
+                                    background: Item {}
+                                    contentItem: Rectangle {
+                                        implicitWidth: 3
+                                        radius: 2
+                                        color: root.withAlpha(root.textColor, 0.3)
+                                    }
+                                }
+
+                                Column {
+                                    id: entriesCol
+                                    width: entriesList.width
+                                    spacing: 6
+
+                                    Repeater {
+                                        id: entriesRepeater
+                                        model: ListModel { id: entriesModel }
+
+                                        delegate: Rectangle {
+                                            required property int entryId
+                                            required property string entryText
+                                            required property bool saved
+
+                                            readonly property bool isSelected: calPopup.selectedEntryId === entryId
+
+                                            width: entriesCol.width
+                                            height: 30
+                                            radius: 8
+                                            color: root.withAlpha(root.textColor, saved ? 0.05 : 0.08)
+                                            border.width: 1
+                                            border.color: isSelected
+                                                ? root.primary
+                                                : saved ? "transparent" : root.withAlpha(root.textColor, 0.15)
+
+                                            RowLayout {
+                                                anchors.fill: parent
+                                                anchors.leftMargin: 8
+                                                anchors.rightMargin: 4
+                                                spacing: 6
+
+                                                TextField {
+                                                    id: entryInput
+                                                    visible: !saved
+                                                    Layout.fillWidth: true
+                                                    Layout.fillHeight: true
+                                                    text: entryText
+                                                    color: root.textColor
+                                                    font.family: root.fontFamily
+                                                    font.pixelSize: root.fontSize
+                                                    selectByMouse: true
+                                                    background: Item {}
+                                                    onActiveFocusChanged: {
+                                                        if (activeFocus) calPopup.selectEntry(entryId)
+                                                    }
+                                                    onAccepted: calPopup.saveEntry(entryId, entryInput.text)
+                                                }
+
+                                                Text {
+                                                    visible: saved
+                                                    Layout.fillWidth: true
+                                                    Layout.fillHeight: true
+                                                    text: entryText
+                                                    color: root.withAlpha(root.textColor, 0.5)
+                                                    font.family: root.fontFamily
+                                                    font.pixelSize: root.fontSize
+                                                    font.italic: true
+                                                    elide: Text.ElideRight
+                                                    verticalAlignment: Text.AlignVCenter
+                                                }
+
+                                                Rectangle {
+                                                    visible: !saved
+                                                    Layout.preferredWidth: 22
+                                                    Layout.preferredHeight: 22
+                                                    radius: 6
+                                                    color: saveHover.containsMouse ? root.withAlpha(root.primary, 0.25) : "transparent"
+
+                                                    Text {
+                                                        anchors.centerIn: parent
+                                                        text: "󰄴"
+                                                        color: root.primary
+                                                        font.family: root.iconFont
+                                                        font.pixelSize: root.fontSize
+                                                    }
+
+                                                    MouseArea {
+                                                        id: saveHover
+                                                        anchors.fill: parent
+                                                        hoverEnabled: true
+                                                        cursorShape: Qt.PointingHandCursor
+                                                        onClicked: calPopup.saveEntry(entryId, entryInput.text)
+                                                    }
+                                                }
+                                            }
+
+                                            MouseArea {
+                                                visible: saved
+                                                anchors.fill: parent
+                                                hoverEnabled: true
+                                                cursorShape: Qt.PointingHandCursor
+                                                onClicked: calPopup.selectEntry(entryId)
+                                            }
+
+                                            Component.onCompleted: {
+                                                if (entryId === calPopup.newEntryId && !saved) {
+                                                    Qt.callLater(() => entryInput.forceActiveFocus())
+                                                }
+                                            }
                                         }
                                     }
+                                }
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    visible: entriesModel.count === 0
+                                    text: "No reminders yet — press + to add"
+                                    color: root.withAlpha(root.textColor, 0.4)
+                                    font.family: root.fontFamily
+                                    font.pixelSize: root.fontSize - 1
                                 }
                             }
                         }
