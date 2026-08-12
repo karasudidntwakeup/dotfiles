@@ -1,7 +1,6 @@
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
-import Quickshell.Niri._Ipc
 import Quickshell.Services.UPower
 import QtQuick
 import QtQuick.Controls
@@ -12,7 +11,7 @@ import "colors.js" as Matugen
 // Mirrors ~/.config/waybar (modules + Material You pill styling).
 // Palette comes from matugen via colors.js (regenerated on wallpaper change).
 
-// matugen 1786458817
+// matugen 1786497656
 
 ShellRoot {
     id: root
@@ -212,7 +211,7 @@ ShellRoot {
         repeat: true
         onTriggered: {
             var s = "vol=" + root.volumePercent + "% muted=" + root.muted
-                + "\nkblayout='" + root.shortLayout(Niri.currentKeyboardLayoutName) + "'"
+                + "\nkblayout='" + root.shortLayout(niriIpc.keyboardLayoutName) + "'"
                 + " mem='" + root.memText + "' net='" + root.networkText + "' conn=" + root.networkConnected
                 + " bat=" + root.batteryPercent + " charging=" + root.charging
                 + " weather='" + root.weatherText + "' prayer='" + root.prayerText + "'"
@@ -224,6 +223,171 @@ ShellRoot {
     Process {
         id: debugProc
         command: ["true"]
+    }
+
+    // niri IPC — raw JSON over the $NIRI_SOCKET unix socket (quickshell's
+    // built-in Niri module was removed). Subscribes to the event stream, which
+    // delivers the full current state up-front, then incremental updates.
+    component NiriIpc: Item {
+        id: niri
+
+        readonly property string socketPath: (function() {
+            var p = Quickshell.env("NIRI_SOCKET")
+            if (p) return p
+            var rt = Quickshell.env("XDG_RUNTIME_DIR")
+            var wd = Quickshell.env("WAYLAND_DISPLAY")
+            return rt && wd ? rt + "/niri-ipc-" + wd + ".sock" : ""
+        })()
+
+        // Keyboard layout: XKB names + index of the active one.
+        property var layoutNames: []
+        property int layoutIdx: -1
+        property string keyboardLayoutName: ""
+
+        // Workspaces as {id, idx, name, output, active, focused, urgent}.
+        property var workspaces: []
+
+        signal workspacesUpdated()
+        signal outputsUpdated()
+
+        function refreshLayoutName() {
+            var name = ""
+            if (niri.layoutIdx >= 0 && niri.layoutIdx < niri.layoutNames.length)
+                name = niri.layoutNames[niri.layoutIdx]
+            if (name !== niri.keyboardLayoutName)
+                niri.keyboardLayoutName = name
+        }
+
+        function setWorkspaces(list) {
+            var out = []
+            for (var i = 0; i < list.length; i++) {
+                var w = list[i]
+                out.push({
+                    id: w.id,
+                    idx: w.idx,
+                    name: w.name,
+                    output: w.output,
+                    active: w.is_active,
+                    focused: w.is_focused,
+                    urgent: w.is_urgent
+                })
+            }
+            niri.workspaces = out
+            niri.workspacesUpdated()
+            niri.outputsUpdated()
+        }
+
+        function patchWorkspace(id, patch) {
+            var list = niri.workspaces
+            for (var i = 0; i < list.length; i++) {
+                if (list[i].id !== id) continue
+                var w = list[i]
+                var changed = false
+                for (var k in patch) {
+                    if (w[k] !== patch[k]) { w[k] = patch[k]; changed = true }
+                }
+                if (changed) {
+                    niri.workspaces = list.slice()
+                    niri.workspacesUpdated()
+                }
+                return
+            }
+        }
+
+        function handleMessage(obj) {
+            if (obj.Ok === "Handled" || obj.Err !== undefined) return
+            if (obj.WorkspacesChanged) {
+                niri.setWorkspaces(obj.WorkspacesChanged.workspaces || [])
+            } else if (obj.WorkspaceActivated) {
+                var act = obj.WorkspaceActivated
+                if (act.focused) {
+                    var list = niri.workspaces
+                    var out = []
+                    for (var i = 0; i < list.length; i++) {
+                        var w = list[i]
+                        out.push({
+                            id: w.id, idx: w.idx, name: w.name, output: w.output,
+                            active: w.active || w.id === act.id,
+                            focused: w.id === act.id,
+                            urgent: w.urgent
+                        })
+                    }
+                    niri.workspaces = out
+                    niri.workspacesUpdated()
+                } else {
+                    niri.patchWorkspace(act.id, { active: true })
+                }
+            } else if (obj.WorkspaceUrgencyChanged) {
+                var urg = obj.WorkspaceUrgencyChanged
+                niri.patchWorkspace(urg.id, { urgent: urg.urgent })
+            } else if (obj.KeyboardLayoutsChanged) {
+                var layouts = obj.KeyboardLayoutsChanged.keyboard_layouts
+                niri.layoutNames = layouts && layouts.names ? layouts.names : []
+                niri.layoutIdx = layouts && layouts.current_idx !== undefined ? layouts.current_idx : -1
+                niri.refreshLayoutName()
+            } else if (obj.KeyboardLayoutSwitched) {
+                niri.layoutIdx = obj.KeyboardLayoutSwitched.idx
+                niri.refreshLayoutName()
+            }
+        }
+
+        function focusWorkspace(idx) {
+            var msg = '{"Action":{"FocusWorkspace":{"reference":{"Index":' + idx + '}}}}\n'
+            if (actionSock.connected) {
+                actionSock.write(msg)
+                actionSock.flush()
+            } else if (niri.socketPath.length > 0) {
+                niri.pendingAction = msg
+                actionSock.path = niri.socketPath
+                actionSock.connected = true
+            }
+        }
+
+        property string pendingAction: ""
+
+        // Event stream: emits full state, then one-line JSON events.
+        Socket {
+            id: streamSock
+            path: niri.socketPath
+            connected: niri.socketPath.length > 0
+            parser: SplitParser {
+                onRead: data => {
+                    if (!data) return
+                    var obj
+                    try { obj = JSON.parse(data) } catch (e) { return }
+                    niri.handleMessage(obj)
+                }
+            }
+            onConnectionStateChanged: {
+                if (connected) {
+                    streamSock.write('"EventStream"\n')
+                    streamSock.flush()
+                }
+            }
+            onError: error => console.log("[niri] event stream error:", error)
+        }
+
+        // Separate socket for one-off requests (event stream stops reading requests).
+        Socket {
+            id: actionSock
+            parser: SplitParser {
+                onRead: data => {
+                    if (data && data.indexOf('"Err"') >= 0) console.log("[niri] action error:", data)
+                }
+            }
+            onConnectionStateChanged: {
+                if (connected && niri.pendingAction.length > 0) {
+                    actionSock.write(niri.pendingAction)
+                    actionSock.flush()
+                    niri.pendingAction = ""
+                }
+            }
+            onError: error => console.log("[niri] action socket error:", error)
+        }
+    }
+
+    NiriIpc {
+        id: niriIpc
     }
 
     // A pill-shaped module, styled like the waybar modules.
@@ -310,7 +474,7 @@ ShellRoot {
             anchors.fill: parent
             cursorShape: Qt.PointingHandCursor
             onClicked: {
-                if (wsBtn.ws) Niri.dispatch(["focus-workspace", String(wsBtn.ws.idx)])
+                if (wsBtn.ws) niriIpc.focusWorkspace(wsBtn.ws.idx)
             }
         }
     }
@@ -336,7 +500,7 @@ ShellRoot {
 
             function refreshWorkspaces() {
                 var list = []
-                for (const ws of Niri.workspaces.values) {
+                for (const ws of niriIpc.workspaces) {
                     if (ws.output === outputName) list.push(ws)
                 }
                 list.sort((a, b) => a.idx - b.idx)
@@ -344,14 +508,9 @@ ShellRoot {
             }
 
             Connections {
-                target: Niri
+                target: niriIpc
                 function onWorkspacesUpdated() { bar.refreshWorkspaces() }
                 function onOutputsUpdated() { bar.refreshWorkspaces() }
-            }
-
-            Connections {
-                target: Niri.workspaces
-                function onValuesChanged() { bar.refreshWorkspaces() }
             }
 
             Component.onCompleted: refreshWorkspaces()
@@ -408,7 +567,7 @@ ShellRoot {
 
                     Module {
                         id: kbPill
-                        label: root.shortLayout(Niri.currentKeyboardLayoutName)
+                        label: root.shortLayout(niriIpc.keyboardLayoutName)
                         tint: root.tertiaryContainer
                     }
 
