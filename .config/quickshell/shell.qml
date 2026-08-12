@@ -11,7 +11,7 @@ import "colors.js" as Matugen
 // Mirrors ~/.config/waybar (modules + Material You pill styling).
 // Palette comes from matugen via colors.js (regenerated on wallpaper change).
 
-// matugen 1786533962
+// matugen 1786535345
 
 ShellRoot {
     id: root
@@ -398,10 +398,12 @@ ShellRoot {
         property string label: ""
         property string icon: ""
         property color tint: root.primary
+        property bool whiteText: false
         property alias clickArea: pillArea
         property alias wheelArea: pillArea
 
-        readonly property color pillTextColor: root.luminance(tint) > 0.5 ? root.darkText : root.textColor
+        readonly property color pillTextColor: pill.whiteText
+            ? root.textColor : (root.luminance(tint) > 0.5 ? root.darkText : root.textColor)
 
         implicitWidth: pillRow.implicitWidth + 25
         implicitHeight: root.pillHeight - 2
@@ -596,6 +598,7 @@ ShellRoot {
                         icon: "󰍛"
                         label: root.memText
                         tint: root.error
+                        whiteText: true
                     }
 
                     Module {
@@ -603,6 +606,7 @@ ShellRoot {
                         icon: root.networkConnected ? "󰖩" : "󰖪"
                         label: root.networkText
                         tint: root.tertiary
+                        whiteText: true
                     }
 
                     Module {
@@ -612,6 +616,7 @@ ShellRoot {
                             : root.batteryIcon(root.batteryPercent)
                         label: root.batteryPercent
                         tint: root.secondary
+                        whiteText: true
                     }
 
                     Module {
@@ -619,6 +624,7 @@ ShellRoot {
                         icon: "󰥔"
                         label: root.clockText
                         tint: root.primary
+                        whiteText: true
 
                         clickArea.onClicked: calPopup.open()
                     }
