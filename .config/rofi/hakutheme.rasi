@@ -6,9 +6,9 @@
 
 /* ===== GLOBAL VARIABLES ===== */
 * {
-    background:          rgba(0, 0, 0, 0.7);
+    background:          rgba(0, 0, 0, 0.4);
     foreground:          #ffffff;
-    modebar-bg:          rgba(27, 27, 27, 0.5);
+    modebar-bg:          rgba(27, 27, 27, 1);
     background-color:    transparent;
     text-color:          @foreground;
     
@@ -34,7 +34,7 @@ mainbox {
 /* ===== INPUT BAR ===== */
 inputbar {
     padding:             10px;
-    background-color:    rgba(0, 0, 0, 0.2);
+    background-color:    rgba(0, 0, 0, 0.4);
     border-radius:       20px;
     children:            [ prompt, entry ];
 }
