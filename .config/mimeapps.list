@@ -27,6 +27,27 @@ audio/mpeg=mpv.desktop
 audio/ogg=mpv.desktop
 audio/x-wav=mpv.desktop
 
+# Images (nsxiv)
+image/png=nsxiv.desktop
+image/jpeg=nsxiv.desktop
+image/gif=nsxiv.desktop
+image/webp=nsxiv.desktop
+image/bmp=nsxiv.desktop
+image/tiff=nsxiv.desktop
+image/tiff+xml=nsxiv.desktop
+image/svg+xml=nsxiv.desktop
+image/x-portable-pixmap=nsxiv.desktop
+image/x-portable-bitmap=nsxiv.desktop
+image/x-portable-graymap=nsxiv.desktop
+image/x-xbitmap=nsxiv.desktop
+image/x-xpixmap=nsxiv.desktop
+image/x-tga=nsxiv.desktop
+image/vnd.microsoft.icon=nsxiv.desktop
+image/heic=nsxiv.desktop
+image/heic-sequence=nsxiv.desktop
+image/heif=nsxiv.desktop
+image/heif-sequence=nsxiv.desktop
+
 # Chat & Social URL Schemes
 x-scheme-handler/tg=org.telegram.desktop.desktop
 x-scheme-handler/discord=vesktop.desktop

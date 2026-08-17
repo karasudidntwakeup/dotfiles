@@ -220,7 +220,7 @@ layer-rule {
             adaptive-dim 0.0
             adaptive-boost 0.0
             physical-refraction 0.4
-            lens-distortion 0.9
+            lens-distortion 0.35
             fringing 0.1
         }
     }
