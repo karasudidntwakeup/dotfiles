@@ -2,20 +2,27 @@
     font-family: "SF Arabic", "SF Pro Text", sans-serif;
 }
 .notification-row {
-  background: @background;
+  background: none;
   color: @foreground;
 }
 
 .notification {
-  background-color: rgba(30, 30, 46, 1);
   font-family: "SF Arabic", sans-serif;
-  background: @surface_variant;
+  background: alpha(@surface_variant, 0.4);
   border: 1px solid @outline;
   border-radius: 12px;
+  backdrop-filter: blur(16px);
 }
 
 .notification .notification-content {
   color: @foreground;
+}
+
+.notification .notification-content .app-icon {
+  -gtk-icon-size: 56px;
+  -gtk-icon-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
+  margin: 4px;
 }
 
 .notification-action {
