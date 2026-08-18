@@ -11,7 +11,7 @@ import "colors.js" as Matugen
 // Mirrors ~/.config/waybar (modules + Material You pill styling).
 // Palette comes from matugen via colors.js (regenerated on wallpaper change).
 
-// matugen 1786995268
+// matugen 1787088385
 
 ShellRoot {
     id: root
@@ -497,13 +497,6 @@ ShellRoot {
             color: "transparent"
             exclusiveZone: root.barHeight
 
-            Rectangle {
-                anchors.fill: barContent
-                anchors.margins: -10
-                radius: 25
-                color: root.withAlpha(root.surface, 0.55)
-                z: -1
-            }
 
             readonly property string outputName: modelData ? modelData.name : ""
             property var workspaceList: []
