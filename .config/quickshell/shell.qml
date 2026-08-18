@@ -11,7 +11,7 @@ import "colors.js" as Matugen
 // Mirrors ~/.config/waybar (modules + Material You pill styling).
 // Palette comes from matugen via colors.js (regenerated on wallpaper change).
 
-// matugen 1786556475
+// matugen 1786995268
 
 ShellRoot {
     id: root
@@ -407,7 +407,7 @@ ShellRoot {
 
         implicitWidth: pillRow.implicitWidth + 25
         implicitHeight: root.pillHeight - 2
-        radius: height / 0
+        radius: 20
         border.width: 0
         color: root.withAlpha(tint, root.pillAlpha)
         opacity: 0.9
@@ -497,6 +497,14 @@ ShellRoot {
             color: "transparent"
             exclusiveZone: root.barHeight
 
+            Rectangle {
+                anchors.fill: barContent
+                anchors.margins: -10
+                radius: 25
+                color: root.withAlpha(root.surface, 0.55)
+                z: -1
+            }
+
             readonly property string outputName: modelData ? modelData.name : ""
             property var workspaceList: []
 
@@ -519,7 +527,7 @@ ShellRoot {
 
             Item {
                 id: barContent
-                width: leftGroup.width + centerGroup.width + rightGroup.width + root.groupSpacing * 2
+                width: leftGroup.width + centerGroup.width + rightGroup.width + root.groupSpacing + 7
                 height: root.barHeight
                 anchors.horizontalCenter: parent.horizontalCenter
 
@@ -538,7 +546,7 @@ ShellRoot {
                     }
                 }
 
-                // modules-center: weather, prayer (centered between left and right groups)
+                // modules-center: weather, prayer
                 Row {
                     id: centerGroup
                     x: leftGroup.width + root.groupSpacing
@@ -561,7 +569,7 @@ ShellRoot {
                 // modules-right: spacer, kblayout, pulseaudio, memory, network, battery, clock
                 Row {
                     id: rightGroup
-                    x: leftGroup.width + centerGroup.width + root.groupSpacing * 1
+                    x: barContent.width - rightGroup.width - 7
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: root.groupSpacing
 
