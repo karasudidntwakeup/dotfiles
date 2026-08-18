@@ -69,7 +69,7 @@ gestures {
 
 output "eDP-1" {
     mode "1920x1080@60"
-    scale 0.95
+    scale 0.8
 
 }
 layer-rule {
@@ -271,7 +271,7 @@ window-rule {
   }
 window-rule {
     match app-id=r#"mpv"#
-    default-column-width { proportion 1.0;}
+    default-column-width { proportion 0.95;}
   }
 window-rule {
     match app-id=r#"sxiv"#
