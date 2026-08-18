@@ -259,6 +259,7 @@ window-rule {
   window-rule {
     match app-id="librewolf"
     opacity 0.98
+    default-column-width { proportion 0.60;}
 }
 window-rule {
     match is-active=true
