@@ -11,7 +11,7 @@ import "colors.js" as Matugen
 // Mirrors ~/.config/waybar (modules + Material You pill styling).
 // Palette comes from matugen via colors.js (regenerated on wallpaper change).
 
-// matugen 1787094170
+// matugen 1787095006
 
 ShellRoot {
     id: root
@@ -949,7 +949,7 @@ ShellRoot {
 
                             Text {
                                 text: "󰁍"
-                                color: root.textColor
+                                color: "#ffffff"
                                 font.family: root.iconFont
                                 font.pixelSize: root.fontSize + 1
                                 Layout.preferredWidth: 24
@@ -966,7 +966,7 @@ ShellRoot {
 
                             Text {
                                 text: calPopup.monthName(calPopup.shownMonth) + " " + calPopup.shownYear
-                                color: root.textColor
+                                color: "#ffffff"
                                 font.family: root.fontFamily
                                 font.pixelSize: root.fontSize
                                 font.weight: Font.Black
@@ -977,7 +977,7 @@ ShellRoot {
 
                             Text {
                                 text: "󰁔"
-                                color: root.textColor
+                                color: "#ffffff"
                                 font.family: root.iconFont
                                 font.pixelSize: root.fontSize + 1
                                 Layout.preferredWidth: 24
@@ -994,7 +994,7 @@ ShellRoot {
 
                             Text {
                                 text: "󰅖"
-                                color: root.textColor
+                                color: "#ffffff"
                                 font.family: root.iconFont
                                 font.pixelSize: root.fontSize + 1
                                 Layout.preferredWidth: 24
@@ -1018,7 +1018,7 @@ ShellRoot {
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: "󰥔"
-                                color: root.withAlpha(root.textColor, 0.85)
+                                color: "#ffffff"
                                 font.family: root.iconFont
                                 font.pixelSize: root.fontSize + 1
                             }
@@ -1026,7 +1026,7 @@ ShellRoot {
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: Qt.formatDate(new Date(), "dddd, MMMM d, yyyy")
-                                color: root.withAlpha(root.textColor, 0.85)
+                                color: "#ffffff"
                                 font.family: root.fontFamily
                                 font.pixelSize: root.fontSize - 1
                                 font.weight: Font.Black
@@ -1043,7 +1043,7 @@ ShellRoot {
                                     width: (calPopupBody.width - 24) / 7
                                     horizontalAlignment: Text.AlignHCenter
                                     text: modelData
-                                    color: root.withAlpha(root.textColor, 0.5)
+                                    color: "#ffffff"
                                     font.family: root.fontFamily
                                     font.pixelSize: root.fontSize - 2
                                 }
@@ -1097,9 +1097,7 @@ ShellRoot {
                                             anchors.centerIn: parent
                                             visible: day > 0
                                             text: day
-                                            color: isSelected
-                                                ? (root.luminance(root.primary) > 0.5 ? root.darkText : root.textColor)
-                                                : root.textColor
+                                            color: isSelected ? "#000000" : "#ffffff"
                                             font.family: root.fontFamily
                                             font.pixelSize: root.fontSize
                                             font.weight: isSelected || isToday ? Font.Black : Font.Normal
@@ -1155,7 +1153,7 @@ ShellRoot {
 
                                 Text {
                                     text: calPopup.selectedDateLabel()
-                                    color: root.textColor
+                                    color: "#ffffff"
                                     font.family: root.fontFamily
                                     font.pixelSize: root.fontSize
                                     font.weight: Font.Black
@@ -1167,7 +1165,7 @@ ShellRoot {
                                     text: (calPopup.entries || []).length === 1
                                         ? "1 reminder"
                                         : (calPopup.entries || []).length + " reminders"
-                                    color: root.withAlpha(root.textColor, 0.5)
+                                    color: "#ffffff"
                                     font.family: root.fontFamily
                                     font.pixelSize: root.fontSize - 2
                                     verticalAlignment: Text.AlignVCenter
@@ -1175,7 +1173,7 @@ ShellRoot {
 
                                 Text {
                                     text: "󰅖"
-                                    color: root.withAlpha(root.textColor, 0.7)
+                                    color: "#ffffff"
                                     font.family: root.iconFont
                                     font.pixelSize: root.fontSize + 1
                                     Layout.preferredWidth: 20
@@ -1255,7 +1253,7 @@ ShellRoot {
 
                                 Text {
                                     text: "Enter to save"
-                                    color: root.withAlpha(root.textColor, 0.4)
+                                    color: "#ffffff"
                                     font.family: root.fontFamily
                                     font.pixelSize: root.fontSize - 2
                                     verticalAlignment: Text.AlignVCenter
@@ -1320,7 +1318,7 @@ ShellRoot {
                                                     Layout.fillWidth: true
                                                     Layout.fillHeight: true
                                                     text: entryText
-                                                    color: root.textColor
+                                                    color: "#ffffff"
                                                     font.family: root.fontFamily
                                                     font.pixelSize: root.fontSize
                                                     selectByMouse: true
@@ -1336,7 +1334,7 @@ ShellRoot {
                                                     Layout.fillWidth: true
                                                     Layout.fillHeight: true
                                                     text: entryText
-                                                    color: root.withAlpha(root.textColor, 0.5)
+                                                    color: "#ffffff"
                                                     font.family: root.fontFamily
                                                     font.pixelSize: root.fontSize
                                                     font.italic: true
@@ -1390,7 +1388,7 @@ ShellRoot {
                                     anchors.centerIn: parent
                                     visible: entriesModel.count === 0
                                     text: "No reminders yet — press + to add"
-                                    color: root.withAlpha(root.textColor, 0.4)
+                                    color: "#ffffff"
                                     font.family: root.fontFamily
                                     font.pixelSize: root.fontSize - 1
                                 }
