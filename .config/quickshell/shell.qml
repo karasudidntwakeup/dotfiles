@@ -11,7 +11,7 @@ import "colors.js" as Matugen
 // Mirrors ~/.config/waybar (modules + Material You pill styling).
 // Palette comes from matugen via colors.js (regenerated on wallpaper change).
 
-// matugen 1787095006
+// matugen 1787095194
 
 ShellRoot {
     id: root
@@ -490,8 +490,8 @@ ShellRoot {
             screen: modelData
             focusable: true
 
-            anchors.bottom: true
-            margins.bottom: 10
+            anchors.top: true
+            margins.top: 10
             implicitWidth: barContent.width
             implicitHeight: root.barHeight
             color: "transparent"
