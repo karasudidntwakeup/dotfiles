@@ -11,7 +11,7 @@ import "colors.js" as Matugen
 // Mirrors ~/.config/waybar (modules + Material You pill styling).
 // Palette comes from matugen via colors.js (regenerated on wallpaper change).
 
-// matugen 1787088385
+// matugen 1787094170
 
 ShellRoot {
     id: root
@@ -35,11 +35,11 @@ ShellRoot {
     // Layout (matches waybar config.jsonc)
     readonly property int barHeight: 44
     readonly property int pillHeight: 29
-    readonly property int groupSpacing: 15
+    readonly property int groupSpacing: 25
 
-    readonly property color textColor: "#ffffff"
+    readonly property color textColor: "#000000"
     readonly property color darkText: Matugen.shadow
-    readonly property real pillAlpha: 0.45
+    readonly property real pillAlpha: 0.25
 
     function luminance(color) {
         return 0.299 * color.r + 0.587 * color.g + 0.114 * color.b
@@ -407,9 +407,9 @@ ShellRoot {
 
         implicitWidth: pillRow.implicitWidth + 25
         implicitHeight: root.pillHeight - 2
-        radius: 20
+        radius: 25
         border.width: 0
-        color: root.withAlpha(tint, root.pillAlpha)
+        color: root.withAlpha(tint, 1.0)
         opacity: 0.9
 
         Row {
@@ -460,12 +460,12 @@ ShellRoot {
         height: root.pillHeight  + 0
         radius: 30
         border.width: 0
-        color: focused ? root.withAlpha(root.primary, root.pillAlpha)
-            : urgent ? root.withAlpha(root.error, root.pillAlpha) : "transparent"
+        color: focused ? root.withAlpha(root.primary, 1.0)
+            : urgent ? root.withAlpha(root.error, 1.0) : "transparent"
 
         Text {
             text: wsBtn.ws ? wsBtn.ws.idx : ""
-            color: root.luminance(wsBtn.color) > 0.5 ? root.darkText : root.textColor
+            color: wsBtn.focused ? "#000000" : "#ffffff"
             font.family: root.fontFamily
             font.pixelSize: root.fontSize
             font.weight: Font.Black
@@ -549,13 +549,13 @@ ShellRoot {
                     Module {
                         id: weatherPill
                         label: root.weatherText
-                        tint: root.primaryContainer
+                        tint: root.primary
                     }
 
                     Module {
                         id: prayerPill
                         label: root.prayerText
-                        tint: root.errorContainer
+                        tint: root.error
                     }
                 }
 
@@ -571,14 +571,14 @@ ShellRoot {
                     Module {
                         id: kbPill
                         label: root.shortLayout(niriIpc.keyboardLayoutName)
-                        tint: root.tertiaryContainer
+                        tint: root.tertiary
                     }
 
                     Module {
                         id: volPill
                         icon: root.volumeIcon
                         label: root.muted ? "MUTE" : root.volumePercent + "%"
-                        tint: root.secondaryContainer
+                        tint: root.secondary
 
                         clickArea.onClicked: {
                             volCmd.command = ["pactl", "set-sink-mute", "@DEFAULT_SINK@", "toggle"]
