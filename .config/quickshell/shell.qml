@@ -570,7 +570,7 @@ ShellRoot {
                 // modules-left: weather, prayer
                 Row {
                     id: leftGroup
-                    x: 22
+                    x: 32
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: root.groupSpacing
 
@@ -607,7 +607,7 @@ ShellRoot {
                 // modules-right: spacer, kblayout, pulseaudio, memory, network, battery, clock
                 Row {
                     id: rightGroup
-                    x: barContent.width - rightGroup.width - 22
+                    x: barContent.width - rightGroup.width - 32
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: root.groupSpacing
 
