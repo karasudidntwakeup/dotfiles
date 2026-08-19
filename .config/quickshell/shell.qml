@@ -11,7 +11,7 @@ import "colors.js" as Matugen
 // Mirrors ~/.config/waybar (modules + Material You pill styling).
 // Palette comes from matugen via colors.js (regenerated on wallpaper change).
 
-// matugen 1787096775
+// matugen 1787153589
 
 ShellRoot {
     id: root
@@ -186,6 +186,44 @@ ShellRoot {
         onTriggered: netProc.running = true
     }
 
+    // Bluetooth (bluetoothctl)
+    property string bluetoothText: ""
+    property string bluetoothStatus: "off"
+
+    Process {
+        id: btProc
+        command: ["sh", "-c", "~/.config/quickshell/scripts/bluetooth.sh"]
+        stdout: SplitParser {
+            onRead: data => {
+                if (data) {
+                    var t = data.trim()
+                    if (t.indexOf("󰂲") >= 0) {
+                        root.bluetoothStatus = "off"
+                        root.bluetoothText = "OFF"
+                    } else if (t.indexOf("󰂱") >= 0) {
+                        root.bluetoothStatus = "connected"
+                        root.bluetoothText = t.replace(/^󰂱\s+/, "")
+                    } else {
+                        root.bluetoothStatus = "on"
+                        root.bluetoothText = "ON"
+                    }
+                }
+            }
+        }
+    }
+
+    Process {
+        id: btCmd
+        command: ["true"]
+    }
+
+    Timer {
+        interval: 5000
+        running: true
+        repeat: true
+        onTriggered: btProc.running = true
+    }
+
     // Clock (updates every second, like waybar)
     property string clockText: ""
 
@@ -203,6 +241,7 @@ ShellRoot {
         prayerProc.running = true
         memProc.running = true
         netProc.running = true
+        btProc.running = true
     }
 
     Timer {
@@ -415,7 +454,7 @@ ShellRoot {
         Row {
             id: pillRow
             anchors.centerIn: parent
-            spacing: 3
+            spacing: 6
 
             Text {
                 id: pillIcon
@@ -558,12 +597,14 @@ ShellRoot {
                         id: weatherPill
                         label: root.weatherText
                         tint: root.primary
+                        visible: root.weatherText.length > 0
                     }
 
                     Module {
                         id: prayerPill
                         label: root.prayerText
                         tint: root.error
+                        visible: root.prayerText.length > 0
                     }
                 }
 
@@ -616,6 +657,22 @@ ShellRoot {
                         label: root.networkText
                         tint: root.tertiary
                         whiteText: true
+                        visible: root.networkConnected
+                    }
+
+                    Module {
+                        id: btPill
+                        icon: root.bluetoothStatus === "off" ? "󰂲" : root.bluetoothStatus === "connected" ? "󰂱" : "󰂯"
+                        label: root.bluetoothText
+                        tint: root.tertiary
+                        whiteText: true
+                        visible: root.bluetoothStatus === "connected"
+
+                        clickArea.onClicked: {
+                            btCmd.command = ["sh", "-c", "bluetoothctl disconnect"]
+                            btCmd.running = true
+                            btProc.running = true
+                        }
                     }
 
                     Module {
