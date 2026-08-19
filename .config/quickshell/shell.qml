@@ -11,7 +11,7 @@ import "colors.js" as Matugen
 // Mirrors ~/.config/waybar (modules + Material You pill styling).
 // Palette comes from matugen via colors.js (regenerated on wallpaper change).
 
-// matugen 1787095194
+// matugen 1787096775
 
 ShellRoot {
     id: root
@@ -492,7 +492,7 @@ ShellRoot {
 
             anchors.top: true
             margins.top: 10
-            implicitWidth: barContent.width
+            implicitWidth: barContent.width + 30
             implicitHeight: root.barHeight
             color: "transparent"
             exclusiveZone: root.barHeight
@@ -523,6 +523,14 @@ ShellRoot {
                 width: leftGroup.width + centerGroup.width + rightGroup.width + root.groupSpacing + 7
                 height: root.barHeight
                 anchors.horizontalCenter: parent.horizontalCenter
+
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: barContent.width + 30
+                    height: barContent.height
+                    radius: 25
+                    color: root.withAlpha("#ffffff", 0.15)
+                }
 
                 // modules-left: niri/workspaces
                 Row {
@@ -1337,7 +1345,6 @@ ShellRoot {
                                                     color: "#ffffff"
                                                     font.family: root.fontFamily
                                                     font.pixelSize: root.fontSize
-                                                    font.italic: true
                                                     elide: Text.ElideRight
                                                     verticalAlignment: Text.AlignVCenter
                                                 }

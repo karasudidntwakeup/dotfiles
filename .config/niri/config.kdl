@@ -256,15 +256,23 @@ window-rule {
         color "#00000070"
     }
   }
-  window-rule {
-    match app-id="librewolf"
-    opacity 0.98
-    default-column-width { proportion 0.60;}
-}
+
 window-rule {
     match is-active=true
     opacity 0.96
 }
+window-rule {
+    match app-id="librewolf"
+    opacity 0.98
+    default-column-width { proportion 0.70;}
+}
+
+window-rule {
+    match app-id="pcmanfm"
+    opacity 0.80
+}
+
+
 
   window-rule {
     match app-id=r#"telegram"#
