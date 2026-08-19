@@ -4,103 +4,103 @@
 */
 
 
-var background = "#0f1417"
+var background = "#101417"
 
 var error = "#ffb4ab"
 
 var error_container = "#93000a"
 
-var inverse_on_surface = "#2c3134"
+var inverse_on_surface = "#2d3135"
 
-var inverse_primary = "#0b6780"
+var inverse_primary = "#276389"
 
-var inverse_surface = "#dee3e6"
+var inverse_surface = "#e0e3e8"
 
-var on_background = "#dee3e6"
+var on_background = "#e0e3e8"
 
 var on_error = "#690005"
 
 var on_error_container = "#ffdad6"
 
-var on_primary = "#003544"
+var on_primary = "#00344e"
 
-var on_primary_container = "#baeaff"
+var on_primary_container = "#cae6ff"
 
-var on_primary_fixed = "#001f29"
+var on_primary_fixed = "#001e2f"
 
-var on_primary_fixed_variant = "#004d62"
+var on_primary_fixed_variant = "#004b6f"
 
-var on_secondary = "#1e333c"
+var on_secondary = "#22323f"
 
-var on_secondary_container = "#cfe6f1"
+var on_secondary_container = "#d3e5f5"
 
-var on_secondary_fixed = "#071e26"
+var on_secondary_fixed = "#0c1d29"
 
-var on_secondary_fixed_variant = "#354a53"
+var on_secondary_fixed_variant = "#384956"
 
-var on_surface = "#dee3e6"
+var on_surface = "#e0e3e8"
 
-var on_surface_variant = "#c0c8cc"
+var on_surface_variant = "#c1c7ce"
 
-var on_tertiary = "#2d2d4d"
+var on_tertiary = "#352b4b"
 
-var on_tertiary_container = "#e1dfff"
+var on_tertiary_container = "#eaddff"
 
-var on_tertiary_fixed = "#181837"
+var on_tertiary_fixed = "#201634"
 
-var on_tertiary_fixed_variant = "#434465"
+var on_tertiary_fixed_variant = "#4c4162"
 
-var outline = "#8a9296"
+var outline = "#8b9198"
 
-var outline_variant = "#40484c"
+var outline_variant = "#41474d"
 
-var primary = "#89d0ed"
+var primary = "#95cdf8"
 
-var primary_container = "#004d62"
+var primary_container = "#004b6f"
 
-var primary_fixed = "#baeaff"
+var primary_fixed = "#cae6ff"
 
-var primary_fixed_dim = "#89d0ed"
+var primary_fixed_dim = "#95cdf8"
 
 var scrim = "#000000"
 
-var secondary = "#b3cad5"
+var secondary = "#b7c9d9"
 
-var secondary_container = "#354a53"
+var secondary_container = "#384956"
 
-var secondary_fixed = "#cfe6f1"
+var secondary_fixed = "#d3e5f5"
 
-var secondary_fixed_dim = "#b3cad5"
+var secondary_fixed_dim = "#b7c9d9"
 
 var shadow = "#000000"
 
-var source_color = "#7499a9"
+var source_color = "#1e252b"
 
-var surface = "#0f1417"
+var surface = "#101417"
 
-var surface_bright = "#353a3d"
+var surface_bright = "#363a3e"
 
-var surface_container = "#1b2023"
+var surface_container = "#1c2024"
 
-var surface_container_high = "#252b2d"
+var surface_container_high = "#262a2e"
 
-var surface_container_highest = "#303638"
+var surface_container_highest = "#313539"
 
-var surface_container_low = "#171c1f"
+var surface_container_low = "#181c20"
 
-var surface_container_lowest = "#0a0f11"
+var surface_container_lowest = "#0b0f12"
 
-var surface_dim = "#0f1417"
+var surface_dim = "#101417"
 
-var surface_tint = "#89d0ed"
+var surface_tint = "#95cdf8"
 
-var surface_variant = "#40484c"
+var surface_variant = "#41474d"
 
-var tertiary = "#c4c3eb"
+var tertiary = "#cfc0e8"
 
-var tertiary_container = "#434465"
+var tertiary_container = "#4c4162"
 
-var tertiary_fixed = "#e1dfff"
+var tertiary_fixed = "#eaddff"
 
-var tertiary_fixed_dim = "#c4c3eb"
+var tertiary_fixed_dim = "#cfc0e8"
 
