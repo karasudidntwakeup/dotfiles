@@ -213,7 +213,7 @@ layer-rule {
             power-factor 1.0
             refraction-power 9.0
             glow-weight 0.0
-            edge-lighting 0.0
+            edge-lighting 0.3
             saturation 0.8
             vibrancy 0.9
             adaptive-dim 0.0
@@ -224,12 +224,26 @@ layer-rule {
     }
   }
 layer-rule {
+    geometry-corner-radius 25
     match namespace="quickshell"
     match layer="top"
-    geometry-corner-radius 0
     background-effect {
-        xray false
-        blur false
+        xray true
+        blur true
+        noise 0
+        liquid-glass {
+            refraction-strength 3
+            power-factor 1.0
+            refraction-power 0.0
+            glow-weight 0.0
+            edge-lighting 0.0
+            saturation 0.9
+            vibrancy 0.9
+            adaptive-dim 0.0
+            adaptive-boost 0.0
+            physical-refraction 0.0
+            fringing 0.0
+        }
     }
   }
 
@@ -244,7 +258,7 @@ window-rule {
             refraction-strength 33
             power-factor 1
             refraction-power 9
-            glow-weight 0.0001
+            glow-weight 0.0000
             edge-lighting 0.00
             saturation 0.8
             vibrancy 0
