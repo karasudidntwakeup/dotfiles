@@ -2,13 +2,27 @@
 
 WALLPAPER_DIR="$HOME/wallpaper"
 
-SELECTED=$(find "$WALLPAPER_DIR" -type f ! -name ".*" \( -name "*.jpg" -o -name "*.png" -o -name "*.jpeg" -o -name "*.webp" \) -printf '%T@ %p\n' \
+CURRENT=$(awww query 2>/dev/null | grep -oP 'image: \K.*')
+CURRENT_NAME=$(basename "${CURRENT%.*}")
+
+WALLPAPER_LIST=$(find "$WALLPAPER_DIR" -type f ! -name ".*" \( -name "*.jpg" -o -name "*.png" -o -name "*.jpeg" -o -name "*.webp" \) -printf '%T@ %p\n' \
   | sort -rn \
-  | cut -d' ' -f2- \
-  | while read -r img; do
-      echo -en "$(basename "${img%.*}")\0icon\x1f$img\n"
-    done \
-  | rofi -dmenu -p "Wallpaper" -show-icons -theme "$HOME/.config/rofi/wallpaper-changer/theme.rasi")
+  | cut -d' ' -f2-)
+
+SELECTED_ROW=0
+INDEX=0
+MENU_ITEMS=""
+while IFS= read -r img; do
+    NAME=$(basename "${img%.*}")
+    MENU_ITEMS+="${NAME}\0icon\x1f${img}\n"
+    if [ "$NAME" = "$CURRENT_NAME" ]; then
+        SELECTED_ROW=$INDEX
+    fi
+    INDEX=$((INDEX + 1))
+done <<< "$WALLPAPER_LIST"
+
+SELECTED=$(echo -en "$MENU_ITEMS" \
+  | rofi -dmenu -p "Wallpaper" -show-icons -theme "$HOME/.config/rofi/wallpaper-changer/theme.rasi" -selected-row "$SELECTED_ROW")
 
 # Reconstruct full path from selected name
 FULL_PATH=$(find "$WALLPAPER_DIR" -type f ! -name ".*" \( -name "*.jpg" -o -name "*.png" -o -name "*.jpeg" -o -name "*.webp" \) \
@@ -16,10 +30,10 @@ FULL_PATH=$(find "$WALLPAPER_DIR" -type f ! -name ".*" \( -name "*.jpg" -o -name
 
 [ -z "$FULL_PATH" ] && exit 1
 
-matugen image "$FULL_PATH" --prefer lightness
+matugen image "$FULL_PATH" --prefer darkness
 
 awww img "$FULL_PATH" --transition-type random --transition-duration 2.0
 
 base=$(basename "$FULL_PATH")
 
-sed -i 's|path = ~/wallpaper/.*|path = ~/wallpaper/'"$base"'|' ~/.config/hypr/hyprlock.conf
+sed -i 's|path = ~/wallpaper/.*|path = ~/wallpaper/'"$base"'|' ~/.config/hypr/hyprlock.conf 2>/dev/null
