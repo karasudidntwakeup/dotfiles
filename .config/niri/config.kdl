@@ -69,7 +69,7 @@ gestures {
 
 output "eDP-1" {
     mode "1920x1080@60"
-    scale 0.8
+    scale 1
 
 }
 layer-rule {
@@ -203,26 +203,33 @@ animations {
 layer-rule {
     match namespace="rofi"
     match layer="top"
-    block-out-from "screencast"
-    geometry-corner-radius 15
+    geometry-corner-radius 25
     background-effect {
         xray true
         blur true
         noise 0
         liquid-glass {
-            refraction-strength 30
+            refraction-strength 5
             power-factor 1.0
             refraction-power 9.0
-            glow-weight 0.0000001
+            glow-weight 0.0
             edge-lighting 0.0
             saturation 0.8
             vibrancy 0.9
             adaptive-dim 0.0
             adaptive-boost 0.0
             physical-refraction 0.4
-            lens-distortion 0.35
             fringing 0.1
         }
+    }
+  }
+layer-rule {
+    match namespace="quickshell"
+    match layer="top"
+    geometry-corner-radius 0
+    background-effect {
+        xray false
+        blur false
     }
   }
 

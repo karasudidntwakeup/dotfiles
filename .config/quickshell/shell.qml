@@ -11,7 +11,7 @@ import "colors.js" as Matugen
 // Mirrors ~/.config/waybar (modules + Material You pill styling).
 // Palette comes from matugen via colors.js (regenerated on wallpaper change).
 
-// matugen 1787160609
+// matugen 1787174550
 
 ShellRoot {
     id: root
@@ -26,6 +26,8 @@ ShellRoot {
     readonly property color error: Matugen.error
     readonly property color errorContainer: Matugen.error_container
     readonly property color surface: Matugen.surface
+    readonly property color surfaceBright: Matugen.surface_bright
+    readonly property color outlineVariant: Matugen.outline_variant
 
     // Typography (matches waybar style.css)
     readonly property string fontFamily: "Ndot 57"
@@ -35,7 +37,7 @@ ShellRoot {
     // Layout (matches waybar config.jsonc)
     readonly property int barHeight: 44
     readonly property int pillHeight: 29
-    readonly property int groupSpacing: 25
+    readonly property int groupSpacing: 12
 
     readonly property color textColor: "#000000"
     readonly property color darkText: Matugen.shadow
@@ -500,7 +502,8 @@ ShellRoot {
         radius: 30
         border.width: 0
         color: focused ? root.withAlpha(root.primary, 1.0)
-            : urgent ? root.withAlpha(root.error, 1.0) : "transparent"
+            : urgent ? root.withAlpha(root.error, 1.0)
+            : root.withAlpha(root.outlineVariant, 0.85)
 
         Text {
             text: wsBtn.ws ? wsBtn.ws.idx : ""
@@ -523,15 +526,16 @@ ShellRoot {
     Variants {
         model: Quickshell.screens
 
-        PanelWindow {
+            PanelWindow {
             id: bar
             property var modelData
             screen: modelData
             focusable: true
 
             anchors.top: true
+            anchors.left: true
+            anchors.right: true
             margins.top: 10
-            implicitWidth: barContent.width + 30
             implicitHeight: root.barHeight
             color: "transparent"
             exclusiveZone: root.barHeight
@@ -559,22 +563,14 @@ ShellRoot {
 
             Item {
                 id: barContent
-                width: leftGroup.width + centerGroup.width + rightGroup.width + root.groupSpacing + 7
+                width: parent.width
                 height: root.barHeight
                 anchors.horizontalCenter: parent.horizontalCenter
-
-                Rectangle {
-                    anchors.centerIn: parent
-                    width: barContent.width + 30
-                    height: barContent.height
-                    radius: 25
-                    color: root.withAlpha("#ffffff", 0.15)
-                }
 
                 // modules-left: niri/workspaces
                 Row {
                     id: leftGroup
-                    x: 7
+                    x: 22
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: root.groupSpacing
 
@@ -589,7 +585,7 @@ ShellRoot {
                 // modules-center: weather, prayer
                 Row {
                     id: centerGroup
-                    x: leftGroup.width + root.groupSpacing
+                    anchors.centerIn: parent
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: root.groupSpacing
 
@@ -611,7 +607,7 @@ ShellRoot {
                 // modules-right: spacer, kblayout, pulseaudio, memory, network, battery, clock
                 Row {
                     id: rightGroup
-                    x: barContent.width - rightGroup.width - 7
+                    x: barContent.width - rightGroup.width - 22
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: root.groupSpacing
 
@@ -703,7 +699,7 @@ ShellRoot {
                 visible: false
                 grabFocus: true
                 implicitWidth: 250
-                color: "transparent"
+            color: "transparent"
 
                 BackgroundEffect.blurRegion: Region {
                     item: calPopupBody
@@ -986,7 +982,7 @@ ShellRoot {
                     anchors.fill: parent
                     radius: 16
                     color: root.withAlpha(root.surface, 0.55)
-                    border.width: 1
+                    border.width: 0
                     border.color: root.withAlpha(root.textColor, 0.08)
                     clip: true
                     opacity: 0
@@ -1366,7 +1362,7 @@ ShellRoot {
                                             height: 30
                                             radius: 8
                                             color: root.withAlpha(root.textColor, saved ? 0.05 : 0.08)
-                                            border.width: 1
+                                            border.width: 0
                                             border.color: isSelected
                                                 ? root.primary
                                                 : saved ? "transparent" : root.withAlpha(root.textColor, 0.15)
