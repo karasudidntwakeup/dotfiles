@@ -11,7 +11,7 @@ import "colors.js" as Matugen
 // Mirrors ~/.config/waybar (modules + Material You pill styling).
 // Palette comes from matugen via colors.js (regenerated on wallpaper change).
 
-// matugen 1787174878
+// matugen 1787182916
 
 ShellRoot {
     id: root
@@ -36,8 +36,8 @@ ShellRoot {
 
     // Layout (matches waybar config.jsonc)
     readonly property int barHeight: 44
-    readonly property int pillHeight: 29
-    readonly property int groupSpacing: 12
+    readonly property int pillHeight: 34
+    readonly property int groupSpacing: 4
 
     readonly property color textColor: "#000000"
     readonly property color darkText: Matugen.shadow
@@ -446,10 +446,11 @@ ShellRoot {
         readonly property color pillTextColor: pill.whiteText
             ? root.textColor : (root.luminance(tint) > 0.5 ? root.darkText : root.textColor)
 
-        implicitWidth: pillRow.implicitWidth + 25
+        implicitWidth: pillRow.implicitWidth + 20
         implicitHeight: root.pillHeight - 2
         radius: 25
-        border.width: 0
+        border.width: 1
+        border.color: root.withAlpha(root.textColor, 0.15)
         color: root.withAlpha(tint, 1.0)
         opacity: 0.9
 
@@ -497,10 +498,11 @@ ShellRoot {
         readonly property bool focused: ws ? ws.focused : false
         readonly property bool urgent: ws ? ws.urgent : false
 
-        width: 30
-        height: root.pillHeight  + 0
-        radius: 30
-        border.width: 0
+        width: 38
+        height: root.pillHeight
+        radius: 25
+        border.width: 1
+        border.color: root.withAlpha(root.textColor, 0.15)
         color: focused ? root.withAlpha(root.primary, 1.0)
             : urgent ? root.withAlpha(root.error, 1.0)
             : root.withAlpha(root.outlineVariant, 0.85)
@@ -533,13 +535,16 @@ ShellRoot {
             focusable: true
 
             anchors.top: true
-            anchors.left: true
-            anchors.right: true
             margins.top: 10
+            implicitWidth: barContent.width + 12
             implicitHeight: root.barHeight
             color: "transparent"
             exclusiveZone: root.barHeight
 
+            BackgroundEffect.blurRegion: Region {
+                item: barBg
+                radius: 25
+            }
 
             readonly property string outputName: modelData ? modelData.name : ""
             property var workspaceList: []
@@ -563,15 +568,20 @@ ShellRoot {
 
             Item {
                 id: barContent
-                width: parent.width
+                width: barRow.implicitWidth + 12
                 height: root.barHeight
                 anchors.horizontalCenter: parent.horizontalCenter
 
-                // modules-left: weather, prayer, wifi, bluetooth
+                Rectangle {
+                    id: barBg
+                    anchors.fill: parent
+                    radius: 25
+                    color: root.withAlpha("#ffffff", 0.15)
+                }
+
                 Row {
-                    id: leftGroup
-                    x: 42
-                    anchors.verticalCenter: parent.verticalCenter
+                    id: barRow
+                    anchors.centerIn: parent
                     spacing: root.groupSpacing
 
                     Module {
@@ -602,14 +612,6 @@ ShellRoot {
                             btProc.running = true
                         }
                     }
-                }
-
-                // modules-center: niri/workspaces
-                Row {
-                    id: centerGroup
-                    anchors.centerIn: parent
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: root.groupSpacing
 
                     Repeater {
                         model: bar.workspaceList
@@ -617,16 +619,6 @@ ShellRoot {
                             ws: modelData
                         }
                     }
-                }
-
-                // modules-right: spacer, kblayout, pulseaudio, memory, network, battery, clock
-                Row {
-                    id: rightGroup
-                    x: barContent.width - rightGroup.width - 42
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: root.groupSpacing
-
-                    Item { width: 3; height: 2 }
 
                     Module {
                         id: kbPill
