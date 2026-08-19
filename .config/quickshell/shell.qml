@@ -567,10 +567,10 @@ ShellRoot {
                 height: root.barHeight
                 anchors.horizontalCenter: parent.horizontalCenter
 
-                // modules-left: weather, prayer
+                // modules-left: weather, prayer, wifi, bluetooth
                 Row {
                     id: leftGroup
-                    x: 32
+                    x: 42
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: root.groupSpacing
 
@@ -586,6 +586,21 @@ ShellRoot {
                         label: root.prayerText
                         tint: root.error
                         visible: root.prayerText.length > 0
+                    }
+
+                    Module {
+                        id: btPill
+                        icon: root.bluetoothStatus === "off" ? "󰂲" : root.bluetoothStatus === "connected" ? "󰂱" : "󰂯"
+                        label: root.bluetoothText
+                        tint: root.tertiary
+                        whiteText: true
+                        visible: root.bluetoothStatus === "connected"
+
+                        clickArea.onClicked: {
+                            btCmd.command = ["sh", "-c", "bluetoothctl disconnect"]
+                            btCmd.running = true
+                            btProc.running = true
+                        }
                     }
                 }
 
@@ -607,7 +622,7 @@ ShellRoot {
                 // modules-right: spacer, kblayout, pulseaudio, memory, network, battery, clock
                 Row {
                     id: rightGroup
-                    x: barContent.width - rightGroup.width - 32
+                    x: barContent.width - rightGroup.width - 42
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: root.groupSpacing
 
@@ -654,21 +669,6 @@ ShellRoot {
                         tint: root.tertiary
                         whiteText: true
                         visible: root.networkConnected
-                    }
-
-                    Module {
-                        id: btPill
-                        icon: root.bluetoothStatus === "off" ? "󰂲" : root.bluetoothStatus === "connected" ? "󰂱" : "󰂯"
-                        label: root.bluetoothText
-                        tint: root.tertiary
-                        whiteText: true
-                        visible: root.bluetoothStatus === "connected"
-
-                        clickArea.onClicked: {
-                            btCmd.command = ["sh", "-c", "bluetoothctl disconnect"]
-                            btCmd.running = true
-                            btProc.running = true
-                        }
                     }
 
                     Module {
