@@ -1,18 +1,11 @@
 #!/bin/sh
 
-# Show the connected wifi network (iwd), waybar-style
-OUT=$(iwctl station list 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g' | grep -E '[a-zA-Z0-9]+ +connected' | awk '{print $1}' | head -1)
+# Show the local IP address of the connected network interface
+IP=$(ip -4 route get 1.1.1.1 2>/dev/null | grep -oP 'src \K\S+')
 
-if [ -z "$OUT" ]; then
+if [ -z "$IP" ]; then
     echo "󰖪  "
     exit 0
 fi
 
-NET=$(iwctl station "$OUT" show 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g' | grep -i "connected network" | awk '{print $NF}')
-
-if [ -z "$NET" ]; then
-    echo "󰖪  "
-    exit 0
-fi
-
-echo "󰖩   $NET"
+echo "󰖩   $IP"
