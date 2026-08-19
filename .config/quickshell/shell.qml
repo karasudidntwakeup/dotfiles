@@ -11,7 +11,7 @@ import "colors.js" as Matugen
 // Mirrors ~/.config/waybar (modules + Material You pill styling).
 // Palette comes from matugen via colors.js (regenerated on wallpaper change).
 
-// matugen 1787174550
+// matugen 1787174878
 
 ShellRoot {
     id: root
@@ -567,25 +567,10 @@ ShellRoot {
                 height: root.barHeight
                 anchors.horizontalCenter: parent.horizontalCenter
 
-                // modules-left: niri/workspaces
+                // modules-left: weather, prayer
                 Row {
                     id: leftGroup
                     x: 22
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: root.groupSpacing
-
-                    Repeater {
-                        model: bar.workspaceList
-                        delegate: WorkspaceBtn {
-                            ws: modelData
-                        }
-                    }
-                }
-
-                // modules-center: weather, prayer
-                Row {
-                    id: centerGroup
-                    anchors.centerIn: parent
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: root.groupSpacing
 
@@ -601,6 +586,21 @@ ShellRoot {
                         label: root.prayerText
                         tint: root.error
                         visible: root.prayerText.length > 0
+                    }
+                }
+
+                // modules-center: niri/workspaces
+                Row {
+                    id: centerGroup
+                    anchors.centerIn: parent
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: root.groupSpacing
+
+                    Repeater {
+                        model: bar.workspaceList
+                        delegate: WorkspaceBtn {
+                            ws: modelData
+                        }
                     }
                 }
 
