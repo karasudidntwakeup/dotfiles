@@ -1,12 +1,38 @@
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
-PROMPT=$'\n%F{red}❯ %F{yellow}❯ %F{green}❯ %F{cyan}%~ %f'
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+# ── Prompt (plain zsh) ───────────────────────
+source ~/github/powerlevel10k/powerlevel10k.zsh-theme
+zmodload zsh/datetime
+autoload -Uz vcs_info
+zstyle ':vcs_info:*' enable git
+zstyle ':vcs_info:git:*' formats '(%F{green}%b%f)'
+zstyle ':vcs_info:git:*' actionformats '(%F{yellow}%b%f|%a)'
+typeset -gi __cmd_start=$EPOCHSECONDS
+#function __prompt_start() { __cmd_start=$EPOCHSECONDS }
+#function __prompt_precmd() {
+#  local ret=$?
+#  vcs_info
+#  PS1=$'\n%F{red}❯ %F{yellow}❯ %F{green}❯%f %F{cyan}%~%f'
+#  [[ -n $vcs_info_msg_0_ ]] && PS1+=" $vcs_info_msg_0_"
+#  if (( ret )); then PS1+=$' %F{red}❯%f '; else PS1+=$' %F{green}❯%f '; fi
+#  RPROMPT=''
+#  (( ret )) && RPROMPT+="%F{red}✘ $ret %f"
+#  local d=$(( EPOCHSECONDS - __cmd_start ))
+#  (( d > 3 )) && RPROMPT+="%F{yellow}${d}s%f "
+#  [[ -n $jobstates ]] && RPROMPT+="%F{cyan}%j jobs%f"
+#}
+preexec_functions+=(__prompt_start)
+precmd_functions+=(__prompt_precmd)
 export NO_AT_BRIDGE=1
 setopt extended_glob
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
- source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
 # Enable colors and change prompt:
 setopt COMBINING_CHARS
 # custom colors
@@ -84,6 +110,7 @@ export SDL_VIDEODRIVER=wayland
 export QT_QPA_PLATFORM=wayland
 
 #alias
+alias nightmode='gammastep -m wayland -P -O 4500'
 alias cp='cp -a'
 alias cal='calcurse'
 alias cat='bat'
@@ -112,6 +139,7 @@ alias make='/usr/bin/grc --colour=auto make'
 alias head='/usr/bin/grc --colour=auto head'
 alias ifconfig='/usr/bin/grc --colour=auto ifconfig'
 alias uptime='/usr/bin/grc --colour=auto uptime'
+alias rec='LIBVA_DRIVER_NAME=iHD wl-screenrec -m 60 --codec avc --low-power=off --no-damage -b "20 MB" -f ~/Videos/rec.mp4'
 alias lsof='/usr/bin/grc --colour=auto lsof'
 alias lspci='/usr/bin/grc --colour=auto lspci'
 alias lsblk='/usr/bin/grc --colour=auto lsblk'
@@ -170,9 +198,7 @@ unsetopt BEEP
 source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh 
 source ~/github/somewhere/fzf-tab.plugin.zsh
 source $HOME/.config/television/shell/integration.zsh
-source ~/github/powerlevel10k/powerlevel10k.zsh-theme
 source ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 . "$HOME/.local/bin/env"
 ## [Completion]
 ## Completion scripts setup. Remove the following line to uninstall
@@ -215,3 +241,12 @@ esac
 
 # opencode
 export PATH=/home/karasu/.opencode/bin:$PATH
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+. "$HOME/.atuin/bin/env"
+
+eval "$(atuin init zsh)"
+
+source /home/karasu/.config/broot/launcher/bash/br

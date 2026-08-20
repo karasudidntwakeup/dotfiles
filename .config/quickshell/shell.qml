@@ -11,7 +11,7 @@ import "colors.js" as Matugen
 // Mirrors ~/.config/waybar (modules + Material You pill styling).
 // Palette comes from matugen via colors.js (regenerated on wallpaper change).
 
-// matugen 1787185654
+// matugen 1787244350
 
 ShellRoot {
     id: root
@@ -35,8 +35,8 @@ ShellRoot {
     readonly property int fontSize: 13
 
     // Layout (matches waybar config.jsonc)
-    readonly property int barHeight: 44
-    readonly property int pillHeight: 34
+    readonly property int barHeight: 36
+    readonly property int pillHeight: 28
     readonly property int groupSpacing: 4
 
     readonly property color textColor: "#000000"
@@ -446,12 +446,12 @@ ShellRoot {
         readonly property color pillTextColor: pill.whiteText
             ? root.textColor : (root.luminance(tint) > 0.5 ? root.darkText : root.textColor)
 
-        implicitWidth: pillRow.implicitWidth + 20
+        implicitWidth: pillRow.implicitWidth + 14
         implicitHeight: root.pillHeight - 2
         radius: 25
         border.width: 1
         border.color: root.withAlpha(root.textColor, 0.15)
-        color: root.withAlpha(tint, 1.0)
+        color: root.withAlpha(tint, 0.7)
         opacity: 0.9
 
         Row {
@@ -498,14 +498,14 @@ ShellRoot {
         readonly property bool focused: ws ? ws.focused : false
         readonly property bool urgent: ws ? ws.urgent : false
 
-        width: 38
+        width: 32
         height: root.pillHeight
         radius: 25
         border.width: 1
         border.color: root.withAlpha(root.textColor, 0.15)
-        color: focused ? root.withAlpha(root.primary, 1.0)
-            : urgent ? root.withAlpha(root.error, 1.0)
-            : root.withAlpha(root.outlineVariant, 0.85)
+        color: focused ? root.withAlpha(root.primary, 0.6)
+            : urgent ? root.withAlpha(root.error, 0.6)
+            : root.withAlpha(root.outlineVariant, 0.6)
 
         Text {
             text: wsBtn.ws ? wsBtn.ws.idx : ""
@@ -575,9 +575,9 @@ ShellRoot {
                 Rectangle {
                     anchors.fill: parent
                     radius: 25
-                    color: "transparent"
-                    border.width: 1
-                    border.color: root.withAlpha(root.outlineVariant, 0.5)
+                    color: root.withAlpha(root.surface, 0)
+                    border.width: 2
+                    border.color: root.primaryContainer
                 }
 
                 Row {
