@@ -224,9 +224,9 @@ layer-rule {
     }
   }
 layer-rule {
-    geometry-corner-radius 25
     match namespace="quickshell"
     match layer="top"
+    geometry-corner-radius 25
     background-effect {
         xray true
         blur true

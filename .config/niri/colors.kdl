@@ -4,13 +4,13 @@ overview {
 
 layout {
     border {
-        active-color "#60621a"
-        inactive-color "#48473a"
+        active-color "#5d631c"
+        inactive-color "#47483b"
         urgent-color "#ba1a1a"
     }
     focus-ring {
-        active-color "#60621a"
-        inactive-color "#48473a"
+        active-color "#5d631c"
+        inactive-color "#47483b"
         urgent-color "#ba1a1a"
     }
     shadow {
@@ -20,7 +20,7 @@ layout {
 
 recent-windows {
     highlight {
-        active-color "#60621a"
+        active-color "#5d631c"
         urgent-color "#ba1a1a"
     }
 }

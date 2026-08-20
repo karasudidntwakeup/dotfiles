@@ -11,7 +11,7 @@ import "colors.js" as Matugen
 // Mirrors ~/.config/waybar (modules + Material You pill styling).
 // Palette comes from matugen via colors.js (regenerated on wallpaper change).
 
-// matugen 1787182916
+// matugen 1787184258
 
 ShellRoot {
     id: root
@@ -542,7 +542,7 @@ ShellRoot {
             exclusiveZone: root.barHeight
 
             BackgroundEffect.blurRegion: Region {
-                item: barBg
+                item: barContent
                 radius: 25
             }
 
@@ -571,13 +571,6 @@ ShellRoot {
                 width: barRow.implicitWidth + 12
                 height: root.barHeight
                 anchors.horizontalCenter: parent.horizontalCenter
-
-                Rectangle {
-                    id: barBg
-                    anchors.fill: parent
-                    radius: 25
-                    color: root.withAlpha("#ffffff", 0.15)
-                }
 
                 Row {
                     id: barRow
