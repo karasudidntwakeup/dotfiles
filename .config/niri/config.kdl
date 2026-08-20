@@ -232,17 +232,17 @@ layer-rule {
         blur true
         noise 0
         liquid-glass {
-            refraction-strength 3
-            power-factor 1.0
-            refraction-power 0.0
-            glow-weight 0.0
-            edge-lighting 0.0
+            refraction-strength 20
+            power-factor 10.0
+            refraction-power 1.0
+            glow-weight 0.00000
+            edge-lighting 0
             saturation 0.9
             vibrancy 0.9
             adaptive-dim 0.0
             adaptive-boost 0.0
-            physical-refraction 0.0
-            fringing 0.0
+            physical-refraction 10.0
+            fringing 0.3
         }
     }
   }
