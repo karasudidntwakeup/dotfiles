@@ -1,5 +1,6 @@
 [config]
 # Adjust contrast from -1.0 to 1.0
+contrast = 1.0
 # Fallback if image extraction fails
 [config.wallpaper]
 # Automatecally set wallpaper using a command
@@ -50,10 +51,7 @@ post_hook = 'killall -USR1 kitty || :'
 [templates.niri]
 input_path = '~/.config/matugen/templates/niri.kdl'
 output_path = '~/.config/niri/colors.kdl'
-[templates.waybar]
-input_path = './templates/colors.css'
-output_path = '~/.config/waybar/colors.css'
-post_hook = 'pkill -SIGUSR2 waybar 2>/dev/null || true'
+post_hook = 'niri msg action load-config-file'
 [templates.quickshell]
 input_path = '~/.config/matugen/templates/quickshell-colors.js'
 output_path = '~/.config/quickshell/colors.js'
@@ -67,3 +65,23 @@ output_path = '~/.librewolf/fuoz9ly2.default-default/chrome/websites/claude.css'
 [templates.p10k]
 input_path = '~/.config/matugen/templates/p10k.zsh'
 output_path = '~/.config/matugen/p10k-colors.zsh'
+
+[templates.qt5ct]
+input_path = "~/.config/matugen/templates/qtct.conf.template"
+output_path = "~/.config/qt5ct/colors/matugen.conf"
+
+[templates.qt6ct]
+input_path = "~/.config/matugen/templates/qtct.conf.template"
+output_path = "~/.config/qt6ct/colors/matugen.conf"
+
+[templates.qt5_style]
+input_path = "~/.config/matugen/templates/qt-style.qss.template"
+output_path = "~/.config/qt5ct/qss/matugen-style.qss"
+
+[templates.qt6_style]
+input_path = "~/.config/matugen/templates/qt-style.qss.template"
+output_path = "~/.config/qt6ct/qss/matugen-style.qss"
+
+[templates.yt-x]
+input_path = '~/.config/matugen/templates/yt-x.theme'
+output_path = '~/.config/yt-x/extensions/themes/matugen.theme'

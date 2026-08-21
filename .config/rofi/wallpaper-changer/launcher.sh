@@ -30,7 +30,25 @@ FULL_PATH=$(find "$WALLPAPER_DIR" -type f ! -name ".*" \( -name "*.jpg" -o -name
 
 [ -z "$FULL_PATH" ] && exit 1
 
-matugen image "$FULL_PATH" --prefer lightness --type scheme-expressive
+SCHEME_CHOICE=$(printf '%s\n' "Monochrome" "Vibrant" "Expressive" "Content" "Neutral" "Rainbow" "Fruit Salad" "Tonal Spot" \
+  | rofi -dmenu -p "Scheme" \
+      -theme-str 'window { background-color: rgba ( 30, 30, 46, 1.0 ); border-radius: 12px; }')
+
+[ -z "$SCHEME_CHOICE" ] && exit 1
+
+case "$SCHEME_CHOICE" in
+  Monochrome)  SCHEME_TYPE="scheme-monochrome" ;;
+  Vibrant)     SCHEME_TYPE="scheme-vibrant" ;;
+  Expressive)  SCHEME_TYPE="scheme-expressive" ;;
+  Content)     SCHEME_TYPE="scheme-content" ;;
+  Neutral)     SCHEME_TYPE="scheme-neutral" ;;
+  Rainbow)     SCHEME_TYPE="scheme-rainbow" ;;
+  "Fruit Salad") SCHEME_TYPE="scheme-fruit-salad" ;;
+  "Tonal Spot")  SCHEME_TYPE="scheme-tonal-spot" ;;
+  *) exit 1 ;;
+esac
+
+matugen image "$FULL_PATH" --prefer darkness --type "$SCHEME_TYPE"
 
 awww img "$FULL_PATH" --transition-type random --transition-duration 2.0
 

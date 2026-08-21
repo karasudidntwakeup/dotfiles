@@ -1,5 +1,5 @@
 overview {
-    backdrop-color "{{colors.surface_container_lowest.light.hex}}"
+    backdrop-color "{{colors.surface_container_lowest.dark.hex}}"
 }
 
 layout {

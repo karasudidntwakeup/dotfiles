@@ -8,14 +8,6 @@ environment {
     GDK_BACKEND "wayland,x11"
     MOZ_ENABLE_WAYLAND "1"
     MOZ_DBUS_REMOTE "1"
-    LIBVA_DRIVER_NAME "nvidia"
-    __GLX_VENDOR_LIBRARY_NAME "nvidia"
-    GBM_BACKEND "nvidia-drm"
-    __GL_GSYNC_ALLOWED "1"
-    __GL_VRR_ALLOWED "1"
-    WLR_NO_HARDWARE_CURSORS "1"
-    WLR_RENDERER "vulkan"
-    WLR_DRM_DEVICE "/dev/dri/card1"
 }
 cursor {
     xcursor-theme "MacTahoe-dark"
@@ -25,7 +17,7 @@ cursor {
 }
 
 xwayland-satellite {
-   on
+   off
     path "xwayland-satellite"
 }
 clipboard {
@@ -81,10 +73,10 @@ output "eDP-1" {
 
 }
 layer-rule {
+    match namespace="^awww$"
+    match namespace="^awww-daemonbackdrop$"
     place-within-backdrop true
- //       match namespace="^awww$"
- //    match namespace="^awww-daemonbackdrop$"
-   }
+}
 overview {
   workspace-shadow {
         off
@@ -212,72 +204,27 @@ layer-rule {
     match namespace="rofi"
     match layer="top"
     geometry-corner-radius 25
-    background-effect {
-        xray true
-        blur true
-        noise 0
-        liquid-glass {
-            refraction-strength 5
-            power-factor 1.0
-            refraction-power 9.0
-            glow-weight 0.0
-            edge-lighting 0.3
-            saturation 0.8
-            vibrancy 0.9
-            adaptive-dim 0.0
-            adaptive-boost 0.0
-            physical-refraction 0.4
-            fringing 0.1
-        }
     }
-  }
+
 layer-rule {
     match namespace="quickshell"
     match layer="top"
-    geometry-corner-radius 25
-    background-effect {
-        xray true
-        blur true
-        noise 0
-        liquid-glass {
-            refraction-strength 10
-            power-factor 1.0
-            refraction-power 1.0
-            glow-weight 0.00000
-            edge-lighting 0
-            saturation 0.9
-            vibrancy 0.9
-            adaptive-dim 0.0
-            adaptive-boost 0.0
-            physical-refraction 10.0
-            fringing 0.3
-        }
-    }
-  }
+    //background-effect {
+     //   xray true
+      //  blur true
+       // noise 0
+  //}
+}
 
 window-rule {
     match app-id=r#".*"#
     geometry-corner-radius 15
     clip-to-geometry true
-    background-effect {
-        xray true
-        blur true
-        noise 0
-        liquid-glass {
-            refraction-strength 10
-            power-factor 1.0
-            refraction-power 3.0
-            glow-weight 0.0
-            edge-lighting 0.0
-            saturation 0.9
-            vibrancy 0.0
-            adaptive-dim 0.0
-            adaptive-boost 0.0
-            physical-refraction 0.4
-            lens-distortion 0.00
-            fringing 0.1
-        }
-    }
+    // Heavy on the iGPU — re-enable only if you accept stutter:
+     background-effect {
+         xray true
+         blur true
+       }
     shadow {
         off
         softness 60
@@ -289,17 +236,14 @@ window-rule {
 
 window-rule {
     match is-active=true
-    opacity 0.96
 }
 window-rule {
     match app-id="librewolf"
-    opacity 0.98
     default-column-width { proportion 0.70;}
 }
 
 window-rule {
     match app-id="pcmanfm"
-    opacity 0.80
 }
 
 
@@ -341,7 +285,8 @@ binds {
     XF86AudioMicMute     allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; }
     XF86MonBrightnessUp     allow-when-locked=true { spawn "light" "-A" "10"; }
     XF86MonBrightnessDown     allow-when-locked=true { spawn "light" "-U" "10"; }
-    Mod+Shift+W { spawn "~/.local/bin/wallpaper random"; }   
+    Mod+Shift+W { spawn "~/.local/bin/wallpaper random"; }
+    Mod+Shift+N { spawn "~/.config/hypr/scripts/monochrome_wallpaper.sh"; }
     Mod+0 repeat=false { toggle-overview; }
     Mod+W repeat=true { toggle-overview; }
     Mod+Shift+o repeat=false { toggle-overview; }
@@ -458,8 +403,9 @@ recent-windows {
 }
 
 blur {
-    passes 2
-    offset 0.39
+  off
+    passes 3
+    offset 3.39
     noise 0.0 
     saturation 1.0 
 }

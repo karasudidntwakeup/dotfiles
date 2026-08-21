@@ -11,7 +11,7 @@ import "colors.js" as Matugen
 // Mirrors ~/.config/waybar (modules + Material You pill styling).
 // Palette comes from matugen via colors.js (regenerated on wallpaper change).
 
-// matugen 1787244350
+// matugen 1787269413
 
 ShellRoot {
     id: root
@@ -35,9 +35,9 @@ ShellRoot {
     readonly property int fontSize: 13
 
     // Layout (matches waybar config.jsonc)
-    readonly property int barHeight: 36
-    readonly property int pillHeight: 28
-    readonly property int groupSpacing: 4
+    readonly property int barHeight: 48
+    readonly property int pillHeight: 32
+    readonly property int groupSpacing: 10
 
     readonly property color textColor: "#000000"
     readonly property color darkText: Matugen.shadow
@@ -446,13 +446,10 @@ ShellRoot {
         readonly property color pillTextColor: pill.whiteText
             ? root.textColor : (root.luminance(tint) > 0.5 ? root.darkText : root.textColor)
 
-        implicitWidth: pillRow.implicitWidth + 14
+        implicitWidth: pillRow.implicitWidth + 28
         implicitHeight: root.pillHeight - 2
-        radius: 25
-        border.width: 1
-        border.color: root.withAlpha(root.textColor, 0.15)
-        color: root.withAlpha(tint, 0.7)
-        opacity: 0.9
+        radius: 20
+        color: tint
 
         Row {
             id: pillRow
@@ -500,12 +497,12 @@ ShellRoot {
 
         width: 32
         height: root.pillHeight
-        radius: 25
+        radius: 20
         border.width: 1
         border.color: root.withAlpha(root.textColor, 0.15)
-        color: focused ? root.withAlpha(root.primary, 0.6)
-            : urgent ? root.withAlpha(root.error, 0.6)
-            : root.withAlpha(root.outlineVariant, 0.6)
+        color: focused ? root.primary
+            : urgent ? root.error
+            : root.outlineVariant
 
         Text {
             text: wsBtn.ws ? wsBtn.ws.idx : ""
@@ -541,9 +538,10 @@ ShellRoot {
             color: "transparent"
             exclusiveZone: root.barHeight
 
-            BackgroundEffect.blurRegion: Region {
-                item: barContent
-                radius: 25
+            Rectangle {
+                anchors.fill: barContent
+                radius: 20
+                color: root.surface
             }
 
             readonly property string outputName: modelData ? modelData.name : ""
@@ -568,17 +566,10 @@ ShellRoot {
 
             Item {
                 id: barContent
-                width: barRow.implicitWidth + 12
+                width: barRow.implicitWidth + 10
                 height: root.barHeight
                 anchors.horizontalCenter: parent.horizontalCenter
 
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 25
-                    color: root.withAlpha(root.surface, 0)
-                    border.width: 2
-                    border.color: root.primaryContainer
-                }
 
                 Row {
                     id: barRow
@@ -651,7 +642,7 @@ ShellRoot {
                         id: memPill
                         icon: "󰍛"
                         label: root.memText
-                        tint: root.error
+                        tint: root.tertiary
                         whiteText: true
                     }
 
@@ -659,7 +650,7 @@ ShellRoot {
                         id: netPill
                         icon: root.networkConnected ? "󰖩" : "󰖪"
                         label: root.networkText
-                        tint: root.tertiary
+                        tint: root.primary
                         whiteText: true
                         visible: root.networkConnected
                     }
@@ -670,7 +661,7 @@ ShellRoot {
                             ? "󰋠 󰛞 󰋑 󰋑"
                             : root.batteryIcon(root.batteryPercent)
                         label: root.batteryPercent
-                        tint: root.secondary
+                        tint: root.error
                         whiteText: true
                     }
 
@@ -678,7 +669,7 @@ ShellRoot {
                         id: clockPill
                         icon: "󰥔"
                         label: root.clockText
-                        tint: root.primary
+                        tint: root.secondary
                         whiteText: true
 
                         clickArea.onClicked: calPopup.open()
@@ -688,15 +679,15 @@ ShellRoot {
 
             // Calendar popup, opens above the clock pill
             PopupWindow {
-                id: calPopup
-                visible: false
-                grabFocus: true
-                implicitWidth: 250
-            color: "transparent"
+            id: calPopup
+            visible: false
+            grabFocus: true
+            implicitWidth: 250
+            color: root.surface
 
-                BackgroundEffect.blurRegion: Region {
-                    item: calPopupBody
-                    radius: 16
+            BackgroundEffect.blurRegion: Region {
+                item: calPopupBody
+                radius: 20
                 }
 
                 property bool dismissedByOutside: false
@@ -973,8 +964,8 @@ ShellRoot {
                 Rectangle {
                     id: calPopupBody
                     anchors.fill: parent
-                    radius: 16
-                    color: root.withAlpha(root.surface, 0.55)
+                    radius: 20
+                    color: root.surface
                     border.width: 0
                     border.color: root.withAlpha(root.textColor, 0.08)
                     clip: true
@@ -1355,7 +1346,7 @@ ShellRoot {
                                             height: 30
                                             radius: 8
                                             color: root.withAlpha(root.textColor, saved ? 0.05 : 0.08)
-                                            border.width: 0
+                    border.width: 0
                                             border.color: isSelected
                                                 ? root.primary
                                                 : saved ? "transparent" : root.withAlpha(root.textColor, 0.15)

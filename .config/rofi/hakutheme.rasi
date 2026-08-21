@@ -6,7 +6,7 @@
 
 /* ===== GLOBAL VARIABLES ===== */
 * {
-    background:          rgba(0, 0, 0, 0.4);
+    background:          rgba(0, 0, 0, 1.0);
     foreground:          #ffffff;
     modebar-bg:          rgba(27, 27, 27, 1);
     background-color:    transparent;
@@ -34,7 +34,7 @@ mainbox {
 /* ===== INPUT BAR ===== */
 inputbar {
     padding:             10px;
-    background-color:    rgba(0, 0, 0, 0.4);
+    background-color:    rgba(0, 0, 0, 1.0);
     border-radius:       20px;
     children:            [ prompt, entry ];
 }
