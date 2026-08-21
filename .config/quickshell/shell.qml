@@ -11,7 +11,7 @@ import "colors.js" as Matugen
 // Mirrors ~/.config/waybar (modules + Material You pill styling).
 // Palette comes from matugen via colors.js (regenerated on wallpaper change).
 
-// matugen 1787269413
+// matugen 1787326483
 
 ShellRoot {
     id: root
@@ -54,6 +54,19 @@ ShellRoot {
     // Script-driven modules
     property string weatherText: ""
     property string prayerText: ""
+    property string prayerName: ""
+    property date prayerTarget: new Date(0)
+
+    function fmtCountdown(ms) {
+        var m = Math.max(0, Math.round(ms / 60000))
+        var h = Math.floor(m / 60)
+        return h > 0 ? h + "h " + (m % 60) + "m" : m + "m"
+    }
+
+    function updatePrayerCountdown() {
+        if (prayerName.length > 0)
+            prayerText = prayerName + " in " + fmtCountdown(prayerTarget.getTime() - Date.now())
+    }
     property string memText: ""
 
     Process {
@@ -71,7 +84,18 @@ ShellRoot {
         command: ["sh", "-c", "~/.config/waybar/scripts/prayer.sh"]
         stdout: SplitParser {
             onRead: data => {
-                if (data) prayerText = data.trim()
+                if (!data) return
+                var parts = data.trim().split("|")
+                if (parts.length !== 2) {
+                    prayerText = parts[0]
+                    prayerName = ""
+                    return
+                }
+                var p = parts[1].split(/[\s:-]/)
+                prayerName = parts[0]
+                prayerTarget = new Date(parseInt(p[2]), parseInt(p[1]) - 1, parseInt(p[0]),
+                                        parseInt(p[3]), parseInt(p[4]))
+                updatePrayerCountdown()
             }
         }
     }
@@ -98,6 +122,13 @@ ShellRoot {
         running: true
         repeat: true
         onTriggered: prayerProc.running = true
+    }
+
+    Timer {
+        interval: 60000
+        running: true
+        repeat: true
+        onTriggered: updatePrayerCountdown()
     }
 
     Timer {
@@ -537,12 +568,6 @@ ShellRoot {
             implicitHeight: root.barHeight
             color: "transparent"
             exclusiveZone: root.barHeight
-
-            Rectangle {
-                anchors.fill: barContent
-                radius: 20
-                color: root.surface
-            }
 
             readonly property string outputName: modelData ? modelData.name : ""
             property var workspaceList: []
