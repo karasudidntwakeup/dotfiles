@@ -37,7 +37,7 @@ ShellRoot {
     // Layout (matches waybar config.jsonc)
     readonly property int barHeight: 48
     readonly property int pillHeight: 32
-    readonly property int groupSpacing: 10
+    readonly property int groupSpacing: 5
 
     readonly property color textColor: "#000000"
     readonly property color darkText: Matugen.shadow
@@ -177,8 +177,8 @@ ShellRoot {
 
     function batteryIcon(cap) {
         var icons = [
-            "󱢠 󱢠 󱢠 ", "󱢠 󱢠 󰛞 ", "󱢠 󱢠 󰛞 ", "󱢠 󱢠 󰋑 ", "󱢠 󰛞 󰋑 ",
-            "󱢠 󰛞 󰋑 ", "󱢠 󰋑 󰋑 ", "󰛞 󰋑 󰋑 ", "󰛞 󰋑 󰋑 ", "󰋑 󰋑 󰋑 "
+            "󱢠 󱢠 󱢠  ", "󱢠 󱢠 󰛞  ", "󱢠 󱢠 󰛞  ", "󱢠 󱢠 󰋑  ", "󱢠 󰛞 󰋑  ",
+            "󱢠 󰛞 󰋑  ", "󱢠 󰋑 󰋑  ", "󰛞 󰋑 󰋑  ", "󰛞 󰋑 󰋑  ", "󰋑 󰋑 󰋑  "
         ]
         var i = Math.floor(cap / 10)
         if (i < 0) i = 0
@@ -469,6 +469,7 @@ ShellRoot {
         id: pill
         property string label: ""
         property string icon: ""
+        property int padX: 14
         property color tint: root.primary
         property bool whiteText: false
         property alias clickArea: pillArea
@@ -477,7 +478,7 @@ ShellRoot {
         readonly property color pillTextColor: pill.whiteText
             ? root.textColor : (root.luminance(tint) > 0.5 ? root.darkText : root.textColor)
 
-        implicitWidth: pillRow.implicitWidth + 28
+        implicitWidth: pillRow.implicitWidth + pill.padX
         implicitHeight: root.pillHeight - 2
         radius: 20
         color: tint
@@ -485,7 +486,7 @@ ShellRoot {
         Row {
             id: pillRow
             anchors.centerIn: parent
-            spacing: 6
+            spacing: 4
 
             Text {
                 id: pillIcon
@@ -493,7 +494,7 @@ ShellRoot {
                 text: pill.icon
                 color: pill.pillTextColor
                 font.family: root.iconFont
-                font.pixelSize: root.fontSize + 1
+                font.pixelSize: root.fontSize + 2
                 font.weight: Font.Normal
                 verticalAlignment: Text.AlignVCenter
             }
@@ -685,7 +686,7 @@ ShellRoot {
                         icon: root.charging
                             ? "󰋠 󰛞 󰋑 󰋑"
                             : root.batteryIcon(root.batteryPercent)
-                        label: root.batteryPercent
+                        label: root.batteryPercent + " %"
                         tint: root.error
                         whiteText: true
                     }
