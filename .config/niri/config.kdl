@@ -412,5 +412,4 @@ blur {
 }
 
 include "colors.kdl"
-// Applied window shader, managed by shaders/pick.sh (Mod+Shift+S)
 include "shaders/active.kdl"
