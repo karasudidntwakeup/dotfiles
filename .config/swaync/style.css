@@ -1,50 +1,82 @@
+@import "colors.css";
+
 * {
     font-family: "SF Arabic", "SF Pro Text", sans-serif;
 }
+
+notificationwindow, blankwindow {
+    background: transparent;
+}
+
+.floating-notifications {
+    background: transparent;
+}
+
+.floating-notifications .notification {
+    box-shadow: none;
+}
+
 .notification-row {
-  background: none;
-  color: @foreground;
+    background: none;
+    color: @foreground;
 }
 
-.notification {
-  font-family: "SF Arabic", sans-serif;
-  background: alpha(@surface_variant, 0.4);
-  border: 1px solid @outline;
-  border-radius: 12px;
-  backdrop-filter: blur(16px);
+.notification-row .notification-background {
+    padding: 6px 12px;
 }
 
-.notification .notification-content {
-  color: @foreground;
+.notification-row .notification-background .notification {
+    background: @surface_variant;
+    border: 1px solid @outline;
+    border-radius: 12px;
+    box-shadow: none;
 }
 
-.notification .notification-content .app-icon {
-  -gtk-icon-size: 56px;
-  -gtk-icon-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-  border-radius: 12px;
-  margin: 4px;
+.notification-row .notification-background .notification .notification-default-action .notification-content {
+    color: @foreground;
 }
 
-.notification-action {
-  background: @primary_container;
-  color: @on_primary;
-  border-radius: 8px;
+.notification-row .notification-background .notification .notification-default-action .notification-content .app-icon {
+    -gtk-icon-size: 56px;
+    -gtk-icon-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    border-radius: 12px;
+    margin: 4px;
+}
+
+.notification-row .notification-background .notification .notification-action > button {
+    background: @primary_container;
+    color: @on_primary;
+    border-radius: 8px;
 }
 
 .control-center {
-  background: @background;
+    background: @background;
+    color: @foreground;
+    border-radius: 12px;
 }
 
-.widget-title {
-  color: @primary;
+.widget-title > label {
+    color: @primary;
+    margin-right: 8px;
+    font-size: 1.5rem;
+}
+
+.widget-title > button {
+    margin-left: 8px;
+    border-radius: 12px;
 }
 
 button {
-  background: @secondary_container;
-  color: @foreground;
+    background: @secondary_container;
+    color: @foreground;
+    border-radius: 12px;
 }
 
 .close-button {
-  background: @error;
-  color: @on_error;
+    background: @error;
+    color: @on_error;
+    border-radius: 100%;
+    min-width: 24px;
+    min-height: 24px;
+    border: none;
 }
