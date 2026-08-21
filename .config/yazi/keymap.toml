@@ -5,8 +5,8 @@ desc = "Smart filter"
 
 [[mgr.prepend_keymap]]
 on   = ["c", "i"]
-run  = "plugin sxiv"
-desc = "Preview images in sxiv"
+run  = "plugin swayimg"
+desc = "Browse images in swayimg grid"
 
 [[mgr.prepend_keymap]]
 on   = "f"
