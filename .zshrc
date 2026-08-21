@@ -74,19 +74,6 @@ zle -N down-line-or-beginning-search
 # ── Shell options ─────────────────────────
 setopt autocd
 setopt interactive_comments
-zstyle ':fzf-tab:*' fzf-flags \
-  --height=80% \
-  --layout=reverse \
-  --border=rounded \
-  --border \
-  --info=hidden \
-  --info=inline \
-  --prompt='❯ ' \
-  --pointer='▶ ' \
-  --marker='✓ ' \
-  --no-separator \
-  --height=30%
-
 
 # History in cache directory:
 HISTSIZE=10000000
@@ -128,7 +115,7 @@ alias sl='eza --icons --sort=newest'
 alias sxiv='nsxiv'
 alias 00='loginctl poweroff'
 alias 01='loginctl reboot'
-alias x='dbus-run-session niri-glass'
+alias x='dbus-run-session niri --session'
 alias ip='ip --color=auto'
 alias netstat='/usr/bin/grc --colour=auto netstat'
 alias df='/usr/bin/grc --colour=auto df'
@@ -156,25 +143,6 @@ alias timer='tclock timer -d 20m -M'
 alias lf='yazi'
 alias fzf='fzf --preview "bat --color=always   {}"'
 alias sxiv-t="imv \$(ls | fzf)"
-
-
-export LESS_TERMCAP_mb=$'\e[1;32m'     # begin blink
-export LESS_TERMCAP_md=$'\e[1;34m'     # begin bold (headings)
-export LESS_TERMCAP_me=$'\e[0m'        # reset bold/blink
-export LESS_TERMCAP_so=$'\e[01;33m'    # begin standout (status bar)
-export LESS_TERMCAP_se=$'\e[0m'        # reset standout
-export LESS_TERMCAP_us=$'\e[1;4;31m'   # begin underline
-export LESS_TERMCAP_ue=$'\e[0m'        # reset underline
-export GROFF_NO_SGR=1                  # needed on some distros (Debian/Ubuntu)
-command -v batcat >/dev/null && alias bat='batcat'
-export BAT_THEME="Dracula"          # or: TwoDark, gruvbox-dark, Monokai Extended
-export BAT_STYLE="numbers,changes,header"
-
-export CLICOLOR=1
-export LS_COLORS="$(vivid generate dracula 2>/dev/null)"   # optional, needs 'vivid'
-alias ls='ls --color=auto'
-alias ll='ls -lah --color=auto'
-command -v exa >/dev/null && alias ls='exa --color=auto --icons' && alias ll='exa -lah --color=auto --icons' && alias lt='exa --tree --color=auto --icons'
 
 
 # --- ripgrep sane defaults ---
@@ -230,7 +198,6 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 export PNPM_HOME="/home/karasu/.local/share/pnpm"
 export PATH="$PNPM_HOME:$PATH"
-export QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu"
 # pnpm
 export PNPM_HOME="/home/karasu/.local/share/pnpm"
 case ":$PATH:" in
@@ -249,4 +216,3 @@ export PATH=/home/karasu/.opencode/bin:$PATH
 
 eval "$(atuin init zsh)"
 
-source /home/karasu/.config/broot/launcher/bash/br

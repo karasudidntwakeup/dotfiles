@@ -1,7 +1,7 @@
 /*
-* Quickshell Colors
-* Generated with Matugen
-*/
+ * Quickshell Colors
+ * Generated with Matugen
+ */
 
 <* for name, value in colors *>
 var {{name}} = "{{value.default.hex}}"

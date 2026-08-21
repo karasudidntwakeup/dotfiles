@@ -6,8 +6,8 @@ configuration {
 }
 
 * {
-    background-color: transparent;
-    text-color: #000000; 
+    background-color: rgba ( 30, 30, 46, 1.0 );
+    text-color: #ffffff; 
 }
 
 window {
@@ -15,13 +15,12 @@ window {
     height: 720px;
     anchor: center;
     location: center;
-    background-color: transparent;
+    background-color: rgba ( 30, 30, 46, 1.0 );
     border: 5;
 }
 
 mainbox {
     children: [ listview ];
-    background-color: transparent;
 }
 
 listview {
@@ -32,7 +31,6 @@ listview {
     fixed-height: true;
     spacing: 12px; 
     scrollbar: true;
-    background-color: transparent;
     cycle: false;
 }
 
@@ -40,12 +38,10 @@ element {
     orientation: vertical;
     padding: 0px ;
     border: 0px;
-    background-color: transparent;
-    children: [element-icon];
+    children: [element-icon, element-text];
 }
 
 element selected {
-    background-color: transparent;
     border: 4px;
     border-color: #89b4fa;
     border-radius: 8px;

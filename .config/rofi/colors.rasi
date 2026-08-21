@@ -1,5 +1,5 @@
 * {
-    accent: #cdcb6b;
-    background: #0e1419;
-    foreground: #dee3eb;
+    accent: #ecefff;
+    background: #111318;
+    foreground: #e2e2e9;
 }
