@@ -150,13 +150,13 @@ animations {
 
     window-open {
         // Windows open with a slow, gentle fade so the eye eases in.
-        duration-ms 350
+        duration-ms 500
         curve "ease-out-expo"
     }
 
     window-close {
         // Windows close with a calm, extended fade.
-        duration-ms 300
+        duration-ms 500
         curve "ease-out-expo"
     }
 
@@ -275,6 +275,7 @@ binds {
     Mod+space { spawn "rofi" "-show" "run"; }
     Mod+V { spawn "~/.config/rofi/cliphist/launcher.sh" "||" "pkill" "rofi"; }
     Mod+g { spawn "~/.config/rofi/wallpaper-changer/launcher.sh" "||" "pkill" "rofi"; }
+    Mod+Shift+S hotkey-overlay-title="Pick Window Shader" { spawn "~/.config/niri/shaders/pick.sh"; }
     Mod+Return hotkey-overlay-title="Open a Terminal: foot" { spawn "foot"; }
     Super+C hotkey-overlay-title="Open Browser: LibreWolf" { spawn "librewolf"; }
     Super+Shift+Q hotkey-overlay-title="Lock the Screen: hyprlock" { spawn "hyprlock"; }
@@ -411,3 +412,5 @@ blur {
 }
 
 include "colors.kdl"
+// Applied window shader, managed by shaders/pick.sh (Mod+Shift+S)
+include "shaders/active.kdl"
