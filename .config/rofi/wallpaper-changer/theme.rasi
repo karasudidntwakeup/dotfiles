@@ -5,9 +5,11 @@ configuration {
     kb-row-right: "Control+Page_Down,l";
 }
 
+@import "colors.rasi"
+
 * {
-    background-color: rgba ( 30, 30, 46, 1.0 );
-    text-color: #ffffff; 
+    background-color: @background;
+    text-color: @foreground;
 }
 
 window {
@@ -15,12 +17,27 @@ window {
     height: 720px;
     anchor: center;
     location: center;
-    background-color: rgba ( 30, 30, 46, 1.0 );
+    background-color: @background;
     border: 5;
+    border-radius: 20px;
+    padding: 18px;
+}
+
+inputbar {
+    children: [ prompt, entry ];
+    padding: 8px 14px;
+    border-radius: 20px;
+    margin: 0px 0px 12px 0px;
+}
+
+prompt {
+    font: "JetBrainsMono Nerd Font Bold 11";
+    text-color: @accent;
 }
 
 mainbox {
-    children: [ listview ];
+    children: [ inputbar, listview ];
+    spacing: 0px;
 }
 
 listview {
@@ -29,34 +46,41 @@ listview {
     lines: 6;
     fixed-columns: true;
     fixed-height: true;
-    spacing: 12px; 
+    spacing: 14px;
     scrollbar: true;
+    scrollbar-width: 6px;
     cycle: false;
 }
 
 element {
     orientation: vertical;
-    padding: 0px ;
-    border: 0px;
+    padding: 4px;
+    border: 4px;
+    border-color: transparent;
+    border-radius: 20px;
     children: [element-icon, element-text];
 }
 
 element selected {
-    border: 4px;
-    border-color: #89b4fa;
-    border-radius: 8px;
+    border-color: @accent;
 }
 
 element-icon {
-    size: 100px; 
+    size: 100px;
     horizontal-align: 0.5;
     vertical-align: 0.5;
 }
 
 element-text {
     font: "JetBrainsMono Nerd Font 10";
-    text-color: inherit; 
+    text-color: inherit;
     horizontal-align: 0.5;
-    margin: 0px 0px 0px 0px; 
+    vertical-align: 0.5;
+    margin: 6px 4px 2px 4px;
 }
 
+scrollbar {
+    handle-width: 6px;
+    handle-color: @accent;
+    handle-rounded-corners: true;
+}

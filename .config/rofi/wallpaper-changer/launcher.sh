@@ -30,9 +30,11 @@ FULL_PATH=$(find "$WALLPAPER_DIR" -type f ! -name ".*" \( -name "*.jpg" -o -name
 
 [ -z "$FULL_PATH" ] && exit 1
 
+BG=$(sed -n 's/^[[:space:]]*background:[[:space:]]*//p' "$HOME/.config/rofi/colors.rasi" | head -1)
+
 SCHEME_CHOICE=$(printf '%s\n' "Monochrome" "Vibrant" "Expressive" "Content" "Neutral" "Rainbow" "Fruit Salad" "Tonal Spot" \
   | rofi -dmenu -p "Scheme" \
-      -theme-str 'window { background-color: rgba ( 30, 30, 46, 1.0 ); border-radius: 12px; }')
+      -theme-str "window { background-color: ${BG:-#111318}; border-radius: 20px; padding: 18px; }")
 
 [ -z "$SCHEME_CHOICE" ] && exit 1
 
