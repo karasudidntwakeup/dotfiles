@@ -1,0 +1,90 @@
+configuration {
+    kb-row-up: "Up,Control+p,k";
+    kb-row-down: "Down,Control+n,j";
+    kb-row-left: "Control+Page_Up,h";
+    kb-row-right: "Control+Page_Down,l";
+}
+
+@import "colors.rasi"
+
+* {
+    background-color: @background;
+    text-color: @foreground;
+}
+
+window {
+    width: 960px;
+    height: 800px;
+    anchor: center;
+    location: center;
+    background-color: @background;
+    border: 5;
+    border-radius: 20px;
+}
+
+inputbar {
+    children: [ prompt, entry ];
+    padding: 6px 10px;
+    border-radius: 20px;
+}
+
+prompt {
+    font: "JetBrainsMono Nerd Font Bold 11";
+    text-color: @accent;
+}
+
+entry {
+    text-color: @accent;
+    placeholder: " Search...";
+    placeholder-color: @foreground;
+}
+
+mainbox {
+    children: [ inputbar, listview ];
+    spacing: 8px;
+}
+
+listview {
+    layout: vertical;
+    columns: 5;
+    lines: 4;
+    fixed-columns: true;
+    fixed-height: true;
+    spacing: 14px;
+    scrollbar: true;
+    cycle: false;
+}
+
+element {
+    orientation: vertical;
+    padding: 0px;
+    border: 0px;
+    border-radius: 20px;
+    children: [element-icon, element-text];
+}
+
+element selected {
+    border: 4px;
+    border-color: @accent;
+    border-radius: 20px;
+}
+
+element-icon {
+    size: 170px;
+    horizontal-align: 0.5;
+    vertical-align: 0.5;
+}
+
+element-text {
+    font: "JetBrainsMono Nerd Font 10";
+    text-color: inherit;
+    horizontal-align: 0.5;
+    vertical-align: 0.5;
+    margin: 0px 0px 0px 0px;
+}
+
+scrollbar {
+    handle-width: 6px;
+    handle-color: @accent;
+    handle-rounded-corners: true;
+}
