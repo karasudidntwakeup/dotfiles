@@ -5,11 +5,32 @@
 @import "websites/duckduckgo.css";
 :root {
   --lwt-accent-color: var(--surface) !important;
+  --sidebar-background-color: var(--surface) !important;
+  --sidebar-text-color: var(--on_surface) !important;
 }
 
 #TabsToolbar,
 #nav-bar,
 #titlebar {
   background-color: var(--surface) !important;
+  color: var(--on_surface) !important;
+}
+
+#sidebar-main,
+#sidebar-box,
+#sidebar-container,
+#sidebar,
+#sidebar-header,
+#sidebar-splitter,
+#vertical-tabs,
+.sidebar-panel {
+  background-color: var(--surface) !important;
+  color: var(--on_surface) !important;
+}
+
+.sidebar-placesTree,
+.sidebar-placesTreechildren,
+#sidebar-search-container {
+  background-color: transparent !important;
   color: var(--on_surface) !important;
 }
