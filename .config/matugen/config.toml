@@ -9,6 +9,7 @@ command = "awww img  {{ image }}"
 [templates.foot]
 input_path = '~/.config/matugen/templates/foot.ini'
 output_path = '~/.config/foot/foot.ini'
+post_hook = '~/.config/matugen/scripts/foot-live.sh'
 # ...
  [templates.firefox-website-colors]
   input_path = "~/.config/matugen/templates/firefox-colors.css"
