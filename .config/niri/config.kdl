@@ -126,6 +126,7 @@ layout {
 }
 
 // Startup Applications
+spawn-at-startup "/home/karasu/.local/bin/niri-zoomd"
 spawn-sh-at-startup "doas /usr/bin/keyd"
 spawn-sh-at-startup "qs"
 spawn-sh-at-startup "pipewire"
@@ -374,6 +375,9 @@ binds {
     Mod+Shift+E { quit; }
     Ctrl+Alt+Delete { quit; }
     Mod+P { power-off-monitors; }
+    Alt+Minus { spawn "/home/karasu/.local/bin/niri-zoomctl" "out"; }
+    Alt+Equal { spawn "/home/karasu/.local/bin/niri-zoomctl" "in"; }
+    Alt+0     { spawn "/home/karasu/.local/bin/niri-zoomctl" "reset"; }
 }
 recent-windows {
     // off
