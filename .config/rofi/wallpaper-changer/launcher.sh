@@ -30,7 +30,7 @@ FULL_PATH=$(find "$WALLPAPER_DIR" -type f ! -name ".*" \( -name "*.jpg" -o -name
 
 [ -z "$FULL_PATH" ] && exit 1
 
-BG=$(sed -n 's/^[[:space:]]*background:[[:space:]]*//p' "$HOME/.config/rofi/colors.rasi" | head -1)
+BG=$(sed -n 's/^[[:space:]]*background:[[:space:]]*\([^;]*\);.*/\1/p' "$HOME/.config/rofi/colors.rasi" | head -1)
 
 SCHEME_CHOICE=$(printf '%s\n' "Monochrome" "Vibrant" "Expressive" "Content" "Neutral" "Rainbow" "Fruit Salad" "Tonal Spot" \
   | rofi -dmenu -p "Scheme" \
