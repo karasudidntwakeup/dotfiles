@@ -20,12 +20,14 @@ window {
     background-color: @background;
     border: 5;
     border-radius: 20px;
+    padding: 18px;
 }
 
 inputbar {
     children: [ prompt, entry ];
-    padding: 6px 10px;
+    padding: 8px 14px;
     border-radius: 20px;
+    margin: 0px 0px 12px 0px;
 }
 
 prompt {
@@ -35,7 +37,7 @@ prompt {
 
 mainbox {
     children: [ inputbar, listview ];
-    spacing: 8px;
+    spacing: 0px;
 }
 
 listview {
@@ -46,21 +48,21 @@ listview {
     fixed-height: true;
     spacing: 14px;
     scrollbar: true;
+    scrollbar-width: 6px;
     cycle: false;
 }
 
 element {
     orientation: vertical;
-    padding: 0px;
-    border: 0px;
+    padding: 4px;
+    border: 4px;
+    border-color: transparent;
     border-radius: 20px;
     children: [element-icon, element-text];
 }
 
 element selected {
-    border: 4px;
     border-color: @accent;
-    border-radius: 20px;
 }
 
 element-icon {
@@ -74,7 +76,7 @@ element-text {
     text-color: inherit;
     horizontal-align: 0.5;
     vertical-align: 0.5;
-    margin: 0px 0px 0px 0px;
+    margin: 6px 4px 2px 4px;
 }
 
 scrollbar {
