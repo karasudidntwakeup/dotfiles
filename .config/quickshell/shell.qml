@@ -6,32 +6,58 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Effects
-import "colors.js" as Matugen
 
 // Waybar-style bar for niri.
 // Mirrors ~/.config/waybar (modules + Material You pill styling).
 // Palette comes from matugen via colors.js (regenerated on wallpaper change).
 
-// matugen 1787500488
+// matugen 1787526211
 
 ShellRoot {
     id: root
 
+    // Palette (matugen). colors.js is parsed at runtime and watched for
+    // changes, so regenerating it (wallpaper / scheme style change) recolors
+    // the bar live. A static JS import would be cached by the QML engine and
+    // never pick up new values.
+    FileView {
+        id: colorFile
+        property var paletteMap: ({})
+        path: Quickshell.shellDir + "/colors.js"
+        watchChanges: true
+        blockLoading: true
+        onFileChanged: colorFile.reload()
+        onLoadFailed: error => console.log("[colors] failed to load colors.js:", error)
+        onLoaded: {
+            var map = {}
+            var re = /var\s+(\w+)\s+=\s+"([^"]*)"/g
+            var m
+            var content = String(colorFile.text())
+            while ((m = re.exec(content)) !== null) map[m[1]] = m[2]
+            colorFile.paletteMap = map
+        }
+    }
+
+    function colorOf(name) {
+        var v = colorFile.paletteMap[name]
+        return v === undefined ? "#808080" : v
+    }
+
     // Palette (matugen, via colors.js)
-    readonly property color primary: Matugen.primary
-    readonly property color primaryContainer: Matugen.primary_container
-    readonly property color secondary: Matugen.secondary
-    readonly property color secondaryContainer: Matugen.secondary_container
-    readonly property color tertiary: Matugen.tertiary
-    readonly property color tertiaryContainer: Matugen.tertiary_container
-    readonly property color error: Matugen.error
-    readonly property color errorContainer: Matugen.error_container
-    readonly property color surface: Matugen.surface
-    readonly property color surfaceBright: Matugen.surface_bright
-    readonly property color surfaceContainerHigh: Matugen.surface_container_high
-    readonly property color onSurface: Matugen.on_surface
-    readonly property color onSurfaceVariant: Matugen.on_surface_variant
-    readonly property color outlineVariant: Matugen.outline_variant
+    readonly property color primary: colorOf("primary")
+    readonly property color primaryContainer: colorOf("primary_container")
+    readonly property color secondary: colorOf("secondary")
+    readonly property color secondaryContainer: colorOf("secondary_container")
+    readonly property color tertiary: colorOf("tertiary")
+    readonly property color tertiaryContainer: colorOf("tertiary_container")
+    readonly property color error: colorOf("error")
+    readonly property color errorContainer: colorOf("error_container")
+    readonly property color surface: colorOf("surface")
+    readonly property color surfaceBright: colorOf("surface_bright")
+    readonly property color surfaceContainerHigh: colorOf("surface_container_high")
+    readonly property color onSurface: colorOf("on_surface")
+    readonly property color onSurfaceVariant: colorOf("on_surface_variant")
+    readonly property color outlineVariant: colorOf("outline_variant")
 
     // Typography (matches waybar style.css)
     readonly property string fontFamily: "Ndot 57"
@@ -44,7 +70,7 @@ ShellRoot {
     readonly property int groupSpacing: 5
 
     readonly property color textColor: "#000000"
-    readonly property color darkText: Matugen.shadow
+    readonly property color darkText: colorOf("shadow")
     readonly property real pillAlpha: 0.25
 
     function luminance(color) {
@@ -609,14 +635,14 @@ ShellRoot {
                     Module {
                         id: weatherPill
                         label: root.weatherText
-                        tint: root.primary
+                        tint: root.colorOf("primary_fixed_dim")
                         visible: root.weatherText.length > 0
                     }
 
                     Module {
                         id: prayerPill
                         label: root.prayerText
-                        tint: Matugen.palette_error_80
+                        tint: root.colorOf("error_container")
                         visible: root.prayerText.length > 0
                     }
 
@@ -624,8 +650,7 @@ ShellRoot {
                         id: btPill
                         icon: root.bluetoothStatus === "off" ? "󰂲" : root.bluetoothStatus === "connected" ? "󰂱" : "󰂯"
                         label: root.bluetoothText
-                        tint: root.tertiary
-                        whiteText: true
+                        tint: root.colorOf("tertiary_container")
                         visible: root.bluetoothStatus === "connected"
 
                         clickArea.onClicked: {
@@ -645,14 +670,14 @@ ShellRoot {
                     Module {
                         id: kbPill
                         label: root.shortLayout(niriIpc.keyboardLayoutName)
-                        tint: Matugen.palette_tertiary_80
+                        tint: root.colorOf("tertiary_fixed_dim")
                     }
 
                     Module {
                         id: volPill
                         icon: root.volumeIcon
                         label: root.muted ? "MUTE" : root.volumePercent + "%"
-                        tint: root.secondary
+                        tint: root.colorOf("secondary_fixed_dim")
 
                         clickArea.onClicked: {
                             volCmd.command = ["pactl", "set-sink-mute", "@DEFAULT_SINK@", "toggle"]
@@ -672,16 +697,14 @@ ShellRoot {
                         id: memPill
                         icon: "󰍛"
                         label: root.memText
-                        tint: Matugen.palette_primary_70
-                        whiteText: true
+                        tint: root.colorOf("primary_container")
                     }
 
                     Module {
                         id: netPill
                         icon: root.networkConnected ? "󰖩" : "󰖪"
                         label: root.networkText
-                        tint: Matugen.palette_secondary_70
-                        whiteText: true
+                        tint: root.colorOf("secondary_container")
                         visible: root.networkConnected
                     }
 
@@ -691,16 +714,14 @@ ShellRoot {
                             ? "󰋠 󰛞 󰋑 󰋑"
                             : root.batteryIcon(root.batteryPercent)
                         label: root.batteryPercent + " %"
-                        tint: root.errorContainer
-                        whiteText: true
+                        tint: root.colorOf("error_container")
                     }
 
                     Module {
                         id: clockPill
                         icon: "󰥔"
                         label: root.clockText
-                        tint: Matugen.surface_tint
-                        whiteText: true
+                        tint: root.colorOf("secondary_fixed")
 
                         clickArea.onClicked: calPopup.open()
                     }
