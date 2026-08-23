@@ -17,7 +17,7 @@ cursor {
 }
 
 xwayland-satellite {
-   off
+  off
     path "xwayland-satellite"
 }
 clipboard {
@@ -79,7 +79,7 @@ layer-rule {
 }
 overview {
   workspace-shadow {
-        off
+        on
     }
  backdrop-color "transparent"
  zoom 0.40
@@ -204,8 +204,13 @@ animations {
 layer-rule {
     match namespace="rofi"
     match layer="top"
-    geometry-corner-radius 25
     }
+
+window-rule {
+    match app-id=r#"^rofi$"#
+    open-floating false
+    open-focused true
+}
 
 layer-rule {
     match namespace="quickshell"
@@ -227,10 +232,10 @@ window-rule {
          blur true
        }
     shadow {
-        off
+        on
         softness 60
         spread 8
-        offset x=10 y=5
+        offset x=9 y=5
         color "#00000070"
     }
   }

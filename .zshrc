@@ -41,10 +41,12 @@ setopt COMBINING_CHARS
 ################ 
 my-backward-delete-word () {
     local WORDCHARS='~!#$%^&*(){}[]<>?+;'
+    WORDCHARS=${WORDCHARS//\/[&.;]}
     zle backward-delete-word
  }
 zle -N my-backward-delete-word
 bindkey    '\e^?' my-backward-delete-word
+bindkey '^H' backward-kill-word     # Ctrl+Backspace
 #################################3
 bindkey "^[[1;5C" forward-word
 bindkey "^[[1;5D" backward-word
@@ -216,3 +218,14 @@ export PATH=/home/karasu/.opencode/bin:$PATH
 
 eval "$(atuin init zsh)"
 
+# restore normal up-arrow history (skip atuin's up-arrow takeover)
+bindkey '^[[A' up-line-or-beginning-search
+bindkey '^[OA' up-line-or-beginning-search
+
+# kill ctrl+down / ctrl+pagedown completely (no-op widget)
+__nop() { : }
+zle -N __nop
+bindkey '^[[1;5B' __nop    # ctrl+down
+bindkey '\eO5B'   __nop    # ctrl+down (application cursor mode)
+bindkey '^[[6;5~' __nop    # ctrl+pagedown
+bindkey '\e[6^'   __nop    # ctrl+pagedown (rxvt)
