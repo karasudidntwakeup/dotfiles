@@ -5,6 +5,7 @@ import Quickshell.Services.UPower
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Effects
 import "colors.js" as Matugen
 
 // Waybar-style bar for niri.
@@ -27,6 +28,9 @@ ShellRoot {
     readonly property color errorContainer: Matugen.error_container
     readonly property color surface: Matugen.surface
     readonly property color surfaceBright: Matugen.surface_bright
+    readonly property color surfaceContainerHigh: Matugen.surface_container_high
+    readonly property color onSurface: Matugen.on_surface
+    readonly property color onSurfaceVariant: Matugen.on_surface_variant
     readonly property color outlineVariant: Matugen.outline_variant
 
     // Typography (matches waybar style.css)
@@ -709,11 +713,11 @@ ShellRoot {
             visible: false
             grabFocus: true
             implicitWidth: 250
-            color: root.surface
+            color: "transparent"
 
             BackgroundEffect.blurRegion: Region {
                 item: calPopupBody
-                radius: 20
+                radius: 25
                 }
 
                 property bool dismissedByOutside: false
@@ -942,9 +946,8 @@ ShellRoot {
                     if (visible) {
                         calPopup.rebuildModel()
                         calPopupBody.opacity = 0
-                        calPopupSlide.y = 14
-                        calPopupScale.xScale = 0.92
-                        calPopupScale.yScale = 0.92
+                        calPopupScale.xScale = 0.8
+                        calPopupScale.yScale = 0.8
                         calPopupIn.restart()
                     } else {
                         calPopup.dismissedByOutside = !calPopup.closingBySelf
@@ -963,46 +966,45 @@ ShellRoot {
                     gravity: Edges.Top
                     adjustment: PopupAdjustment.All
                     rect.x: 0
-                    rect.y: -10
+                    rect.y: -14
                     rect.w: clockPill.width
-                    rect.h: clockPill.height + 10
+                    rect.h: clockPill.height + 28
                 }
 
                 ParallelAnimation {
                     id: calPopupIn
                     running: false
-                    NumberAnimation { target: calPopupBody; property: "opacity"; to: 1; duration: 180; easing.type: Easing.OutCubic }
-                    NumberAnimation { target: calPopupSlide; property: "y"; to: 0; duration: 180; easing.type: Easing.OutCubic }
-                    NumberAnimation { target: calPopupScale; property: "xScale"; to: 1; duration: 180; easing.type: Easing.OutCubic }
-                    NumberAnimation { target: calPopupScale; property: "yScale"; to: 1; duration: 180; easing.type: Easing.OutCubic }
+                    NumberAnimation { target: calPopupBody; property: "opacity"; to: 1; duration: 120; easing.type: Easing.OutQuad }
+                    NumberAnimation { target: calPopupScale; property: "xScale"; to: 1; duration: 280; easing.type: Easing.OutBack; easing.overshoot: 1.4 }
+                    NumberAnimation { target: calPopupScale; property: "yScale"; to: 1; duration: 280; easing.type: Easing.OutBack; easing.overshoot: 1.4 }
                 }
 
-                ParallelAnimation {
+                SequentialAnimation {
                     id: calPopupOut
                     running: false
-                    NumberAnimation { target: calPopupBody; property: "opacity"; to: 0; duration: 140; easing.type: Easing.InCubic }
-                    NumberAnimation { target: calPopupSlide; property: "y"; to: 14; duration: 140; easing.type: Easing.InCubic }
-                    NumberAnimation { target: calPopupScale; property: "xScale"; to: 0.92; duration: 140; easing.type: Easing.InCubic }
-                    NumberAnimation { target: calPopupScale; property: "yScale"; to: 0.92; duration: 140; easing.type: Easing.InCubic }
-                    onFinished: calPopup.visible = false
+                    ParallelAnimation {
+                        NumberAnimation { target: calPopupBody; property: "opacity"; to: 0; duration: 130; easing.type: Easing.InQuad }
+                        NumberAnimation { target: calPopupScale; property: "xScale"; to: 0.85; duration: 130; easing.type: Easing.InQuad }
+                        NumberAnimation { target: calPopupScale; property: "yScale"; to: 0.85; duration: 130; easing.type: Easing.InQuad }
+                    }
+                    ScriptAction { script: calPopup.visible = false }
                 }
 
                 Rectangle {
                     id: calPopupBody
                     anchors.fill: parent
-                    radius: 20
+                    radius: 25
                     color: root.surface
-                    border.width: 0
-                    border.color: root.withAlpha(root.textColor, 0.08)
+                    border.width: 1
+                    border.color: root.withAlpha(root.outlineVariant, 0.35)
                     clip: true
                     opacity: 0
 
                     transform: [
-                        Translate { id: calPopupSlide; y: 14 },
                         Scale {
                             id: calPopupScale
-                            xScale: 0.92
-                            yScale: 0.92
+                            xScale: 0.8
+                            yScale: 0.8
                             origin.x: width / 2
                             origin.y: height
                         }
@@ -1020,7 +1022,7 @@ ShellRoot {
 
                             Text {
                                 text: "󰁍"
-                                color: "#ffffff"
+                                color: root.onSurface
                                 font.family: root.iconFont
                                 font.pixelSize: root.fontSize + 1
                                 Layout.preferredWidth: 24
@@ -1048,7 +1050,7 @@ ShellRoot {
 
                             Text {
                                 text: "󰁔"
-                                color: "#ffffff"
+                                color: root.onSurface
                                 font.family: root.iconFont
                                 font.pixelSize: root.fontSize + 1
                                 Layout.preferredWidth: 24
@@ -1065,7 +1067,7 @@ ShellRoot {
 
                             Text {
                                 text: "󰅖"
-                                color: "#ffffff"
+                                color: root.onSurface
                                 font.family: root.iconFont
                                 font.pixelSize: root.fontSize + 1
                                 Layout.preferredWidth: 24
@@ -1089,7 +1091,7 @@ ShellRoot {
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: "󰥔"
-                                color: "#ffffff"
+                                color: root.onSurfaceVariant
                                 font.family: root.iconFont
                                 font.pixelSize: root.fontSize + 1
                             }
@@ -1097,7 +1099,7 @@ ShellRoot {
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: Qt.formatDate(new Date(), "dddd, MMMM d, yyyy")
-                                color: "#ffffff"
+                                color: root.onSurfaceVariant
                                 font.family: root.fontFamily
                                 font.pixelSize: root.fontSize - 1
                                 font.weight: Font.Black
@@ -1114,7 +1116,7 @@ ShellRoot {
                                     width: (calPopupBody.width - 24) / 7
                                     horizontalAlignment: Text.AlignHCenter
                                     text: modelData
-                                    color: "#ffffff"
+                                    color: root.onSurfaceVariant
                                     font.family: root.fontFamily
                                     font.pixelSize: root.fontSize - 2
                                 }
@@ -1182,9 +1184,7 @@ ShellRoot {
                                             width: 4
                                             height: 4
                                             radius: 2
-                                            color: isSelected
-                                                ? (root.luminance(root.primary) > 0.5 ? root.darkText : root.textColor)
-                                                : root.primary
+                                            color: isSelected ? root.onSurface : root.primary
                                         }
 
                                         MouseArea {
@@ -1236,7 +1236,7 @@ ShellRoot {
                                     text: (calPopup.entries || []).length === 1
                                         ? "1 reminder"
                                         : (calPopup.entries || []).length + " reminders"
-                                    color: "#ffffff"
+                                    color: root.onSurfaceVariant
                                     font.family: root.fontFamily
                                     font.pixelSize: root.fontSize - 2
                                     verticalAlignment: Text.AlignVCenter
@@ -1244,7 +1244,7 @@ ShellRoot {
 
                                 Text {
                                     text: "󰅖"
-                                    color: "#ffffff"
+                                    color: root.onSurface
                                     font.family: root.iconFont
                                     font.pixelSize: root.fontSize + 1
                                     Layout.preferredWidth: 20
@@ -1277,7 +1277,7 @@ ShellRoot {
                                     Text {
                                         anchors.centerIn: parent
                                         text: "+"
-                                        color: root.luminance(root.primary) > 0.5 ? root.darkText : root.textColor
+                                        color: root.onSurface
                                         font.family: root.fontFamily
                                         font.pixelSize: root.fontSize + 2
                                         font.weight: Font.Black
@@ -1299,13 +1299,13 @@ ShellRoot {
                                     radius: 7
                                     color: minusHover.containsMouse && calPopup.selectedEntryId >= 0
                                         ? root.withAlpha(root.error, 0.35)
-                                        : root.withAlpha(root.textColor, calPopup.selectedEntryId >= 0 ? 0.12 : 0.05)
+                                        : root.withAlpha(root.onSurface, calPopup.selectedEntryId >= 0 ? 0.12 : 0.05)
                                     enabled: calPopup.selectedEntryId >= 0
 
                                     Text {
                                         anchors.centerIn: parent
                                         text: "-"
-                                        color: calPopup.selectedEntryId >= 0 ? root.error : root.withAlpha(root.textColor, 0.3)
+                                        color: calPopup.selectedEntryId >= 0 ? root.error : root.withAlpha(root.onSurface, 0.3)
                                         font.family: root.fontFamily
                                         font.pixelSize: root.fontSize + 2
                                         font.weight: Font.Black
@@ -1324,7 +1324,7 @@ ShellRoot {
 
                                 Text {
                                     text: "Enter to save"
-                                    color: "#ffffff"
+                                    color: root.onSurfaceVariant
                                     font.family: root.fontFamily
                                     font.pixelSize: root.fontSize - 2
                                     verticalAlignment: Text.AlignVCenter
@@ -1348,7 +1348,7 @@ ShellRoot {
                                     contentItem: Rectangle {
                                         implicitWidth: 3
                                         radius: 2
-                                        color: root.withAlpha(root.textColor, 0.3)
+                                        color: root.withAlpha(root.onSurface, 0.3)
                                     }
                                 }
 
@@ -1371,11 +1371,11 @@ ShellRoot {
                                             width: entriesCol.width
                                             height: 30
                                             radius: 8
-                                            color: root.withAlpha(root.textColor, saved ? 0.05 : 0.08)
+                                            color: root.withAlpha(root.onSurface, saved ? 0.05 : 0.08)
                     border.width: 0
                                             border.color: isSelected
                                                 ? root.primary
-                                                : saved ? "transparent" : root.withAlpha(root.textColor, 0.15)
+                                                : saved ? "transparent" : root.withAlpha(root.onSurface, 0.15)
 
                                             RowLayout {
                                                 anchors.fill: parent
@@ -1458,7 +1458,7 @@ ShellRoot {
                                     anchors.centerIn: parent
                                     visible: entriesModel.count === 0
                                     text: "No reminders yet — press + to add"
-                                    color: "#ffffff"
+                                    color: root.onSurfaceVariant
                                     font.family: root.fontFamily
                                     font.pixelSize: root.fontSize - 1
                                 }

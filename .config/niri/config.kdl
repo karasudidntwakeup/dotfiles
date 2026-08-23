@@ -85,7 +85,8 @@ overview {
  zoom 0.40
 }
 layout {
-  background-color "transparent"
+  gaps 27
+  //background-color "transparent"
       border {
         //off
         off
@@ -97,11 +98,18 @@ layout {
 
     center-focused-column "on-overflow"
     always-center-single-column 
-    preset-column-widths {
-        proportion 0.0
-        proportion 0.0
-        proportion 0.0
-      }
+        preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+    }
+       preset-window-heights {
+        proportion 0.43333
+        proportion 0.5
+        proportion 0.66667
+    }
+
+
       
     focus-ring {
         // off
@@ -110,6 +118,12 @@ layout {
         active-color "#7fc8ff"
         inactive-color "#505050"
         urgent-color "#9b0000"
+    }
+        struts {
+         left 0
+         right 0
+         top 0
+         bottom 0
     }
 
     default-column-width { proportion 0.50; }
