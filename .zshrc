@@ -1,6 +1,3 @@
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
@@ -137,7 +134,25 @@ alias blkid='/usr/bin/grc --colour=auto blkid'
 alias env='/usr/bin/grc --colour=auto env'
 alias grep='grep -i --color=auto'
 alias rsync='rsync -abrv --suffix='date +%F_%H-%M-%S''    
+# run a command in a focused tab of the persistent herdr session
+# falls back to running it directly when already inside herdr or when herdr isn't running
+open-in-herdr() {
+  local label="$1"; shift
+  if [[ -n "$HERDR_ENV" ]] || ! herdr status >/dev/null 2>&1; then
+    command "$@"
+    return
+  fi
+  local pane
+  pane=$(herdr tab create --label "$label" --cwd "$PWD" --focus | jq -r '.result.root_pane.pane_id // empty')
+  if [[ -n "$pane" ]]; then
+    herdr pane run "$pane" "$@"
+  else
+    command "$@"
+  fi
+}
+yt-x() { open-in-herdr yt-x yt-x "$@" }
 alias yt='yt-x'
+opencode() { open-in-herdr opencode opencode "$@" }
 alias ytd='yt-dlp  -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]" --audio-quality 0'
 alias ytdm='yt-dlp -f "bestaudio[ext=m4a]","bestaudio[ext=webm]" -x '
 alias v='nvim'
