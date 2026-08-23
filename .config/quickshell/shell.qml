@@ -11,7 +11,7 @@ import "colors.js" as Matugen
 // Mirrors ~/.config/waybar (modules + Material You pill styling).
 // Palette comes from matugen via colors.js (regenerated on wallpaper change).
 
-// matugen 1787358233
+// matugen 1787500488
 
 ShellRoot {
     id: root
@@ -612,7 +612,7 @@ ShellRoot {
                     Module {
                         id: prayerPill
                         label: root.prayerText
-                        tint: root.error
+                        tint: Matugen.palette_error_80
                         visible: root.prayerText.length > 0
                     }
 
@@ -641,7 +641,7 @@ ShellRoot {
                     Module {
                         id: kbPill
                         label: root.shortLayout(niriIpc.keyboardLayoutName)
-                        tint: root.tertiary
+                        tint: Matugen.palette_tertiary_80
                     }
 
                     Module {
@@ -668,7 +668,7 @@ ShellRoot {
                         id: memPill
                         icon: "󰍛"
                         label: root.memText
-                        tint: root.tertiary
+                        tint: Matugen.palette_primary_70
                         whiteText: true
                     }
 
@@ -676,7 +676,7 @@ ShellRoot {
                         id: netPill
                         icon: root.networkConnected ? "󰖩" : "󰖪"
                         label: root.networkText
-                        tint: root.primary
+                        tint: Matugen.palette_secondary_70
                         whiteText: true
                         visible: root.networkConnected
                     }
@@ -687,7 +687,7 @@ ShellRoot {
                             ? "󰋠 󰛞 󰋑 󰋑"
                             : root.batteryIcon(root.batteryPercent)
                         label: root.batteryPercent + " %"
-                        tint: root.error
+                        tint: root.errorContainer
                         whiteText: true
                     }
 
@@ -695,7 +695,7 @@ ShellRoot {
                         id: clockPill
                         icon: "󰥔"
                         label: root.clockText
-                        tint: root.secondary
+                        tint: Matugen.surface_tint
                         whiteText: true
 
                         clickArea.onClicked: calPopup.open()
