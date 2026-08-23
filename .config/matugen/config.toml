@@ -56,7 +56,6 @@ post_hook = 'niri msg action load-config-file'
 [templates.quickshell]
 input_path = '~/.config/matugen/templates/quickshell-colors.js'
 output_path = '~/.config/quickshell/colors.js'
-post_hook = 'sed -i "s|// matugen [[:xdigit:]]*|// matugen $(date +%s)|" ~/.config/quickshell/shell.qml && touch ~/.config/quickshell/.matugen-reload && rm -f ~/.config/quickshell/.matugen-reload'
 [templates.ddg_css]
 input_path = '~/.config/matugen/templates/ddg.css'
 output_path = '~/.librewolf/fuoz9ly2.default-default/chrome/websites/duckduckgo.css'
