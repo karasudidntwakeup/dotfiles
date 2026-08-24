@@ -1,5 +1,5 @@
 [mgr]
-ratio = [1,1, 2]   
+ratio = [0,1, 2]   
 sort_by = "mtime"
 sort_reverse = true
 show_symlink = true
