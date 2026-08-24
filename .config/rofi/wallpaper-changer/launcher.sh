@@ -56,4 +56,4 @@ awww img "$FULL_PATH" --transition-type random --transition-duration 2.0
 
 base=$(basename "$FULL_PATH")
 
-sed -i 's|path = ~/wallpaper/.*|path = ~/wallpaper/'"$base"'|' ~/.config/hypr/hyprlock.conf 2>/dev/null
+sed -i 's|^\$wallpaper[[:space:]]*=.*|$wallpaper                  = ~/wallpaper/'"$base"'|' ~/.config/hypr/hyprlock.conf 2>/dev/null
