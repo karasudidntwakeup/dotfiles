@@ -111,9 +111,3 @@ rules = [
     { url = "*", fg = "#97ceec" },
 ]
 
-[icon]
-globs = []
-dirs  = []
-files = []
-exts  = []
-conds = []
