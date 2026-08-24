@@ -509,7 +509,7 @@ ShellRoot {
 
         implicitWidth: pillRow.implicitWidth + pill.padX
         implicitHeight: root.pillHeight - 2
-        radius: 20
+        radius: 8
         color: tint
 
         Row {
@@ -558,7 +558,7 @@ ShellRoot {
 
         width: 32
         height: root.pillHeight
-        radius: 20
+        radius: 8
         border.width: 1
         border.color: root.withAlpha(root.textColor, 0.15)
         color: focused ? root.primary

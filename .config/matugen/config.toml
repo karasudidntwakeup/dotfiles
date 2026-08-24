@@ -23,7 +23,7 @@ output_path = '~/.config/telegram/tdesktop-theme.tdesktop-theme'
 [templates.swaync]
 input_path = "~/.config/matugen/templates/swaync-colors.css"
 output_path = "~/.config/swaync/colors.css"
-post_hook = "swaync-client -rs"
+post_hook = "timeout 3 swaync-client -rs"
 # ...
 [templates.television]
 input_path = '~/.config/matugen/templates/television.toml'

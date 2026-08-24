@@ -6,7 +6,7 @@
 /* Scheme colors (current mode) */
 
 
-var background = "#0b1610"
+var background = "#0c1512"
 
 var error = "#ffece9"
 
@@ -14,11 +14,11 @@ var error_container = "#ffaea4"
 
 var inverse_on_surface = "#000000"
 
-var inverse_primary = "#494b00"
+var inverse_primary = "#763514"
 
-var inverse_surface = "#d9e6db"
+var inverse_surface = "#dbe5e0"
 
-var on_background = "#d9e6db"
+var on_background = "#dbe5e0"
 
 var on_error = "#000000"
 
@@ -30,7 +30,7 @@ var on_primary_container = "#000000"
 
 var on_primary_fixed = "#000000"
 
-var on_primary_fixed_variant = "#121200"
+var on_primary_fixed_variant = "#250800"
 
 var on_secondary = "#000000"
 
@@ -38,7 +38,7 @@ var on_secondary_container = "#000000"
 
 var on_secondary_fixed = "#000000"
 
-var on_secondary_fixed_variant = "#121200"
+var on_secondary_fixed_variant = "#001417"
 
 var on_surface = "#ffffff"
 
@@ -50,67 +50,67 @@ var on_tertiary_container = "#000000"
 
 var on_tertiary_fixed = "#000000"
 
-var on_tertiary_fixed_variant = "#00150a"
+var on_tertiary_fixed_variant = "#001511"
 
-var outline = "#ddf6e4"
+var outline = "#e2f4ed"
 
-var outline_variant = "#b0c8b8"
+var outline_variant = "#b4c7c0"
 
-var primary = "#f4f77d"
+var primary = "#ffece5"
 
-var primary_container = "#c6c955"
+var primary_container = "#ffb08d"
 
-var primary_fixed = "#e6e971"
+var primary_fixed = "#ffdbcd"
 
-var primary_fixed_dim = "#c9cd59"
+var primary_fixed_dim = "#ffb595"
 
 var scrim = "#000000"
 
-var secondary = "#f4f59c"
+var secondary = "#caf8ff"
 
-var secondary_container = "#c6c774"
+var secondary_container = "#9dcad1"
 
-var secondary_fixed = "#e6e890"
+var secondary_fixed = "#bcebf1"
 
-var secondary_fixed_dim = "#c9cb77"
+var secondary_fixed_dim = "#a1ced5"
 
 var shadow = "#000000"
 
 var source_color = "#465049"
 
-var surface = "#0b1610"
+var surface = "#0c1512"
 
-var surface_bright = "#47534b"
+var surface_bright = "#48524f"
 
-var surface_container = "#28332c"
+var surface_container = "#29322f"
 
-var surface_container_high = "#333e37"
+var surface_container_high = "#343d3a"
 
-var surface_container_highest = "#3e4942"
+var surface_container_highest = "#3f4945"
 
-var surface_container_low = "#17221b"
+var surface_container_low = "#18211f"
 
 var surface_container_lowest = "#000000"
 
-var surface_dim = "#0b1610"
+var surface_dim = "#0c1512"
 
-var surface_tint = "#c9cd59"
+var surface_tint = "#ffb595"
 
-var surface_variant = "#364b3f"
+var surface_variant = "#3a4a45"
 
-var tertiary = "#bbffd7"
+var tertiary = "#b7feee"
 
-var tertiary_container = "#8cd1aa"
+var tertiary_container = "#8ad0c1"
 
-var tertiary_fixed = "#abf2c9"
+var tertiary_fixed = "#aaf0e1"
 
-var tertiary_fixed_dim = "#90d5ae"
+var tertiary_fixed_dim = "#8ed4c5"
 
 
 /* Light scheme variants */
 
 
-var background_light = "#f0fdf2"
+var background_light = "#f2fcf6"
 
 var error_light = "#600004"
 
@@ -118,11 +118,11 @@ var error_container_light = "#98000a"
 
 var inverse_on_surface_light = "#ffffff"
 
-var inverse_primary_light = "#c9cd59"
+var inverse_primary_light = "#ffb595"
 
-var inverse_surface_light = "#28332c"
+var inverse_surface_light = "#29322f"
 
-var on_background_light = "#131e17"
+var on_background_light = "#141d1b"
 
 var on_error_light = "#ffffff"
 
@@ -156,65 +156,65 @@ var on_tertiary_fixed_light = "#ffffff"
 
 var on_tertiary_fixed_variant_light = "#ffffff"
 
-var outline_light = "#1c3025"
+var outline_light = "#1f2f2b"
 
-var outline_variant_light = "#394e41"
+var outline_variant_light = "#3c4d47"
 
-var primary_light = "#2d2e00"
+var primary_light = "#501b00"
 
-var primary_container_light = "#4a4c00"
+var primary_container_light = "#773616"
 
-var primary_fixed_light = "#4a4c00"
+var primary_fixed_light = "#773616"
 
-var primary_fixed_dim_light = "#343500"
+var primary_fixed_dim_light = "#5a2102"
 
 var scrim_light = "#000000"
 
-var secondary_light = "#2d2e00"
+var secondary_light = "#003237"
 
-var secondary_container_light = "#4a4c02"
+var secondary_container_light = "#225055"
 
-var secondary_fixed_light = "#4a4c02"
+var secondary_fixed_light = "#225055"
 
-var secondary_fixed_dim_light = "#343500"
+var secondary_fixed_dim_light = "#02393e"
 
 var shadow_light = "#000000"
 
 var source_color_light = "#465049"
 
-var surface_light = "#f0fdf2"
+var surface_light = "#f2fcf6"
 
-var surface_bright_light = "#f0fdf2"
+var surface_bright_light = "#f2fcf6"
 
-var surface_container_light = "#d9e6db"
+var surface_container_light = "#dbe5e0"
 
-var surface_container_high_light = "#cbd8cd"
+var surface_container_high_light = "#cdd7d2"
 
-var surface_container_highest_light = "#bdcabf"
+var surface_container_highest_light = "#bfc9c4"
 
-var surface_container_low_light = "#e7f4e9"
+var surface_container_low_light = "#e9f3ee"
 
 var surface_container_lowest_light = "#ffffff"
 
-var surface_dim_light = "#afbcb2"
+var surface_dim_light = "#b1bbb6"
 
-var surface_tint_light = "#606200"
+var surface_tint_light = "#924b28"
 
-var surface_variant_light = "#d0e8d7"
+var surface_variant_light = "#d4e7df"
 
-var tertiary_light = "#00341f"
+var tertiary_light = "#00332c"
 
-var tertiary_container_light = "#055436"
+var tertiary_container_light = "#005349"
 
-var tertiary_fixed_light = "#055436"
+var tertiary_fixed_light = "#005349"
 
-var tertiary_fixed_dim_light = "#003b24"
+var tertiary_fixed_dim_light = "#003a32"
 
 
 /* Dark scheme variants */
 
 
-var background_dark = "#0b1610"
+var background_dark = "#0c1512"
 
 var error_dark = "#ffece9"
 
@@ -222,11 +222,11 @@ var error_container_dark = "#ffaea4"
 
 var inverse_on_surface_dark = "#000000"
 
-var inverse_primary_dark = "#494b00"
+var inverse_primary_dark = "#763514"
 
-var inverse_surface_dark = "#d9e6db"
+var inverse_surface_dark = "#dbe5e0"
 
-var on_background_dark = "#d9e6db"
+var on_background_dark = "#dbe5e0"
 
 var on_error_dark = "#000000"
 
@@ -238,7 +238,7 @@ var on_primary_container_dark = "#000000"
 
 var on_primary_fixed_dark = "#000000"
 
-var on_primary_fixed_variant_dark = "#121200"
+var on_primary_fixed_variant_dark = "#250800"
 
 var on_secondary_dark = "#000000"
 
@@ -246,7 +246,7 @@ var on_secondary_container_dark = "#000000"
 
 var on_secondary_fixed_dark = "#000000"
 
-var on_secondary_fixed_variant_dark = "#121200"
+var on_secondary_fixed_variant_dark = "#001417"
 
 var on_surface_dark = "#ffffff"
 
@@ -258,61 +258,61 @@ var on_tertiary_container_dark = "#000000"
 
 var on_tertiary_fixed_dark = "#000000"
 
-var on_tertiary_fixed_variant_dark = "#00150a"
+var on_tertiary_fixed_variant_dark = "#001511"
 
-var outline_dark = "#ddf6e4"
+var outline_dark = "#e2f4ed"
 
-var outline_variant_dark = "#b0c8b8"
+var outline_variant_dark = "#b4c7c0"
 
-var primary_dark = "#f4f77d"
+var primary_dark = "#ffece5"
 
-var primary_container_dark = "#c6c955"
+var primary_container_dark = "#ffb08d"
 
-var primary_fixed_dark = "#e6e971"
+var primary_fixed_dark = "#ffdbcd"
 
-var primary_fixed_dim_dark = "#c9cd59"
+var primary_fixed_dim_dark = "#ffb595"
 
 var scrim_dark = "#000000"
 
-var secondary_dark = "#f4f59c"
+var secondary_dark = "#caf8ff"
 
-var secondary_container_dark = "#c6c774"
+var secondary_container_dark = "#9dcad1"
 
-var secondary_fixed_dark = "#e6e890"
+var secondary_fixed_dark = "#bcebf1"
 
-var secondary_fixed_dim_dark = "#c9cb77"
+var secondary_fixed_dim_dark = "#a1ced5"
 
 var shadow_dark = "#000000"
 
 var source_color_dark = "#465049"
 
-var surface_dark = "#0b1610"
+var surface_dark = "#0c1512"
 
-var surface_bright_dark = "#47534b"
+var surface_bright_dark = "#48524f"
 
-var surface_container_dark = "#28332c"
+var surface_container_dark = "#29322f"
 
-var surface_container_high_dark = "#333e37"
+var surface_container_high_dark = "#343d3a"
 
-var surface_container_highest_dark = "#3e4942"
+var surface_container_highest_dark = "#3f4945"
 
-var surface_container_low_dark = "#17221b"
+var surface_container_low_dark = "#18211f"
 
 var surface_container_lowest_dark = "#000000"
 
-var surface_dim_dark = "#0b1610"
+var surface_dim_dark = "#0c1512"
 
-var surface_tint_dark = "#c9cd59"
+var surface_tint_dark = "#ffb595"
 
-var surface_variant_dark = "#364b3f"
+var surface_variant_dark = "#3a4a45"
 
-var tertiary_dark = "#bbffd7"
+var tertiary_dark = "#b7feee"
 
-var tertiary_container_dark = "#8cd1aa"
+var tertiary_container_dark = "#8ad0c1"
 
-var tertiary_fixed_dark = "#abf2c9"
+var tertiary_fixed_dark = "#aaf0e1"
 
-var tertiary_fixed_dim_dark = "#90d5ae"
+var tertiary_fixed_dim_dark = "#8ed4c5"
 
 
 /* Tonal palettes (tones 0-100) */
