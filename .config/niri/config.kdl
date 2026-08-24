@@ -86,9 +86,7 @@ overview {
 }
 layout {
   gaps 27
-  //background-color "transparent"
       border {
-        //off
         off
         width 2
         active-color "#505050"
@@ -112,30 +110,17 @@ layout {
 
       
     focus-ring {
-        // off
         on
         width 2
         active-color "#7fc8ff"
         inactive-color "#505050"
         urgent-color "#9b0000"
     }
-        struts {
-         left 0
-         right 0
-         top 0
-         bottom 0
-    }
 
     default-column-width { proportion 0.50; }
 
     shadow {
         off
-        softness 30
-        spread 10
-        offset x=3 y=10
-        draw-behind-window true
-        color "#00000070"
-        inactive-color "#00000054"
     }
 }
 
@@ -215,11 +200,6 @@ animations {
         spring damping-ratio=0.9 stiffness=350 epsilon=0.001
     }
 }
-layer-rule {
-    match namespace="rofi"
-    match layer="top"
-    }
-
 window-rule {
     match app-id=r#"^rofi$"#
     open-floating false
@@ -229,22 +209,12 @@ window-rule {
 layer-rule {
     match namespace="quickshell"
     match layer="top"
-    //background-effect {
-     //   xray true
-      //  blur true
-       // noise 0
-  //}
 }
 
 window-rule {
     match app-id=r#".*"#
     geometry-corner-radius 15
     clip-to-geometry true
-    // Heavy on the iGPU — re-enable only if you accept stutter:
-     background-effect {
-         xray true
-         blur true
-       }
     shadow {
         on
         softness 60
@@ -252,11 +222,8 @@ window-rule {
         offset x=9 y=5
         color "#00000070"
     }
-  }
-
-window-rule {
-    match is-active=true
 }
+
 window-rule {
     match app-id="librewolf"
     default-column-width { proportion 0.70;}
@@ -428,10 +395,6 @@ recent-windows {
 
 blur {
   off
-    passes 3
-    offset 3.39
-    noise 0.0 
-    saturation 1.0 
 }
 
 include "colors.kdl"
