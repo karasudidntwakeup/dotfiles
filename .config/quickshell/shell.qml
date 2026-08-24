@@ -61,6 +61,7 @@ ShellRoot {
 
     // Typography (matches waybar style.css)
     readonly property string fontFamily: "Ndot 57"
+    readonly property string uiFont: "Inter"
     readonly property string iconFont: "Symbols Nerd Font"
     readonly property int fontSize: 13
 
@@ -148,7 +149,7 @@ ShellRoot {
     }
 
     Timer {
-        interval: 80000
+        interval: 600000
         running: true
         repeat: true
         onTriggered: prayerProc.running = true
@@ -191,11 +192,27 @@ ShellRoot {
         command: ["true"]
     }
 
-    Timer {
-        interval: 2000
+    // pactl subscribe streams audio-server events, so the pill refreshes only
+    // when a sink or server property actually changes instead of polling.
+    Process {
+        id: volWatch
+        command: ["sh", "-c", "exec pactl subscribe"]
         running: true
-        repeat: true
-        onTriggered: volProc.running = true
+        stdout: SplitParser {
+            onRead: data => {
+                var t = data.toLowerCase()
+                if ((t.indexOf("sink") >= 0 || t.indexOf("server") >= 0) && !volProc.running)
+                    volProc.running = true
+            }
+        }
+        onExited: volRestart.restart()
+    }
+
+    Timer {
+        id: volRestart
+        interval: 5000
+        repeat: false
+        onTriggered: volWatch.running = true
     }
 
     // Battery (UPower)
@@ -205,15 +222,16 @@ ShellRoot {
         || battery.state === UPowerDeviceState.FullyCharged
         || battery.state === UPowerDeviceState.PendingCharge)
 
+    readonly property var batteryIcons: [
+        "󱢠 󱢠 󱢠  ", "󱢠 󱢠 󰛞  ", "󱢠 󱢠 󰛞  ", "󱢠 󱢠 󰋑  ", "󱢠 󰛞 󰋑  ",
+        "󱢠 󰛞 󰋑  ", "󱢠 󰋑 󰋑  ", "󰛞 󰋑 󰋑  ", "󰛞 󰋑 󰋑  ", "󰋑 󰋑 󰋑  "
+    ]
+
     function batteryIcon(cap) {
-        var icons = [
-            "󱢠 󱢠 󱢠  ", "󱢠 󱢠 󰛞  ", "󱢠 󱢠 󰛞  ", "󱢠 󱢠 󰋑  ", "󱢠 󰛞 󰋑  ",
-            "󱢠 󰛞 󰋑  ", "󱢠 󰋑 󰋑  ", "󰛞 󰋑 󰋑  ", "󰛞 󰋑 󰋑  ", "󰋑 󰋑 󰋑  "
-        ]
         var i = Math.floor(cap / 10)
         if (i < 0) i = 0
         if (i > 9) i = 9
-        return icons[i]
+        return root.batteryIcons[i]
     }
 
     // Keyboard layout (niri) — show short codes like waybar's kblayout script
@@ -243,7 +261,7 @@ ShellRoot {
     }
 
     Timer {
-        interval: 5000
+        interval: 10000
         running: true
         repeat: true
         onTriggered: netProc.running = true
@@ -281,13 +299,13 @@ ShellRoot {
     }
 
     Timer {
-        interval: 5000
+        interval: 10000
         running: true
         repeat: true
         onTriggered: btProc.running = true
     }
 
-    // Clock (updates every second, like waybar)
+    // Clock (checks every second, only repaints when the minute changes)
     property string clockText: ""
 
     Timer {
@@ -295,7 +313,8 @@ ShellRoot {
         running: true
         repeat: true
         onTriggered: {
-            root.clockText = Qt.formatDateTime(new Date(), "hh:mm AP")
+            var t = Qt.formatDateTime(new Date(), "hh:mm AP")
+            if (t !== root.clockText) root.clockText = t
         }
     }
 
@@ -305,26 +324,6 @@ ShellRoot {
         memProc.running = true
         netProc.running = true
         btProc.running = true
-    }
-
-    Timer {
-        interval: 2000
-        running: true
-        repeat: true
-        onTriggered: {
-            var s = "vol=" + root.volumePercent + "% muted=" + root.muted
-                + "\nkblayout='" + root.shortLayout(niriIpc.keyboardLayoutName) + "'"
-                + " mem='" + root.memText + "' net='" + root.networkText + "' conn=" + root.networkConnected
-                + " bat=" + root.batteryPercent + " charging=" + root.charging
-                + " weather='" + root.weatherText + "' prayer='" + root.prayerText + "'"
-            debugProc.command = ["sh", "-c", "cat > /tmp/qs-state.txt <<'QSEOF'\n" + s + "\nQSEOF"]
-            debugProc.running = true
-        }
-    }
-
-    Process {
-        id: debugProc
-        command: ["true"]
     }
 
     // niri IPC — raw JSON over the $NIRI_SOCKET unix socket (quickshell's
@@ -615,7 +614,6 @@ ShellRoot {
             Connections {
                 target: niriIpc
                 function onWorkspacesUpdated() { bar.refreshWorkspaces() }
-                function onOutputsUpdated() { bar.refreshWorkspaces() }
             }
 
             Component.onCompleted: refreshWorkspaces()
@@ -1411,7 +1409,7 @@ ShellRoot {
                                                     Layout.fillHeight: true
                                                     text: entryText
                                                     color: "#ffffff"
-                                                    font.family: root.fontFamily
+                                                    font.family: root.uiFont
                                                     font.pixelSize: root.fontSize
                                                     selectByMouse: true
                                                     background: Item {}
@@ -1427,7 +1425,7 @@ ShellRoot {
                                                     Layout.fillHeight: true
                                                     text: entryText
                                                     color: "#ffffff"
-                                                    font.family: root.fontFamily
+                                                    font.family: root.uiFont
                                                     font.pixelSize: root.fontSize
                                                     elide: Text.ElideRight
                                                     verticalAlignment: Text.AlignVCenter
@@ -1475,14 +1473,6 @@ ShellRoot {
                                     }
                                 }
 
-                                Text {
-                                    anchors.centerIn: parent
-                                    visible: entriesModel.count === 0
-                                    text: "No reminders yet — press + to add"
-                                    color: root.onSurfaceVariant
-                                    font.family: root.fontFamily
-                                    font.pixelSize: root.fontSize - 1
-                                }
                             }
                         }
                     }
