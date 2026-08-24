@@ -26,7 +26,7 @@ notificationwindow, blankwindow {
 }
 
 .notification-row .notification-background .notification {
-    background: @surface_variant;
+    background: @background;
     border: 1px solid @outline;
     border-radius: 12px;
     box-shadow: none;

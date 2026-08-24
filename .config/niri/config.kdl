@@ -85,7 +85,10 @@ overview {
  zoom 0.40
 }
 layout {
-  gaps 27
+  gaps 10
+    struts {
+        bottom 10
+    }
       border {
         off
         width 2
