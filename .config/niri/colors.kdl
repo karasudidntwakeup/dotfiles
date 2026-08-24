@@ -1,15 +1,15 @@
 overview {
-    backdrop-color "#0c1517"
+    backdrop-color "#0c1516"
 }
 
 layout {
     border {
-        active-color "#3d2800"
+        active-color "#422500"
         inactive-color "#000000"
         urgent-color "#600004"
     }
     focus-ring {
-        active-color "#3d2800"
+        active-color "#422500"
         inactive-color "#000000"
         urgent-color "#600004"
     }
@@ -20,7 +20,7 @@ layout {
 
 recent-windows {
     highlight {
-        active-color "#3d2800"
+        active-color "#422500"
         urgent-color "#600004"
     }
 }

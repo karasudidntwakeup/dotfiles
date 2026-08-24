@@ -305,6 +305,64 @@ ShellRoot {
         onTriggered: btProc.running = true
     }
 
+    // Countdown timer (controlled from the clock popup)
+    readonly property int defaultTimerMs: 25 * 60000
+    property real timerRemainingMs: defaultTimerMs
+    property bool timerRunning: false
+    property real timerTarget: 0
+
+    function fmtTimer(ms) {
+        var s = Math.max(0, Math.ceil(ms / 1000))
+        var h = Math.floor(s / 3600)
+        var m = Math.floor((s % 3600) / 60)
+        var sec = s % 60
+        function pad(n) { return n < 10 ? "0" + n : "" + n }
+        return h > 0 ? h + ":" + pad(m) + ":" + pad(sec) : pad(m) + ":" + pad(sec)
+    }
+
+    function adjustTimerMinutes(delta) {
+        var next = Math.round(timerRemainingMs / 60000) + delta
+        next = Math.max(1, Math.min(next, 3599))
+        timerRemainingMs = next * 60000
+        if (timerRunning) timerTarget = Date.now() + timerRemainingMs
+    }
+
+    function toggleTimer() {
+        if (timerRunning) {
+            timerRemainingMs = Math.max(0, timerTarget - Date.now())
+            timerRunning = false
+        } else {
+            if (timerRemainingMs <= 0) timerRemainingMs = defaultTimerMs
+            timerTarget = Date.now() + timerRemainingMs
+            timerRunning = true
+        }
+    }
+
+    function resetTimer() {
+        timerRunning = false
+        timerRemainingMs = defaultTimerMs
+    }
+
+    Timer {
+        interval: 500
+        running: root.timerRunning
+        repeat: true
+        onTriggered: {
+            var left = root.timerTarget - Date.now()
+            if (left <= 0) {
+                root.timerRunning = false
+                root.timerRemainingMs = 0
+                Quickshell.execDetached(["sh", "-c",
+                    "paplay /usr/share/sounds/freedesktop/stereo/alarm-clock-elapsed.oga; " +
+                    "sleep 1; paplay /usr/share/sounds/freedesktop/stereo/bell.oga"])
+                Quickshell.execDetached(["notify-send", "-u", "critical",
+                    "-i", "alarm-clock", "-t", "10000", "Timer", "Time is up! 󰄉"])
+            } else {
+                root.timerRemainingMs = left
+            }
+        }
+    }
+
     // Clock (checks every second, only repaints when the minute changes)
     property string clockText: ""
 
@@ -959,7 +1017,7 @@ ShellRoot {
                     return Qt.formatDate(new Date(y, m, d), "ddd, MMM d")
                 }
 
-                implicitHeight: 294 + (calPopup.selectedKey.length > 0 ? calPopup.editorHeight + 6 : 0)
+                implicitHeight: 336 + (calPopup.selectedKey.length > 0 ? calPopup.editorHeight + 6 : 0)
 
                 onVisibleChanged: {
                     if (visible) {
@@ -1215,6 +1273,143 @@ ShellRoot {
                                             onClicked: calPopup.selectDay(key)
                                         }
                                     }
+                                }
+                            }
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 40
+                            spacing: 6
+
+                            Text {
+                                text: "󰄉"
+                                color: root.timerRunning ? root.primary : root.onSurfaceVariant
+                                font.family: root.iconFont
+                                font.pixelSize: root.fontSize + 2
+                                Layout.preferredWidth: 22
+                                Layout.preferredHeight: 40
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                            }
+
+                            Text {
+                                text: root.fmtTimer(root.timerRemainingMs)
+                                color: root.timerRemainingMs <= 0 ? root.error : "#ffffff"
+                                font.family: root.fontFamily
+                                font.pixelSize: root.fontSize + 8
+                                font.weight: Font.Black
+                                Layout.fillWidth: true
+                                verticalAlignment: Text.AlignVCenter
+                            }
+
+                            Rectangle {
+                                id: timerMinusBtn
+                                Layout.preferredWidth: 26
+                                Layout.preferredHeight: 26
+                                Layout.alignment: Qt.AlignVCenter
+                                radius: 7
+                                color: timerMinusHover.containsMouse
+                                    ? root.withAlpha(root.primary, 0.35)
+                                    : root.withAlpha(root.primary, 0.18)
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "-"
+                                    color: root.onSurface
+                                    font.family: root.fontFamily
+                                    font.pixelSize: root.fontSize + 2
+                                    font.weight: Font.Black
+                                }
+
+                                MouseArea {
+                                    id: timerMinusHover
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: root.adjustTimerMinutes(-5)
+                                }
+                            }
+
+                            Rectangle {
+                                id: timerPlusBtn
+                                Layout.preferredWidth: 26
+                                Layout.preferredHeight: 26
+                                Layout.alignment: Qt.AlignVCenter
+                                radius: 7
+                                color: timerPlusHover.containsMouse
+                                    ? root.withAlpha(root.primary, 0.35)
+                                    : root.withAlpha(root.primary, 0.18)
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "+"
+                                    color: root.onSurface
+                                    font.family: root.fontFamily
+                                    font.pixelSize: root.fontSize + 2
+                                    font.weight: Font.Black
+                                }
+
+                                MouseArea {
+                                    id: timerPlusHover
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: root.adjustTimerMinutes(5)
+                                }
+                            }
+
+                            Rectangle {
+                                id: timerToggleBtn
+                                Layout.preferredWidth: 34
+                                Layout.preferredHeight: 26
+                                Layout.alignment: Qt.AlignVCenter
+                                radius: 7
+                                color: timerToggleHover.containsMouse
+                                    ? root.withAlpha(root.primary, 0.45)
+                                    : root.withAlpha(root.primary, 0.28)
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: root.timerRunning ? "󰏤" : "󰐊"
+                                    color: root.primary
+                                    font.family: root.iconFont
+                                    font.pixelSize: root.fontSize + 2
+                                }
+
+                                MouseArea {
+                                    id: timerToggleHover
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: root.toggleTimer()
+                                }
+                            }
+
+                            Rectangle {
+                                id: timerResetBtn
+                                Layout.preferredWidth: 26
+                                Layout.preferredHeight: 26
+                                Layout.alignment: Qt.AlignVCenter
+                                radius: 7
+                                color: timerResetHover.containsMouse
+                                    ? root.withAlpha(root.error, 0.35)
+                                    : root.withAlpha(root.onSurface, 0.08)
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "󰃢"
+                                    color: root.error
+                                    font.family: root.iconFont
+                                    font.pixelSize: root.fontSize
+                                }
+
+                                MouseArea {
+                                    id: timerResetHover
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: root.resetTimer()
                                 }
                             }
                         }
