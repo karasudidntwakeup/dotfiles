@@ -72,16 +72,10 @@ output "eDP-1" {
     scale 1
 
 }
-layer-rule {
-    match namespace="^awww$"
-    match namespace="^awww-daemonbackdrop$"
-    place-within-backdrop true
-}
-overview {
+ overview {
   workspace-shadow {
         on
     }
- backdrop-color "transparent"
  zoom 0.40
 }
 layout {
@@ -128,17 +122,13 @@ layout {
 }
 
 // Startup Applications
-spawn-at-startup "/home/karasu/.local/bin/niri-zoomd"
-spawn-sh-at-startup "doas /usr/bin/keyd"
 spawn-sh-at-startup "qs"
 spawn-sh-at-startup "pipewire"
 spawn-sh-at-startup "pipewire-pulse"
 spawn-sh-at-startup "wireplumber"
-spawn-at-startup "awww-daemon" 
+spawn-at-startup "awww-daemon"
 spawn-at-startup "eww" "daemon"
 spawn-at-startup "swaync"
-spawn-sh-at-startup "~/.config/eww/scripts/audio/ascii_visualizer.py >/dev/null 2>&1 &"
-spawn-sh-at-startup "cava -p ~/.config/cava/config >/dev/null 2>&1 &"
 spawn-at-startup "sh" "-c" "wl-paste --type text --watch cliphist store"
 spawn-at-startup "sh" "-c" "wl-paste --type image --watch cliphist store"
 hotkey-overlay {
@@ -147,9 +137,6 @@ hotkey-overlay {
 screenshot-path null
  
 animations {
-    // macOS-style animations: fast clean zooms on open/close, a genie that
-    // shrinks into the dock, smooth gliding springs, and a springy
-    // Mission Control zoom into the overview.
 
     window-open {
         // Windows open with a slow, gentle fade so the eye eases in.
@@ -364,9 +351,6 @@ binds {
     Mod+Shift+E { quit; }
     Ctrl+Alt+Delete { quit; }
     Mod+P { power-off-monitors; }
-    Alt+Minus { spawn "/home/karasu/.local/bin/niri-zoomctl" "out"; }
-    Alt+Equal { spawn "/home/karasu/.local/bin/niri-zoomctl" "in"; }
-    Alt+0     { spawn "/home/karasu/.local/bin/niri-zoomctl" "reset"; }
 }
 recent-windows {
     // off
