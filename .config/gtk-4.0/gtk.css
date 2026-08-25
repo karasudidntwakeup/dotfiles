@@ -1,0 +1,29 @@
+@import url('/usr/share/themes/adw-gtk3/gtk-4.0/libadwaita.css');
+@import url('/usr/share/themes/adw-gtk3/gtk-4.0/libadwaita-tweaks.css');
+
+window.background,
+.background {
+  background-color: alpha(@window_bg_color, 0.85);
+}
+
+headerbar,
+.titlebar {
+  background-color: alpha(@headerbar_bg_color, 0.85);
+}
+
+.view,
+textview,
+textview text {
+  background-color: alpha(@view_bg_color, 0.85);
+}
+
+card,
+.card {
+  background-color: alpha(@card_bg_color, 0.85);
+}
+
+popover.background,
+popover > contents,
+.popover {
+  background-color: alpha(@popover_bg_color, 0.85);
+}

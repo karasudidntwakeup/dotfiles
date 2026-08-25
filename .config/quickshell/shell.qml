@@ -105,9 +105,14 @@ ShellRoot {
         command: ["sh", "-c", "~/.config/waybar/scripts/weather.sh"]
         stdout: SplitParser {
             onRead: data => {
-                if (data) weatherText = data.trim()
+                var t = data ? data.trim() : ""
+                if (t && !/error|unavailable|failed|not available|⚠/i.test(t))
+                    weatherText = t
+                else
+                    weatherText = ""
             }
         }
+        onExited: code => { if (code !== 0) weatherText = "" }
     }
 
     Process {
@@ -117,18 +122,25 @@ ShellRoot {
             onRead: data => {
                 if (!data) return
                 var parts = data.trim().split("|")
-                if (parts.length !== 2) {
-                    prayerText = parts[0]
+                if (parts.length !== 2 || /error|unavailable|failed/i.test(parts[0])) {
+                    prayerText = ""
                     prayerName = ""
                     return
                 }
                 var p = parts[1].split(/[\s:-]/)
+                var d = new Date(parseInt(p[2]), parseInt(p[1]) - 1, parseInt(p[0]),
+                                 parseInt(p[3]), parseInt(p[4]))
+                if (isNaN(d.getTime())) {
+                    prayerText = ""
+                    prayerName = ""
+                    return
+                }
+                prayerTarget = d
                 prayerName = parts[0]
-                prayerTarget = new Date(parseInt(p[2]), parseInt(p[1]) - 1, parseInt(p[0]),
-                                        parseInt(p[3]), parseInt(p[4]))
                 updatePrayerCountdown()
             }
         }
+        onExited: code => { if (code !== 0) { prayerText = ""; prayerName = "" } }
     }
 
     Process {
