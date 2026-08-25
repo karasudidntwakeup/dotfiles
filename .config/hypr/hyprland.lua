@@ -1,76 +1,39 @@
-
--- This is an example Hyprland Lua config file.
+-- Hyprland config mirroring the niri configuration.
 -- Refer to the wiki for more information.
 -- https://wiki.hypr.land/Configuring/Start/
-
--- Please note not all available settings / options are set here.
--- For a full list, see the wiki
-
--- You can (and should!!) split this configuration into multiple files
--- Create your files separately and then require them like this:
--- require("myColors")
-
 
 ------------------
 ---- MONITORS ----
 ------------------
 
--- See https://wiki.hypr.land/Configuring/Basics/Monitors/
 hl.monitor({
-    output   = "",
-    mode     = "preferred",
+    output   = "eDP-1",
+    mode     = "1920x1080@60",
     position = "auto",
     scale    = "1",
-    icc = "/home/karasu/.config/color/icc/devices/display/mac.icc",
-
+    icc      = "/home/karasu/.config/color/icc/devices/display/mac.icc",
 })
-
-
----------------------
----- MY PROGRAMS ----
----------------------
-
--- Set programs that you use
-local terminal    = "foot"
-local fileManager = "pcmanfm"
-local menu        = "hyprlauncher"
-
-
--------------------
----- AUTOSTART ----
--------------------
-
--- See https://wiki.hypr.land/Configuring/Basics/Autostart/
-
--- Autostart necessary processes (like notifications daemons, status bars, etc.)
--- Or execute your favorite apps at launch like this:
---
--- hl.on("hyprland.start", function () 
---   hl.exec_cmd(terminal)
---   hl.exec_cmd("nm-applet")
---   hl.exec_cmd("waybar & hyprpaper & firefox")
--- end)
 
 
 -------------------------------
 ---- ENVIRONMENT VARIABLES ----
 -------------------------------
 
--- See https://wiki.hypr.land/Configuring/Advanced-and-Cool/Environment-variables/
-
-hl.env("XCURSOR_SIZE", "24")
-hl.env("HYPRCURSOR_SIZE", "24")
-hl.env("XKB_DEFAULT_LAYOUT", "us")
-hl.env("XKB_DEFAULT_MODEL", "pc105")
+hl.env("XCURSOR_THEME", "MacTahoe-dark")
+hl.env("XCURSOR_SIZE", "22")
+hl.env("HYPRCURSOR_THEME", "MacTahoe-dark")
+hl.env("HYPRCURSOR_SIZE", "22")
+hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")
+hl.env("QT_QPA_PLATFORM", "wayland")
+hl.env("ELECTRON_OZONE_PLATFORM_HINT", "auto")
+hl.env("GDK_BACKEND", "wayland,x11")
+hl.env("MOZ_ENABLE_WAYLAND", "1")
+hl.env("MOZ_DBUS_REMOTE", "1")
 
 
 -----------------------
 ----- PERMISSIONS -----
 -----------------------
-
--- See https://wiki.hypr.land/Configuring/Advanced-and-Cool/Permissions/
--- Please note permission changes here require a Hyprland restart and are not applied on-the-fly
--- for security reasons
 
 -- hl.config({
 --   ecosystem = {
@@ -78,129 +41,88 @@ hl.env("XKB_DEFAULT_MODEL", "pc105")
 --   },
 -- })
 
--- hl.permission("/usr/(bin|local/bin)/grim", "screencopy", "allow")
--- hl.permission("/usr/(lib|libexec|lib64)/xdg-desktop-portal-hyprland", "screencopy", "allow")
--- hl.permission("/usr/(bin|local/bin)/hyprpm", "plugin", "allow")
-
 
 -----------------------
 ---- LOOK AND FEEL ----
 -----------------------
 
--- Refer to https://wiki.hypr.land/Configuring/Basics/Variables/
+-- Mirrors niri layout: gaps 10, focus ring 2px, no border, corner radius 15.
 hl.config({
     general = {
-        gaps_in  = 5,
-        gaps_out = 20,
+        gaps_in     = 10,
+        -- niri struts: extra 10px at the bottom
+        gaps_out    = { top = 10, right = 10, bottom = 20, left = 10 },
 
-        border_size = 2,
+        border_size = 0,
 
         col = {
-            active_border   = { colors = {"rgba(33ccffee)", "rgba(00ff99ee)"}, angle = 45 },
-            inactive_border = "rgba(595959aa)",
+            active_border   = "rgb(7fc8ff)",
+            inactive_border = "rgb(505050)",
         },
 
-        -- Set to true to enable resizing windows by clicking and dragging on borders and gaps
         resize_on_border = false,
+        allow_tearing    = false,
 
-        -- Please see https://wiki.hypr.land/Configuring/Advanced-and-Cool/Tearing/ before you turn this on
-        allow_tearing = false,
-
-        layout = "dwindle",
+        -- Scrolling layout, closest equivalent to niri's columns
+        layout = "scrolling",
     },
 
     decoration = {
-        rounding       = 10,
+        rounding       = 15,
         rounding_power = 2,
 
-        -- Change transparency of focused and unfocused windows
         active_opacity   = 1.0,
         inactive_opacity = 1.0,
 
         shadow = {
             enabled      = true,
-            range        = 4,
+            range        = 30,
             render_power = 3,
-            color        = 0xee1a1a1a,
+            color        = 0x70000000,
         },
 
+        -- niri blur: off
         blur = {
-            enabled   = true,
-            size      = 3,
-            passes    = 1,
-            vibrancy  = 0.1696,
+            enabled = false,
         },
-    },
-
-    animations = {
-        enabled = true,
     },
 })
 
 -- Default curves and animations, see https://wiki.hypr.land/Configuring/Advanced-and-Cool/Animations/
-hl.curve("easeOutQuint",   { type = "bezier", points = { {0.23, 1},    {0.32, 1}    } })
-hl.curve("easeInOutCubic", { type = "bezier", points = { {0.65, 0.05}, {0.36, 1}    } })
-hl.curve("linear",         { type = "bezier", points = { {0, 0},       {1, 1}       } })
-hl.curve("almostLinear",   { type = "bezier", points = { {0.5, 0.5},   {0.75, 1}    } })
-hl.curve("quick",          { type = "bezier", points = { {0.15, 0},    {0.1, 1}     } })
+hl.curve("easeOutExpo",   { type = "bezier", points = { {0.16, 1}, {0.3, 1} } })
+hl.curve("linear",        { type = "bezier", points = { {0, 0},    {1, 1}    } })
+hl.curve("almostLinear",  { type = "bezier", points = { {0.5, 0.5},  {0.75, 1} } })
 
--- Default springs
-hl.curve("easy",           { type = "spring", mass = 1, stiffness = 71.2633, dampening = 15.8273644 })
+-- Springs matching niri: damping-ratio/stiffness converted to mass/stiffness/dampening
+hl.curve("niriMove",       { type = "spring", mass = 1, stiffness = 220, dampening = 25.2 })  -- 0.85 / 220
+hl.curve("niriWorkspace",  { type = "spring", mass = 1, stiffness = 180, dampening = 22.8 })  -- 0.85 / 180
+hl.curve("niriViewMove",   { type = "spring", mass = 1, stiffness = 220, dampening = 26.7 })  -- 0.90 / 220
+hl.curve("niriOverview",   { type = "spring", mass = 1, stiffness = 280, dampening = 25.1 })  -- 0.75 / 280
+hl.curve("niriPopup",      { type = "spring", mass = 1, stiffness = 80,  dampening = 12.5 })  -- 0.70 / 80
 
-hl.animation({ leaf = "global",        enabled = true,  speed = 10,   bezier = "default" })
-hl.animation({ leaf = "border",        enabled = true,  speed = 5.39, bezier = "easeOutQuint" })
-hl.animation({ leaf = "windows",       enabled = true,  speed = 4.79, spring = "easy" })
-hl.animation({ leaf = "windowsIn",     enabled = true,  speed = 4.1,  spring = "easy",         style = "popin 87%" })
-hl.animation({ leaf = "windowsOut",    enabled = true,  speed = 1.49, bezier = "linear",       style = "popin 87%" })
+-- niri: window-open/close 500ms ease-out-expo
+hl.animation({ leaf = "global",        enabled = true,  speed = 10,  bezier = "default" })
+hl.animation({ leaf = "windowsIn",     enabled = true,  speed = 5,   bezier = "easeOutExpo",  style = "popin 87%" })
+hl.animation({ leaf = "windowsOut",    enabled = true,  speed = 5,   bezier = "easeOutExpo",  style = "popin 87%" })
+-- niri: window-movement spring 0.85/220
+hl.animation({ leaf = "windows",       enabled = true,  speed = 5,   spring = "niriMove" })
+-- niri: horizontal-view-movement spring 0.9/220
+hl.animation({ leaf = "layers",        enabled = true,  speed = 4,   spring = "niriViewMove" })
+hl.animation({ leaf = "layersIn",      enabled = true,  speed = 4,   bezier = "easeOutExpo",  style = "fade" })
+hl.animation({ leaf = "layersOut",     enabled = true,  speed = 1.5, bezier = "linear",       style = "fade" })
 hl.animation({ leaf = "fadeIn",        enabled = true,  speed = 1.73, bezier = "almostLinear" })
 hl.animation({ leaf = "fadeOut",       enabled = true,  speed = 1.46, bezier = "almostLinear" })
-hl.animation({ leaf = "fade",          enabled = true,  speed = 3.03, bezier = "quick" })
-hl.animation({ leaf = "layers",        enabled = true,  speed = 3.81, bezier = "easeOutQuint" })
-hl.animation({ leaf = "layersIn",      enabled = true,  speed = 4,    bezier = "easeOutQuint", style = "fade" })
-hl.animation({ leaf = "layersOut",     enabled = true,  speed = 1.5,  bezier = "linear",       style = "fade" })
-hl.animation({ leaf = "fadeLayersIn",  enabled = true,  speed = 1.79, bezier = "almostLinear" })
-hl.animation({ leaf = "fadeLayersOut", enabled = true,  speed = 1.39, bezier = "almostLinear" })
-hl.animation({ leaf = "workspaces",    enabled = true,  speed = 1.94, bezier = "almostLinear", style = "fade" })
-hl.animation({ leaf = "workspacesIn",  enabled = true,  speed = 1.21, bezier = "almostLinear", style = "fade" })
-hl.animation({ leaf = "workspacesOut", enabled = true,  speed = 1.94, bezier = "almostLinear", style = "fade" })
-hl.animation({ leaf = "zoomFactor",    enabled = true,  speed = 7,    bezier = "quick" })
-
--- Ref https://wiki.hypr.land/Configuring/Basics/Workspace-Rules/
--- "Smart gaps" / "No gaps when only"
--- uncomment all if you wish to use that.
--- hl.workspace_rule({ workspace = "w[tv1]", gaps_out = 0, gaps_in = 0 })
--- hl.workspace_rule({ workspace = "f[1]",   gaps_out = 0, gaps_in = 0 })
--- hl.window_rule({
---     name  = "no-gaps-wtv1",
---     match = { float = false, workspace = "w[tv1]" },
---     border_size = 0,
---     rounding    = 0,
--- })
--- hl.window_rule({
---     name  = "no-gaps-f1",
---     match = { float = false, workspace = "f[1]" },
---     border_size = 0,
---     rounding    = 0,
--- })
-
--- See https://wiki.hypr.land/Configuring/Layouts/Dwindle-Layout/ for more
-hl.config({
-    dwindle = {
-        preserve_split = true, -- You probably want this
-    },
-})
-
--- See https://wiki.hypr.land/Configuring/Layouts/Master-Layout/ for more
-hl.config({
-    master = {
-        new_status = "master",
-    },
-})
+hl.animation({ leaf = "fade",          enabled = true,  speed = 3.03, bezier = "almostLinear" })
+-- niri: workspace-switch spring 0.85/180
+hl.animation({ leaf = "workspaces",    enabled = true,  speed = 2,   spring = "niriWorkspace" })
+hl.animation({ leaf = "workspacesIn",  enabled = true,  speed = 2,   spring = "niriWorkspace", style = "fade" })
+hl.animation({ leaf = "workspacesOut", enabled = true,  speed = 2,   spring = "niriWorkspace", style = "fade" })
 
 -- See https://wiki.hypr.land/Configuring/Layouts/Scrolling-Layout/ for more
 hl.config({
     scrolling = {
         fullscreen_on_one_column = true,
+        column_width             = 0.5, -- niri: default-column-width proportion 0.50
     },
 })
 
@@ -210,8 +132,17 @@ hl.config({
 
 hl.config({
     misc = {
-        force_default_wallpaper = -1,    -- Set to 0 or 1 to disable the anime mascot wallpapers
-        disable_hyprland_logo   = false, -- If true disables the random hyprland logo / anime girl background. :(
+        force_default_wallpaper = -1,
+        disable_hyprland_logo   = false,
+        -- niri clipboard: disable-primary
+        middle_click_paste      = false, -- Hyprland has no primary selection by default on Wayland
+        -- niri hotkey-overlay: skip-at-startup
+        disable_hyprland_guiutils_check = true,
+    },
+    cursor = {
+        -- niri cursor: hide-after-inactive-ms 500
+        inactive_timeout = 0.5,
+        hide_on_touch    = true,
     },
 })
 
@@ -222,111 +153,163 @@ hl.config({
 
 hl.config({
     input = {
-        kb_layout  = "us",
-        kb_variant = "",
-        kb_model   = "",
-        kb_options = "",
-        kb_rules   = "",
+        -- niri: layout us,ara; grp:ctrl_space_toggle,numpad:mac
+        kb_layout     = "us,ara",
+        kb_variant    = "",
+        kb_model      = "",
+        kb_options    = "grp:ctrl_space_toggle,numpad:mac",
+        kb_rules      = "",
 
-        follow_mouse = 1,
+        -- niri: repeat-delay 200, repeat-rate 40
+        repeat_delay  = 200,
+        repeat_rate   = 40,
 
-        sensitivity = 0, -- -1.0 - 1.0, 0 means no modification.
+        -- niri: numlock
+        numlock_by_default = true,
+
+        -- niri: focus-follows-mouse
+        follow_mouse  = 1,
+
+        sensitivity   = 0,
 
         touchpad = {
-            natural_scroll = false,
+            -- niri: click-method clickfinger, tap
+            tap_to_click       = true,
+            clickfinger_behavior = true,
+            -- niri accel-speed has no global equivalent; use hl.device({ name = ..., sensitivity = ... }) per device
+            natural_scroll     = false,
         },
     },
 })
 
 hl.gesture({
-    fingers = 3,
+    fingers   = 3,
     direction = "horizontal",
-    action = "workspace"
+    action    = "workspace"
 })
 
--- Example per-device config
--- See https://wiki.hypr.land/Configuring/Advanced-and-Cool/Devices/ for more
-hl.device({
-    name        = "epic-mouse-v1",
-    sensitivity = -0.5,
-})
+
+---------------------
+---- AUTOSTART ----
+---------------------
+
+hl.on("hyprland.start", function()
+    hl.exec_cmd("qs")
+    hl.exec_cmd("pipewire")
+    hl.exec_cmd("pipewire-pulse")
+    hl.exec_cmd("wireplumber")
+    hl.exec_cmd("awww-daemon")
+    hl.exec_cmd("eww daemon")
+    hl.exec_cmd("swaync")
+    hl.exec_cmd("wl-paste --type text --watch cliphist store")
+    hl.exec_cmd("wl-paste --type image --watch cliphist store")
+end)
 
 
 ---------------------
 ---- KEYBINDINGS ----
 ---------------------
 
-local mainMod = "SUPER" -- Sets "Windows" key as main modifier
+local mainMod = "SUPER"
 
--- Example binds, see https://wiki.hypr.land/Configuring/Basics/Binds/ for more
-hl.bind(mainMod .. " + Q", hl.dsp.exec_cmd(terminal))
-local closeWindowBind = hl.bind(mainMod .. " + C", hl.dsp.window.close())
--- closeWindowBind:set_enabled(false)
-hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"))
-hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
-hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
-hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(menu))
-hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
-hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))    -- dwindle only
+-- Launchers
+hl.bind(mainMod .. " + space",         hl.dsp.exec_cmd("rofi -show run"))
+hl.bind(mainMod .. " + V",             hl.dsp.exec_cmd("~/.config/rofi/cliphist/launcher.sh || pkill rofi"))
+hl.bind(mainMod .. " + G",             hl.dsp.exec_cmd("~/.config/rofi/wallpaper-changer/launcher.sh || pkill rofi"))
+hl.bind(mainMod .. " + SHIFT + S",     hl.dsp.exec_cmd("~/.config/niri/shaders/pick.sh"))
+hl.bind(mainMod .. " + Return",        hl.dsp.exec_cmd("foot"))
+hl.bind(mainMod .. " + C",             hl.dsp.exec_cmd("librewolf"))
+hl.bind(mainMod .. " + SHIFT + Q",     hl.dsp.exec_cmd("hyprlock"))
 
--- Move focus with mainMod + arrow keys
-hl.bind(mainMod .. " + left",  hl.dsp.focus({ direction = "left" }))
-hl.bind(mainMod .. " + right", hl.dsp.focus({ direction = "right" }))
-hl.bind(mainMod .. " + up",    hl.dsp.focus({ direction = "up" }))
-hl.bind(mainMod .. " + down",  hl.dsp.focus({ direction = "down" }))
+-- Windows
+hl.bind(mainMod .. " + X",             hl.dsp.window.close())
+hl.bind(mainMod .. " + N",             hl.dsp.window.float({ action = "toggle" }))
+hl.bind(mainMod .. " + F",             hl.dsp.exec_cmd("hyprctl dispatch fullscreen 0"))          -- niri: fullscreen-window
+hl.bind(mainMod .. " + S",             hl.dsp.exec_cmd("hyprctl dispatch fullscreen 1"))          -- niri: maximize-column
 
--- Switch workspaces with mainMod + [0-9]
--- Move active window to a workspace with mainMod + SHIFT + [0-9]
-for i = 1, 10 do
-    local key = i % 10 -- 10 maps to key 0
-    hl.bind(mainMod .. " + " .. key,             hl.dsp.focus({ workspace = i}))
-    hl.bind(mainMod .. " + SHIFT + " .. key,     hl.dsp.window.move({ workspace = i }))
+-- Focus
+hl.bind(mainMod .. " + left",          hl.dsp.focus({ direction = "left" }))
+hl.bind(mainMod .. " + right",         hl.dsp.focus({ direction = "right" }))
+hl.bind(mainMod .. " + up",            hl.dsp.focus({ direction = "up" }))
+hl.bind(mainMod .. " + down",          hl.dsp.focus({ direction = "down" }))
+hl.bind(mainMod .. " + H",             hl.dsp.focus({ direction = "left" }))
+hl.bind(mainMod .. " + L",             hl.dsp.focus({ direction = "right" }))
+hl.bind(mainMod .. " + J",             hl.dsp.exec_cmd("hyprctl dispatch cyclenext"))             -- niri: focus-window-or-workspace-down
+hl.bind(mainMod .. " + K",             hl.dsp.exec_cmd("hyprctl dispatch cycleprev"))             -- niri: focus-window-or-workspace-up
+
+-- Move windows
+hl.bind(mainMod .. " + CTRL + left",   hl.dsp.exec_cmd("hyprctl dispatch movewindow l"))
+hl.bind(mainMod .. " + CTRL + right",  hl.dsp.exec_cmd("hyprctl dispatch movewindow r"))
+hl.bind(mainMod .. " + CTRL + up",     hl.dsp.exec_cmd("hyprctl dispatch movewindow u"))
+hl.bind(mainMod .. " + CTRL + down",   hl.dsp.exec_cmd("hyprctl dispatch movewindow d"))
+hl.bind(mainMod .. " + CTRL + H",      hl.dsp.exec_cmd("hyprctl dispatch movewindow l"))
+hl.bind(mainMod .. " + CTRL + L",      hl.dsp.exec_cmd("hyprctl dispatch movewindow r"))
+hl.bind(mainMod .. " + CTRL + J",      hl.dsp.exec_cmd("hyprctl dispatch movewindow d"))
+hl.bind(mainMod .. " + CTRL + K",      hl.dsp.exec_cmd("hyprctl dispatch movewindow u"))
+hl.bind(mainMod .. " + SHIFT + H",     hl.dsp.exec_cmd("hyprctl dispatch movewindow l"))
+hl.bind(mainMod .. " + SHIFT + L",     hl.dsp.exec_cmd("hyprctl dispatch movewindow r"))
+hl.bind(mainMod .. " + SHIFT + Return", hl.dsp.exec_cmd("hyprctl dispatch movewindow l"))
+
+-- Workspaces
+hl.bind(mainMod .. " + Page_Down",     hl.dsp.focus({ workspace = "e+1" }))
+hl.bind(mainMod .. " + Page_Up",       hl.dsp.focus({ workspace = "e-1" }))
+hl.bind(mainMod .. " + U",             hl.dsp.focus({ workspace = "e+1" }))
+hl.bind(mainMod .. " + I",             hl.dsp.focus({ workspace = "e-1" }))
+for i = 1, 9 do
+    hl.bind(mainMod .. " + " .. i,             hl.dsp.focus({ workspace = i }))
+    hl.bind(mainMod .. " + SHIFT + " .. i,     hl.dsp.window.move({ workspace = i }))
 end
+hl.bind(mainMod .. " + CTRL + U",      hl.dsp.exec_cmd("hyprctl dispatch movetoworkspace e+1"))
+hl.bind(mainMod .. " + CTRL + I",      hl.dsp.exec_cmd("hyprctl dispatch movetoworkspace e-1"))
 
--- Example special workspace (scratchpad)
-hl.bind(mainMod .. " + S",         hl.dsp.workspace.toggle_special("magic"))
-hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:magic" }))
+-- Mouse
+hl.bind(mainMod .. " + mouse_down",    hl.dsp.focus({ workspace = "e+1" }))
+hl.bind(mainMod .. " + mouse_up",      hl.dsp.focus({ workspace = "e-1" }))
+hl.bind(mainMod .. " + mouse:272",     hl.dsp.window.drag(),   { mouse = true })
+hl.bind(mainMod .. " + mouse:273",     hl.dsp.window.resize(), { mouse = true })
 
--- Scroll through existing workspaces with mainMod + scroll
-hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
-hl.bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
+-- Resize (approximation of niri preset widths / +/-5%)
+hl.bind(mainMod .. " + R",             hl.dsp.exec_cmd("hyprctl dispatch resizeactive exact 50 50"))
+hl.bind(mainMod .. " + Minus",         hl.dsp.exec_cmd("hyprctl dispatch resizeactive -40 0"))
+hl.bind(mainMod .. " + Equal",         hl.dsp.exec_cmd("hyprctl dispatch resizeactive 40 0"))
+hl.bind(mainMod .. " + SHIFT + Minus", hl.dsp.exec_cmd("hyprctl dispatch resizeactive 0 -40"))
+hl.bind(mainMod .. " + SHIFT + Equal", hl.dsp.exec_cmd("hyprctl dispatch resizeactive 0 40"))
 
--- Move/resize windows with mainMod + LMB/RMB and dragging
-hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(),   { mouse = true })
-hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
+-- Wallpaper / misc
+hl.bind(mainMod .. " + SHIFT + W",     hl.dsp.exec_cmd("~/.local/bin/wallpaper random"))
+hl.bind(mainMod .. " + SHIFT + N",     hl.dsp.exec_cmd("~/.config/hypr/scripts/monochrome_wallpaper.sh"))
 
--- Laptop multimedia keys for volume and LCD brightness
-hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true })
-hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),      { locked = true, repeating = true })
-hl.bind("XF86AudioMute",        hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),     { locked = true, repeating = true })
-hl.bind("XF86AudioMicMute",     hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),   { locked = true, repeating = true })
-hl.bind("XF86MonBrightnessUp",  hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%+"),                  { locked = true, repeating = true })
-hl.bind("XF86MonBrightnessDown",hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%-"),                  { locked = true, repeating = true })
+-- Window switcher (niri recent-windows)
+hl.bind("ALT + Tab",                   hl.dsp.exec_cmd("hyprctl dispatch cyclenext"))
+hl.bind("ALT + SHIFT + Tab",           hl.dsp.exec_cmd("hyprctl dispatch cycleprev"))
+hl.bind(mainMod .. " + Tab",           hl.dsp.exec_cmd("hyprctl dispatch cyclenext"))
+hl.bind(mainMod .. " + SHIFT + Tab",   hl.dsp.exec_cmd("hyprctl dispatch cycleprev"))
 
--- Requires playerctl
-hl.bind("XF86AudioNext",  hl.dsp.exec_cmd("playerctl next"),       { locked = true })
-hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
-hl.bind("XF86AudioPlay",  hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
-hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd("playerctl previous"),   { locked = true })
+-- Screenshots / session
+hl.bind("PRINT",                       hl.dsp.exec_cmd("~/.config/hypr/scripts/screenshot.sh"))
+hl.bind(mainMod .. " + SHIFT + E",     hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch exit"))
+hl.bind("CTRL + ALT + Delete",         hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch exit"))
+
+-- Laptop multimedia keys for volume and LCD brightness (niri: 10% steps, light)
+hl.bind("XF86AudioRaiseVolume",  hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1+"), { locked = true, repeating = true })
+hl.bind("XF86AudioLowerVolume",  hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1-"), { locked = true, repeating = true })
+hl.bind("XF86AudioMute",         hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), { locked = true, repeating = true })
+hl.bind("XF86AudioMicMute",      hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { locked = true, repeating = true })
+hl.bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd("light -A 10"),  { locked = true, repeating = true })
+hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("light -U 10"),  { locked = true, repeating = true })
 
 
 --------------------------------
 ---- WINDOWS AND WORKSPACES ----
 --------------------------------
 
--- See https://wiki.hypr.land/Configuring/Basics/Window-Rules/
--- and https://wiki.hypr.land/Configuring/Basics/Workspace-Rules/
-
--- Example window rules that are useful
-
-local suppressMaximizeRule = hl.window_rule({
-    -- Ignore maximize requests from all apps. You'll probably like this.
+hl.window_rule({
+    -- Ignore maximize requests from all apps.
     name  = "suppress-maximize-events",
     match = { class = ".*" },
 
     suppress_event = "maximize",
 })
--- suppressMaximizeRule:set_enabled(false)
 
 hl.window_rule({
     -- Fix some dragging issues with XWayland
@@ -343,13 +326,23 @@ hl.window_rule({
     no_focus = true,
 })
 
--- Layer rules also return a handle.
--- local overlayLayerRule = hl.layer_rule({
---     name  = "no-anim-overlay",
---     match = { namespace = "^my-overlay$" },
---     no_anim = true,
--- })
--- overlayLayerRule:set_enabled(false)
+-- niri: match app-id rofi -> open-floating false, open-focused true
+hl.window_rule({
+    name  = "rofi-focused",
+    match = { class = "^rofi$" },
+
+    float          = false,
+    focus_on_activate = true,
+})
+
+-- niri: xdg-desktop-portal-gtk -> floating, min 400x600
+hl.window_rule({
+    name  = "portal-gtk-floating",
+    match = { class = "xdg-desktop-portal-gtk" },
+
+    float = true,
+    size  = "400 600",
+})
 
 -- Hyprland-run windowrule
 hl.window_rule({
@@ -359,6 +352,3 @@ hl.window_rule({
     move  = "20 monitor_h-120",
     float = true,
 })
-
--- HyprMod managed settings
-require("hyprland-gui")
