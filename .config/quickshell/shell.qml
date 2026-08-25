@@ -365,10 +365,9 @@ ShellRoot {
                 root.timerRunning = false
                 root.timerRemainingMs = 0
                 Quickshell.execDetached(["sh", "-c",
-                    "paplay /usr/share/sounds/freedesktop/stereo/alarm-clock-elapsed.oga; " +
-                    "sleep 1; paplay /usr/share/sounds/freedesktop/stereo/bell.oga"])
-                Quickshell.execDetached(["notify-send", "-u", "critical",
-                    "-i", "alarm-clock", "-t", "10000", "Timer", "Time is up! 󰄉"])
+                    "{ sleep 1; paplay /usr/share/sounds/freedesktop/stereo/alarm-clock-elapsed.oga; } &\n" +
+                    "resp=$(notify-send -u critical -i alarm-clock -t 10000 -A 'default=Stop' 'Timer' 'Time is up! 󰄉');\n" +
+                    "[ \"$resp\" = \"default\" ] && pkill -f 'paplay .*alarm-clock-elapsed\\.oga'"])
             } else {
                 root.timerRemainingMs = left
             }
@@ -814,13 +813,13 @@ ShellRoot {
                 property int shownYear: new Date().getFullYear()
                 property int shownMonth: new Date().getMonth()
 
-                // Date -> reminder list, keyed by "YYYY-MM-DD". Each entry is
-                // { id, text, saved }. Reassigned on every change (never mutated
-                // in place) so day-delegate bindings refresh.
+                // Date -> todo list, keyed by "YYYY-MM-DD". Each entry is
+                // { id, text, saved, done }. Reassigned on every change
+                // (never mutated in place) so day-delegate bindings refresh.
                 property var notes: ({})
                 property string selectedKey: ""
 
-                // Reminder entries of the currently selected date.
+                // Todo entries of the currently selected date.
                 property var entries: []
                 property int selectedEntryId: -1
                 property int newEntryId: -1
@@ -842,7 +841,7 @@ ShellRoot {
                         for (var k in raw) {
                             var v = raw[k]
                             if (typeof v === "string")
-                                converted[k] = [{ id: ++maxId, text: v, saved: true }]
+                                converted[k] = [{ id: ++maxId, text: v, saved: true, done: false }]
                             else
                                 converted[k] = calPopup.toEntryList(v)
                         }
@@ -892,6 +891,7 @@ ShellRoot {
 
                 function close() {
                     calPopup.closingBySelf = true
+                    if (timerPopup.visible) timerPopup.playCloseAnim()
                     calPopupOut.restart()
                 }
 
@@ -930,7 +930,7 @@ ShellRoot {
                     var out = []
                     if (v === null || v === undefined) return out
                     if (typeof v === "string") {
-                        out.push({ id: 0, text: v, saved: true })
+                        out.push({ id: 0, text: v, saved: true, done: false })
                         return out
                     }
                     var n = typeof v.length === "number" ? v.length : 0
@@ -940,7 +940,8 @@ ShellRoot {
                         out.push({
                             id: typeof e.id === "number" ? e.id : 0,
                             text: e.text !== undefined && e.text !== null ? String(e.text) : "",
-                            saved: !!e.saved
+                            saved: !!e.saved,
+                            done: !!e.done
                         })
                     }
                     return out
@@ -969,7 +970,7 @@ ShellRoot {
                     entriesModel.clear()
                     var list = calPopup.entries || []
                     for (var i = 0; i < list.length; i++) {
-                        entriesModel.append({ entryId: list[i].id, entryText: list[i].text, saved: list[i].saved })
+                        entriesModel.append({ entryId: list[i].id, entryText: list[i].text, saved: list[i].saved, entryDone: list[i].done })
                     }
                 }
 
@@ -979,7 +980,7 @@ ShellRoot {
 
                 function addEntry() {
                     if (calPopup.selectedKey.length === 0) return
-                    var entry = { id: ++calPopup.entrySeq, text: "", saved: false }
+                    var entry = { id: ++calPopup.entrySeq, text: "", saved: false, done: false }
                     calPopup.entries = calPopup.entries.concat([entry])
                     calPopup.selectedEntryId = entry.id
                     calPopup.newEntryId = entry.id
@@ -994,9 +995,22 @@ ShellRoot {
                         var trimmed = (text || "").trim()
                         if (trimmed.length === 0) return
                         var updated = list.slice()
-                        updated[i] = { id: eid, text: trimmed, saved: true }
+                        updated[i] = { id: eid, text: trimmed, saved: true, done: list[i].done }
                         calPopup.entries = updated
                         calPopup.selectedEntryId = eid
+                        calPopup.syncNotes()
+                        calPopup.rebuildEntries()
+                        return
+                    }
+                }
+
+                function toggleEntryDone(eid) {
+                    var list = calPopup.entries || []
+                    for (var i = 0; i < list.length; i++) {
+                        if (list[i].id !== eid) continue
+                        var updated = list.slice()
+                        updated[i] = { id: eid, text: list[i].text, saved: true, done: !list[i].done }
+                        calPopup.entries = updated
                         calPopup.syncNotes()
                         calPopup.rebuildEntries()
                         return
@@ -1029,7 +1043,7 @@ ShellRoot {
                     return Qt.formatDate(new Date(y, m, d), "ddd, MMM d")
                 }
 
-                implicitHeight: 336 + (calPopup.selectedKey.length > 0 ? calPopup.editorHeight + 6 : 0)
+                implicitHeight: 290 + (calPopup.selectedKey.length > 0 ? calPopup.editorHeight + 6 : 0)
 
                 onVisibleChanged: {
                     if (visible) {
@@ -1289,143 +1303,6 @@ ShellRoot {
                             }
                         }
 
-                        RowLayout {
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 40
-                            spacing: 6
-
-                            Text {
-                                text: "󰄉"
-                                color: root.timerRunning ? root.primary : root.onSurfaceVariant
-                                font.family: root.iconFont
-                                font.pixelSize: root.fontSize + 2
-                                Layout.preferredWidth: 22
-                                Layout.preferredHeight: 40
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-                            }
-
-                            Text {
-                                text: root.fmtTimer(root.timerRemainingMs)
-                                color: root.timerRemainingMs <= 0 ? root.error : "#ffffff"
-                                font.family: root.fontFamily
-                                font.pixelSize: root.fontSize + 8
-                                font.weight: Font.Black
-                                Layout.fillWidth: true
-                                verticalAlignment: Text.AlignVCenter
-                            }
-
-                            Rectangle {
-                                id: timerMinusBtn
-                                Layout.preferredWidth: 26
-                                Layout.preferredHeight: 26
-                                Layout.alignment: Qt.AlignVCenter
-                                radius: 7
-                                color: timerMinusHover.containsMouse
-                                    ? root.withAlpha(root.primary, 0.35)
-                                    : root.withAlpha(root.primary, 0.18)
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: "-"
-                                    color: root.onSurface
-                                    font.family: root.fontFamily
-                                    font.pixelSize: root.fontSize + 2
-                                    font.weight: Font.Black
-                                }
-
-                                MouseArea {
-                                    id: timerMinusHover
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: root.adjustTimerMinutes(-5)
-                                }
-                            }
-
-                            Rectangle {
-                                id: timerPlusBtn
-                                Layout.preferredWidth: 26
-                                Layout.preferredHeight: 26
-                                Layout.alignment: Qt.AlignVCenter
-                                radius: 7
-                                color: timerPlusHover.containsMouse
-                                    ? root.withAlpha(root.primary, 0.35)
-                                    : root.withAlpha(root.primary, 0.18)
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: "+"
-                                    color: root.onSurface
-                                    font.family: root.fontFamily
-                                    font.pixelSize: root.fontSize + 2
-                                    font.weight: Font.Black
-                                }
-
-                                MouseArea {
-                                    id: timerPlusHover
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: root.adjustTimerMinutes(5)
-                                }
-                            }
-
-                            Rectangle {
-                                id: timerToggleBtn
-                                Layout.preferredWidth: 34
-                                Layout.preferredHeight: 26
-                                Layout.alignment: Qt.AlignVCenter
-                                radius: 7
-                                color: timerToggleHover.containsMouse
-                                    ? root.withAlpha(root.primary, 0.45)
-                                    : root.withAlpha(root.primary, 0.28)
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: root.timerRunning ? "󰏤" : "󰐊"
-                                    color: root.primary
-                                    font.family: root.iconFont
-                                    font.pixelSize: root.fontSize + 2
-                                }
-
-                                MouseArea {
-                                    id: timerToggleHover
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: root.toggleTimer()
-                                }
-                            }
-
-                            Rectangle {
-                                id: timerResetBtn
-                                Layout.preferredWidth: 26
-                                Layout.preferredHeight: 26
-                                Layout.alignment: Qt.AlignVCenter
-                                radius: 7
-                                color: timerResetHover.containsMouse
-                                    ? root.withAlpha(root.error, 0.35)
-                                    : root.withAlpha(root.onSurface, 0.08)
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: "󰃢"
-                                    color: root.error
-                                    font.family: root.iconFont
-                                    font.pixelSize: root.fontSize
-                                }
-
-                                MouseArea {
-                                    id: timerResetHover
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: root.resetTimer()
-                                }
-                            }
-                        }
-
                         ColumnLayout {
                             Layout.fillWidth: true
                             Layout.preferredHeight: calPopup.editorHeight
@@ -1459,9 +1336,15 @@ ShellRoot {
                                 }
 
                                 Text {
-                                    text: (calPopup.entries || []).length === 1
-                                        ? "1 reminder"
-                                        : (calPopup.entries || []).length + " reminders"
+                                    text: (calPopup.entries || []).length === 0
+                                        ? "0 tasks"
+                                        : (function () {
+                                            var list = calPopup.entries || []
+                                            var done = 0
+                                            for (var i = 0; i < list.length; i++)
+                                                if (list[i].done) done++
+                                            return done + "/" + list.length + " tasks"
+                                        })()
                                     color: root.onSurfaceVariant
                                     font.family: root.fontFamily
                                     font.pixelSize: root.fontSize - 2
@@ -1591,6 +1474,7 @@ ShellRoot {
                                             required property int entryId
                                             required property string entryText
                                             required property bool saved
+                                            required property bool entryDone
 
                                             readonly property bool isSelected: calPopup.selectedEntryId === entryId
 
@@ -1604,10 +1488,43 @@ ShellRoot {
                                                 : saved ? "transparent" : root.withAlpha(root.onSurface, 0.15)
 
                                             RowLayout {
+                                                z: 1
                                                 anchors.fill: parent
                                                 anchors.leftMargin: 8
                                                 anchors.rightMargin: 4
                                                 spacing: 6
+
+                                                Rectangle {
+                                                    visible: saved
+                                                    Layout.preferredWidth: 18
+                                                    Layout.preferredHeight: 18
+                                                    radius: 5
+                                                    color: entryDone
+                                                        ? (todoCheckArea.containsMouse ? root.withAlpha(root.primary, 0.8) : root.primary)
+                                                        : (todoCheckArea.containsMouse ? root.withAlpha("#ffffff", 0.08) : "transparent")
+                                                    border.width: 1
+                                                    border.color: entryDone ? root.primary : root.withAlpha(root.onSurface, 0.35)
+
+                                                    Behavior on color { ColorAnimation { duration: 120 } }
+
+                                                    Text {
+                                                        visible: entryDone
+                                                        anchors.centerIn: parent
+                                                        text: "󰄲"
+                                                        color: root.surface
+                                                        font.family: root.iconFont
+                                                        font.pixelSize: root.fontSize - 2
+                                                    }
+
+                                                    MouseArea {
+                                                        id: todoCheckArea
+                                                        z: 2
+                                                        anchors.fill: parent
+                                                        hoverEnabled: true
+                                                        cursorShape: Qt.PointingHandCursor
+                                                        onClicked: calPopup.toggleEntryDone(entryId)
+                                                    }
+                                                }
 
                                                 TextField {
                                                     id: entryInput
@@ -1634,6 +1551,7 @@ ShellRoot {
                                                     color: "#ffffff"
                                                     font.family: root.uiFont
                                                     font.pixelSize: root.fontSize
+                                                    font.strikeout: entryDone
                                                     elide: Text.ElideRight
                                                     verticalAlignment: Text.AlignVCenter
                                                 }
@@ -1680,6 +1598,227 @@ ShellRoot {
                                     }
                                 }
 
+                            }
+                        }
+                    }
+                }
+
+                PopupWindow {
+                    id: timerPopup
+                    visible: calPopup.visible
+                    color: "transparent"
+                    implicitWidth: 250
+                    implicitHeight: 64
+
+                    anchor {
+                        window: calPopup
+                        adjustment: PopupAdjustment.All
+                        rect.x: 0
+                        rect.y: calPopup.height + 8
+                        rect.w: calPopup.width
+                        rect.h: 1
+                    }
+
+                    onVisibleChanged: {
+                        if (visible) {
+                            timerBody.opacity = 0
+                            timerScale.xScale = 0.8
+                            timerScale.yScale = 0.8
+                            timerPopupIn.restart()
+                        }
+                    }
+
+                    Connections {
+                        target: calPopup
+                        function onHeightChanged() {
+                            if (timerPopup.visible)
+                                Qt.callLater(() => timerPopup.anchor.updateAnchor())
+                        }
+                    }
+
+                    ParallelAnimation {
+                        id: timerPopupIn
+                        running: false
+                        NumberAnimation { target: timerBody; property: "opacity"; to: 1; duration: 120; easing.type: Easing.OutQuad }
+                        NumberAnimation { target: timerScale; property: "xScale"; to: 1; duration: 280; easing.type: Easing.OutBack; easing.overshoot: 1.4 }
+                        NumberAnimation { target: timerScale; property: "yScale"; to: 1; duration: 280; easing.type: Easing.OutBack; easing.overshoot: 1.4 }
+                    }
+
+                    SequentialAnimation {
+                        id: timerPopupOut
+                        running: false
+                        ParallelAnimation {
+                            NumberAnimation { target: timerBody; property: "opacity"; to: 0; duration: 130; easing.type: Easing.InQuad }
+                            NumberAnimation { target: timerScale; property: "xScale"; to: 0.85; duration: 130; easing.type: Easing.InQuad }
+                            NumberAnimation { target: timerScale; property: "yScale"; to: 0.85; duration: 130; easing.type: Easing.InQuad }
+                        }
+                    }
+
+                    function playCloseAnim() {
+                        if (!visible) return
+                        timerPopupIn.stop()
+                        timerPopupOut.restart()
+                    }
+
+                    Rectangle {
+                        id: timerBody
+                        anchors.fill: parent
+                        radius: 25
+                        color: root.surface
+                        border.width: 1
+                        border.color: root.withAlpha(root.outlineVariant, 0.35)
+                        opacity: 0
+
+                        transform: [
+                            Scale {
+                                id: timerScale
+                                xScale: 0.8
+                                yScale: 0.8
+                                origin.x: width / 2
+                                origin.y: 0
+                            }
+                        ]
+
+                        ColumnLayout {
+                            anchors.fill: parent
+                            anchors.margins: 12
+                            spacing: 6
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 40
+                                spacing: 6
+
+                                Text {
+                                    text: "󰄉"
+                                    color: root.timerRunning ? root.primary : root.onSurfaceVariant
+                                    font.family: root.iconFont
+                                    font.pixelSize: root.fontSize + 2
+                                    Layout.preferredWidth: 22
+                                    Layout.preferredHeight: 40
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+
+                                Text {
+                                    text: root.fmtTimer(root.timerRemainingMs)
+                                    color: root.timerRemainingMs <= 0 ? root.error : "#ffffff"
+                                    font.family: root.fontFamily
+                                    font.pixelSize: root.fontSize + 8
+                                    font.weight: Font.Black
+                                    Layout.fillWidth: true
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+
+                                Rectangle {
+                                    id: timerMinusBtn
+                                    Layout.preferredWidth: 26
+                                    Layout.preferredHeight: 26
+                                    Layout.alignment: Qt.AlignVCenter
+                                    radius: 7
+                                    color: timerMinusHover.containsMouse
+                                        ? root.withAlpha(root.primary, 0.35)
+                                        : root.withAlpha(root.primary, 0.18)
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "-"
+                                        color: root.onSurface
+                                        font.family: root.fontFamily
+                                        font.pixelSize: root.fontSize + 2
+                                        font.weight: Font.Black
+                                    }
+
+                                    MouseArea {
+                                        id: timerMinusHover
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: root.adjustTimerMinutes(-5)
+                                    }
+                                }
+
+                                Rectangle {
+                                    id: timerPlusBtn
+                                    Layout.preferredWidth: 26
+                                    Layout.preferredHeight: 26
+                                    Layout.alignment: Qt.AlignVCenter
+                                    radius: 7
+                                    color: timerPlusHover.containsMouse
+                                        ? root.withAlpha(root.primary, 0.35)
+                                        : root.withAlpha(root.primary, 0.18)
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "+"
+                                        color: root.onSurface
+                                        font.family: root.fontFamily
+                                        font.pixelSize: root.fontSize + 2
+                                        font.weight: Font.Black
+                                    }
+
+                                    MouseArea {
+                                        id: timerPlusHover
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: root.adjustTimerMinutes(5)
+                                    }
+                                }
+
+                                Rectangle {
+                                    id: timerToggleBtn
+                                    Layout.preferredWidth: 34
+                                    Layout.preferredHeight: 26
+                                    Layout.alignment: Qt.AlignVCenter
+                                    radius: 7
+                                    color: timerToggleHover.containsMouse
+                                        ? root.withAlpha(root.primary, 0.45)
+                                        : root.withAlpha(root.primary, 0.28)
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: root.timerRunning ? "󰏤" : "󰐊"
+                                        color: root.primary
+                                        font.family: root.iconFont
+                                        font.pixelSize: root.fontSize + 2
+                                    }
+
+                                    MouseArea {
+                                        id: timerToggleHover
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: root.toggleTimer()
+                                    }
+                                }
+
+                                Rectangle {
+                                    id: timerResetBtn
+                                    Layout.preferredWidth: 26
+                                    Layout.preferredHeight: 26
+                                    Layout.alignment: Qt.AlignVCenter
+                                    radius: 7
+                                    color: timerResetHover.containsMouse
+                                        ? root.withAlpha(root.error, 0.35)
+                                        : root.withAlpha(root.onSurface, 0.08)
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "󰃢"
+                                        color: root.error
+                                        font.family: root.iconFont
+                                        font.pixelSize: root.fontSize
+                                    }
+
+                                    MouseArea {
+                                        id: timerResetHover
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: root.resetTimer()
+                                    }
+                                }
                             }
                         }
                     }
