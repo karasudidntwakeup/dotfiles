@@ -27,26 +27,26 @@ audio/mpeg=mpv.desktop
 audio/ogg=mpv.desktop
 audio/x-wav=mpv.desktop
 
-# Images (nsxiv)
-image/png=nsxiv.desktop
-image/jpeg=nsxiv.desktop
-image/gif=nsxiv.desktop
-image/webp=nsxiv.desktop
-image/bmp=nsxiv.desktop
-image/tiff=nsxiv.desktop
-image/tiff+xml=nsxiv.desktop
-image/svg+xml=nsxiv.desktop
-image/x-portable-pixmap=nsxiv.desktop
-image/x-portable-bitmap=nsxiv.desktop
-image/x-portable-graymap=nsxiv.desktop
-image/x-xbitmap=nsxiv.desktop
-image/x-xpixmap=nsxiv.desktop
-image/x-tga=nsxiv.desktop
-image/vnd.microsoft.icon=nsxiv.desktop
-image/heic=nsxiv.desktop
-image/heic-sequence=nsxiv.desktop
-image/heif=nsxiv.desktop
-image/heif-sequence=nsxiv.desktop
+# Images (swayimg)
+image/png=swayimg.desktop
+image/jpeg=swayimg.desktop
+image/gif=swayimg.desktop
+image/webp=mpv.desktop
+image/bmp=swayimg.desktop
+image/tiff=swayimg.desktop
+image/tiff+xml=swayimg.desktop
+image/svg+xml=swayimg.desktop
+image/x-portable-pixmap=swayimg.desktop
+image/x-portable-bitmap=swayimg.desktop
+image/x-portable-graymap=swayimg.desktop
+image/x-xbitmap=swayimg.desktop
+image/x-xpixmap=swayimg.desktop
+image/x-tga=swayimg.desktop
+image/vnd.microsoft.icon=swayimg.desktop
+image/heic=swayimg.desktop
+image/heic-sequence=swayimg.desktop
+image/heif=swayimg.desktop
+image/heif-sequence=swayimg.desktop
 
 # Chat & Social URL Schemes
 x-scheme-handler/tg=org.telegram.desktop.desktop
