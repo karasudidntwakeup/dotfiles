@@ -13,8 +13,8 @@ configuration {
 }
 
 window {
-    width: 720px;
-    height: 720px;
+    width: 680px;
+    height: 760px;
     anchor: center;
     location: center;
     background-color: @background;
@@ -42,8 +42,8 @@ mainbox {
 
 listview {
     layout: vertical;
-    columns: 6;
-    lines: 6;
+    columns: 4;
+    lines: 3;
     fixed-columns: true;
     fixed-height: true;
     spacing: 14px;
@@ -55,7 +55,7 @@ listview {
 element {
     orientation: vertical;
     padding: 4px;
-    border: 4px;
+    border: 10px;
     border-color: transparent;
     border-radius: 20px;
     children: [element-icon, element-text];
@@ -66,7 +66,7 @@ element selected {
 }
 
 element-icon {
-    size: 100px;
+    size: 148px;
     horizontal-align: 0.5;
     vertical-align: 0.5;
 }

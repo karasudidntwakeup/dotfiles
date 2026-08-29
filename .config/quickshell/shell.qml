@@ -808,6 +808,13 @@ ShellRoot {
                 radius: 25
                 }
 
+            // Input only where content actually is, so the empty area of the
+            // fixed-size window passes clicks through.
+            mask: Region {
+                Region { item: calPopupBody; radius: 25 }
+                Region { item: timerSection }
+            }
+
                 property bool dismissedByOutside: false
                 property bool closingBySelf: false
                 property int shownYear: new Date().getFullYear()
@@ -826,6 +833,9 @@ ShellRoot {
                 property int entrySeq: 0
 
                 readonly property int editorHeight: 164
+
+                // Whether the todo list section is expanded (animated).
+                property bool expanded: false
 
                 FileView {
                     id: notesFile
@@ -891,7 +901,7 @@ ShellRoot {
 
                 function close() {
                     calPopup.closingBySelf = true
-                    if (timerPopup.visible) timerPopup.playCloseAnim()
+                    timerSection.playCloseAnim()
                     calPopupOut.restart()
                 }
 
@@ -948,12 +958,18 @@ ShellRoot {
                 }
 
                 function selectDay(key) {
+                    // Clicking the selected date again collapses the todo list.
+                    if (calPopup.selectedKey === key && calPopup.expanded) {
+                        calPopup.expanded = false
+                        return
+                    }
                     console.log("[cal] selectDay key=" + key)
                     calPopup.selectedKey = key
                     calPopup.selectedEntryId = -1
                     calPopup.newEntryId = -1
                     calPopup.entries = calPopup.toEntryList(calPopup.notes[key])
                     calPopup.rebuildEntries()
+                    calPopup.expanded = true
                 }
 
                 function syncNotes() {
@@ -1043,18 +1059,26 @@ ShellRoot {
                     return Qt.formatDate(new Date(y, m, d), "ddd, MMM d")
                 }
 
-                implicitHeight: 290 + (calPopup.selectedKey.length > 0 ? calPopup.editorHeight + 6 : 0)
+                // Window is a FIXED full size: resizing a Wayland surface per
+                // frame is laggy, so the body animates inside this constant
+                // surface and the timer section rides below it.
+                readonly property int collapsedHeight: 312
+                readonly property int timerGap: 8
+                readonly property int timerHeight: 64
+                implicitHeight: collapsedHeight + calPopup.editorHeight + 6
+                    + calPopup.timerGap + calPopup.timerHeight
 
                 onVisibleChanged: {
                     if (visible) {
                         calPopup.rebuildModel()
                         calPopupBody.opacity = 0
-                        calPopupScale.xScale = 0.8
-                        calPopupScale.yScale = 0.8
                         calPopupIn.restart()
+                        timerBody.opacity = 0
+                        timerPopupIn.restart()
                     } else {
                         calPopup.dismissedByOutside = !calPopup.closingBySelf
                         calPopup.closingBySelf = false
+                        calPopup.expanded = false
                         calPopup.selectedKey = ""
                         calPopup.selectedEntryId = -1
                         calPopup.newEntryId = -1
@@ -1077,41 +1101,35 @@ ShellRoot {
                 ParallelAnimation {
                     id: calPopupIn
                     running: false
-                    NumberAnimation { target: calPopupBody; property: "opacity"; to: 1; duration: 120; easing.type: Easing.OutQuad }
-                    NumberAnimation { target: calPopupScale; property: "xScale"; to: 1; duration: 280; easing.type: Easing.OutBack; easing.overshoot: 1.4 }
-                    NumberAnimation { target: calPopupScale; property: "yScale"; to: 1; duration: 280; easing.type: Easing.OutBack; easing.overshoot: 1.4 }
+                    NumberAnimation { target: calPopupBody; property: "opacity"; to: 1; duration: 150; easing.type: Easing.OutQuad }
                 }
 
                 SequentialAnimation {
                     id: calPopupOut
                     running: false
                     ParallelAnimation {
-                        NumberAnimation { target: calPopupBody; property: "opacity"; to: 0; duration: 130; easing.type: Easing.InQuad }
-                        NumberAnimation { target: calPopupScale; property: "xScale"; to: 0.85; duration: 130; easing.type: Easing.InQuad }
-                        NumberAnimation { target: calPopupScale; property: "yScale"; to: 0.85; duration: 130; easing.type: Easing.InQuad }
+                        NumberAnimation { target: calPopupBody; property: "opacity"; to: 0; duration: 100; easing.type: Easing.InQuad }
                     }
                     ScriptAction { script: calPopup.visible = false }
                 }
 
                 Rectangle {
                     id: calPopupBody
-                    anchors.fill: parent
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: calPopup.expanded ? parent.height : calPopup.collapsedHeight
+
+                    Behavior on height {
+                        NumberAnimation { duration: 280; easing.type: Easing.OutCubic }
+                    }
+
                     radius: 25
                     color: root.surface
                     border.width: 1
                     border.color: root.withAlpha(root.outlineVariant, 0.35)
                     clip: true
                     opacity: 0
-
-                    transform: [
-                        Scale {
-                            id: calPopupScale
-                            xScale: 0.8
-                            yScale: 0.8
-                            origin.x: width / 2
-                            origin.y: height
-                        }
-                    ]
 
                     ColumnLayout {
                         anchors.fill: parent
@@ -1125,7 +1143,7 @@ ShellRoot {
 
                             Text {
                                 text: "󰁍"
-                                color: root.onSurface
+                                color: "#ffffff"
                                 font.family: root.iconFont
                                 font.pixelSize: root.fontSize + 1
                                 Layout.preferredWidth: 24
@@ -1140,20 +1158,11 @@ ShellRoot {
                                 }
                             }
 
-                            Text {
-                                text: calPopup.monthName(calPopup.shownMonth) + " " + calPopup.shownYear
-                                color: "#ffffff"
-                                font.family: root.fontFamily
-                                font.pixelSize: root.fontSize
-                                font.weight: Font.Black
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-                                Layout.fillWidth: true
-                            }
+                            Item { Layout.fillWidth: true }
 
                             Text {
                                 text: "󰁔"
-                                color: root.onSurface
+                                color: "#ffffff"
                                 font.family: root.iconFont
                                 font.pixelSize: root.fontSize + 1
                                 Layout.preferredWidth: 24
@@ -1170,7 +1179,7 @@ ShellRoot {
 
                             Text {
                                 text: "󰅖"
-                                color: root.onSurface
+                                color: "#ffffff"
                                 font.family: root.iconFont
                                 font.pixelSize: root.fontSize + 1
                                 Layout.preferredWidth: 24
@@ -1188,7 +1197,8 @@ ShellRoot {
 
                         Row {
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 18
+                            Layout.preferredHeight: 22
+                            Layout.bottomMargin: 16
                             spacing: 6
 
                             Text {
@@ -1196,7 +1206,7 @@ ShellRoot {
                                 text: "󰥔"
                                 color: root.onSurfaceVariant
                                 font.family: root.iconFont
-                                font.pixelSize: root.fontSize + 1
+                                font.pixelSize: root.fontSize + 3
                             }
 
                             Text {
@@ -1204,7 +1214,7 @@ ShellRoot {
                                 text: Qt.formatDate(new Date(), "dddd, MMMM d, yyyy")
                                 color: root.onSurfaceVariant
                                 font.family: root.fontFamily
-                                font.pixelSize: root.fontSize - 1
+                                font.pixelSize: root.fontSize + 2
                                 font.weight: Font.Black
                             }
                         }
@@ -1603,59 +1613,32 @@ ShellRoot {
                     }
                 }
 
-                PopupWindow {
-                    id: timerPopup
-                    visible: calPopup.visible
-                    color: "transparent"
-                    implicitWidth: 250
-                    implicitHeight: 64
-
-                    anchor {
-                        window: calPopup
-                        adjustment: PopupAdjustment.All
-                        rect.x: 0
-                        rect.y: calPopup.height + 8
-                        rect.w: calPopup.width
-                        rect.h: 1
-                    }
-
-                    onVisibleChanged: {
-                        if (visible) {
-                            timerBody.opacity = 0
-                            timerScale.xScale = 0.8
-                            timerScale.yScale = 0.8
-                            timerPopupIn.restart()
-                        }
-                    }
-
-                    Connections {
-                        target: calPopup
-                        function onHeightChanged() {
-                            if (timerPopup.visible)
-                                Qt.callLater(() => timerPopup.anchor.updateAnchor())
-                        }
-                    }
+                // Timer section — lives in the same window as the calendar so
+                // it just rides along with the animated body height (no second
+                // Wayland surface being repositioned every frame).
+                Item {
+                    id: timerSection
+                    anchors.top: calPopupBody.bottom
+                    anchors.topMargin: calPopup.timerGap
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: calPopup.timerHeight
 
                     ParallelAnimation {
                         id: timerPopupIn
                         running: false
-                        NumberAnimation { target: timerBody; property: "opacity"; to: 1; duration: 120; easing.type: Easing.OutQuad }
-                        NumberAnimation { target: timerScale; property: "xScale"; to: 1; duration: 280; easing.type: Easing.OutBack; easing.overshoot: 1.4 }
-                        NumberAnimation { target: timerScale; property: "yScale"; to: 1; duration: 280; easing.type: Easing.OutBack; easing.overshoot: 1.4 }
+                        NumberAnimation { target: timerBody; property: "opacity"; to: 1; duration: 150; easing.type: Easing.OutQuad }
                     }
 
                     SequentialAnimation {
                         id: timerPopupOut
                         running: false
                         ParallelAnimation {
-                            NumberAnimation { target: timerBody; property: "opacity"; to: 0; duration: 130; easing.type: Easing.InQuad }
-                            NumberAnimation { target: timerScale; property: "xScale"; to: 0.85; duration: 130; easing.type: Easing.InQuad }
-                            NumberAnimation { target: timerScale; property: "yScale"; to: 0.85; duration: 130; easing.type: Easing.InQuad }
+                            NumberAnimation { target: timerBody; property: "opacity"; to: 0; duration: 100; easing.type: Easing.InQuad }
                         }
                     }
 
                     function playCloseAnim() {
-                        if (!visible) return
                         timerPopupIn.stop()
                         timerPopupOut.restart()
                     }
@@ -1668,16 +1651,6 @@ ShellRoot {
                         border.width: 1
                         border.color: root.withAlpha(root.outlineVariant, 0.35)
                         opacity: 0
-
-                        transform: [
-                            Scale {
-                                id: timerScale
-                                xScale: 0.8
-                                yScale: 0.8
-                                origin.x: width / 2
-                                origin.y: 0
-                            }
-                        ]
 
                         ColumnLayout {
                             anchors.fill: parent
