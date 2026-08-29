@@ -32,7 +32,7 @@ input {
         repeat-rate 40
         xkb {
             layout "us,ara"
-            options "grp:ctrl_space_toggle,numpad:mac"
+            options "grp:ctrl_space_toggle"
         }
         numlock
     }
@@ -75,11 +75,15 @@ output "eDP-1" {
  overview {
   workspace-shadow {
         on
+        color "#000000aa"
+        softness 40
+        spread 8
+        offset x=0 y=10
     }
- zoom 0.40
+  zoom 0.40
 }
 layout {
-  gaps 10
+  gaps 25
     struts {
         bottom 10
     }
@@ -126,9 +130,8 @@ spawn-sh-at-startup "qs"
 spawn-sh-at-startup "pipewire"
 spawn-sh-at-startup "pipewire-pulse"
 spawn-sh-at-startup "wireplumber"
-spawn-at-startup "awww-daemon"
-spawn-at-startup "eww" "daemon"
 spawn-at-startup "swaync"
+spawn-at-startup "awww-daemon"
 spawn-at-startup "sh" "-c" "wl-paste --type text --watch cliphist store"
 spawn-at-startup "sh" "-c" "wl-paste --type image --watch cliphist store"
 hotkey-overlay {
@@ -200,7 +203,6 @@ layer-rule {
     match namespace="quickshell"
     match layer="top"
 }
-
 window-rule {
     match app-id=r#".*"#
     geometry-corner-radius 15
@@ -225,7 +227,7 @@ window-rule {
 
 
 
-  window-rule {
+window-rule {
     match app-id=r#"telegram"#
     default-column-width { proportion 0.3;}
   }
