@@ -31,7 +31,7 @@ audio/x-wav=mpv.desktop
 image/png=swayimg.desktop
 image/jpeg=swayimg.desktop
 image/gif=swayimg.desktop
-image/webp=mpv.desktop
+image/webp=swayimg.desktop
 image/bmp=swayimg.desktop
 image/tiff=swayimg.desktop
 image/tiff+xml=swayimg.desktop
@@ -51,5 +51,14 @@ image/heif-sequence=swayimg.desktop
 # Chat & Social URL Schemes
 x-scheme-handler/tg=org.telegram.desktop.desktop
 x-scheme-handler/discord=vesktop.desktop
+x-scheme-handler/claude-cli=claude-code-url-handler.desktop
+image/jpg=swayimg.desktop
+image/avif=swayimg.desktop
+image/jxl=swayimg.desktop
+image/x-png=swayimg.desktop
+image/x-bmp=swayimg.desktop
+image/pbm=swayimg.desktop
+image/x-portable-anymap=swayimg.desktop
+image/x-targa=swayimg.desktop
 
 [Removed Associations]
