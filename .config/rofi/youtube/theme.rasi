@@ -43,7 +43,7 @@ mainbox {
 listview {
     layout: vertical;
     columns: 5;
-    lines: 4;
+    lines: 6;
     fixed-columns: true;
     fixed-height: true;
     spacing: 14px;
@@ -58,6 +58,7 @@ element {
     border: 4px;
     border-color: transparent;
     border-radius: 20px;
+    spacing: 6px;
     children: [element-icon, element-text];
 }
 
@@ -66,7 +67,9 @@ element selected {
 }
 
 element-icon {
-    size: 170px;
+    expand: false;
+    size: 120px;
+    squared: false;
     horizontal-align: 0.5;
     vertical-align: 0.5;
 }
@@ -74,9 +77,9 @@ element-icon {
 element-text {
     font: "JetBrainsMono Nerd Font 10";
     text-color: inherit;
-    horizontal-align: 0.5;
+    horizontal-align: 0;
     vertical-align: 0.5;
-    margin: 6px 4px 2px 4px;
+    margin: 0;
 }
 
 scrollbar {
