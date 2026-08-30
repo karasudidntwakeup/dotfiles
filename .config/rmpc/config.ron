@@ -19,7 +19,7 @@
     select_current_song_on_change: false,
     ignore_leading_the: false,
     browser_song_sort: [Disc, Track, Artist, Title],
-    directories_sort: SortFormat(group_by_type: true, reverse: false),
+    directories_sort: ModifiedTime(group_by_type: true, reverse: true),
     album_art: (
         method: Auto,
         max_size_px: (width: 1200, height: 1200),
@@ -27,7 +27,8 @@
         vertical_align: Center,
         horizontal_align: Center,
     ),
-       queue: {
+    keybinds: (
+        queue: {
             "D":       DeleteAll,
             "<CR>":    Play,
             "a":       AddToPlaylist,
@@ -188,3 +189,4 @@
     ],
 )
 
+)

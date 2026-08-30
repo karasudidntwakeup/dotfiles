@@ -27,7 +27,7 @@ CONFIG_ENABLE_COLORS="true"
 
 # The menu launcher tool used for the ui
 # Options: fzf, rofi, gum (Default: fzf)
-CONFIG_LAUNCHER="fzf"
+CONFIG_LAUNCHER="rofi"
 
 # Enable image/video previews within the selector
 # Options: true, false (Default: false)
@@ -147,10 +147,10 @@ CONFIG_FZF_OPTS="
 # Rofi config all are required to run rofi as a launcher
 # get the official ones from https://github.com/Benexl/yt-x
 CONFIG_ROFI_THEME_MAIN="/home/karasu/.config/rofi/hakutheme.rasi"
-CONFIG_ROFI_THEME_PREVIEW="/home/karasu/.config/rofi/hakutheme.rasi"
-CONFIG_ROFI_THEME_PROMPT=""
-CONFIG_ROFI_THEME_CONFIRM=""
-CONFIG_ROFI_THEME_PAGER=""
+CONFIG_ROFI_THEME_PREVIEW="/home/karasu/.config/rofi/yt-x-grid.rasi"
+CONFIG_ROFI_THEME_PROMPT="/home/karasu/.config/rofi/hakutheme.rasi"
+CONFIG_ROFI_THEME_CONFIRM="/home/karasu/.config/rofi/hakutheme.rasi"
+CONFIG_ROFI_THEME_PAGER="/home/karasu/.config/rofi/hakutheme.rasi"
 
 # Number of days to keep cached preview images, playlists, and logs
 # Default: 3

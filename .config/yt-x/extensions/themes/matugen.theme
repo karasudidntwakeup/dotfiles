@@ -9,37 +9,37 @@ __yt_x_matugen_esc() {
     "$(printf '%d' "0x${h#????}")"
 }
 
-THEME_FZF_ICON_COLOR_PRIMARY="$(__yt_x_matugen_esc '#ecefff')"
+THEME_FZF_ICON_COLOR_PRIMARY="$(__yt_x_matugen_esc '#cefdbc')"
 THEME_FZF_ICON_COLOR_SECONDARY="$(__yt_x_matugen_esc '#ffffff')"
-THEME_FZF_ICON_COLOR_ACCENT="$(__yt_x_matugen_esc '#ffeafc')"
+THEME_FZF_ICON_COLOR_ACCENT="$(__yt_x_matugen_esc '#c9f9fc')"
 THEME_FZF_ICON_COLOR_ERROR="$(__yt_x_matugen_esc '#ffece9')"
 THEME_FZF_PREVIEW_TITLE="$(__yt_x_matugen_esc '#ffffff')"
-THEME_FZF_PREVIEW_KEY="$(__yt_x_matugen_esc '#ecefff')"
+THEME_FZF_PREVIEW_KEY="$(__yt_x_matugen_esc '#cefdbc')"
 THEME_FZF_PREVIEW_VALUE="$(__yt_x_matugen_esc '#ffffff')"
-THEME_FZF_PREVIEW_DIVIDER="$(__yt_x_matugen_esc '#c1c2cc')"
-THEME_PLAYER_START="$(__yt_x_matugen_esc '#ecefff')"
+THEME_FZF_PREVIEW_DIVIDER="$(__yt_x_matugen_esc '#bfc5b8')"
+THEME_PLAYER_START="$(__yt_x_matugen_esc '#cefdbc')"
 
 CONFIG_FZF_OPTS="
   --ansi
   --border
   --scheme=history
   --style=full
-  --color=bg+:#45474c
-  --color=bg:#111318
-  --color=border:#eeeff9
+  --color=bg+:#444841
+  --color=bg:#11140f
+  --color=border:#ecf2e5
   --color=fg:#ffffff
-  --color=gutter:#111318
-  --color=header:#ecefff
-  --color=hl+:#ecefff
-  --color=hl:#ecefff
-  --color=info:#eeeff9
-  --color=marker:#ffeafc
-  --color=pointer:#ecefff
-  --color=prompt:#ecefff
+  --color=gutter:#11140f
+  --color=header:#cefdbc
+  --color=hl+:#cefdbc
+  --color=hl:#cefdbc
+  --color=info:#ecf2e5
+  --color=marker:#c9f9fc
+  --color=pointer:#cefdbc
+  --color=prompt:#cefdbc
   --color=query:#ffffff:regular
-  --color=scrollbar:#c1c2cc
-  --color=separator:#ecefff
-  --color=spinner:#ffeafc
+  --color=scrollbar:#bfc5b8
+  --color=separator:#e4f5da
+  --color=spinner:#c9f9fc
   --border=rounded
   --border-label=''
   --prompt=' >'

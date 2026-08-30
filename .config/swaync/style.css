@@ -22,14 +22,17 @@ notificationwindow, blankwindow {
 }
 
 .notification-row .notification-background {
-    padding: 6px 12px;
+    /* gap between stacked floating notifications */
+    padding: 6px 10px;
 }
 
 .notification-row .notification-background .notification {
     background: @background;
     border: 1px solid @outline;
-    border-radius: 12px;
+    border-radius: 15px;
     box-shadow: none;
+    /* keep text/icon clear of the rounded border */
+    padding: 12px;
 }
 
 .notification-row .notification-background .notification .notification-default-action .notification-content {
@@ -39,20 +42,22 @@ notificationwindow, blankwindow {
 .notification-row .notification-background .notification .notification-default-action .notification-content .app-icon {
     -gtk-icon-size: 56px;
     -gtk-icon-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-    border-radius: 12px;
-    margin: 4px;
+    border-radius: 15px;
+    margin: 4px 8px 4px 4px;
 }
 
 .notification-row .notification-background .notification .notification-action > button {
     background: @primary_container;
     color: @on_primary;
-    border-radius: 8px;
+    border-radius: 15px;
 }
 
 .control-center {
     background: @background;
     color: @foreground;
-    border-radius: 12px;
+    border-radius: 15px;
+    /* inner padding so widgets clear the rounded corners */
+    padding: 16px;
 }
 
 .widget-title > label {
@@ -63,13 +68,13 @@ notificationwindow, blankwindow {
 
 .widget-title > button {
     margin-left: 8px;
-    border-radius: 12px;
+    border-radius: 15px;
 }
 
 button {
     background: @secondary_container;
     color: @foreground;
-    border-radius: 12px;
+    border-radius: 15px;
 }
 
 .close-button {

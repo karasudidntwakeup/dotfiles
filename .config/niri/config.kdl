@@ -265,7 +265,6 @@ binds {
     XF86AudioMicMute     allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; }
     XF86MonBrightnessUp     allow-when-locked=true { spawn "light" "-A" "10"; }
     XF86MonBrightnessDown     allow-when-locked=true { spawn "light" "-U" "10"; }
-    Mod+Shift+W { spawn "~/.local/bin/wallpaper random"; }
     Mod+Shift+N { spawn "~/.config/hypr/scripts/monochrome_wallpaper.sh"; }
     Mod+0 repeat=false { toggle-overview; }
     Mod+W repeat=true { toggle-overview; }
