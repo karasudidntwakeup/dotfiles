@@ -16,5 +16,12 @@ if [ -z "$devices" ]; then
     exit 0
 fi
 
-name=$(echo "$devices" | awk '{$1=$2=""; print $0}' | sed 's/^ *//')
-echo "󰂱  $name"
+mac=$(echo "$devices" | awk '{print $2}')
+
+# Get battery percentage
+battery=$(bluetoothctl info "$mac" 2>/dev/null | grep -i "battery percentage" | grep -oE '\(([0-9]+)\)' | tr -d '()')
+if [ -n "$battery" ]; then
+    echo "󰂱  $battery%"
+else
+    echo "󰂱"
+fi
