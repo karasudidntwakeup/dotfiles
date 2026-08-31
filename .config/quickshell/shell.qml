@@ -740,7 +740,7 @@ ShellRoot {
                     Module {
                         id: prayerPill
                         label: root.prayerText
-                        tint: root.colorOf("error_container")
+                        tint: root.colorOf("prayer")
                         visible: root.prayerText.length > 0
                     }
 
@@ -825,7 +825,8 @@ ShellRoot {
                             ? "󰋠 󰛞 󰋑 󰋑"
                             : root.batteryIcon(root.batteryPercent)
                         label: root.batteryPercent + " %"
-                        tint: root.colorOf("error_container")
+                        tint: root.colorOf("battery")
+                        color: root.colorOf("battery")
                     }
 
                     Module {
