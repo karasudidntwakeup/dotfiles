@@ -317,6 +317,36 @@ ShellRoot {
         onTriggered: btProc.running = true
     }
 
+    // Media (playerctl)
+    property string mediaStatus: "none"
+    property string mediaText: ""
+    readonly property string mediaIcon: mediaStatus === "Playing" ? "󰎆" : mediaStatus === "Paused" ? "󰏤" : "󰎇"
+
+    Process {
+        id: mediaProc
+        command: ["sh", "-c", "~/.config/quickshell/scripts/media.sh"]
+        stdout: SplitParser {
+            onRead: data => {
+                if (!data) return
+                var parts = data.trim().split("|")
+                root.mediaStatus = parts[0] || "none"
+                root.mediaText = parts.length > 1 ? parts[1] : ""
+            }
+        }
+    }
+
+    Process {
+        id: mediaCmd
+        command: ["true"]
+    }
+
+    Timer {
+        interval: 3000
+        running: true
+        repeat: true
+        onTriggered: mediaProc.running = true
+    }
+
     // Countdown timer (controlled from the clock popup)
     readonly property int defaultTimerMs: 25 * 60000
     property real timerRemainingMs: defaultTimerMs
@@ -393,6 +423,7 @@ ShellRoot {
         memProc.running = true
         netProc.running = true
         btProc.running = true
+        mediaProc.running = true
     }
 
     // niri IPC — raw JSON over the $NIRI_SOCKET unix socket (quickshell's
@@ -724,6 +755,19 @@ ShellRoot {
                             btCmd.command = ["sh", "-c", "bluetoothctl disconnect"]
                             btCmd.running = true
                             btProc.running = true
+                        }
+                    }
+
+                    Module {
+                        id: mediaPill
+                        icon: root.mediaIcon
+                        label: root.mediaText
+                        tint: root.colorOf("primary_fixed_dim")
+                        visible: root.mediaStatus === "Playing" && root.mediaText.length > 0
+
+                        clickArea.onClicked: {
+                            mediaCmd.command = ["playerctl", "play-pause"]
+                            mediaCmd.running = true
                         }
                     }
 
