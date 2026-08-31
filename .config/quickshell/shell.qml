@@ -295,7 +295,7 @@ ShellRoot {
                         root.bluetoothText = "OFF"
                     } else if (t.indexOf("󰂱") >= 0) {
                         root.bluetoothStatus = "connected"
-                        root.bluetoothText = t.replace(/^󰂱\s+/, "")
+                        root.bluetoothText = t.replace(/^󰂱\s*/, "")
                     } else {
                         root.bluetoothStatus = "on"
                         root.bluetoothText = "ON"
