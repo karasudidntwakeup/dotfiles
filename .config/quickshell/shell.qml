@@ -758,19 +758,6 @@ ShellRoot {
                         }
                     }
 
-                    Module {
-                        id: mediaPill
-                        icon: root.mediaIcon
-                        label: root.mediaText
-                        tint: root.colorOf("primary_fixed_dim")
-                        visible: root.mediaStatus === "Playing" && root.mediaText.length > 0
-
-                        clickArea.onClicked: {
-                            mediaCmd.command = ["playerctl", "play-pause"]
-                            mediaCmd.running = true
-                        }
-                    }
-
                     Repeater {
                         model: bar.workspaceList
                         delegate: WorkspaceBtn {
@@ -782,6 +769,19 @@ ShellRoot {
                         id: kbPill
                         label: root.shortLayout(niriIpc.keyboardLayoutName)
                         tint: root.colorOf("tertiary_fixed_dim")
+                    }
+
+                    Module {
+                        id: mediaPill
+                        icon: root.mediaIcon
+                        label: root.mediaText
+                        tint: root.colorOf("primary_fixed_dim")
+                        visible: root.mediaStatus === "Playing" && root.mediaText.length > 0
+
+                        clickArea.onClicked: {
+                            mediaCmd.command = ["playerctl", "play-pause"]
+                            mediaCmd.running = true
+                        }
                     }
 
                     Module {
