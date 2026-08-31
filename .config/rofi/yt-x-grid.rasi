@@ -13,25 +13,24 @@ configuration {
 }
 
 window {
-    width: 960px;
-    height: 800px;
+    width: 1150px;
     anchor: center;
     location: center;
     background-color: @background;
     border: 5;
-    border-radius: 20px;
-    padding: 18px;
+    border-radius: 24px;
+    padding: 24px;
 }
 
 inputbar {
     children: [ prompt, entry ];
-    padding: 8px 14px;
+    padding: 10px 16px;
     border-radius: 20px;
-    margin: 0px 0px 12px 0px;
+    margin: 0px 0px 16px 0px;
 }
 
 prompt {
-    font: "JetBrainsMono Nerd Font Bold 11";
+    font: "Departure Mono 11";
     text-color: @accent;
 }
 
@@ -43,16 +42,17 @@ entry {
 
 mainbox {
     children: [ inputbar, listview ];
-    spacing: 0px;
+    spacing: 16px;
 }
 
 listview {
     layout: vertical;
-    columns: 5;
-    lines: 6;
+    columns: 4;
+    lines: 3;
     fixed-columns: true;
-    fixed-height: true;
-    spacing: 14px;
+    fixed-height: false;
+    dynamic: true;
+    spacing: 16px;
     scrollbar: true;
     scrollbar-width: 6px;
     cycle: false;
@@ -60,12 +60,16 @@ listview {
 
 element {
     orientation: vertical;
-    padding: 4px;
+    padding: 8px;
     border: 4px;
     border-color: transparent;
     border-radius: 20px;
-    spacing: 6px;
+    spacing: 8px;
     children: [element-icon, element-text];
+}
+
+element-num, element-index {
+    enabled: false;
 }
 
 element selected {
@@ -73,15 +77,15 @@ element selected {
 }
 
 element-icon {
-    expand: false;
-    size: 120px;
+    expand: true;
+    size: 160px;
     squared: false;
     horizontal-align: 0.5;
     vertical-align: 0.5;
 }
 
 element-text {
-    font: "JetBrainsMono Nerd Font 10";
+    font: "Departure Mono 10";
     text-color: inherit;
     horizontal-align: 0;
     vertical-align: 0.5;
