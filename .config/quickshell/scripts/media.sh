@@ -27,4 +27,7 @@ info=$(echo "$info" | cut -c1-40)
 pos=$(playerctl position 2>/dev/null)
 len=$(playerctl metadata mpris:length 2>/dev/null)
 
-echo "$status|$info|$pos|$len"
+# Album art URL (file:// or https://)
+art=$(playerctl metadata mpris:artUrl 2>/dev/null)
+
+echo "$status|$info|$pos|$len|$art"

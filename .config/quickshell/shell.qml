@@ -322,6 +322,7 @@ ShellRoot {
     property string mediaText: ""
     property real mediaPos: 0
     property real mediaLen: 0
+    property string mediaArt: ""
     readonly property real mediaProgress: mediaLen > 0
         ? (mediaPos * 1000000) / mediaLen : 0
     readonly property string mediaIcon: mediaStatus === "Playing" ? "󰎆" : mediaStatus === "Paused" ? "󰏤" : "󰎇"
@@ -337,6 +338,7 @@ ShellRoot {
                 root.mediaText = parts.length > 1 ? parts[1] : ""
                 root.mediaPos = parseFloat(parts[2]) || 0
                 root.mediaLen = parseFloat(parts[3]) || 0
+                root.mediaArt = parts.length > 4 ? parts[4] : ""
             }
         }
     }
@@ -933,8 +935,8 @@ ShellRoot {
             id: mediaPopup
             visible: false
             grabFocus: true
-            implicitWidth: 280
-            implicitHeight: 150
+            implicitWidth: 300
+            implicitHeight: 160
             color: "transparent"
 
             BackgroundEffect.blurRegion: Region {
@@ -959,15 +961,44 @@ ShellRoot {
                     anchors.margins: 14
                     spacing: 8
 
-                    Text {
-                        id: mediaPopupTitle
+                    Row {
                         width: parent.width
-                        text: root.mediaText
-                        wrapMode: Text.Wrap
-                        color: root.textColor
-                        font.family: root.uiFont
-                        font.pixelSize: root.fontSize + 1
-                        font.weight: Font.Bold
+                        spacing: 10
+
+                        Rectangle {
+                            width: 52
+                            height: 52
+                            radius: 8
+                            color: root.withAlpha(root.textColor, 0.1)
+                            clip: true
+
+                            Image {
+                                anchors.fill: parent
+                                source: root.mediaArt
+                                fillMode: Image.PreserveAspectCrop
+                                visible: root.mediaArt.length > 0
+                            }
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: root.mediaIcon
+                                color: root.textColor
+                                font.family: root.iconFont
+                                font.pixelSize: root.fontSize + 4
+                            }
+                        }
+
+                        Text {
+                            id: mediaPopupTitle
+                            width: parent.width - 52 - 10
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: root.mediaText
+                            wrapMode: Text.Wrap
+                            color: root.textColor
+                            font.family: root.uiFont
+                            font.pixelSize: root.fontSize + 1
+                            font.weight: Font.Bold
+                        }
                     }
 
                     // Seek slider
