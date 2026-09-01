@@ -6,7 +6,7 @@
 /* Scheme colors (current mode) */
 
 
-var background = "#191113"
+var background = "#0c1512"
 
 var error = "#ffece9"
 
@@ -14,11 +14,11 @@ var error_container = "#ffaea4"
 
 var inverse_on_surface = "#000000"
 
-var inverse_primary = "#71344a"
+var inverse_primary = "#763514"
 
-var inverse_surface = "#efdfe1"
+var inverse_surface = "#dbe5e0"
 
-var on_background = "#efdfe1"
+var on_background = "#dbe5e0"
 
 var on_error = "#000000"
 
@@ -30,7 +30,7 @@ var on_primary_container = "#000000"
 
 var on_primary_fixed = "#000000"
 
-var on_primary_fixed_variant = "#2b0012"
+var on_primary_fixed_variant = "#250800"
 
 var on_secondary = "#000000"
 
@@ -38,7 +38,7 @@ var on_secondary_container = "#000000"
 
 var on_secondary_fixed = "#000000"
 
-var on_secondary_fixed_variant = "#1f0b12"
+var on_secondary_fixed_variant = "#001417"
 
 var on_surface = "#ffffff"
 
@@ -50,67 +50,67 @@ var on_tertiary_container = "#000000"
 
 var on_tertiary_fixed = "#000000"
 
-var on_tertiary_fixed_variant = "#1f0c00"
+var on_tertiary_fixed_variant = "#001511"
 
-var outline = "#ffebef"
+var outline = "#e2f4ed"
 
-var outline_variant = "#d1bec2"
+var outline_variant = "#b4c7c0"
 
-var primary = "#ffebef"
+var primary = "#ffece5"
 
-var primary_container = "#feabc4"
+var primary_container = "#ffb08d"
 
-var primary_fixed = "#ffd9e2"
+var primary_fixed = "#ffdbcd"
 
-var primary_fixed_dim = "#ffb1c8"
+var primary_fixed_dim = "#ffb595"
 
 var scrim = "#000000"
 
-var secondary = "#ffebef"
+var secondary = "#caf8ff"
 
-var secondary_container = "#deb9c2"
+var secondary_container = "#9dcad1"
 
-var secondary_fixed = "#ffd9e2"
+var secondary_fixed = "#bcebf1"
 
-var secondary_fixed_dim = "#e3bdc6"
+var secondary_fixed_dim = "#a1ced5"
 
 var shadow = "#000000"
 
-var source_color = "#000000"
+var source_color = "#465049"
 
-var surface = "#191113"
+var surface = "#0c1512"
 
-var surface_bright = "#584d50"
+var surface_bright = "#48524f"
 
-var surface_container = "#372e30"
+var surface_container = "#29322f"
 
-var surface_container_high = "#43393b"
+var surface_container_high = "#343d3a"
 
-var surface_container_highest = "#4f4446"
+var surface_container_highest = "#3f4945"
 
-var surface_container_low = "#261d20"
+var surface_container_low = "#18211f"
 
 var surface_container_lowest = "#000000"
 
-var surface_dim = "#191113"
+var surface_dim = "#0c1512"
 
-var surface_tint = "#ffb1c8"
+var surface_tint = "#ffb595"
 
-var surface_variant = "#514347"
+var surface_variant = "#3a4a45"
 
-var tertiary = "#ffede0"
+var tertiary = "#b7feee"
 
-var tertiary_container = "#ebb990"
+var tertiary_container = "#8ad0c1"
 
-var tertiary_fixed = "#ffdcc1"
+var tertiary_fixed = "#aaf0e1"
 
-var tertiary_fixed_dim = "#efbd94"
+var tertiary_fixed_dim = "#8ed4c5"
 
 
 /* Light scheme variants */
 
 
-var background_light = "#fff8f8"
+var background_light = "#f2fcf6"
 
 var error_light = "#600004"
 
@@ -118,11 +118,11 @@ var error_container_light = "#98000a"
 
 var inverse_on_surface_light = "#ffffff"
 
-var inverse_primary_light = "#ffb1c8"
+var inverse_primary_light = "#ffb595"
 
-var inverse_surface_light = "#372e30"
+var inverse_surface_light = "#29322f"
 
-var on_background_light = "#22191c"
+var on_background_light = "#141d1b"
 
 var on_error_light = "#ffffff"
 
@@ -156,65 +156,65 @@ var on_tertiary_fixed_light = "#ffffff"
 
 var on_tertiary_fixed_variant_light = "#ffffff"
 
-var outline_light = "#35292c"
+var outline_light = "#1f2f2b"
 
-var outline_variant_light = "#544649"
+var outline_variant_light = "#3c4d47"
 
-var primary_light = "#4f182e"
+var primary_light = "#501b00"
 
-var primary_container_light = "#72354b"
+var primary_container_light = "#773616"
 
-var primary_fixed_light = "#72354b"
+var primary_fixed_light = "#773616"
 
-var primary_fixed_dim_light = "#571f34"
+var primary_fixed_dim_light = "#5a2102"
 
 var scrim_light = "#000000"
 
-var secondary_light = "#3d252d"
+var secondary_light = "#003237"
 
-var secondary_container_light = "#5d424a"
+var secondary_container_light = "#225055"
 
-var secondary_fixed_light = "#5d424a"
+var secondary_fixed_light = "#225055"
 
-var secondary_fixed_dim_light = "#452c33"
+var secondary_fixed_dim_light = "#02393e"
 
 var shadow_light = "#000000"
 
-var source_color_light = "#000000"
+var source_color_light = "#465049"
 
-var surface_light = "#fff8f8"
+var surface_light = "#f2fcf6"
 
-var surface_bright_light = "#fff8f8"
+var surface_bright_light = "#f2fcf6"
 
-var surface_container_light = "#efdfe1"
+var surface_container_light = "#dbe5e0"
 
-var surface_container_high_light = "#e0d1d3"
+var surface_container_high_light = "#cdd7d2"
 
-var surface_container_highest_light = "#d2c3c5"
+var surface_container_highest_light = "#bfc9c4"
 
-var surface_container_low_light = "#fdedef"
+var surface_container_low_light = "#e9f3ee"
 
 var surface_container_lowest_light = "#ffffff"
 
-var surface_dim_light = "#c4b5b8"
+var surface_dim_light = "#b1bbb6"
 
-var surface_tint_light = "#8c4a60"
+var surface_tint_light = "#924b28"
 
-var surface_variant_light = "#f2dde1"
+var surface_variant_light = "#d4e7df"
 
-var tertiary_light = "#432508"
+var tertiary_light = "#00332c"
 
-var tertiary_container_light = "#644122"
+var tertiary_container_light = "#005349"
 
-var tertiary_fixed_light = "#644122"
+var tertiary_fixed_light = "#005349"
 
-var tertiary_fixed_dim_light = "#4a2b0e"
+var tertiary_fixed_dim_light = "#003a32"
 
 
 /* Dark scheme variants */
 
 
-var background_dark = "#191113"
+var background_dark = "#0c1512"
 
 var error_dark = "#ffece9"
 
@@ -222,11 +222,11 @@ var error_container_dark = "#ffaea4"
 
 var inverse_on_surface_dark = "#000000"
 
-var inverse_primary_dark = "#71344a"
+var inverse_primary_dark = "#763514"
 
-var inverse_surface_dark = "#efdfe1"
+var inverse_surface_dark = "#dbe5e0"
 
-var on_background_dark = "#efdfe1"
+var on_background_dark = "#dbe5e0"
 
 var on_error_dark = "#000000"
 
@@ -238,7 +238,7 @@ var on_primary_container_dark = "#000000"
 
 var on_primary_fixed_dark = "#000000"
 
-var on_primary_fixed_variant_dark = "#2b0012"
+var on_primary_fixed_variant_dark = "#250800"
 
 var on_secondary_dark = "#000000"
 
@@ -246,7 +246,7 @@ var on_secondary_container_dark = "#000000"
 
 var on_secondary_fixed_dark = "#000000"
 
-var on_secondary_fixed_variant_dark = "#1f0b12"
+var on_secondary_fixed_variant_dark = "#001417"
 
 var on_surface_dark = "#ffffff"
 
@@ -258,61 +258,61 @@ var on_tertiary_container_dark = "#000000"
 
 var on_tertiary_fixed_dark = "#000000"
 
-var on_tertiary_fixed_variant_dark = "#1f0c00"
+var on_tertiary_fixed_variant_dark = "#001511"
 
-var outline_dark = "#ffebef"
+var outline_dark = "#e2f4ed"
 
-var outline_variant_dark = "#d1bec2"
+var outline_variant_dark = "#b4c7c0"
 
-var primary_dark = "#ffebef"
+var primary_dark = "#ffece5"
 
-var primary_container_dark = "#feabc4"
+var primary_container_dark = "#ffb08d"
 
-var primary_fixed_dark = "#ffd9e2"
+var primary_fixed_dark = "#ffdbcd"
 
-var primary_fixed_dim_dark = "#ffb1c8"
+var primary_fixed_dim_dark = "#ffb595"
 
 var scrim_dark = "#000000"
 
-var secondary_dark = "#ffebef"
+var secondary_dark = "#caf8ff"
 
-var secondary_container_dark = "#deb9c2"
+var secondary_container_dark = "#9dcad1"
 
-var secondary_fixed_dark = "#ffd9e2"
+var secondary_fixed_dark = "#bcebf1"
 
-var secondary_fixed_dim_dark = "#e3bdc6"
+var secondary_fixed_dim_dark = "#a1ced5"
 
 var shadow_dark = "#000000"
 
-var source_color_dark = "#000000"
+var source_color_dark = "#465049"
 
-var surface_dark = "#191113"
+var surface_dark = "#0c1512"
 
-var surface_bright_dark = "#584d50"
+var surface_bright_dark = "#48524f"
 
-var surface_container_dark = "#372e30"
+var surface_container_dark = "#29322f"
 
-var surface_container_high_dark = "#43393b"
+var surface_container_high_dark = "#343d3a"
 
-var surface_container_highest_dark = "#4f4446"
+var surface_container_highest_dark = "#3f4945"
 
-var surface_container_low_dark = "#261d20"
+var surface_container_low_dark = "#18211f"
 
 var surface_container_lowest_dark = "#000000"
 
-var surface_dim_dark = "#191113"
+var surface_dim_dark = "#0c1512"
 
-var surface_tint_dark = "#ffb1c8"
+var surface_tint_dark = "#ffb595"
 
-var surface_variant_dark = "#514347"
+var surface_variant_dark = "#3a4a45"
 
-var tertiary_dark = "#ffede0"
+var tertiary_dark = "#b7feee"
 
-var tertiary_container_dark = "#ebb990"
+var tertiary_container_dark = "#8ad0c1"
 
-var tertiary_fixed_dark = "#ffdcc1"
+var tertiary_fixed_dark = "#aaf0e1"
 
-var tertiary_fixed_dim_dark = "#efbd94"
+var tertiary_fixed_dim_dark = "#8ed4c5"
 
 
 /* Tonal palettes (tones 0-100) */
@@ -359,196 +359,196 @@ var palette_error_99 = "#fffbff"
 
 var palette_neutral_0 = "#000000"
 
-var palette_neutral_10 = "#201a1b"
+var palette_neutral_10 = "#191c1a"
 
 var palette_neutral_100 = "#ffffff"
 
-var palette_neutral_15 = "#2a2426"
+var palette_neutral_15 = "#232724"
 
-var palette_neutral_20 = "#352f30"
+var palette_neutral_20 = "#2e312e"
 
-var palette_neutral_25 = "#413a3b"
+var palette_neutral_25 = "#393c39"
 
-var palette_neutral_30 = "#4c4546"
+var palette_neutral_30 = "#444845"
 
-var palette_neutral_35 = "#585052"
+var palette_neutral_35 = "#505350"
 
-var palette_neutral_40 = "#645c5e"
+var palette_neutral_40 = "#5c5f5c"
 
-var palette_neutral_5 = "#151011"
+var palette_neutral_5 = "#0e120f"
 
-var palette_neutral_50 = "#7e7576"
+var palette_neutral_50 = "#757874"
 
-var palette_neutral_60 = "#988e90"
+var palette_neutral_60 = "#8f918e"
 
-var palette_neutral_70 = "#b3a9aa"
+var palette_neutral_70 = "#a9aca8"
 
-var palette_neutral_80 = "#cfc4c5"
+var palette_neutral_80 = "#c5c7c3"
 
-var palette_neutral_90 = "#ebe0e1"
+var palette_neutral_90 = "#e1e3df"
 
-var palette_neutral_95 = "#faeeef"
+var palette_neutral_95 = "#eff1ed"
 
-var palette_neutral_98 = "#fff8f8"
+var palette_neutral_98 = "#f8faf5"
 
-var palette_neutral_99 = "#fffbff"
+var palette_neutral_99 = "#fbfdf8"
 
 
 
 var palette_neutral_variant_0 = "#000000"
 
-var palette_neutral_variant_10 = "#24191c"
+var palette_neutral_variant_10 = "#151d18"
 
 var palette_neutral_variant_100 = "#ffffff"
 
-var palette_neutral_variant_15 = "#2e2326"
+var palette_neutral_variant_15 = "#1f2822"
 
-var palette_neutral_variant_20 = "#3a2d30"
+var palette_neutral_variant_20 = "#2a322d"
 
-var palette_neutral_variant_25 = "#45383b"
+var palette_neutral_variant_25 = "#353d38"
 
-var palette_neutral_variant_30 = "#514347"
+var palette_neutral_variant_30 = "#404943"
 
-var palette_neutral_variant_35 = "#5d4f52"
+var palette_neutral_variant_35 = "#4c544e"
 
-var palette_neutral_variant_40 = "#6a5b5e"
+var palette_neutral_variant_40 = "#58605a"
 
-var palette_neutral_variant_5 = "#180e11"
+var palette_neutral_variant_5 = "#0b130e"
 
-var palette_neutral_variant_50 = "#837377"
+var palette_neutral_variant_50 = "#707972"
 
-var palette_neutral_variant_60 = "#9e8c90"
+var palette_neutral_variant_60 = "#8a938c"
 
-var palette_neutral_variant_70 = "#b9a7aa"
+var palette_neutral_variant_70 = "#a4ada6"
 
-var palette_neutral_variant_80 = "#d5c2c6"
+var palette_neutral_variant_80 = "#c0c9c1"
 
-var palette_neutral_variant_90 = "#f2dde1"
+var palette_neutral_variant_90 = "#dce5dc"
 
-var palette_neutral_variant_95 = "#ffecf0"
+var palette_neutral_variant_95 = "#eaf3ea"
 
-var palette_neutral_variant_98 = "#fff8f8"
+var palette_neutral_variant_98 = "#f3fcf3"
 
-var palette_neutral_variant_99 = "#fffbff"
+var palette_neutral_variant_99 = "#f6fff6"
 
 
 
 var palette_primary_0 = "#000000"
 
-var palette_primary_10 = "#3e001d"
+var palette_primary_10 = "#002112"
 
 var palette_primary_100 = "#ffffff"
 
-var palette_primary_15 = "#4f0428"
+var palette_primary_15 = "#002c1a"
 
-var palette_primary_20 = "#5e1133"
+var palette_primary_20 = "#003822"
 
-var palette_primary_25 = "#6c1d3e"
+var palette_primary_25 = "#00452b"
 
-var palette_primary_30 = "#7b2949"
+var palette_primary_30 = "#005234"
 
-var palette_primary_35 = "#893455"
+var palette_primary_35 = "#005f3d"
 
-var palette_primary_40 = "#984061"
+var palette_primary_40 = "#006c46"
 
-var palette_primary_5 = "#2b0012"
+var palette_primary_5 = "#00150a"
 
-var palette_primary_50 = "#b6587a"
+var palette_primary_50 = "#0b885a"
 
-var palette_primary_60 = "#d57193"
+var palette_primary_60 = "#37a372"
 
-var palette_primary_70 = "#f48bae"
+var palette_primary_70 = "#55be8b"
 
-var palette_primary_80 = "#ffb1c8"
+var palette_primary_80 = "#72daa5"
 
-var palette_primary_90 = "#ffd9e2"
+var palette_primary_90 = "#8ff7c0"
 
-var palette_primary_95 = "#ffecf0"
+var palette_primary_95 = "#bfffd9"
 
-var palette_primary_98 = "#fff8f8"
+var palette_primary_98 = "#e8ffee"
 
-var palette_primary_99 = "#fffbff"
+var palette_primary_99 = "#f4fff5"
 
 
 
 var palette_secondary_0 = "#000000"
 
-var palette_secondary_10 = "#2b151c"
+var palette_secondary_10 = "#0b1f15"
 
 var palette_secondary_100 = "#ffffff"
 
-var palette_secondary_15 = "#361f26"
+var palette_secondary_15 = "#152a1f"
 
-var palette_secondary_20 = "#422931"
+var palette_secondary_20 = "#203529"
 
-var palette_secondary_25 = "#4e343c"
+var palette_secondary_25 = "#2b4034"
 
-var palette_secondary_30 = "#5a3f47"
+var palette_secondary_30 = "#364b3f"
 
-var palette_secondary_35 = "#674b53"
+var palette_secondary_35 = "#42574a"
 
-var palette_secondary_40 = "#74565f"
+var palette_secondary_40 = "#4e6356"
 
-var palette_secondary_5 = "#1f0a11"
+var palette_secondary_5 = "#02150b"
 
-var palette_secondary_50 = "#8e6f77"
+var palette_secondary_50 = "#667c6e"
 
-var palette_secondary_60 = "#aa8891"
+var palette_secondary_60 = "#7f9687"
 
-var palette_secondary_70 = "#c6a2ab"
+var palette_secondary_70 = "#99b1a1"
 
-var palette_secondary_80 = "#e3bdc6"
+var palette_secondary_80 = "#b4ccbc"
 
-var palette_secondary_90 = "#ffd9e2"
+var palette_secondary_90 = "#d0e8d7"
 
-var palette_secondary_95 = "#ffecf0"
+var palette_secondary_95 = "#def7e5"
 
-var palette_secondary_98 = "#fff8f8"
+var palette_secondary_98 = "#e8ffee"
 
-var palette_secondary_99 = "#fffbff"
+var palette_secondary_99 = "#f4fff5"
 
 
 
 var palette_tertiary_0 = "#000000"
 
-var palette_tertiary_10 = "#2e1500"
+var palette_tertiary_10 = "#001f28"
 
 var palette_tertiary_100 = "#ffffff"
 
-var palette_tertiary_15 = "#3b1f03"
+var palette_tertiary_15 = "#002a35"
 
-var palette_tertiary_20 = "#48290b"
+var palette_tertiary_20 = "#053542"
 
-var palette_tertiary_25 = "#543416"
+var palette_tertiary_25 = "#15404e"
 
-var palette_tertiary_30 = "#623f20"
+var palette_tertiary_30 = "#234c59"
 
-var palette_tertiary_35 = "#6f4b2a"
+var palette_tertiary_35 = "#305865"
 
-var palette_tertiary_40 = "#7c5635"
+var palette_tertiary_40 = "#3c6472"
 
-var palette_tertiary_5 = "#1f0c00"
+var palette_tertiary_5 = "#00131a"
 
-var palette_tertiary_50 = "#986e4b"
+var palette_tertiary_50 = "#557d8b"
 
-var palette_tertiary_60 = "#b48862"
+var palette_tertiary_60 = "#6f97a6"
 
-var palette_tertiary_70 = "#d1a27b"
+var palette_tertiary_70 = "#89b1c1"
 
-var palette_tertiary_80 = "#efbd94"
+var palette_tertiary_80 = "#a4cddd"
 
-var palette_tertiary_90 = "#ffdcc1"
+var palette_tertiary_90 = "#c0e9fa"
 
-var palette_tertiary_95 = "#ffeee2"
+var palette_tertiary_95 = "#ddf5ff"
 
-var palette_tertiary_98 = "#fff8f5"
+var palette_tertiary_98 = "#f2fbff"
 
-var palette_tertiary_99 = "#fffbff"
+var palette_tertiary_99 = "#f9fdff"
 
 
 
 /* Custom widget colors (editable) */
 
-var prayer = "#deb9c2"
+var prayer = "#9dcad1"
 
-var battery = "#feabc4"
+var battery = "#ffb08d"
