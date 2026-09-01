@@ -45,18 +45,7 @@ ShellRoot {
 
     // Palette (matugen, via colors.js)
     readonly property color primary: colorOf("primary")
-    readonly property color primaryContainer: colorOf("primary_container")
-    readonly property color secondary: colorOf("secondary")
-    readonly property color secondaryContainer: colorOf("secondary_container")
-    readonly property color tertiary: colorOf("tertiary")
-    readonly property color tertiaryContainer: colorOf("tertiary_container")
     readonly property color error: colorOf("error")
-    readonly property color errorContainer: colorOf("error_container")
-    readonly property color surface: colorOf("surface")
-    readonly property color surfaceBright: colorOf("surface_bright")
-    readonly property color surfaceContainerHigh: colorOf("surface_container_high")
-    readonly property color onSurface: colorOf("on_surface")
-    readonly property color onSurfaceVariant: colorOf("on_surface_variant")
     readonly property color outlineVariant: colorOf("outline_variant")
 
     // Typography (matches waybar style.css)
@@ -201,7 +190,6 @@ ShellRoot {
 
     Process {
         id: volCmd
-        command: ["true"]
     }
 
     // pactl subscribe streams audio-server events, so the pill refreshes only
@@ -307,7 +295,6 @@ ShellRoot {
 
     Process {
         id: btCmd
-        command: ["true"]
     }
 
     Timer {
@@ -345,7 +332,6 @@ ShellRoot {
 
     Process {
         id: mediaCmd
-        command: ["true"]
     }
 
     Timer {
@@ -366,7 +352,7 @@ ShellRoot {
         var h = Math.floor(s / 3600)
         var m = Math.floor((s % 3600) / 60)
         var sec = s % 60
-        function pad(n) { return n < 10 ? "0" + n : "" + n }
+        var pad = n => n < 10 ? "0" + n : "" + n
         return h > 0 ? h + ":" + pad(m) + ":" + pad(sec) : pad(m) + ":" + pad(sec)
     }
 
@@ -490,15 +476,10 @@ ShellRoot {
             var list = niri.workspaces
             for (var i = 0; i < list.length; i++) {
                 if (list[i].id !== id) continue
-                var w = list[i]
-                var changed = false
-                for (var k in patch) {
-                    if (w[k] !== patch[k]) { w[k] = patch[k]; changed = true }
-                }
-                if (changed) {
-                    niri.workspaces = list.slice()
-                    niri.workspacesUpdated()
-                }
+                var copy = list.slice()
+                copy[i] = Object.assign({}, copy[i], patch)
+                niri.workspaces = copy
+                niri.workspacesUpdated()
                 return
             }
         }
@@ -516,7 +497,7 @@ ShellRoot {
                         var w = list[i]
                         out.push({
                             id: w.id, idx: w.idx, name: w.name, output: w.output,
-                            active: w.active || w.id === act.id,
+                            active: w.id === act.id,
                             focused: w.id === act.id,
                             urgent: w.urgent
                         })
@@ -663,7 +644,6 @@ ShellRoot {
         property string icon: "play"
         property color fore: "#000000"
         property color back: "#00000000"
-        property int edge: 0
         signal activated()
         signal hoveredChanged()
 
@@ -728,7 +708,6 @@ ShellRoot {
 
         onIconChanged: cv.requestPaint()
         onForeChanged: cv.requestPaint()
-        onEdgeChanged: cv.requestPaint()
 
         Component.onCompleted: cv.requestPaint()
 
@@ -1049,7 +1028,6 @@ ShellRoot {
                             icon: "prev"
                             fore: root.textColor
                             back: "#00000000"
-                            edge: 5
                             onActivated: { mediaCmd.command = ["playerctl", "previous"]; mediaCmd.running = true }
                         }
                         MediaBtn {
@@ -1068,7 +1046,6 @@ ShellRoot {
                             icon: "next"
                             fore: root.textColor
                             back: "#00000000"
-                            edge: 5
                             onActivated: { mediaCmd.command = ["playerctl", "next"]; mediaCmd.running = true }
                         }
                     }
@@ -1299,7 +1276,7 @@ ShellRoot {
                     calPopup.selectedEntryId = -1
                     calPopup.newEntryId = -1
                     calPopup.entries = calPopup.toEntryList(calPopup.notes[key])
-                    calPopup.rebuildEntries()
+                    calPopup.syncNotes()
                     calPopup.expanded = true
                 }
 
@@ -1311,14 +1288,10 @@ ShellRoot {
                         copy[calPopup.selectedKey] = calPopup.entries.slice()
                     calPopup.notes = copy
                     notesAdapter.notes = JSON.parse(JSON.stringify(copy))
-                }
-
-                function rebuildEntries() {
                     entriesModel.clear()
                     var list = calPopup.entries || []
-                    for (var i = 0; i < list.length; i++) {
+                    for (var i = 0; i < list.length; i++)
                         entriesModel.append({ entryId: list[i].id, entryText: list[i].text, saved: list[i].saved, entryDone: list[i].done })
-                    }
                 }
 
                 function selectEntry(eid) {
@@ -1332,7 +1305,6 @@ ShellRoot {
                     calPopup.selectedEntryId = entry.id
                     calPopup.newEntryId = entry.id
                     calPopup.syncNotes()
-                    calPopup.rebuildEntries()
                 }
 
                 function saveEntry(eid, text) {
@@ -1346,7 +1318,6 @@ ShellRoot {
                         calPopup.entries = updated
                         calPopup.selectedEntryId = eid
                         calPopup.syncNotes()
-                        calPopup.rebuildEntries()
                         return
                     }
                 }
@@ -1359,7 +1330,6 @@ ShellRoot {
                         updated[i] = { id: eid, text: list[i].text, saved: true, done: !list[i].done }
                         calPopup.entries = updated
                         calPopup.syncNotes()
-                        calPopup.rebuildEntries()
                         return
                     }
                 }
@@ -1378,7 +1348,6 @@ ShellRoot {
                     calPopup.newEntryId = -1
                     calPopup.entries = out
                     calPopup.syncNotes()
-                    calPopup.rebuildEntries()
                 }
 
                 function selectedDateLabel() {
