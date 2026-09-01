@@ -865,13 +865,14 @@ ShellRoot {
                     Module {
                         id: mediaPill
                         icon: root.mediaIcon
-                        label: root.mediaText
                         tint: root.colorOf("primary_fixed_dim")
-                        visible: root.mediaStatus === "Playing" && root.mediaText.length > 0
+                        visible: root.mediaStatus === "Playing"
 
-                        clickArea.onClicked: mediaPopup.visible
-                            ? mediaPopup.visible = false
-                            : mediaPopup.visible = true
+                        clickArea.onClicked: {
+                            calPopup.forceClose()
+                            if (mediaPopup.visible) mediaPopup.mediaClose()
+                            else mediaPopup.mediaOpen()
+                        }
                     }
 
                     Module {
@@ -925,7 +926,10 @@ ShellRoot {
                         label: root.clockText
                         tint: root.colorOf("secondary_fixed")
 
-                        clickArea.onClicked: calPopup.open()
+                        clickArea.onClicked: {
+                            mediaPopup.mediaForceClose()
+                            calPopup.open()
+                        }
                     }
                 }
             }
@@ -1071,6 +1075,38 @@ ShellRoot {
                 }
             }
 
+            property bool mediaClosing: false
+            function mediaOpen() {
+                if (mediaClosing) return
+                mediaPopupBody.opacity = 0
+                mediaPopup.visible = true
+                mediaPopupIn.start()
+            }
+            function mediaClose() {
+                if (mediaClosing) return
+                mediaClosing = true
+                mediaPopupOut.start()
+            }
+            function mediaForceClose() {
+                mediaPopup.visible = false
+                mediaPopup.mediaClosing = false
+            }
+
+            SequentialAnimation {
+                id: mediaPopupIn
+                running: false
+                NumberAnimation { target: mediaPopupBody; property: "opacity"; to: 1; duration: 150; easing.type: Easing.OutQuad }
+            }
+            SequentialAnimation {
+                id: mediaPopupOut
+                running: false
+                NumberAnimation { target: mediaPopupBody; property: "opacity"; to: 0; duration: 100; easing.type: Easing.InQuad }
+                onFinished: {
+                    mediaPopup.visible = false
+                    mediaPopup.mediaClosing = false
+                }
+            }
+
             anchor {
                 item: mediaPill
                 edges: Edges.Top
@@ -1191,6 +1227,13 @@ ShellRoot {
                     calPopup.closingBySelf = true
                     timerSection.playCloseAnim()
                     calPopupOut.restart()
+                }
+
+                // Immediate close (no animation) used when switching to the
+                // media popup, so the two never overlap or double-close.
+                function forceClose() {
+                    calPopup.closingBySelf = true
+                    calPopup.visible = false
                 }
 
                 function monthName(m) {
