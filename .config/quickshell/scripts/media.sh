@@ -23,4 +23,8 @@ fi
 # Truncate to 40 chars
 info=$(echo "$info" | cut -c1-40)
 
-echo "$status|$info"
+# Position (microseconds) and length — default to 0 when unavailable
+pos=$(playerctl position 2>/dev/null)
+len=$(playerctl metadata mpris:length 2>/dev/null)
+
+echo "$status|$info|$pos|$len"

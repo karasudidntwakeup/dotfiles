@@ -320,6 +320,10 @@ ShellRoot {
     // Media (playerctl)
     property string mediaStatus: "none"
     property string mediaText: ""
+    property real mediaPos: 0
+    property real mediaLen: 0
+    readonly property real mediaProgress: mediaLen > 0
+        ? (mediaPos * 1000000) / mediaLen : 0
     readonly property string mediaIcon: mediaStatus === "Playing" ? "󰎆" : mediaStatus === "Paused" ? "󰏤" : "󰎇"
 
     Process {
@@ -331,6 +335,8 @@ ShellRoot {
                 var parts = data.trim().split("|")
                 root.mediaStatus = parts[0] || "none"
                 root.mediaText = parts.length > 1 ? parts[1] : ""
+                root.mediaPos = parseFloat(parts[2]) || 0
+                root.mediaLen = parseFloat(parts[3]) || 0
             }
         }
     }
@@ -341,7 +347,7 @@ ShellRoot {
     }
 
     Timer {
-        interval: 3000
+        interval: 1000
         running: true
         repeat: true
         onTriggered: mediaProc.running = true
@@ -649,6 +655,89 @@ ShellRoot {
         }
     }
 
+    // Crisp vector media-control button (prev / play / pause / next).
+    component MediaBtn: Rectangle {
+        id: mbtn
+        property string icon: "play"
+        property color fore: "#000000"
+        property color back: "#00000000"
+        property int edge: 0
+        signal activated()
+        signal hoveredChanged()
+
+        radius: Math.min(width, height) / 2
+        color: back
+
+        Canvas {
+            id: cv
+            anchors.fill: parent
+            onPaint: {
+                var ctx = getContext("2d")
+                ctx.reset()
+                var w = width, h = height
+                ctx.fillStyle = fore.toString()
+                if (mbtn.icon === "play") {
+                    var c = w / 2 + w * 0.08
+                    var r = h * 0.30
+                    ctx.beginPath()
+                    ctx.moveTo(c - r * 0.6, h / 2 - r)
+                    ctx.lineTo(c - r * 0.6, h / 2 + r)
+                    ctx.lineTo(c + r, h / 2)
+                    ctx.closePath()
+                    ctx.fill()
+                } else if (mbtn.icon === "pause") {
+                    var bw = w * 0.13
+                    var gap = w * 0.10
+                    var top = h * 0.20
+                    var bot = h * 0.80
+                    var cx = w / 2
+                    ctx.fillRect(cx - bw - gap / 2, top, bw, bot - top)
+                    ctx.fillRect(cx + gap / 2, top, bw, bot - top)
+                } else { // prev / next
+                    var t = h * 0.28
+                    var barw = w * 0.12
+                    var gap = w * 0.10
+                    var g = barw + gap + t          // glyph width
+                    var startX = (w - g) / 2
+                    if (mbtn.icon === "prev") {
+                        // bar (left), left-pointing triangle right of it
+                        ctx.fillRect(startX, h / 2 - t, barw, 2 * t)
+                        var apexX = startX + barw + gap
+                        ctx.beginPath()
+                        ctx.moveTo(apexX, h / 2)
+                        ctx.lineTo(apexX + t, h / 2 - t)
+                        ctx.lineTo(apexX + t, h / 2 + t)
+                        ctx.closePath()
+                        ctx.fill()
+                    } else { // next
+                        // right-pointing triangle, bar right of it
+                        var apexX = startX + t
+                        ctx.beginPath()
+                        ctx.moveTo(apexX, h / 2)
+                        ctx.lineTo(apexX - t, h / 2 - t)
+                        ctx.lineTo(apexX - t, h / 2 + t)
+                        ctx.closePath()
+                        ctx.fill()
+                        ctx.fillRect(startX + g - barw, h / 2 - t, barw, 2 * t)
+                    }
+                }
+            }
+        }
+
+        onIconChanged: cv.requestPaint()
+        onForeChanged: cv.requestPaint()
+        onEdgeChanged: cv.requestPaint()
+
+        Component.onCompleted: cv.requestPaint()
+
+        MouseArea {
+            id: mbtnArea
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            onClicked: mbtn.activated()
+        }
+    }
+
     // Workspace button, styled like #workspaces button
     component WorkspaceBtn: Rectangle {
         id: wsBtn
@@ -778,10 +867,9 @@ ShellRoot {
                         tint: root.colorOf("primary_fixed_dim")
                         visible: root.mediaStatus === "Playing" && root.mediaText.length > 0
 
-                        clickArea.onClicked: {
-                            mediaCmd.command = ["playerctl", "play-pause"]
-                            mediaCmd.running = true
-                        }
+                        clickArea.onClicked: mediaPopup.visible
+                            ? mediaPopup.visible = false
+                            : mediaPopup.visible = true
                     }
 
                     Module {
@@ -838,6 +926,130 @@ ShellRoot {
                         clickArea.onClicked: calPopup.open()
                     }
                 }
+            }
+
+            // Music popup, opens above the media pill
+            PopupWindow {
+            id: mediaPopup
+            visible: false
+            grabFocus: true
+            implicitWidth: 280
+            implicitHeight: 150
+            color: "transparent"
+
+            BackgroundEffect.blurRegion: Region {
+                item: mediaPopupBody
+                radius: 20
+            }
+            mask: Region {
+                Region { item: mediaPopupBody; radius: 20 }
+            }
+
+            // Body fills the whole surface; dismiss via outside click.
+            Rectangle {
+                id: mediaPopupBody
+                anchors.fill: parent
+                radius: 20
+                color: root.colorOf("primary_fixed_dim")
+                border.width: 1
+                border.color: root.withAlpha(root.outlineVariant, 0.35)
+
+                Column {
+                    anchors.fill: parent
+                    anchors.margins: 14
+                    spacing: 8
+
+                    Text {
+                        id: mediaPopupTitle
+                        width: parent.width
+                        text: root.mediaText
+                        wrapMode: Text.Wrap
+                        color: root.textColor
+                        font.family: root.uiFont
+                        font.pixelSize: root.fontSize + 1
+                        font.weight: Font.Bold
+                    }
+
+                    // Seek slider
+                    Item {
+                        width: parent.width
+                        height: 18
+
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.verticalCenter: parent.verticalCenter
+                            height: 5
+                            radius: 3
+                            color: root.withAlpha(root.textColor, 0.2)
+                        }
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: parent.width * root.mediaProgress
+                            height: 5
+                            radius: 3
+                            color: root.textColor
+                        }
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: mouse => {
+                                var frac = mouse.x / parent.width
+                                mediaCmd.command = ["playerctl", "position",
+                                    String(frac * root.mediaLen / 1000000)]
+                                mediaCmd.running = true
+                            }
+                        }
+                    }
+
+                    Row {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        spacing: 10
+
+                        MediaBtn {
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: 26
+                            height: 26
+                            icon: "prev"
+                            fore: root.textColor
+                            back: "#00000000"
+                            edge: 5
+                            onActivated: { mediaCmd.command = ["playerctl", "previous"]; mediaCmd.running = true }
+                        }
+                        MediaBtn {
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: 40
+                            height: 40
+                            icon: root.mediaStatus === "Playing" ? "pause" : "play"
+                            fore: root.textColor
+                            back: root.primary
+                            onActivated: { mediaCmd.command = ["playerctl", "play-pause"]; mediaCmd.running = true }
+                        }
+                        MediaBtn {
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: 26
+                            height: 26
+                            icon: "next"
+                            fore: root.textColor
+                            back: "#00000000"
+                            edge: 5
+                            onActivated: { mediaCmd.command = ["playerctl", "next"]; mediaCmd.running = true }
+                        }
+                    }
+                }
+            }
+
+            anchor {
+                item: mediaPill
+                edges: Edges.Top
+                gravity: Edges.Top
+                adjustment: PopupAdjustment.All
+                rect.x: 0
+                rect.y: -14
+                rect.w: mediaPill.width
+                rect.h: mediaPill.height + 28
+            }
             }
 
             // Calendar popup, opens above the clock pill
@@ -1170,7 +1382,7 @@ ShellRoot {
                     }
 
                     radius: 25
-                    color: root.surface
+                    color: root.colorOf("secondary_fixed")
                     border.width: 1
                     border.color: root.withAlpha(root.outlineVariant, 0.35)
                     clip: true
@@ -1188,7 +1400,7 @@ ShellRoot {
 
                             Text {
                                 text: "󰁍"
-                                color: "#ffffff"
+                                color: root.textColor
                                 font.family: root.iconFont
                                 font.pixelSize: root.fontSize + 1
                                 Layout.preferredWidth: 24
@@ -1207,7 +1419,7 @@ ShellRoot {
 
                             Text {
                                 text: "󰁔"
-                                color: "#ffffff"
+                                color: root.textColor
                                 font.family: root.iconFont
                                 font.pixelSize: root.fontSize + 1
                                 Layout.preferredWidth: 24
@@ -1224,7 +1436,7 @@ ShellRoot {
 
                             Text {
                                 text: "󰅖"
-                                color: "#ffffff"
+                                color: root.textColor
                                 font.family: root.iconFont
                                 font.pixelSize: root.fontSize + 1
                                 Layout.preferredWidth: 24
@@ -1249,7 +1461,7 @@ ShellRoot {
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: "󰥔"
-                                color: root.onSurfaceVariant
+                                color: root.textColor
                                 font.family: root.iconFont
                                 font.pixelSize: root.fontSize + 3
                             }
@@ -1257,7 +1469,7 @@ ShellRoot {
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: Qt.formatDate(new Date(), "dddd, MMMM d, yyyy")
-                                color: root.onSurfaceVariant
+                                color: root.textColor
                                 font.family: root.fontFamily
                                 font.pixelSize: root.fontSize + 2
                                 font.weight: Font.Black
@@ -1274,7 +1486,7 @@ ShellRoot {
                                     width: (calPopupBody.width - 24) / 7
                                     horizontalAlignment: Text.AlignHCenter
                                     text: modelData
-                                    color: root.onSurfaceVariant
+                                    color: root.textColor
                                     font.family: root.fontFamily
                                     font.pixelSize: root.fontSize - 2
                                 }
@@ -1318,17 +1530,17 @@ ShellRoot {
                                         radius: 8
                                         visible: day > 0
                                         color: isSelected
-                                            ? root.primary
+                                            ? root.textColor
                                             : dayHover.containsMouse
-                                                ? root.withAlpha(root.primary, 0.18)
-                                                : isToday ? root.withAlpha(root.primary, 0.4) : "transparent"
+                                                ? root.withAlpha(root.textColor, 0.18)
+                                                : isToday ? root.withAlpha(root.textColor, 0.4) : "transparent"
 
                                         Text {
                                             id: dayNum
                                             anchors.centerIn: parent
                                             visible: day > 0
                                             text: day
-                                            color: isSelected ? "#000000" : "#ffffff"
+                                            color: isSelected ? "#ffffff" : root.textColor
                                             font.family: root.fontFamily
                                             font.pixelSize: root.fontSize
                                             font.weight: isSelected || isToday ? Font.Black : Font.Normal
@@ -1342,7 +1554,7 @@ ShellRoot {
                                             width: 4
                                             height: 4
                                             radius: 2
-                                            color: isSelected ? root.onSurface : root.primary
+                                            color: isSelected ? "#ffffff" : root.textColor
                                         }
 
                                         MouseArea {
@@ -1371,7 +1583,7 @@ ShellRoot {
 
                                 Text {
                                     text: "󰃭"
-                                    color: root.primary
+                                    color: root.textColor
                                     font.family: root.iconFont
                                     font.pixelSize: root.fontSize + 1
                                     Layout.preferredWidth: 22
@@ -1382,7 +1594,7 @@ ShellRoot {
 
                                 Text {
                                     text: calPopup.selectedDateLabel()
-                                    color: "#ffffff"
+                                    color: root.textColor
                                     font.family: root.fontFamily
                                     font.pixelSize: root.fontSize
                                     font.weight: Font.Black
@@ -1400,7 +1612,7 @@ ShellRoot {
                                                 if (list[i].done) done++
                                             return done + "/" + list.length + " tasks"
                                         })()
-                                    color: root.onSurfaceVariant
+                                    color: root.textColor
                                     font.family: root.fontFamily
                                     font.pixelSize: root.fontSize - 2
                                     verticalAlignment: Text.AlignVCenter
@@ -1408,7 +1620,7 @@ ShellRoot {
 
                                 Text {
                                     text: "󰅖"
-                                    color: root.onSurface
+                                    color: root.textColor
                                     font.family: root.iconFont
                                     font.pixelSize: root.fontSize + 1
                                     Layout.preferredWidth: 20
@@ -1435,13 +1647,13 @@ ShellRoot {
                                     Layout.fillHeight: true
                                     radius: 7
                                     color: addHover.containsMouse
-                                        ? root.withAlpha(root.primary, 0.35)
-                                        : root.withAlpha(root.primary, 0.22)
+                                        ? root.withAlpha(root.textColor, 0.35)
+                                        : root.withAlpha(root.textColor, 0.22)
 
                                     Text {
                                         anchors.centerIn: parent
                                         text: "+"
-                                        color: root.onSurface
+                                        color: root.textColor
                                         font.family: root.fontFamily
                                         font.pixelSize: root.fontSize + 2
                                         font.weight: Font.Black
@@ -1463,13 +1675,13 @@ ShellRoot {
                                     radius: 7
                                     color: minusHover.containsMouse && calPopup.selectedEntryId >= 0
                                         ? root.withAlpha(root.error, 0.35)
-                                        : root.withAlpha(root.onSurface, calPopup.selectedEntryId >= 0 ? 0.12 : 0.05)
+                                        : root.withAlpha(root.textColor, calPopup.selectedEntryId >= 0 ? 0.12 : 0.05)
                                     enabled: calPopup.selectedEntryId >= 0
 
                                     Text {
                                         anchors.centerIn: parent
                                         text: "-"
-                                        color: calPopup.selectedEntryId >= 0 ? root.error : root.withAlpha(root.onSurface, 0.3)
+                                        color: calPopup.selectedEntryId >= 0 ? root.error : root.withAlpha(root.textColor, 0.3)
                                         font.family: root.fontFamily
                                         font.pixelSize: root.fontSize + 2
                                         font.weight: Font.Black
@@ -1488,7 +1700,7 @@ ShellRoot {
 
                                 Text {
                                     text: "Enter to save"
-                                    color: root.onSurfaceVariant
+                                    color: root.textColor
                                     font.family: root.fontFamily
                                     font.pixelSize: root.fontSize - 2
                                     verticalAlignment: Text.AlignVCenter
@@ -1512,7 +1724,7 @@ ShellRoot {
                                     contentItem: Rectangle {
                                         implicitWidth: 3
                                         radius: 2
-                                        color: root.withAlpha(root.onSurface, 0.3)
+                                        color: root.withAlpha(root.textColor, 0.3)
                                     }
                                 }
 
@@ -1536,11 +1748,11 @@ ShellRoot {
                                             width: entriesCol.width
                                             height: 30
                                             radius: 8
-                                            color: root.withAlpha(root.onSurface, saved ? 0.05 : 0.08)
+                                            color: root.withAlpha(root.textColor, saved ? 0.05 : 0.08)
                     border.width: 0
                                             border.color: isSelected
-                                                ? root.primary
-                                                : saved ? "transparent" : root.withAlpha(root.onSurface, 0.15)
+                                                ? root.textColor
+                                                : saved ? "transparent" : root.withAlpha(root.textColor, 0.15)
 
                                             RowLayout {
                                                 z: 1
@@ -1555,10 +1767,10 @@ ShellRoot {
                                                     Layout.preferredHeight: 18
                                                     radius: 5
                                                     color: entryDone
-                                                        ? (todoCheckArea.containsMouse ? root.withAlpha(root.primary, 0.8) : root.primary)
-                                                        : (todoCheckArea.containsMouse ? root.withAlpha("#ffffff", 0.08) : "transparent")
+                                                        ? (todoCheckArea.containsMouse ? root.withAlpha(root.textColor, 0.8) : root.textColor)
+                                                        : (todoCheckArea.containsMouse ? root.withAlpha(root.textColor, 0.08) : "transparent")
                                                     border.width: 1
-                                                    border.color: entryDone ? root.primary : root.withAlpha(root.onSurface, 0.35)
+                                                    border.color: entryDone ? root.textColor : root.withAlpha(root.textColor, 0.35)
 
                                                     Behavior on color { ColorAnimation { duration: 120 } }
 
@@ -1566,7 +1778,7 @@ ShellRoot {
                                                         visible: entryDone
                                                         anchors.centerIn: parent
                                                         text: "󰄲"
-                                                        color: root.surface
+                                                        color: "#ffffff"
                                                         font.family: root.iconFont
                                                         font.pixelSize: root.fontSize - 2
                                                     }
@@ -1587,7 +1799,7 @@ ShellRoot {
                                                     Layout.fillWidth: true
                                                     Layout.fillHeight: true
                                                     text: entryText
-                                                    color: "#ffffff"
+                                                    color: root.textColor
                                                     font.family: root.uiFont
                                                     font.pixelSize: root.fontSize
                                                     selectByMouse: true
@@ -1603,7 +1815,7 @@ ShellRoot {
                                                     Layout.fillWidth: true
                                                     Layout.fillHeight: true
                                                     text: entryText
-                                                    color: "#ffffff"
+                                                    color: root.textColor
                                                     font.family: root.uiFont
                                                     font.pixelSize: root.fontSize
                                                     font.strikeout: entryDone
@@ -1616,12 +1828,12 @@ ShellRoot {
                                                     Layout.preferredWidth: 22
                                                     Layout.preferredHeight: 22
                                                     radius: 6
-                                                    color: saveHover.containsMouse ? root.withAlpha(root.primary, 0.25) : "transparent"
+                                                    color: saveHover.containsMouse ? root.withAlpha(root.textColor, 0.25) : "transparent"
 
                                                     Text {
                                                         anchors.centerIn: parent
                                                         text: "󰄴"
-                                                        color: root.primary
+                                                        color: root.textColor
                                                         font.family: root.iconFont
                                                         font.pixelSize: root.fontSize
                                                     }
@@ -1692,7 +1904,7 @@ ShellRoot {
                         id: timerBody
                         anchors.fill: parent
                         radius: 25
-                        color: root.surface
+                        color: root.colorOf("secondary_fixed")
                         border.width: 1
                         border.color: root.withAlpha(root.outlineVariant, 0.35)
                         opacity: 0
@@ -1709,7 +1921,7 @@ ShellRoot {
 
                                 Text {
                                     text: "󰄉"
-                                    color: root.timerRunning ? root.primary : root.onSurfaceVariant
+                                    color: root.textColor
                                     font.family: root.iconFont
                                     font.pixelSize: root.fontSize + 2
                                     Layout.preferredWidth: 22
@@ -1720,7 +1932,7 @@ ShellRoot {
 
                                 Text {
                                     text: root.fmtTimer(root.timerRemainingMs)
-                                    color: root.timerRemainingMs <= 0 ? root.error : "#ffffff"
+                                    color: root.timerRemainingMs <= 0 ? root.error : root.textColor
                                     font.family: root.fontFamily
                                     font.pixelSize: root.fontSize + 8
                                     font.weight: Font.Black
@@ -1735,13 +1947,13 @@ ShellRoot {
                                     Layout.alignment: Qt.AlignVCenter
                                     radius: 7
                                     color: timerMinusHover.containsMouse
-                                        ? root.withAlpha(root.primary, 0.35)
-                                        : root.withAlpha(root.primary, 0.18)
+                                        ? root.withAlpha(root.textColor, 0.35)
+                                        : root.withAlpha(root.textColor, 0.18)
 
                                     Text {
                                         anchors.centerIn: parent
                                         text: "-"
-                                        color: root.onSurface
+                                        color: root.textColor
                                         font.family: root.fontFamily
                                         font.pixelSize: root.fontSize + 2
                                         font.weight: Font.Black
@@ -1763,13 +1975,13 @@ ShellRoot {
                                     Layout.alignment: Qt.AlignVCenter
                                     radius: 7
                                     color: timerPlusHover.containsMouse
-                                        ? root.withAlpha(root.primary, 0.35)
-                                        : root.withAlpha(root.primary, 0.18)
+                                        ? root.withAlpha(root.textColor, 0.35)
+                                        : root.withAlpha(root.textColor, 0.18)
 
                                     Text {
                                         anchors.centerIn: parent
                                         text: "+"
-                                        color: root.onSurface
+                                        color: root.textColor
                                         font.family: root.fontFamily
                                         font.pixelSize: root.fontSize + 2
                                         font.weight: Font.Black
@@ -1791,13 +2003,13 @@ ShellRoot {
                                     Layout.alignment: Qt.AlignVCenter
                                     radius: 7
                                     color: timerToggleHover.containsMouse
-                                        ? root.withAlpha(root.primary, 0.45)
-                                        : root.withAlpha(root.primary, 0.28)
+                                        ? root.withAlpha(root.textColor, 0.45)
+                                        : root.withAlpha(root.textColor, 0.28)
 
                                     Text {
                                         anchors.centerIn: parent
                                         text: root.timerRunning ? "󰏤" : "󰐊"
-                                        color: root.primary
+                                        color: root.textColor
                                         font.family: root.iconFont
                                         font.pixelSize: root.fontSize + 2
                                     }
@@ -1819,7 +2031,7 @@ ShellRoot {
                                     radius: 7
                                     color: timerResetHover.containsMouse
                                         ? root.withAlpha(root.error, 0.35)
-                                        : root.withAlpha(root.onSurface, 0.08)
+                                        : root.withAlpha(root.textColor, 0.08)
 
                                     Text {
                                         anchors.centerIn: parent
