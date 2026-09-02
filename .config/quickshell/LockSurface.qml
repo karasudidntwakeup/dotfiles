@@ -44,18 +44,20 @@ Item {
     property string statusText: ""
     property int attempts: 0
     property real blurAmount: 1.0
-    scale: 1
+    property real foldScale: 1.0
+    transform: Scale { origin.x: width / 2; origin.y: height / 2; xScale: lockRoot.foldScale; yScale: lockRoot.foldScale }
 
-        ParallelAnimation {
-            id: openAnim
-            NumberAnimation { target: lockRoot; property: "blurAmount"; from: 1.0; to: 0; duration: 900; easing.type: Easing.OutQuint }
-            NumberAnimation { target: lockRoot; property: "opacity"; from: 0; to: 1; duration: 600; easing.type: Easing.OutQuint }
-        }
-        property bool closing: false
-        NumberAnimation {
-            id: closeAnim
-            target: lockRoot; property: "opacity"
-            from: 1; to: 0; duration: 500; easing.type: Easing.InQuint
+    ParallelAnimation {
+        id: openAnim
+        NumberAnimation { target: lockRoot; property: "blurAmount"; from: 1.0; to: 0; duration: 900; easing.type: Easing.OutQuint }
+        NumberAnimation { target: lockRoot; property: "opacity"; from: 0; to: 1; duration: 600; easing.type: Easing.OutQuint }
+        NumberAnimation { target: lockRoot; property: "foldScale"; from: 0.9; to: 1; duration: 600; easing.type: Easing.OutBack }
+    }
+    property bool closing: false
+    ParallelAnimation {
+        id: closeAnim
+        NumberAnimation { target: lockRoot; property: "opacity"; from: 1; to: 0; duration: 400; easing.type: Easing.InOutCubic }
+        NumberAnimation { target: lockRoot; property: "blurAmount"; from: 0; to: 1.0; duration: 400; easing.type: Easing.InCubic }
         onRunningChanged: {
             if (!running && lockRoot.closing) {
                 lockRoot.closing = false
