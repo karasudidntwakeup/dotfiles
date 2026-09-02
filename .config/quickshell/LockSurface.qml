@@ -45,19 +45,17 @@ Item {
     property int attempts: 0
     property real blurAmount: 1.0
     scale: 1
-        transform: Translate { id: slideTranslate; y: parent.height }
 
         ParallelAnimation {
-        id: openAnim
-                NumberAnimation { target: slideTranslate; property: "y"; from: lockRoot.parent.height; to: 0; duration: 500; easing.type: Easing.OutExpo }
-        NumberAnimation { target: lockRoot; property: "blurAmount"; from: 1.0; to: 0; duration: 600; easing.type: Easing.OutCubic }
-        NumberAnimation { target: lockRoot; property: "opacity"; from: 0; to: 1; duration: 300; easing.type: Easing.OutCubic }
-    }
-       property bool closing: false
-    NumberAnimation {
-        id: closeAnim
-        target: lockRoot; property: "opacity"
-        from: 1; to: 0; duration: 350; easing.type: Easing.InCubic
+            id: openAnim
+            NumberAnimation { target: lockRoot; property: "blurAmount"; from: 1.0; to: 0; duration: 900; easing.type: Easing.OutQuint }
+            NumberAnimation { target: lockRoot; property: "opacity"; from: 0; to: 1; duration: 600; easing.type: Easing.OutQuint }
+        }
+        property bool closing: false
+        NumberAnimation {
+            id: closeAnim
+            target: lockRoot; property: "opacity"
+            from: 1; to: 0; duration: 500; easing.type: Easing.InQuint
         onRunningChanged: {
             if (!running && lockRoot.closing) {
                 lockRoot.closing = false
