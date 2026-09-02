@@ -48,6 +48,12 @@ Item {
         wifiPoller.running = true;
     }
 
+    // refresh list from cached iwctl results without re-scanning
+    function reloadNetworks() {
+        wifiPoller.scan = false;
+        wifiPoller.running = true;
+    }
+
     // connect to a network; passphrase optional (for open/known nets pass "")
     function doConnect(ssid, passphrase) {
         wifiPopup.passwordFor = "";

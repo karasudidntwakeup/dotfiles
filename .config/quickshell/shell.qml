@@ -759,8 +759,9 @@ ShellRoot {
         }
     }
 
-    // Workspace dots with a sliding active highlight (serpantinum style).
-    component Workspaces: Item {
+    // Workspace dots with a sliding active highlight, wrapped in a pill
+    // container (serpantinum WorkspacesWidget style).
+    component Workspaces: Rectangle {
         id: wsWidget
         property var workspaces: []
         readonly property int count: workspaces.length
@@ -771,75 +772,59 @@ ShellRoot {
                 if (workspaces[j].active) return j
             return -1
         })()
-        readonly property real dotW: 30
-        readonly property real activeW: 42
-        readonly property real h: root.pillHeight - 2
-        readonly property real spacing: 8
-        readonly property real radius: 8 // matches bar Module pill roundness
+        readonly property real dotW: 18
+        readonly property real activeW: 36
+        readonly property real dotH: 18
+        readonly property real dotSpacing: 8
+        readonly property real pillPad: 11
+        readonly property real dotRadius: 8
 
-        // Left edge of the workspace at a given index. The active dot is wider
-        // than the rest, which pushes every dot after it right by that extra.
-        function dotX(i) {
-            var x = i * (dotW + spacing)
-            if (activeIndex >= 0 && i > activeIndex) x += (activeW - dotW)
-            return x
+        function contentWidth() {
+            return (count - 1) * dotW + activeW + dotSpacing * (count - 1)
         }
 
-        width: (count - 1) * dotW + activeW + spacing * (count - 1)
-        height: h
+        width: contentWidth() + pillPad * 2
+        height: root.pillHeight
+        radius: 8
+        color: root.colorOf("primary_container")
+        border.width: 0
 
-        Repeater {
-            model: wsWidget.workspaces
-            delegate: Item {
-                readonly property int idx: index
-                readonly property bool focused: wsWidget.activeIndex === idx
-                readonly property bool occupied: !!modelData.occupied
+        Row {
+            id: wsDotRow
+            x: wsWidget.pillPad
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: wsWidget.dotSpacing
 
-                x: wsWidget.dotX(idx)
-                width: focused ? wsWidget.activeW : wsWidget.dotW
-                height: wsWidget.h
-                Behavior on x { NumberAnimation { duration: 380; easing.type: Easing.OutQuint } }
-                Behavior on width { NumberAnimation { duration: 380; easing.type: Easing.OutQuint } }
+            Repeater {
+                model: wsWidget.workspaces
+                delegate: Item {
+                    readonly property int idx: index
+                    readonly property bool focused: wsWidget.activeIndex === idx
+                    readonly property bool occupied: !!modelData.occupied
+
+                    width: focused ? wsWidget.activeW : wsWidget.dotW
+                    height: wsWidget.dotH
+                    anchors.verticalCenter: parent.verticalCenter
+                    Behavior on width { NumberAnimation { duration: 400; easing.type: Easing.OutQuint } }
 
                     Rectangle {
                         anchors.fill: parent
-                        radius: wsWidget.radius
-                        color: focused ? "transparent"
-                            : occupied ? root.colorOf("outline")
-                            : root.colorOf("outline_variant")
+                        radius: wsWidget.dotRadius
+                        color: root.colorOf("on_primary_container")
+                        opacity: focused ? 0.7 : (occupied ? 0.45 : 0.18)
                         Behavior on color { ColorAnimation { duration: 250 } }
-
-                        scale: dotHover.pressed ? 0.88 : (dotHover.containsMouse ? 1.08 : 1.0)
-                        Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
                     }
 
-                MouseArea {
-                    id: dotHover
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        if (modelData) niriIpc.focusWorkspace(modelData.idx)
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (modelData) niriIpc.focusWorkspace(modelData.idx)
+                        }
                     }
                 }
             }
-        }
-
-        // Active highlight, above the dots like serpantinum. Only spans the
-        // active dot so it never overlaps its neighbours.
-        Rectangle {
-            id: hl
-            z: 3
-            radius: wsWidget.radius
-            color: root.colorOf("primary")
-            opacity: wsWidget.activeIndex >= 0 ? 1 : 0
-            y: 0
-
-            x: wsWidget.dotX(wsWidget.activeIndex < 0 ? 0 : wsWidget.activeIndex)
-            width: wsWidget.activeIndex < 0 ? 0 : wsWidget.activeW
-            height: wsWidget.h
-            Behavior on x { NumberAnimation { duration: 380; easing.type: Easing.OutQuint } }
-            Behavior on width { NumberAnimation { duration: 380; easing.type: Easing.OutQuint } }
         }
     }
 
@@ -1007,7 +992,7 @@ ShellRoot {
                     Module {
                         id: netPill
                         icon: root.networkConnected ? "󰖩" : "󰖪"
-                        label: root.networkConnected ? (root.networkIp || root.networkText) : "No net"
+                        label: root.networkConnected ? (root.networkIp + (root.networkSignal ? "  •  " + root.networkSignal + "%" : "") || root.networkText) : "No net"
                         tint: root.colorOf("secondary_container")
                         visible: true
 
@@ -1271,7 +1256,7 @@ ShellRoot {
                 if (wifiClosing) return
                 wifiPopup.visible = true
                 wifiPopup.animProgress = 0
-                wifiPopupBody.scanNetworks()
+                wifiPopupBody.reloadNetworks()
                 Qt.callLater(() => wifiPopup.animProgress = 1)
             }
             function wifiClose() {
