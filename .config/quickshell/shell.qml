@@ -863,11 +863,15 @@ ShellRoot {
         }
 
         WlSessionLockSurface {
-            color: "transparent"
-            LockSurface {
-                id: passSurface
+            color: "#000000"
+            Item {
                 anchors.fill: parent
-                onUnlocked: lockActive = false
+                clip: true
+                LockSurface {
+                    id: passSurface
+                    anchors.fill: parent
+                    onUnlocked: lockActive = false
+                }
             }
         }
     }
