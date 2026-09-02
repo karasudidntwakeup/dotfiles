@@ -166,7 +166,7 @@ Item {
                     color: disconnectArea.containsMouse ? rootRef.colorOf("error_container") : "transparent"
                     Text {
                         anchors.centerIn: parent
-                        text: "󰅙"
+                        text: "󰇃"
                         font.family: "Symbols Nerd Font"
                         font.pixelSize: 16
                         color: rootRef.colorOf("error")
@@ -198,7 +198,7 @@ Item {
                 anchors.margins: 12
                 spacing: 10
                 Text {
-                    text: "󰤯"
+                    text: "󰤪"
                     font.family: "Symbols Nerd Font"
                     font.pixelSize: 20
                     color: wifiPopup.on(rootRef.colorOf("surface_container"))
@@ -272,7 +272,7 @@ Item {
                         color: passConnect.containsMouse ? rootRef.colorOf("primary_container") : "transparent"
                         Text {
                             anchors.centerIn: parent
-                            text: "󰂄"
+                            text: "󰁾"
                             font.family: "Symbols Nerd Font"
                             font.pixelSize: 16
                             color: rootRef.colorOf("primary")
@@ -292,7 +292,7 @@ Item {
                         color: passCancel.containsMouse ? rootRef.colorOf("surface_container_highest") : "transparent"
                         Text {
                             anchors.centerIn: parent
-                            text: "󰅙"
+                            text: "󰅖"
                             font.family: "Symbols Nerd Font"
                             font.pixelSize: 16
                             color: rootRef.colorOf("error")
