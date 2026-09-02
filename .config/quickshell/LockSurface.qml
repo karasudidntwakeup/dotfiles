@@ -43,14 +43,17 @@ Item {
     property bool failed: false
     property string statusText: ""
     property int attempts: 0
+    property real blurAmount: 1.0
+    scale: 1
+        transform: Translate { id: slideTranslate; y: parent.height }
 
-    // ── ANIMATIONS ──
-    NumberAnimation {
+        ParallelAnimation {
         id: openAnim
-        target: lockRoot; property: "opacity"
-        from: 0; to: 1; duration: 400; easing.type: Easing.OutCubic
+                NumberAnimation { target: slideTranslate; property: "y"; from: lockRoot.parent.height; to: 0; duration: 500; easing.type: Easing.OutExpo }
+        NumberAnimation { target: lockRoot; property: "blurAmount"; from: 1.0; to: 0; duration: 600; easing.type: Easing.OutCubic }
+        NumberAnimation { target: lockRoot; property: "opacity"; from: 0; to: 1; duration: 300; easing.type: Easing.OutCubic }
     }
-    property bool closing: false
+       property bool closing: false
     NumberAnimation {
         id: closeAnim
         target: lockRoot; property: "opacity"
@@ -119,12 +122,13 @@ Item {
         onTriggered: wpQuery.running = true
     }
     MultiEffect {
+        id: blurFx
         anchors.fill: wallpaper
         source: wallpaper
         autoPaddingEnabled: false
         blurEnabled: true
         blurMax: 48
-        blur: 0.55
+        blur: 0.55 + lockRoot.blurAmount
     }
     Rectangle { anchors.fill: parent; color: "#000000"; opacity: 0.18 }
 
