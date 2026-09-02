@@ -9,10 +9,12 @@ Item {
     id: lockRoot
     signal unlocked()
 
-    readonly property string fontFamily: "Ndot"
-    readonly property string altFont: "Inter"
-    readonly property string capsFont: "Ndot55Caps"
-    readonly property string jpFont: "Noto Sans CJK JP"
+    readonly property string fontMain: "Ndot 55"
+    readonly property string fontAlt: "Lettera Mono LL"
+    readonly property string fontAltBold: "Lettera Mono LL"
+    readonly property string fontCaps: "Ndot55Caps"
+    readonly property string fontJp: "Noto Sans CJK JP"
+    readonly property string assetDir: "/home/karasu/.config/hypr/assets/"
     readonly property color fg: "#ffffff"
     readonly property color failC: "#dd0808"
 
@@ -50,8 +52,8 @@ Item {
     ParallelAnimation {
         id: openAnim
         NumberAnimation { target: lockRoot; property: "blurAmount"; from: 1.0; to: 0; duration: 900; easing.type: Easing.OutQuint }
-        NumberAnimation { target: lockRoot; property: "opacity"; from: 0; to: 1; duration: 600; easing.type: Easing.OutQuint }
-        NumberAnimation { target: lockRoot; property: "foldScale"; from: 0.9; to: 1; duration: 600; easing.type: Easing.OutBack }
+        NumberAnimation { target: lockRoot; property: "opacity"; from: 0; to: 1; duration: 900; easing.type: Easing.OutQuint }
+        NumberAnimation { target: lockRoot; property: "foldScale"; from: 0.95; to: 1; duration: 900; easing.type: Easing.OutCubic }
     }
     property bool closing: false
     ParallelAnimation {
@@ -71,7 +73,7 @@ Item {
     function tryUnlock() {
         if (unlockInProgress || passInput.text.length === 0) return
         unlockInProgress = true
-        statusText = "AUTHENTICATING"
+        statusText = ""
         failed = false
         pam.start()
     }
@@ -97,6 +99,7 @@ Item {
         }
     }
 
+    // ── Wallpaper (matches hyprlock blur/brightness/contrast/vibrancy) ──
     Image {
         id: wallpaper
         anchors.fill: parent
@@ -128,7 +131,10 @@ Item {
         autoPaddingEnabled: false
         blurEnabled: true
         blurMax: 48
-        blur: 0.55 + lockRoot.blurAmount
+        blur: 2.0 + lockRoot.blurAmount
+        brightness: -0.18
+        contrast: -0.11
+        saturation: 0.17
     }
     Rectangle { anchors.fill: parent; color: "#000000"; opacity: 0.18 }
 
@@ -145,179 +151,225 @@ Item {
                 passInput.forceActiveFocus()
                 if (event.text.length > 0 && event.key !== Qt.Key_Backspace)
                     passInput.insert(event.text)
+                event.accepted = true
             }
-            event.accepted = true
         }
     }
 
-    Column {
-        anchors.left: parent.left
+    // ═══════════════════════════ ELEMENTS ═══════════════════════════
+    // ── CLOCK-HOUR (left, top, fixed position, big)
+    Text {
+        id: clockHour
+        x: 7
         anchors.top: parent.top
-        anchors.leftMargin: 7
-        anchors.topMargin: 22
-        spacing: 21
-        Text { id: clockHours; font.family: lockRoot.fontFamily; font.pixelSize: 80; font.bold: true; color: lockRoot.fg }
-        Text { id: clockMinutes; font.family: lockRoot.fontFamily; font.pixelSize: 80; font.bold: true; color: lockRoot.fg }
+        anchors.topMargin: parent.height * 0.02 + 22
+        font.family: lockRoot.fontMain
+        font.pixelSize: Math.max(90, parent.height * 0.11)
+        color: lockRoot.fg
+        style: Text.Raised
+        styleColor: Qt.rgba(0, 0, 0, 0.35)
     }
 
+    // ── CLOCK-MINUTE (left, below hour, fixed position, big)
+    Text {
+        id: clockMinute
+        x: 7
+        anchors.top: clockHour.bottom
+        anchors.topMargin: -10
+        font.family: lockRoot.fontMain
+        font.pixelSize: Math.max(90, parent.height * 0.11)
+        color: lockRoot.fg
+        style: Text.Raised
+        styleColor: Qt.rgba(0, 0, 0, 0.35)
+    }
+
+    // ── DATE (vertical strip on the right edge, rotate 90)
     Item {
-        id: dateHang
+        id: dateWrap
+        width: Math.max(28, parent.height * 0.045)
+        height: parent.height * 0.45
         anchors.right: parent.right
-        anchors.top: parent.top
-        anchors.rightMargin: 20
-        anchors.topMargin: 125
-        width: dateText.implicitHeight
-        height: dateText.implicitWidth
+        anchors.verticalCenter: parent.verticalCenter
+
         Text {
-            id: dateText
+            id: dateLine
             anchors.centerIn: parent
-            rotation: 90
-            transformOrigin: Item.Center
-            font.family: lockRoot.fontFamily
-            font.pixelSize: 50
-            font.bold: true
+            width: dateWrap.height
+            height: dateWrap.width
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            font.family: lockRoot.fontMain
+            font.pixelSize: dateWrap.width + 4
             color: lockRoot.fg
+            transform: Rotation { angle: 90; origin.x: width / 2; origin.y: height / 2 }
+            opacity: 0
+            SequentialAnimation {
+                running: true
+                PauseAnimation { duration: 200 }
+                NumberAnimation { target: dateLine; property: "opacity"; to: 1; duration: 500; easing.type: Easing.OutCubic }
+            }
         }
+    }
+
+    // ── NAME (center, bottom)
+    Text {
+        text: (Quickshell.env("USER") || "HUMAN").toUpperCase() + "-01"
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 58
+        font.family: lockRoot.fontAltBold
+        font.pixelSize: 11
+        font.bold: true
+        color: lockRoot.fg
+    }
+
+    // ── TAG-CENTER (right, bottom, -35,25, font 9)
+    Text {
+        text: "ManchmalKarasu"
+        anchors.right: parent.right
+        anchors.rightMargin: 35
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 25
+        font.family: lockRoot.fontAltBold
+        font.pixelSize: 9
+        font.bold: true
+        color: lockRoot.fg
+    }
+
+    // ── HIRAGANA (center, bottom, 0,190, font 10 jp)
+    Text {
+        text: "かいぜん"
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 190
+        font.family: lockRoot.fontJp
+        font.pixelSize: 10
+        font.bold: true
+        color: lockRoot.fg
+    }
+
+    // ── QUOTES-TOP (center, bottom, 0,130, font 8 caps)
+    Text {
+        id: quoteTop
+        text: "You can have everything and feel nothing."
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 130
+        font.family: lockRoot.fontCaps
+        font.pixelSize: 8
+        color: lockRoot.fg
+    }
+
+    // ── QUOTES-BOT (center, bottom, 0,115, font 8 caps)
+    Text {
+        id: quoteBot
+        text: "What you resist, persists. What you accept, dissolves."
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 115
+        font.family: lockRoot.fontCaps
+        font.pixelSize: 8
+        color: lockRoot.fg
+    }
+
+    // ── AVATAR (left, bottom, 30,25, size 110, opacity 0.2)
+    Image {
+        source: lockRoot.assetDir + "globe-3d.png"
+        width: 110; height: 110
+        x: 30
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 25
+        fillMode: Image.PreserveAspectCrop
+        opacity: 0.2
+        asynchronous: true
+    }
+
+    // ── INPUT (right, bottom, -1080,21, size 80x25 hyprlock-style)
+    Rectangle {
+        id: passBox
+        width: 80; height: 25; radius: 3
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 24
+        color: "transparent"
+        border.width: 0
+
+        transform: Translate { id: shakeT; property real x: 0 }
+        SequentialAnimation {
+            id: cardshake; running: false
+            NumberAnimation { target: shakeT; property: "x"; to: 8; duration: 45; easing.type: Easing.OutQuad }
+            NumberAnimation { target: shakeT; property: "x"; to: -8; duration: 90; easing.type: Easing.InOutQuad }
+            NumberAnimation { target: shakeT; property: "x"; to: 4; duration: 70; easing.type: Easing.InOutQuad }
+            NumberAnimation { target: shakeT; property: "x"; to: 0; duration: 70; easing.type: Easing.OutQuad }
+        }
+
+        RowLayout {
+            anchors.fill: parent; anchors.leftMargin: 4; anchors.rightMargin: 4; spacing: 4
+            Text {
+                id: passPrompt
+                text: passInput.text.length === 0 ? "PASSCODE" : lockRoot.passDots
+                font.family: lockRoot.fontAltBold
+                font.pixelSize: 10
+                font.weight: Font.Bold
+                font.letterSpacing: 1
+                color: lockRoot.failed ? lockRoot.failC : lockRoot.fg
+                Layout.fillWidth: true; Layout.fillHeight: true
+                verticalAlignment: Text.AlignVCenter
+                horizontalAlignment: Text.AlignHCenter
+            }
+            Rectangle {
+                id: caret; width: 1; height: 14; color: lockRoot.fg
+                property real blink: 0
+                opacity: passInput.activeFocus ? blink : 0
+            }
+        }
+
+        Timer {
+            interval: 500; repeat: true; running: passInput.activeFocus
+            triggeredOnStart: true
+            onTriggered: caret.blink = caret.blink === 0 ? 1 : 0
+        }
+
+        TextInput {
+            id: passInput; anchors.fill: parent; visible: false
+            echoMode: TextInput.Password; passwordCharacter: "•"; focus: true
+            onTextChanged: { if (lockRoot.failed) { lockRoot.failed = false; lockRoot.statusText = "" } }
+            onAccepted: lockRoot.tryUnlock()
+        }
+    }
+
+    property string passDots: "•".repeat(Math.min(passInput.text.length, 24))
+
+    Text {
+        id: statusLine
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 54
+        text: lockRoot.statusText
+        font.family: lockRoot.fontAltBold; font.pixelSize: 9
+        font.weight: Font.Bold; font.letterSpacing: 1
+        visible: lockRoot.statusText.length > 0
+        color: lockRoot.failed ? lockRoot.failC : lockRoot.acc
+    }
+
+    Timer { interval: 200; repeat: true; running: true; triggeredOnStart: true
+        onTriggered: { if (!passInput.activeFocus) passInput.forceActiveFocus() }
     }
 
     Timer {
         interval: 1000; running: true; repeat: true; triggeredOnStart: true
         onTriggered: {
             var d = new Date()
-            var h24 = d.getHours()
-            var h12 = h24 % 12; if (h12 === 0) h12 = 12
-            clockHours.text = (h12 < 10 ? "0" : "") + h12
-            clockMinutes.text = (d.getMinutes() < 10 ? "0" : "") + d.getMinutes()
-            dateText.text = Qt.formatDateTime(d, "ddd MMMM dd")
+            var h12 = d.getHours() % 12; if (h12 === 0) h12 = 12
+            clockHour.text = (h12 < 10 ? "0" : "") + h12
+            clockMinute.text = (d.getMinutes() < 10 ? "0" : "") + d.getMinutes()
+            dateLine.text = Qt.formatDateTime(d, "dddd MMMM d")
         }
-    }
-
-    Text {
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 20
-        text: (Quickshell.env("USER") || "HUMAN").toUpperCase() + "-01"
-        font.family: lockRoot.altFont; font.pixelSize: 11; font.weight: Font.Bold
-        font.letterSpacing: 2; color: lockRoot.fg
-    }
-
-    Text {
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 220
-        text: "かいぜん"
-        font.family: lockRoot.jpFont; font.pixelSize: 10; color: lockRoot.fg
-    }
-    Text {
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 160
-        text: "You can have everything and feel nothing."
-        font.family: lockRoot.capsFont; font.pixelSize: 8
-        font.letterSpacing: 2; color: lockRoot.fg
-    }
-    Text {
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 145
-        text: "What you resist, persists. What you accept, dissolves."
-        font.family: lockRoot.capsFont; font.pixelSize: 8
-        font.letterSpacing: 2; color: lockRoot.fg
-    }
-
-    Column {
-        id: inputCol
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 55
-        spacing: 10
-        opacity: 0
-        scale: 0.9
-
-        NumberAnimation {
-            id: inputPop
-            target: inputCol
-            property: "scale"
-            from: 0.9; to: 1
-            duration: 400; easing.type: Easing.OutBack
-        }
-
-        SequentialAnimation {
-            id: inputPopSeq
-            running: false
-            NumberAnimation { target: inputCol; property: "opacity"; from: 0; to: 1; duration: 300; easing.type: Easing.OutCubic }
-            NumberAnimation { target: inputCol; property: "scale"; from: 0.9; to: 1; duration: 300; easing.type: Easing.OutBack }
-        }
-
-        Text {
-            id: statusLine
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: lockRoot.statusText
-            font.family: lockRoot.altFont; font.pixelSize: 11
-            font.weight: Font.Bold; font.letterSpacing: 2
-            visible: lockRoot.statusText.length > 0
-            color: lockRoot.failed ? lockRoot.failC : lockRoot.acc
-        }
-
-        Rectangle {
-            id: passBox
-            width: 380; height: 44; radius: 14
-            color: Qt.rgba(0, 0, 0, 0.28)
-            border.width: 1
-            border.color: lockRoot.failed ? lockRoot.failC : Qt.rgba(1, 1, 1, 0.25)
-
-            transform: Translate { id: shakeT; property real x: 0 }
-            SequentialAnimation {
-                id: cardshake; running: false
-                NumberAnimation { target: shakeT; property: "x"; to: 12; duration: 45; easing.type: Easing.OutQuad }
-                NumberAnimation { target: shakeT; property: "x"; to: -12; duration: 90; easing.type: Easing.InOutQuad }
-                NumberAnimation { target: shakeT; property: "x"; to: 6; duration: 70; easing.type: Easing.InOutQuad }
-                NumberAnimation { target: shakeT; property: "x"; to: 0; duration: 70; easing.type: Easing.OutQuad }
-            }
-
-            RowLayout {
-                anchors.fill: parent; anchors.leftMargin: 18; anchors.rightMargin: 18; spacing: 12
-                Text {
-                    id: passPrompt
-                    text: passInput.text.length === 0 ? "PASSCODE" : lockRoot.passDots
-                    font.family: lockRoot.altFont; font.pixelSize: 12
-                    font.weight: Font.Bold; font.letterSpacing: 3
-                    color: lockRoot.failed ? lockRoot.failC : lockRoot.fg
-                    Layout.fillWidth: true; Layout.fillHeight: true
-                    verticalAlignment: Text.AlignVCenter
-                }
-                Rectangle {
-                    id: caret; width: 1; height: 18; color: lockRoot.fg
-                    property real blink: 0
-                    opacity: passInput.activeFocus ? blink : 0
-                }
-            }
-
-            Timer {
-                interval: 500; repeat: true; running: passInput.activeFocus
-                triggeredOnStart: true
-                onTriggered: caret.blink = caret.blink === 0 ? 1 : 0
-            }
-
-            TextInput {
-                id: passInput; anchors.fill: parent; visible: false
-                echoMode: TextInput.Password; passwordCharacter: "•"; focus: true
-                onTextChanged: { if (lockRoot.failed) { lockRoot.failed = false; lockRoot.statusText = "" } }
-                onAccepted: lockRoot.tryUnlock()
-            }
-        }
-    }
-
-    property string passDots: "•".repeat(Math.min(passInput.text.length, 24))
-
-    Timer { interval: 200; repeat: true; running: true; triggeredOnStart: true
-        onTriggered: { if (!passInput.activeFocus) passInput.forceActiveFocus() }
     }
 
     Component.onCompleted: {
         lockRoot.opacity = 0
         openAnim.start()
         passInput.forceActiveFocus()
-        inputPopSeq.start()
     }
 }
