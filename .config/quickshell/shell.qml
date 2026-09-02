@@ -61,7 +61,6 @@ ShellRoot {
 
     readonly property color textColor: "#000000"
     readonly property color darkText: colorOf("shadow")
-    readonly property real pillAlpha: 0.25
 
     function luminance(color) {
         return 0.299 * color.r + 0.587 * color.g + 0.114 * color.b
@@ -243,18 +242,31 @@ ShellRoot {
 
     // Network (iwd)
     property string networkText: ""
+    property string networkIp: ""
     property bool networkConnected: false
+    property int networkSignal: 0
+
+    // strength tint for pills: strong->primary, mid->tertiary, weak->error
+    function signalTint(sig) {
+        var s = sig || 0
+        if (s >= 60) return root.colorOf("primary_container")
+        if (s >= 30) return root.colorOf("tertiary_container")
+        return root.colorOf("error_container")
+    }
 
     Process {
         id: netProc
-        command: ["sh", "-c", "~/.config/quickshell/scripts/network.sh"]
+        command: ["sh", "-c", "sh ~/.config/quickshell/scripts/wifi.sh"]
         stdout: SplitParser {
             onRead: data => {
                 if (data) {
-                    var t = data.trim()
-                    root.networkConnected = t.indexOf("󰖩") >= 0
-                    t = t.replace(/^󰖩\s*/, "").replace(/^󰖪\s*/, "")
-                    root.networkText = t
+                    try {
+                        var d = JSON.parse(data.trim())
+                        root.networkConnected = d.connected === true
+                        root.networkText = d.ssid || ""
+                        root.networkIp = d.ip || ""
+                        root.networkSignal = parseInt(d.signal) || 0
+                    } catch(e) {}
                 }
             }
         }
@@ -454,6 +466,9 @@ ShellRoot {
         }
 
         function setWorkspaces(list) {
+            var occMap = {}
+            for (var k = 0; k < niri.workspaces.length; k++)
+                if (niri.workspaces[k].occupied) occMap[niri.workspaces[k].id] = true
             var out = []
             for (var i = 0; i < list.length; i++) {
                 var w = list[i]
@@ -464,7 +479,8 @@ ShellRoot {
                     output: w.output,
                     active: w.is_active,
                     focused: w.is_focused,
-                    urgent: w.is_urgent
+                    urgent: w.is_urgent,
+                    occupied: !!occMap[w.id]
                 })
             }
             niri.workspaces = out
@@ -499,7 +515,8 @@ ShellRoot {
                             id: w.id, idx: w.idx, name: w.name, output: w.output,
                             active: w.id === act.id,
                             focused: w.id === act.id,
-                            urgent: w.urgent
+                            urgent: w.urgent,
+                            occupied: w.occupied
                         })
                     }
                     niri.workspaces = out
@@ -574,6 +591,48 @@ ShellRoot {
             }
             onError: error => console.log("[niri] action socket error:", error)
         }
+
+        function refreshOccupied() {
+            var occ = {}
+            var wins = ocProc.queue
+            for (var i = 0; i < wins.length; i++) {
+                var win = wins[i]
+                if (win.workspace_id !== undefined && win.workspace_id !== null)
+                    occ[win.workspace_id] = true
+            }
+            var list = niri.workspaces
+            var out = list.slice()
+            for (var j = 0; j < out.length; j++) {
+                out[j].occupied = !!occ[out[j].id]
+            }
+            niri.workspaces = out
+            niri.workspacesUpdated()
+        }
+
+        // Poll open windows so workspace dots show as occupied/empty.
+        Process {
+            id: ocProc
+            property var queue: []
+            command: ["sh", "-c", "niri msg -j windows 2>/dev/null"]
+            stdout: SplitParser {
+                onRead: data => {
+                    if (!data) return
+                    try { ocProc.queue = JSON.parse(data) } catch (e) { ocProc.queue = [] }
+                    niri.refreshOccupied()
+                }
+            }
+            onExited: {}
+        }
+
+        Timer {
+            id: ocPoller
+            interval: 4000
+            running: true
+            repeat: true
+            onTriggered: ocProc.running = true
+        }
+
+        Component.onCompleted: Qt.callLater(() => ocProc.running = true)
     }
 
     NiriIpc {
@@ -600,6 +659,15 @@ ShellRoot {
         implicitHeight: root.pillHeight - 2
         radius: 8
         color: tint
+        scale: (pillArea.pressed ? 0.96 : (pillArea.containsMouse ? 1.03 : 1.0)) * pill.popScale
+        Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
+
+        property real popScale: 1.0
+        SequentialAnimation {
+            id: pillPopAnim
+            NumberAnimation { target: pill; property: "popScale"; to: 1.06; duration: 100; easing.type: Easing.OutQuad }
+            NumberAnimation { target: pill; property: "popScale"; to: 1.0; duration: 300; easing.type: Easing.OutQuint }
+        }
 
         Row {
             id: pillRow
@@ -635,120 +703,171 @@ ShellRoot {
             acceptedButtons: Qt.LeftButton | Qt.RightButton
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            onClicked: pillPopAnim.start()
         }
     }
 
-    // Crisp vector media-control button (prev / play / pause / next).
+    // Media control button, serpantinum IconButton style (Nerd Font glyph).
     component MediaBtn: Rectangle {
         id: mbtn
         property string icon: "play"
         property color fore: "#000000"
         property color back: "#00000000"
+        property real radiusPx: 10
         signal activated()
-        signal hoveredChanged()
 
-        radius: Math.min(width, height) / 2
-        color: back
+        readonly property string glyph: mbtn.icon === "prev" ? "󰒮"
+            : mbtn.icon === "next" ? "󰒭"
+            : mbtn.icon === "pause" ? "󰏤"
+            : "󰐊"
 
-        Canvas {
-            id: cv
-            anchors.fill: parent
-            onPaint: {
-                var ctx = getContext("2d")
-                ctx.reset()
-                var w = width, h = height
-                ctx.fillStyle = fore.toString()
-                if (mbtn.icon === "play") {
-                    var c = w / 2 + w * 0.08
-                    var r = h * 0.30
-                    ctx.beginPath()
-                    ctx.moveTo(c - r * 0.6, h / 2 - r)
-                    ctx.lineTo(c - r * 0.6, h / 2 + r)
-                    ctx.lineTo(c + r, h / 2)
-                    ctx.closePath()
-                    ctx.fill()
-                } else if (mbtn.icon === "pause") {
-                    var bw = w * 0.13
-                    var gap = w * 0.10
-                    var top = h * 0.20
-                    var bot = h * 0.80
-                    var cx = w / 2
-                    ctx.fillRect(cx - bw - gap / 2, top, bw, bot - top)
-                    ctx.fillRect(cx + gap / 2, top, bw, bot - top)
-                } else { // prev / next
-                    var t = h * 0.28
-                    var barw = w * 0.12
-                    var gap = w * 0.10
-                    var g = barw + gap + t          // glyph width
-                    var startX = (w - g) / 2
-                    if (mbtn.icon === "prev") {
-                        // bar (left), left-pointing triangle right of it
-                        ctx.fillRect(startX, h / 2 - t, barw, 2 * t)
-                        var apexX = startX + barw + gap
-                        ctx.beginPath()
-                        ctx.moveTo(apexX, h / 2)
-                        ctx.lineTo(apexX + t, h / 2 - t)
-                        ctx.lineTo(apexX + t, h / 2 + t)
-                        ctx.closePath()
-                        ctx.fill()
-                    } else { // next
-                        // right-pointing triangle, bar right of it
-                        var apexX = startX + t
-                        ctx.beginPath()
-                        ctx.moveTo(apexX, h / 2)
-                        ctx.lineTo(apexX - t, h / 2 - t)
-                        ctx.lineTo(apexX - t, h / 2 + t)
-                        ctx.closePath()
-                        ctx.fill()
-                        ctx.fillRect(startX + g - barw, h / 2 - t, barw, 2 * t)
-                    }
-                }
-            }
+        radius: radiusPx
+        color: !mbtn.enabled ? back
+            : (mbtnArea.pressed ? Qt.darker(back, 1.12)
+            : (mbtnArea.containsMouse ? Qt.lighter(back, 1.12) : back))
+        Behavior on color { ColorAnimation { duration: 180 } }
+
+        scale: (!mbtn.enabled ? 1.0
+            : (mbtnArea.pressed ? 1.06 : (mbtnArea.containsMouse ? 1.04 : 1.0))) * mbtn.popScale
+        Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
+        property real popScale: 1.0
+        SequentialAnimation {
+            id: mbtnPopAnim
+            running: false
+            NumberAnimation { target: mbtn; property: "popScale"; to: 1.1; duration: 110; easing.type: Easing.OutQuad }
+            NumberAnimation { target: mbtn; property: "popScale"; to: 1.0; duration: 420; easing.type: Easing.OutQuint }
         }
 
-        onIconChanged: cv.requestPaint()
-        onForeChanged: cv.requestPaint()
-
-        Component.onCompleted: cv.requestPaint()
+        Text {
+            anchors.centerIn: parent
+            text: mbtn.glyph
+            font.family: root.iconFont
+            font.pixelSize: Math.min(mbtn.width, mbtn.height) * 0.5
+            color: mbtn.fore
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+        }
 
         MouseArea {
             id: mbtnArea
             anchors.fill: parent
             cursorShape: Qt.PointingHandCursor
-            onClicked: mbtn.activated()
+            onClicked: {
+                mbtn.activated()
+                mbtnPopAnim.start()
+            }
         }
     }
 
-    // Workspace button, styled like #workspaces button
-    component WorkspaceBtn: Rectangle {
-        id: wsBtn
-        property var ws: null
-        readonly property bool focused: ws ? ws.focused : false
-        readonly property bool urgent: ws ? ws.urgent : false
+    // Workspace dots with a sliding active highlight (serpantinum style).
+    component Workspaces: Item {
+        id: wsWidget
+        property var workspaces: []
+        readonly property int count: workspaces.length
+        readonly property int activeIndex: (function() {
+            for (var i = 0; i < workspaces.length; i++)
+                if (workspaces[i].focused) return i
+            for (var j = 0; j < workspaces.length; j++)
+                if (workspaces[j].active) return j
+            return -1
+        })()
+        readonly property real dotW: 30
+        readonly property real activeW: 42
+        readonly property real h: root.pillHeight - 2
+        readonly property real spacing: 8
+        readonly property real radius: 8 // matches bar Module pill roundness
 
-        width: 32
-        height: root.pillHeight
-        radius: 8
-        border.width: 1
-        border.color: root.withAlpha(root.textColor, 0.15)
-        color: focused ? root.primary
-            : urgent ? root.error
-            : root.outlineVariant
-
-        Text {
-            text: wsBtn.ws ? wsBtn.ws.idx : ""
-            color: wsBtn.focused ? "#000000" : "#ffffff"
-            font.family: root.fontFamily
-            font.pixelSize: root.fontSize
-            font.weight: Font.Black
-            anchors.centerIn: parent
+        // Left edge of the workspace at a given index. The active dot is wider
+        // than the rest, which pushes every dot after it right by that extra.
+        function dotX(i) {
+            var x = i * (dotW + spacing)
+            if (activeIndex >= 0 && i > activeIndex) x += (activeW - dotW)
+            return x
         }
 
-        MouseArea {
-            anchors.fill: parent
-            cursorShape: Qt.PointingHandCursor
-            onClicked: {
-                if (wsBtn.ws) niriIpc.focusWorkspace(wsBtn.ws.idx)
+        width: (count - 1) * dotW + activeW + spacing * (count - 1)
+        height: h
+
+        Repeater {
+            model: wsWidget.workspaces
+            delegate: Item {
+                readonly property int idx: index
+                readonly property bool focused: wsWidget.activeIndex === idx
+                readonly property bool occupied: !!modelData.occupied
+
+                x: wsWidget.dotX(idx)
+                width: focused ? wsWidget.activeW : wsWidget.dotW
+                height: wsWidget.h
+                Behavior on x { NumberAnimation { duration: 380; easing.type: Easing.OutQuint } }
+                Behavior on width { NumberAnimation { duration: 380; easing.type: Easing.OutQuint } }
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: wsWidget.radius
+                        color: focused ? "transparent"
+                            : occupied ? root.colorOf("outline")
+                            : root.colorOf("outline_variant")
+                        Behavior on color { ColorAnimation { duration: 250 } }
+
+                        scale: dotHover.pressed ? 0.88 : (dotHover.containsMouse ? 1.08 : 1.0)
+                        Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
+                    }
+
+                MouseArea {
+                    id: dotHover
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        if (modelData) niriIpc.focusWorkspace(modelData.idx)
+                    }
+                }
+            }
+        }
+
+        // Active highlight, above the dots like serpantinum. Only spans the
+        // active dot so it never overlaps its neighbours.
+        Rectangle {
+            id: hl
+            z: 3
+            radius: wsWidget.radius
+            color: root.colorOf("primary")
+            opacity: wsWidget.activeIndex >= 0 ? 1 : 0
+            y: 0
+
+            x: wsWidget.dotX(wsWidget.activeIndex < 0 ? 0 : wsWidget.activeIndex)
+            width: wsWidget.activeIndex < 0 ? 0 : wsWidget.activeW
+            height: wsWidget.h
+            Behavior on x { NumberAnimation { duration: 380; easing.type: Easing.OutQuint } }
+            Behavior on width { NumberAnimation { duration: 380; easing.type: Easing.OutQuint } }
+        }
+    }
+
+    // ── LOCKSCREEN ──
+    property bool lockActive: false
+
+    Process {
+        id: lockListener
+        command: ["sh", "-c", "mkdir -p ~/.cache/quickshell && mkfifo ~/.cache/quickshell/lock-fifo 2>/dev/null; while true; do cat ~/.cache/quickshell/lock-fifo; done"]
+        running: true
+        stdout: SplitParser {
+            onRead: data => { if (data) lockActive = true }
+        }
+    }
+
+    WlSessionLock {
+        id: wLock
+        locked: lockActive
+        onLockedChanged: {
+            if (locked) passSurface.forceActiveFocus()
+        }
+
+        WlSessionLockSurface {
+            color: "transparent"
+            LockSurface {
+                id: passSurface
+                anchors.fill: parent
+                onUnlocked: lockActive = false
             }
         }
     }
@@ -828,11 +947,10 @@ ShellRoot {
                         }
                     }
 
-                    Repeater {
-                        model: bar.workspaceList
-                        delegate: WorkspaceBtn {
-                            ws: modelData
-                        }
+                    Workspaces {
+                        id: wsWidget
+                        workspaces: bar.workspaceList
+                        anchors.verticalCenter: parent.verticalCenter
                     }
 
                     Module {
@@ -849,6 +967,7 @@ ShellRoot {
 
                         clickArea.onClicked: {
                             calPopup.forceClose()
+                            wifiPopup.wifiForceClose()
                             if (mediaPopup.visible) mediaPopup.mediaClose()
                             else mediaPopup.mediaOpen()
                         }
@@ -884,9 +1003,16 @@ ShellRoot {
                     Module {
                         id: netPill
                         icon: root.networkConnected ? "󰖩" : "󰖪"
-                        label: root.networkText
+                        label: root.networkConnected ? (root.networkIp || root.networkText) : "No net"
                         tint: root.colorOf("secondary_container")
-                        visible: root.networkConnected
+                        visible: true
+
+                        clickArea.onClicked: {
+                            calPopup.forceClose()
+                            mediaPopup.mediaForceClose()
+                            if (wifiPopup.visible) wifiPopup.wifiClose()
+                            else wifiPopup.wifiOpen()
+                        }
                     }
 
                     Module {
@@ -907,6 +1033,7 @@ ShellRoot {
 
                         clickArea.onClicked: {
                             mediaPopup.mediaForceClose()
+                            wifiPopup.wifiForceClose()
                             calPopup.open()
                         }
                     }
@@ -933,11 +1060,18 @@ ShellRoot {
             // Body fills the whole surface; dismiss via outside click.
             Rectangle {
                 id: mediaPopupBody
-                anchors.fill: parent
+                width: parent.width
+                height: parent.height
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top: parent.top
+                anchors.topMargin: mediaPopup.animProgress < 1 ? 16 * (1.0 - mediaPopup.animProgress) : 0
                 radius: 20
                 color: root.colorOf("primary_fixed_dim")
                 border.width: 1
                 border.color: root.withAlpha(root.outlineVariant, 0.35)
+                opacity: mediaPopup.animProgress
+                scale: 0.92 + (0.08 * mediaPopup.animProgress)
+                transformOrigin: Item.Top
 
                 Column {
                     anchors.fill: parent
@@ -1027,7 +1161,7 @@ ShellRoot {
                             height: 26
                             icon: "prev"
                             fore: root.textColor
-                            back: "#00000000"
+                            back: root.withAlpha(root.textColor, 0.08)
                             onActivated: { mediaCmd.command = ["playerctl", "previous"]; mediaCmd.running = true }
                         }
                         MediaBtn {
@@ -1045,7 +1179,7 @@ ShellRoot {
                             height: 26
                             icon: "next"
                             fore: root.textColor
-                            back: "#00000000"
+                            back: root.withAlpha(root.textColor, 0.08)
                             onActivated: { mediaCmd.command = ["playerctl", "next"]; mediaCmd.running = true }
                         }
                     }
@@ -1053,34 +1187,36 @@ ShellRoot {
             }
 
             property bool mediaClosing: false
+            property real animProgress: 0
+
+            Behavior on animProgress {
+                NumberAnimation {
+                    duration: mediaPopup.visible ? 280 : 220
+                    easing.type: Easing.OutCubic
+                }
+            }
+
             function mediaOpen() {
                 if (mediaClosing) return
-                mediaPopupBody.opacity = 0
                 mediaPopup.visible = true
-                mediaPopupIn.start()
+                mediaPopup.animProgress = 0
+                Qt.callLater(() => mediaPopup.animProgress = 1)
             }
             function mediaClose() {
                 if (mediaClosing) return
                 mediaClosing = true
-                mediaPopupOut.start()
+                mediaPopup.animProgress = 0
             }
             function mediaForceClose() {
                 mediaPopup.visible = false
                 mediaPopup.mediaClosing = false
+                mediaPopup.animProgress = 0
             }
 
-            SequentialAnimation {
-                id: mediaPopupIn
-                running: false
-                NumberAnimation { target: mediaPopupBody; property: "opacity"; to: 1; duration: 150; easing.type: Easing.OutQuad }
-            }
-            SequentialAnimation {
-                id: mediaPopupOut
-                running: false
-                NumberAnimation { target: mediaPopupBody; property: "opacity"; to: 0; duration: 100; easing.type: Easing.InQuad }
-                onFinished: {
+            onAnimProgressChanged: {
+                if (mediaClosing && animProgress <= 0.01) {
                     mediaPopup.visible = false
-                    mediaPopup.mediaClosing = false
+                    mediaClosing = false
                 }
             }
 
@@ -1093,6 +1229,73 @@ ShellRoot {
                 rect.y: -14
                 rect.w: mediaPill.width
                 rect.h: mediaPill.height + 28
+            }
+            }
+
+            // Wifi popup, opens above the network pill
+            PopupWindow {
+            id: wifiPopup
+            visible: false
+            grabFocus: true
+            implicitWidth: 360
+            implicitHeight: Math.min(wifiPopupBody.implicitHeight, 640) + 32
+            color: "transparent"
+            property bool wifiClosing: false
+            property real animProgress: 0
+
+            WifiPopup {
+                id: wifiPopupBody
+                anchors.fill: parent
+                rootRef: root
+                popupColor: root.colorOf("secondary_container")
+                anchors.topMargin: wifiPopup.animProgress < 1 ? 16 * (1.0 - wifiPopup.animProgress) : 0
+                opacity: wifiPopup.animProgress
+                transform: Scale {
+                    xScale: 0.92 + 0.08 * wifiPopup.animProgress
+                    yScale: 0.92 + 0.08 * wifiPopup.animProgress
+                }
+            }
+
+            Behavior on animProgress {
+                NumberAnimation {
+                    duration: wifiPopup.visible ? 280 : 220
+                    easing.type: Easing.OutCubic
+                }
+            }
+
+            function wifiOpen() {
+                if (wifiClosing) return
+                wifiPopup.visible = true
+                wifiPopup.animProgress = 0
+                wifiPopupBody.scanNetworks()
+                Qt.callLater(() => wifiPopup.animProgress = 1)
+            }
+            function wifiClose() {
+                if (wifiClosing) return
+                wifiClosing = true
+                wifiPopup.animProgress = 0
+            }
+            function wifiForceClose() {
+                wifiPopup.visible = false
+                wifiPopup.wifiClosing = false
+                wifiPopup.animProgress = 0
+            }
+            onAnimProgressChanged: {
+                if (wifiClosing && animProgress <= 0.01) {
+                    wifiPopup.visible = false
+                    wifiClosing = false
+                }
+            }
+
+            anchor {
+                item: netPill
+                edges: Edges.Top
+                gravity: Edges.Top
+                adjustment: PopupAdjustment.All
+                rect.x: 0
+                rect.y: -14
+                rect.w: netPill.width
+                rect.h: netPill.height + 28
             }
             }
 
@@ -1203,7 +1406,7 @@ ShellRoot {
                 function close() {
                     calPopup.closingBySelf = true
                     timerSection.playCloseAnim()
-                    calPopupOut.restart()
+                    calPopup.animProgress = 0
                 }
 
                 // Immediate close (no animation) used when switching to the
@@ -1368,11 +1571,34 @@ ShellRoot {
                 implicitHeight: collapsedHeight + calPopup.editorHeight + 6
                     + calPopup.timerGap + calPopup.timerHeight
 
+                property real animProgress: 0
+
+                Behavior on animProgress {
+                    NumberAnimation {
+                        duration: calPopup.visible ? 280 : 220
+                        easing.type: Easing.OutCubic
+                    }
+                }
+
+                onAnimProgressChanged: {
+                    if (animProgress <= 0.01 && calPopup.closingBySelf) {
+                        calPopup.visible = false
+                        calPopup.closingBySelf = false
+                        calPopup.dismissedByOutside = false
+                        calPopup.expanded = false
+                        calPopup.selectedKey = ""
+                        calPopup.selectedEntryId = -1
+                        calPopup.newEntryId = -1
+                        calPopup.entries = []
+                        entriesModel.clear()
+                    }
+                }
+
                 onVisibleChanged: {
                     if (visible) {
                         calPopup.rebuildModel()
-                        calPopupBody.opacity = 0
-                        calPopupIn.restart()
+                        calPopup.animProgress = 0
+                        Qt.callLater(() => calPopup.animProgress = 1)
                         timerBody.opacity = 0
                         timerPopupIn.restart()
                     } else {
@@ -1398,27 +1624,13 @@ ShellRoot {
                     rect.h: clockPill.height + 28
                 }
 
-                ParallelAnimation {
-                    id: calPopupIn
-                    running: false
-                    NumberAnimation { target: calPopupBody; property: "opacity"; to: 1; duration: 150; easing.type: Easing.OutQuad }
-                }
-
-                SequentialAnimation {
-                    id: calPopupOut
-                    running: false
-                    ParallelAnimation {
-                        NumberAnimation { target: calPopupBody; property: "opacity"; to: 0; duration: 100; easing.type: Easing.InQuad }
-                    }
-                    ScriptAction { script: calPopup.visible = false }
-                }
-
                 Rectangle {
                     id: calPopupBody
                     anchors.top: parent.top
                     anchors.left: parent.left
                     anchors.right: parent.right
                     height: calPopup.expanded ? parent.height : calPopup.collapsedHeight
+                    anchors.topMargin: calPopup.animProgress < 1 ? 16 * (1.0 - calPopup.animProgress) : 0
 
                     Behavior on height {
                         NumberAnimation { duration: 280; easing.type: Easing.OutCubic }
@@ -1429,7 +1641,9 @@ ShellRoot {
                     border.width: 1
                     border.color: root.withAlpha(root.outlineVariant, 0.35)
                     clip: true
-                    opacity: 0
+                    opacity: calPopup.animProgress
+                    scale: 0.92 + (0.08 * calPopup.animProgress)
+                    transformOrigin: Item.Top
 
                     ColumnLayout {
                         anchors.fill: parent
