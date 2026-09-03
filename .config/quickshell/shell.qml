@@ -43,6 +43,49 @@ ShellRoot {
         return v === undefined ? "#808080" : v
     }
 
+    // Quick Shell-only light/dark mode, written by the rofi wallpaper changer
+    // into qs-theme.json. Does NOT touch GTK/Qt/terminal or any other app.
+    // mode "dark" = current look (matugen light pills + dark text).
+    // mode "light" = matugen dark pills + white text, Quick Shell only.
+    FileView {
+        id: qsThemeFile
+        property var qsTheme: ({})
+        path: Quickshell.shellDir + "/qs-theme.json"
+        watchChanges: true
+        blockLoading: true
+        onFileChanged: qsThemeFile.reload()
+        onLoadFailed: error => console.log("[qs-theme] failed to load qs-theme.json:", error)
+        onLoaded: {
+            var map = {}
+            try {
+                map = JSON.parse(String(qsThemeFile.text())) || {}
+            } catch (e) {
+                console.log("[qs-theme] parse error:", e)
+            }
+            qsThemeFile.qsTheme = map
+        }
+    }
+
+    readonly property bool qsLight: qsThemeFile.qsTheme["mode"] === "light"
+
+    // Quick Shell-only "Light" mode uses matugen's genuine `_light` scheme
+    // colors for the pill backgrounds. matugen always emits both `_light`
+    // and `_dark` for every palette entry, so choosing Light in the wallpaper
+    // changer gives Quick Shell the matugen light-scheme (dark) pills without
+    // ever re-running matugen in light mode, i.e. the rest of the system is
+    // untouched.
+    readonly property color qsPillFg: "#ffffff"
+    readonly property color qsPillFallbackBg: "#1a1b1e"
+
+    // Pill background: Light mode -> matugen `_light` variant (dark pill on
+    // these wallpapers), with a dark fallback if a color has no `_light`
+    // variant (e.g. prayer, battery). Dark mode -> normal palette (current look).
+    function pillColor(name) {
+        if (!root.qsLight) return colorOf(name)
+        var v = colorFile.paletteMap[name + "_light"]
+        return v === undefined ? root.qsPillFallbackBg : v
+    }
+
     // Palette (matugen, via colors.js)
     readonly property color primary: colorOf("primary")
     readonly property color error: colorOf("error")
@@ -652,8 +695,11 @@ ShellRoot {
         property alias clickArea: pillArea
         property alias wheelArea: pillArea
 
-        readonly property color pillTextColor: pill.whiteText
-            ? root.textColor : (root.luminance(tint) > 0.5 ? root.darkText : root.textColor)
+        // Light mode: Quick Shell forces white font on its dark pills.
+        // Otherwise: white font on dark pills, black on light pills.
+        readonly property color pillTextColor: root.qsLight
+            ? root.qsPillFg
+            : (root.luminance(tint) > 0.5 ? root.darkText : "#ffffff")
 
         implicitWidth: pillRow.implicitWidth + pill.padX
         implicitHeight: root.pillHeight - 2
@@ -786,7 +832,7 @@ ShellRoot {
         width: contentWidth() + pillPad * 2
         height: root.pillHeight
         radius: 8
-        color: root.colorOf("primary_container")
+        color: root.pillColor("primary_container")
         border.width: 0
 
         Row {
@@ -810,7 +856,7 @@ ShellRoot {
                     Rectangle {
                         anchors.fill: parent
                         radius: wsWidget.dotRadius
-                        color: root.colorOf("on_primary_container")
+                        color: root.qsLight ? "#ffffff" : root.colorOf("on_primary_container")
                         opacity: focused ? 0.7 : (occupied ? 0.45 : 0.18)
                         Behavior on color { ColorAnimation { duration: 250 } }
                     }
@@ -911,14 +957,14 @@ ShellRoot {
                     Module {
                         id: weatherPill
                         label: root.weatherText
-                        tint: root.colorOf("primary_fixed_dim")
+                        tint: root.pillColor("primary_fixed_dim")
                         visible: root.weatherText.length > 0
                     }
 
                     Module {
                         id: prayerPill
                         label: root.prayerText
-                        tint: root.colorOf("prayer")
+                        tint: root.pillColor("prayer")
                         visible: root.prayerText.length > 0
                     }
 
@@ -926,7 +972,7 @@ ShellRoot {
                         id: btPill
                         icon: root.bluetoothStatus === "off" ? "󰂲" : root.bluetoothStatus === "connected" ? "󰂱" : "󰂯"
                         label: root.bluetoothText
-                        tint: root.colorOf("tertiary_container")
+                        tint: root.pillColor("tertiary_container")
                         visible: root.bluetoothStatus === "connected"
 
                         clickArea.onClicked: {
@@ -945,13 +991,13 @@ ShellRoot {
                     Module {
                         id: kbPill
                         label: root.shortLayout(niriIpc.keyboardLayoutName)
-                        tint: root.colorOf("tertiary_fixed_dim")
+                        tint: root.pillColor("tertiary_fixed_dim")
                     }
 
                     Module {
                         id: mediaPill
                         icon: root.mediaIcon
-                        tint: root.colorOf("primary_fixed_dim")
+                        tint: root.pillColor("primary_fixed_dim")
                         visible: root.mediaStatus === "Playing"
 
                         clickArea.onClicked: {
@@ -966,7 +1012,7 @@ ShellRoot {
                         id: volPill
                         icon: root.volumeIcon
                         label: root.muted ? "MUTE" : root.volumePercent + "%"
-                        tint: root.colorOf("secondary_fixed_dim")
+                        tint: root.pillColor("secondary_fixed_dim")
 
                         clickArea.onClicked: {
                             volCmd.command = ["pactl", "set-sink-mute", "@DEFAULT_SINK@", "toggle"]
@@ -986,14 +1032,14 @@ ShellRoot {
                         id: memPill
                         icon: "󰍛"
                         label: root.memText
-                        tint: root.colorOf("primary_container")
+                        tint: root.pillColor("primary_container")
                     }
 
                     Module {
                         id: netPill
                         icon: root.networkConnected ? "󰖩" : "󰖪"
                         label: root.networkConnected ? (root.networkIp + (root.networkSignal ? "  •  " + root.networkSignal + "%" : "") || root.networkText) : "No net"
-                        tint: root.colorOf("secondary_container")
+                        tint: root.pillColor("secondary_container")
                         visible: true
 
                         clickArea.onClicked: {
@@ -1010,15 +1056,15 @@ ShellRoot {
                             ? "󰋠 󰛞 󰋑 󰋑"
                             : root.batteryIcon(root.batteryPercent)
                         label: root.batteryPercent + " %"
-                        tint: root.colorOf("battery")
-                        color: root.colorOf("battery")
+                        tint: root.pillColor("battery")
+                        color: root.pillColor("battery")
                     }
 
                     Module {
                         id: clockPill
                         icon: "󰥔"
                         label: root.clockText
-                        tint: root.colorOf("secondary_fixed")
+                        tint: root.pillColor("secondary_fixed")
 
                         clickArea.onClicked: {
                             mediaPopup.mediaForceClose()

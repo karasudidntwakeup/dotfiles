@@ -153,6 +153,7 @@ open-in-herdr() {
 yt-x() { open-in-herdr yt-x yt-x "$@" }
 alias yt='yt-x'
 opencode() { open-in-herdr opencode opencode "$@" }
+wp-tui() { open-in-herdr wp-tui wp-tui "$@" }
 alias ytd='yt-dlp  -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]" --audio-quality 0'
 alias ytdm='yt-dlp -f "bestaudio[ext=m4a]","bestaudio[ext=webm]" -x '
 alias v='nvim'
@@ -244,3 +245,6 @@ bindkey '^[[1;5B' __nop    # ctrl+down
 bindkey '\eO5B'   __nop    # ctrl+down (application cursor mode)
 bindkey '^[[6;5~' __nop    # ctrl+pagedown
 bindkey '\e[6^'   __nop    # ctrl+pagedown (rxvt)
+
+# convert a single video to best-quality a www live wallpaper
+alias mp4towall='~/.local/bin/mp4towall'

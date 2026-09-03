@@ -32,6 +32,42 @@ FULL_PATH=$(find "$WALLPAPER_DIR" -type f ! -name ".*" \( -name "*.jpg" -o -name
 
 BG=$(sed -n 's/^[[:space:]]*background:[[:space:]]*\([^;]*\);.*/\1/p' "$HOME/.config/rofi/colors.rasi" | head -1)
 
+MODE_CHOICE=$(printf '%s\n' "Dark" "Light" \
+  | rofi -dmenu -p "Mode" \
+      -theme-str "window { background-color: ${BG:-#111318}; border-radius: 20px; padding: 18px; }")
+
+[ -z "$MODE_CHOICE" ] && exit 1
+
+case "$MODE_CHOICE" in
+  "Dark"|"dark") MATUGEN_PREFER="darkness"
+                 QUICK_THEME='{"mode": "dark"}'
+                 cat > "$HOME/.config/rofi/mode.rasi" <<'EOF'
+* {
+    pill:            rgba(255, 255, 255, 0.10);
+    pill-selected:   rgba(255, 255, 255, 0.25);
+    pill-text:       #ffffff;
+    pill-text-sel:   #ffffff;
+    pill-placeholder: rgba(255, 255, 255, 0.4);
+    mode-pill:       rgba(255, 255, 255, 0.10);
+}
+EOF
+                 ;;
+  "Light"|"light") MATUGEN_PREFER="lightness"
+                 QUICK_THEME='{"mode": "light"}'
+                 cat > "$HOME/.config/rofi/mode.rasi" <<'EOF'
+* {
+    pill:            @backgroundl;
+    pill-selected:   @accentl;
+    pill-text:       @foregroundl;
+    pill-text-sel:   @backgroundl;
+    pill-placeholder: rgba(0, 0, 0, 0.4);
+    mode-pill:       @backgroundl;
+}
+EOF
+                 ;;
+  *) exit 1 ;;
+esac
+
 SCHEME_CHOICE=$(printf '%s\n' "Wallpaper Colors" "Content" "Expressive" "Fidelity" "Fruit Salad" "Monochrome" "Neutral" "Rainbow" "Smart" "Vibrant" \
   | rofi -dmenu -p "Scheme" \
       -theme-str "window { background-color: ${BG:-#111318}; border-radius: 20px; padding: 18px; }")
@@ -80,11 +116,16 @@ esac
 # Clearing it before setting the wallpaper keeps `awww img` instant.
 awww clear-cache 2>/dev/null || true
 
-MATUGEN_ARGS=("${MATUGEN_SRC[@]}" --prefer darkness)
+MATUGEN_ARGS=("${MATUGEN_SRC[@]}" --prefer "$MATUGEN_PREFER")
 [ -n "$SCHEME_TYPE" ] && MATUGEN_ARGS+=(--type "$SCHEME_TYPE")
 matugen "${MATUGEN_ARGS[@]}"
 
 awww img "$FULL_PATH" --transition-type random --transition-duration 2.0
+
+# Quick Shell only: write the chosen light/dark mode for the bar to read.
+# Matugen stays in dark mode above, so ONLY Quick Shell is affected — no
+# GTK/Qt/terminal/system-wide light theme is applied.
+printf '%s\n' "$QUICK_THEME" > "$HOME/.config/quickshell/qs-theme.json"
 
 STATIC_CACHE="$HOME/.cache/wallpaper-static"
 

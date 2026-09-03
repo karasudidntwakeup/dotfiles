@@ -1,0 +1,8 @@
+* {
+    pill:            @backgroundl;
+    pill-selected:   @accentl;
+    pill-text:       @foregroundl;
+    pill-text-sel:   @backgroundl;
+    pill-placeholder: rgba(0, 0, 0, 0.4);
+    mode-pill:       @backgroundl;
+}

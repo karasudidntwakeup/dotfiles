@@ -1,5 +1,13 @@
 * {
-    accent: #adfff5;
-    background: #0e1514;
-    foreground: #dde4e2;
+    accent: #ffede1;
+    background: #19120c;
+    foreground: #efdfd6;
+
+    /* Matugen light-scheme variants ("white" colors). Used by rofi's Light
+       mode so it matches the QuickShell bar's Light look without re-running
+       matugen light. Named without underscores: rofi's rasi parser rejects
+       underscore in property/variable names. */
+    accentl: #472200;
+    backgroundl: #fff8f5;
+    foregroundl: #221a14;
 }

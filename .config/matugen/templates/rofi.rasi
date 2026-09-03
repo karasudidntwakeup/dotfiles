@@ -2,4 +2,12 @@
     accent: {{colors.primary.default.hex}};
     background: {{colors.background.default.hex}};
     foreground: {{colors.on_background.default.hex}};
+
+    /* Matugen light-scheme variants ("white" colors). Used by rofi's Light
+       mode so it matches the QuickShell bar's Light look without re-running
+       matugen light. Named without underscores: rofi's rasi parser rejects
+       underscore in property/variable names. */
+    accentl: {{colors.primary.light.hex}};
+    backgroundl: {{colors.background.light.hex}};
+    foregroundl: {{colors.on_background.light.hex}};
 }

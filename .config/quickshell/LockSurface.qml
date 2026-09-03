@@ -131,7 +131,7 @@ Item {
         autoPaddingEnabled: false
         blurEnabled: true
         blurMax: 48
-        blur: 2.0 + lockRoot.blurAmount
+        blur: 0.6 + lockRoot.blurAmount
         brightness: -0.18
         contrast: -0.11
         saturation: 0.17
@@ -164,7 +164,7 @@ Item {
         anchors.top: parent.top
         anchors.topMargin: parent.height * 0.02 + 22
         font.family: lockRoot.fontMain
-        font.pixelSize: Math.max(90, parent.height * 0.11)
+        font.pixelSize: Math.max(70, parent.height * 0.09)
         color: lockRoot.fg
         style: Text.Raised
         styleColor: Qt.rgba(0, 0, 0, 0.35)
@@ -177,7 +177,7 @@ Item {
         anchors.top: clockHour.bottom
         anchors.topMargin: -10
         font.family: lockRoot.fontMain
-        font.pixelSize: Math.max(90, parent.height * 0.11)
+        font.pixelSize: Math.max(70, parent.height * 0.09)
         color: lockRoot.fg
         style: Text.Raised
         styleColor: Qt.rgba(0, 0, 0, 0.35)

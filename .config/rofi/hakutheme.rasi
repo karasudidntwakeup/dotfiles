@@ -1,4 +1,5 @@
 @import "colors.rasi"
+@import "mode.rasi"
 /* =====================================
         Rofi Theme: Haku Theme :>
  =======================================*/
@@ -34,15 +35,15 @@ mainbox {
 /* ===== INPUT BAR ===== */
 inputbar {
     padding:             10px;
-    background-color:    rgba(0, 0, 0, 1.0);
+    background-color:    @pill;
     border-radius:       20px;
     children:            [ prompt, entry ];
 }
 
 prompt {
     padding:             10px 15px;
-    background-color:    @accent;
-    text-color:          @background;
+    background-color:    @pill;
+    text-color:          @pill-text;
     border-radius:       20px;
     font-weight:         bold;
     font:                "Departure Mono 11";
@@ -50,17 +51,17 @@ prompt {
 
 entry {
     padding:             10px;
-    text-color:          @accent;
+    text-color:          @pill-text;
     font:                "Departure Mono 10";
     placeholder:         " Search...";
-    placeholder-color:   rgba(223, 223, 223, 0.4);
+    placeholder-color:   @pill-placeholder;
 }
 
 /* ===== MODE SWITCHER (Apps/Run/Window) ===== */
 mode-switcher {
     margin:              0px 10px;
     padding:             6px;
-    background-color:    @accent;
+    background-color:    @mode-pill;
     border-radius:       20px;
     spacing:             10px;
 }
@@ -69,12 +70,12 @@ button {
     padding:             8px 14px;
     border-radius:       20px;
     background-color:    transparent;
-    text-color:          @background;
+    text-color:          @pill-text;
 }
 
 button selected {
-    background-color:    @background;
-    text-color:          @accent;
+    background-color:    @pill-selected;
+    text-color:          @pill-text-sel;
 }
 
 /* ===== LISTVIEW ===== */
@@ -101,18 +102,18 @@ element-icon {
 }
 
 element-text {
-    text-color:          @accent;
-    font:                "Departure Mono 10";
+    text-color:          @pill-text;
+    font:                "Departure Mono 10, Noto Sans CJK SC 10";
     vertical-align:      0.5;
 }
 
 /* ===== ELEMENT STATES ===== */
 element selected {
-    background-color:    @accent;
+    background-color:    @pill-selected;
 }
 
 element-text selected {
-    text-color:          @background;
+    text-color:          @pill-text-sel;
 }
 
 element-icon selected {
@@ -122,7 +123,7 @@ element-icon selected {
 /* ===== SCROLLBAR ===== */
 scrollbar {
     handle-width:           6px;
-    handle-color:           @accent;
+    handle-color:           @pill-text;
     handle-rounded-corners: true;
     padding:                0px 0px 0px 6px;
 }
