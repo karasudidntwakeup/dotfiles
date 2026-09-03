@@ -1,13 +1,22 @@
 * {
-    accent: #ffede1;
-    background: #19120c;
-    foreground: #efdfd6;
+    accent: #e6f1ff;
+    background: #101418;
+    foreground: #e0e2e8;
+
+    /* Dark (current) surface colors — used by rofi's Dark mode pills. */
+    surface: #2d3135;
+    onsurface: #ffffff;
+    onprimary: #000000;
+    error: #ffece9;
 
     /* Matugen light-scheme variants ("white" colors). Used by rofi's Light
        mode so it matches the QuickShell bar's Light look without re-running
        matugen light. Named without underscores: rofi's rasi parser rejects
        underscore in property/variable names. */
-    accentl: #472200;
-    backgroundl: #fff8f5;
-    foregroundl: #221a14;
+    accentl: #002f4b;
+    backgroundl: #f7f9ff;
+    foregroundl: #181c20;
+    surfacel: #e0e2e8;
+    onsurfacel: #000000;
+    onprimaryl: #ffffff;
 }

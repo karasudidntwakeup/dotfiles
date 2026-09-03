@@ -1,16 +1,23 @@
 #!/bin/sh
-# Get currently playing media info via playerctl.
-# Output format: status|artist - title
-# Status: playing, paused, stopped, or none (no player)
+# Get currently playing media info via a single playerctl call.
+# Output format: status|artist - title|pos|len|art
 
-status=$(playerctl status 2>/dev/null)
-if [ -z "$status" ] || [ "$status" = "No players found" ]; then
+player="$(playerctl -l 2>/dev/null | head -1)"
+if [ -z "$player" ]; then
     echo "none|"
     exit 0
 fi
 
-artist=$(playerctl metadata artist 2>/dev/null)
-title=$(playerctl metadata title 2>/dev/null)
+status="$(playerctl -p "$player" status 2>/dev/null)"
+[ -z "$status" ] && status="stopped"
+
+meta="$(playerctl -p "$player" metadata --format '{{artist}}|{{title}}|{{position}}|{{mpris:length}}|{{mpris:artUrl}}' 2>/dev/null)"
+
+artist="$(echo "$meta" | cut -d'|' -f1)"
+title="$(echo "$meta" | cut -d'|' -f2)"
+pos="$(echo "$meta" | cut -d'|' -f3)"
+len="$(echo "$meta" | cut -d'|' -f4)"
+art="$(echo "$meta" | cut -d'|' -f5)"
 
 if [ -n "$artist" ] && [ -n "$title" ]; then
     info="$artist - $title"
@@ -19,15 +26,6 @@ elif [ -n "$title" ]; then
 else
     info=""
 fi
-
-# Truncate to 40 chars
 info=$(echo "$info" | cut -c1-40)
-
-# Position (microseconds) and length — default to 0 when unavailable
-pos=$(playerctl position 2>/dev/null)
-len=$(playerctl metadata mpris:length 2>/dev/null)
-
-# Album art URL (file:// or https://)
-art=$(playerctl metadata mpris:artUrl 2>/dev/null)
 
 echo "$status|$info|$pos|$len|$art"

@@ -1,8 +1,12 @@
 * {
-    pill:            @backgroundl;
-    pill-selected:   @accentl;
-    pill-text:       @foregroundl;
-    pill-text-sel:   @backgroundl;
-    pill-placeholder: rgba(0, 0, 0, 0.4);
-    mode-pill:       @backgroundl;
+    window-bg:         @backgroundl;
+    pill:              @surfacel;
+    pill-selected:     @accentl;
+    pill-text:         @onsurfacel;
+    pill-text-sel:     @onprimaryl;
+    pill-placeholder:  rgba(0, 0, 0, 0.4);
+    mode-pill:         @surfacel;
+
+    panel-text:        @foregroundl;
+    panel-accent:      @accentl;
 }

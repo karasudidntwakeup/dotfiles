@@ -30,7 +30,12 @@ FULL_PATH=$(find "$WALLPAPER_DIR" -type f ! -name ".*" \( -name "*.jpg" -o -name
 
 [ -z "$FULL_PATH" ] && exit 1
 
-BG=$(sed -n 's/^[[:space:]]*background:[[:space:]]*\([^;]*\);.*/\1/p' "$HOME/.config/rofi/colors.rasi" | head -1)
+MODE=$(sed -n 's/.*"mode"[[:space:]]*:[[:space:]]*"\([a-z]*\)".*/\1/p' "$HOME/.config/quickshell/qs-theme.json" 2>/dev/null)
+if [ "$MODE" = "light" ]; then
+    BG=$(sed -n 's/^[[:space:]]*backgroundl:[[:space:]]*\([^;]*\);.*/\1/p' "$HOME/.config/rofi/colors.rasi" | head -1)
+else
+    BG=$(sed -n 's/^[[:space:]]*background:[[:space:]]*\([^;]*\);.*/\1/p' "$HOME/.config/rofi/colors.rasi" | head -1)
+fi
 
 MODE_CHOICE=$(printf '%s\n' "Dark" "Light" \
   | rofi -dmenu -p "Mode" \
@@ -43,12 +48,16 @@ case "$MODE_CHOICE" in
                  QUICK_THEME='{"mode": "dark"}'
                  cat > "$HOME/.config/rofi/mode.rasi" <<'EOF'
 * {
-    pill:            rgba(255, 255, 255, 0.10);
-    pill-selected:   rgba(255, 255, 255, 0.25);
-    pill-text:       #ffffff;
-    pill-text-sel:   #ffffff;
-    pill-placeholder: rgba(255, 255, 255, 0.4);
-    mode-pill:       rgba(255, 255, 255, 0.10);
+    window-bg:         @background;
+    pill:              @surface;
+    pill-selected:     @accent;
+    pill-text:         @onsurface;
+    pill-text-sel:     @onprimary;
+    pill-placeholder:  rgba(255, 255, 255, 0.4);
+    mode-pill:         @surface;
+
+    panel-text:        @foreground;
+    panel-accent:      @accent;
 }
 EOF
                  ;;
@@ -56,12 +65,16 @@ EOF
                  QUICK_THEME='{"mode": "light"}'
                  cat > "$HOME/.config/rofi/mode.rasi" <<'EOF'
 * {
-    pill:            @backgroundl;
-    pill-selected:   @accentl;
-    pill-text:       @foregroundl;
-    pill-text-sel:   @backgroundl;
-    pill-placeholder: rgba(0, 0, 0, 0.4);
-    mode-pill:       @backgroundl;
+    window-bg:         @backgroundl;
+    pill:              @surfacel;
+    pill-selected:     @accentl;
+    pill-text:         @onsurfacel;
+    pill-text-sel:     @onprimaryl;
+    pill-placeholder:  rgba(0, 0, 0, 0.4);
+    mode-pill:         @surfacel;
+
+    panel-text:        @foregroundl;
+    panel-accent:      @accentl;
 }
 EOF
                  ;;
