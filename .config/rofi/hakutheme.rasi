@@ -22,7 +22,7 @@
 window {
     width:               40%;
     height:              60%;
-    background-color:    @background;
+    background-color:    @window-bg;
     border-radius:       20px;
     padding:             20px;
 }
@@ -46,13 +46,13 @@ prompt {
     text-color:          @pill-text;
     border-radius:       20px;
     font-weight:         bold;
-    font:                "Departure Mono 11";
+    font:                "Departure Mono 11, SF Arabic 11";
 }
 
 entry {
     padding:             10px;
     text-color:          @pill-text;
-    font:                "Departure Mono 10";
+    font:                "Departure Mono 10, SF Arabic 10";
     placeholder:         " Search...";
     placeholder-color:   @pill-placeholder;
 }
@@ -103,7 +103,7 @@ element-icon {
 
 element-text {
     text-color:          @pill-text;
-    font:                "Departure Mono 10, Noto Sans CJK SC 10";
+    font:                "Departure Mono 10, SF Arabic 10";
     vertical-align:      0.5;
 }
 

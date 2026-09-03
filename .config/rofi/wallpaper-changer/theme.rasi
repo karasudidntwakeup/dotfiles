@@ -6,10 +6,11 @@ configuration {
 }
 
 @import "colors.rasi"
+@import "mode.rasi"
 
 * {
-    background-color: @background;
-    text-color: @foreground;
+    background-color: @window-bg;
+    text-color: @panel-text;
 }
 
 window {
@@ -17,7 +18,7 @@ window {
     height: 760px;
     anchor: center;
     location: center;
-    background-color: @background;
+    background-color: @window-bg;
     border: 5;
     border-radius: 20px;
     padding: 18px;
@@ -25,6 +26,7 @@ window {
 
 inputbar {
     children: [ prompt, entry ];
+    background-color: @mode-pill;
     padding: 8px 14px;
     border-radius: 20px;
     margin: 0px 0px 12px 0px;
@@ -32,7 +34,11 @@ inputbar {
 
 prompt {
     font: "JetBrainsMono Nerd Font Bold 11";
-    text-color: @accent;
+    text-color: @panel-accent;
+}
+
+entry {
+    text-color: @panel-text;
 }
 
 mainbox {
@@ -62,7 +68,7 @@ element {
 }
 
 element selected {
-    border-color: @accent;
+    border-color: @panel-accent;
 }
 
 element-icon {
@@ -81,6 +87,6 @@ element-text {
 
 scrollbar {
     handle-width: 6px;
-    handle-color: @accent;
+    handle-color: @panel-accent;
     handle-rounded-corners: true;
 }

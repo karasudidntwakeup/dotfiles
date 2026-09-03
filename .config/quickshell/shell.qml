@@ -206,7 +206,7 @@ ShellRoot {
     }
 
     Timer {
-        interval: 5000
+        interval: 15000
         running: true
         repeat: true
         onTriggered: memProc.running = true
@@ -389,11 +389,28 @@ ShellRoot {
         id: mediaCmd
     }
 
+    // Poll often while something is playing (position tick), slowly otherwise.
     Timer {
-        interval: 1000
+        interval: 5000
         running: true
         repeat: true
-        onTriggered: mediaProc.running = true
+        onTriggered: {
+            mediaProc.running = true
+            if (root.mediaStatus === "Playing" && root.mediaLen > 0)
+                mediaTick.restart()
+        }
+    }
+    Timer {
+        id: mediaTick
+        interval: 1000
+        repeat: true
+        onTriggered: {
+            if (root.mediaStatus !== "Playing") {
+                mediaTick.stop()
+            } else {
+                mediaProc.running = true
+            }
+        }
     }
 
     // Countdown timer (controlled from the clock popup)
