@@ -28,3 +28,9 @@ var {{name}}_dark = "{{value.dark.hex}}"
 var palette_{{pname}}_{{tone}} = "{{tval.hex}}"
 <* endfor *>
 <* endfor *>
+
+/* Custom widget colors (editable) */
+
+var prayer = "{{colors.secondary_container.default.hex}}"
+
+var battery = "{{colors.primary_container.default.hex}}"
