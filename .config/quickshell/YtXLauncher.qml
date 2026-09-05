@@ -150,15 +150,7 @@ Item {
     }
 
     function play(args) {
-        var pidFile = ytx.homeDir + "/.cache/quickshell/ytx-mpv.pid";
-        var script = "PIDFILE=\"$HOME/.cache/quickshell/ytx-mpv.pid\"\n"
-            + "if [ -f \"$PIDFILE\" ]; then\n"
-            + "  OLD=$(cat \"$PIDFILE\" 2>/dev/null)\n"
-            + "  [ -n \"$OLD\" ] && kill \"$OLD\" 2>/dev/null\n"
-            + "fi\n"
-            + "mkdir -p \"$(dirname \"$PIDFILE\")\"\n"
-            + "setsid -f bash -c 'echo $$ > \"$0\"; exec mpv \"$@\"' \"$PIDFILE\" \"$@\"";
-        var cmd = ["bash", "-c", script, "ytx-mpv"];
+        var cmd = ["bash", Quickshell.shellDir + "/scripts/ytx-play.sh"];
         for (var i = 0; i < args.length; i++)
             cmd.push(args[i]);
         Quickshell.execDetached(cmd);
