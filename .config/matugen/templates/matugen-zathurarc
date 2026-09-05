@@ -19,7 +19,7 @@ set notification-warning-bg "{{colors.primary_fixed.default.hex}}"
 set notification-warning-fg "{{colors.error_container.default.hex}}"
 
 set highlight-color         "{{colors.primary_fixed.default.hex}}"
-set highlight-active-color  "{{colors.primary_fixed_dim.default.hex}}"
+set highlight-active-color  "{{colors.primary_container.default.hex}}"
 
 set completion-highlight-fg "{{colors.on_primary.default.hex}}"
 set completion-highlight-bg {{colors.primary.default.hex}}""

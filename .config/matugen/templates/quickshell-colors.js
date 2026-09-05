@@ -3,34 +3,55 @@
  * Generated with Matugen
  */
 
-/* Scheme colors (current mode) */
+/* Base scheme colors used by the shell */
 
-<* for name, value in colors *>
-var {{name}} = "{{value.default.hex}}"
-<* endfor *>
+var primary = "{{colors.primary.default.hex}}"
 
-/* Light scheme variants */
+var primary_container = "{{colors.primary_container.default.hex}}"
 
-<* for name, value in colors *>
-var {{name}}_light = "{{value.light.hex}}"
-<* endfor *>
+var primary_fixed_dim = "{{colors.primary_fixed_dim.default.hex}}"
 
-/* Dark scheme variants */
+var error = "{{colors.error.default.hex}}"
 
-<* for name, value in colors *>
-var {{name}}_dark = "{{value.dark.hex}}"
-<* endfor *>
+var error_container = "{{colors.error_container.default.hex}}"
 
-/* Tonal palettes (tones 0-100) */
+var outline_variant = "{{colors.outline_variant.default.hex}}"
 
-<* for pname, pal in palettes *>
-<* for tone, tval in pal *>
-var palette_{{pname}}_{{tone}} = "{{tval.hex}}"
-<* endfor *>
-<* endfor *>
+var shadow = "{{colors.shadow.default.hex}}"
 
-/* Custom widget colors (editable) */
+var on_primary_container = "{{colors.on_primary_container.default.hex}}"
 
+var secondary_container = "{{colors.secondary_container.default.hex}}"
+
+var secondary_fixed = "{{colors.secondary_fixed.default.hex}}"
+
+var secondary_fixed_dim = "{{colors.secondary_fixed_dim.default.hex}}"
+
+var tertiary_container = "{{colors.tertiary_container.default.hex}}"
+
+var tertiary_fixed_dim = "{{colors.tertiary_fixed_dim.default.hex}}"
+
+/* Light scheme variants (QS "Light" mode pill backgrounds) */
+
+var primary_container_light = "{{colors.primary_container.light.hex}}"
+
+var primary_fixed_dim_light = "{{colors.primary_fixed_dim.light.hex}}"
+
+var secondary_container_light = "{{colors.secondary_container.light.hex}}"
+
+var secondary_fixed_light = "{{colors.secondary_fixed.light.hex}}"
+
+var secondary_fixed_dim_light = "{{colors.secondary_fixed_dim.light.hex}}"
+
+var tertiary_container_light = "{{colors.tertiary_container.light.hex}}"
+
+var tertiary_fixed_dim_light = "{{colors.tertiary_fixed_dim.light.hex}}"
+
+/* Custom widget colors */
 var prayer = "{{colors.secondary_container.default.hex}}"
 
+var prayer_light = "{{colors.secondary_container.light.hex}}"
+
 var battery = "{{colors.primary_container.default.hex}}"
+
+var battery_light = "{{colors.primary_container.light.hex}}"

@@ -68,7 +68,7 @@ ShellRoot {
     readonly property color qsPillFallbackBg: "#1a1b1e"
 
     // Pill background: light mode -> `_light` variant (dark pill), dark
-    // fallback for colors with no `_light` variant (prayer, battery).
+    // fallback for colors with no `_light` variant.
     function pillColor(name) {
         if (!root.qsLight) return colorOf(name)
         var v = colorFile.paletteMap[name + "_light"]
