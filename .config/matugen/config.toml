@@ -6,11 +6,11 @@ contrast = 1.0
 # Automatecally set wallpaper using a command
 set = true
 command = "awww img  {{ image }}"
-[templates.foot]
-input_path = '~/.config/matugen/templates/foot.ini'
-output_path = '~/.config/foot/foot.ini'
-post_hook = '~/.config/matugen/scripts/foot-live.sh'
-# ...
+#[templates.foot]
+#input_path = '~/.local/share/serpantinum/src/assets/matugen/templates/foot.ini.template'
+#output_path = '~/.config/foot/foot.ini'
+#post_hook = '~/.config/matugen/scripts/foot-live.sh'
+
  [templates.firefox-website-colors]
   input_path = "~/.config/matugen/templates/firefox-colors.css"
   output_path = "~/.librewolf/fuoz9ly2.default-default/chrome/colors.css"
@@ -46,13 +46,13 @@ input_path = '~/.config/matugen/templates/qutebrowser-colors.py'
 output_path = '~/.config/qutebrowser/colors.py'
 [templates.kitty]
 input_path = '~/.config/matugen/templates/kitty-colors.conf'
-output_path = '~/.config/kitty/matugen-colors.conf'
+output_path = '~/.config/kitty/colors.conf'
 post_hook = 'killall -USR1 kitty || :'
 
-[templates.niri]
-input_path = '~/.config/matugen/templates/niri.kdl'
-output_path = '~/.config/niri/colors.kdl'
-post_hook = 'niri msg action load-config-file'
+#[templates.niri]
+#input_path = '~/.config/matugen/templates/niri.kdl'
+#output_path = '~/.config/niri/colors.kdl'
+#post_hook = 'niri msg action load-config-file'
 [templates.quickshell]
 input_path = '~/.config/matugen/templates/quickshell-colors.js'
 output_path = '~/.config/quickshell/colors.js'

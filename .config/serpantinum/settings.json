@@ -1,0 +1,124 @@
+{
+  "general": {
+    "location": {
+      "ip": "154.237.76.206",
+      "latitude": 31.20291,
+      "longitude": 30.55018,
+      "city": "Fuwwah",
+      "region": "Kafr el-Sheikh",
+      "region_code": "KFS",
+      "country_name": "Egypt",
+      "country_code": "EG",
+      "postal": null,
+      "timezone": "Africa/Cairo",
+      "utc_offset": "+0300",
+      "currency": "EGP",
+      "languages": "ar-EG,en,fr",
+      "asn": "AS36992",
+      "org": "ETISALAT MISR",
+      "source": "ipapi.co",
+      "updated_at": 1788502740
+    },
+    "language": "en",
+    "avatarPath": "/home/karasu/Downloads/star.png",
+    "muteSfx": false,
+    "sfxVolume": 100,
+    "quickactions": true,
+    "weatherInterval": 15,
+    "weatherUnit": "metric"
+  },
+  "bar": {
+    "position": "top",
+    "width": 98,
+    "opacity": 100,
+    "style": "modular",
+    "time": {
+      "format": "HH:mm"
+    },
+    "autohide": false,
+    "autohideTimeout": 1000,
+    "workspaceCount": 4,
+    "groupColors": {
+      "g_kb": "#81d5cb"
+    },
+    "modules": {
+      "left": [
+        "workspaces",
+        "media"
+      ],
+      "center": [
+        "timedate",
+        "info",
+        "weather"
+      ],
+      "right": [
+        "tray",
+        [
+          "kb",
+          "wifi",
+          "bt",
+          "vol",
+          "bat"
+        ]
+      ]
+    }
+  },
+  "wallpaperDir": "/home/karasu/wallpaper",
+  "theme": {
+    "fontFamily": "Adwaita Mono",
+    "borderRadius": 29,
+    "activePreset": "Material Ocean",
+    "matugen": false,
+    "colors": {
+      "base": "#0f111a",
+      "blue": "#82aaff",
+      "crust": "#040507",
+      "green": "#c3e88d",
+      "mantle": "#090b11",
+      "maroon": "#ff5370",
+      "mauve": "#c792ea",
+      "overlay0": "#4b526d",
+      "overlay1": "#61698a",
+      "overlay2": "#7983a9",
+      "peach": "#f78c6c",
+      "pink": "#f07178",
+      "red": "#ff5370",
+      "sapphire": "#89ddff",
+      "subtext0": "#464b5d",
+      "subtext1": "#71778e",
+      "surface0": "#181b28",
+      "surface1": "#222638",
+      "surface2": "#2e344a",
+      "teal": "#89ddff",
+      "text": "#8f93a2",
+      "yellow": "#ffcb6b"
+    }
+  },
+  "notifications": {
+    "dnd": false,
+    "position": "top right",
+    "sound": true,
+    "soundFile": "/home/karasu/.local/share/serpantinum/src/assets/sounds/notifications/Botanica.wav",
+    "showEmptyGraphic": true
+  },
+  "display": {
+    "monitors": {
+      "eDP-1": {
+        "scale": 1,
+        "enabled": false,
+        "temperature": 0,
+        "auto": true
+      }
+    }
+  },
+  "launcher": {
+    "position": "bottom",
+    "width": 350,
+    "itemCount": 8,
+    "terminalCommand": "foot -e",
+    "smartRanking": true
+  },
+  "idle": {
+    "manualInhibit": false
+  }
+}

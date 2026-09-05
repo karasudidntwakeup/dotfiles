@@ -2,7 +2,8 @@
 # outputs JSON: connected SSID, signal, IP, and network list (with security)
 # arg: "scan" = trigger a fresh scan first; otherwise just list cached results fast
 
-iface="$(iwctl station list 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g' | awk '/connected|disconnected/ { print $1; exit }')"
+iface="$(iwctl station list 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g' | awk '/connected/ && !/disconnected/ { print $1; exit }')"
+[ -z "$iface" ] && iface="$(iwctl station list 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g' | awk '/disconnected/ { print $1; exit }')"
 [ -z "$iface" ] && iface="wlan0"
 [ "${2:-}" = "scan" ] && iwctl station "$iface" scan 2>/dev/null
 
