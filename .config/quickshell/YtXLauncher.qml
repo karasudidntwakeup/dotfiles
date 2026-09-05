@@ -45,6 +45,10 @@ Item {
     readonly property string recentPath: homeDir + "/.config/yt-x/recent.json"
     readonly property string thumbCache: homeDir + "/.cache/rofi-youtube"
     property var videos: []
+    property bool homeLoaded: false
+    property bool homeFailed: false
+    property bool pendingHome: false
+    property double homeTs: 0
     property var prefetched: ({
     })
 
@@ -85,6 +89,9 @@ Item {
                         "thumb": ytx.thumbCache + "/" + e.id + ".jpg"
                     });
                 }
+                if (ytx.pendingHome || ytx.homeLoaded)
+                    return ;
+
                 ytx.videos = arr;
                 if (ytx.active)
                     ytx.filter(searchField.text);
@@ -142,6 +149,21 @@ Item {
         grid.currentIndex = 0;
     }
 
+    function play(args) {
+        var pidFile = ytx.homeDir + "/.cache/quickshell/ytx-mpv.pid";
+        var script = "PIDFILE=\"$HOME/.cache/quickshell/ytx-mpv.pid\"\n"
+            + "if [ -f \"$PIDFILE\" ]; then\n"
+            + "  OLD=$(cat \"$PIDFILE\" 2>/dev/null)\n"
+            + "  [ -n \"$OLD\" ] && kill \"$OLD\" 2>/dev/null\n"
+            + "fi\n"
+            + "mkdir -p \"$(dirname \"$PIDFILE\")\"\n"
+            + "setsid -f bash -c 'echo $$ > \"$0\"; exec mpv \"$@\"' \"$PIDFILE\" \"$@\"";
+        var cmd = ["bash", "-c", script, "ytx-mpv"];
+        for (var i = 0; i < args.length; i++)
+            cmd.push(args[i]);
+        Quickshell.execDetached(cmd);
+    }
+
     function activate(asAudio) {
         var idx = grid.currentIndex;
         if (idx < 0 || idx >= listModel.count)
@@ -152,9 +174,28 @@ Item {
             return ;
 
         if (asAudio)
-            Quickshell.execDetached(["setsid", "-f", "mpv", "--no-video", "--ytdl-format=bestaudio/best", "--force-media-title=" + it.title, it.url]);
+            ytx.play(["--no-video", "--ytdl-format=bestaudio/best", "--force-media-title=" + it.title, it.url]);
         else
-            Quickshell.execDetached(["setsid", "-f", "mpv", "--force-media-title=" + it.title, it.url]);
+            ytx.play(["--force-media-title=" + it.title, it.url]);
+        ytx.requestClose();
+    }
+
+    function playAll(asAudio) {
+        var urls = [];
+        for (var i = 0; i < listModel.count; i++) {
+            var it = listModel.get(i);
+            if (it.url)
+                urls.push(it.url);
+        }
+        if (urls.length === 0)
+            return ;
+
+        var args = [];
+        if (asAudio)
+            args.push("--no-video", "--ytdl-format=bestaudio/best");
+        for (var j = 0; j < urls.length; j++)
+            args.push(urls[j]);
+        ytx.play(args);
         ytx.requestClose();
     }
 
@@ -162,6 +203,8 @@ Item {
         var query = q.trim();
         if (query.length === 0)
             return ;
+
+        ytx.pendingHome = false;
 
         ytx.activeQuery = query;
         ytx.searchFailed = false;
@@ -206,8 +249,61 @@ Item {
         ytx.activeQuery = "";
         ytx.searching = false;
         ytx.searchFailed = false;
+        ytx.homeLoaded = false;
+        ytx.homeFailed = false;
+        ytx.pendingHome = false;
         ytx.loadRecent();
         ytx.filter(searchField.text);
+    }
+
+    function ensureHome(force) {
+        ytx.activeQuery = "";
+        ytx.searching = false;
+        ytx.searchFailed = false;
+        if (!force && ytx.homeLoaded && (Date.now() / 1000) - ytx.homeTs < 600)
+            return ;
+
+        ytx.pendingHome = true;
+        var args = ["bash", Quickshell.shellDir + "/scripts/ytx-home.sh"];
+        if (force)
+            args.push("force");
+        Quickshell.execDetached(args);
+        homeFile.reload();
+    }
+
+    function onHomeResults(obj) {
+        if (ytx.searching || ytx.activeQuery.length > 0)
+            return ;
+
+        ytx.pendingHome = false;
+        if (!obj || !obj.results || obj.results.length === 0) {
+            ytx.homeFailed = true;
+            return ;
+        }
+        var arr = [];
+        for (var i = 0; i < obj.results.length && arr.length < ytx.maxItems; i++) {
+            var r = obj.results[i];
+            if (!r || !r.id || !r.url)
+                continue;
+
+            arr.push({
+                "title": r.title || "",
+                "vid": r.id,
+                "url": r.url,
+                "channel": r.channel || "",
+                "thumb": ytx.thumbCache + "/" + r.id + ".jpg"
+            });
+        }
+        if (arr.length === 0) {
+            ytx.homeFailed = true;
+            return ;
+        }
+        ytx.videos = arr;
+        ytx.homeLoaded = true;
+        ytx.homeFailed = false;
+        ytx.homeTs = (obj.ts || 0);
+        ytx.filter(searchField.text);
+        ytx.prefetchThumbs(arr);
     }
 
     function gridHeight() {
@@ -230,6 +326,7 @@ Item {
             ytx.searchFailed = false;
             searchField.text = "";
             ytx.loadRecent();
+            ytx.ensureHome();
             ytx.filter("");
             focusRequest.restart();
         }
@@ -264,6 +361,32 @@ Item {
         onLoadFailed: (error) => {
             console.log("[ytx] search results load failed:", error);
             ytx.searching = false;
+        }
+    }
+
+    FileView {
+        id: homeFile
+
+        path: ytx.homeDir + "/.cache/quickshell/ytx-home.json"
+        watchChanges: true
+        blockLoading: false
+        onFileChanged: homeFile.reload()
+        onLoaded: {
+            if (!ytx.searching && ytx.activeQuery.length === 0) {
+                try {
+                    var obj = JSON.parse(String(homeFile.text()));
+                    ytx.onHomeResults(obj);
+                } catch (err) {
+                    console.log("[ytx] home parse error:", err);
+                    ytx.pendingHome = false;
+                    ytx.homeFailed = true;
+                }
+            }
+        }
+        onLoadFailed: (error) => {
+            console.log("[ytx] home results load failed:", error);
+            ytx.pendingHome = false;
+            ytx.homeFailed = true;
         }
     }
 
@@ -368,6 +491,17 @@ Item {
                                 ytx.activate(false);
                             event.accepted = true;
                         }
+                        Keys.onPressed: (event) => {
+                            if (event.key === Qt.Key_P) {
+                                var q = searchField.text.trim();
+                                var audio = event.modifiers & Qt.AltModifier;
+                                if (q.length > 0 && ytx.activeQuery.length === 0 && !ytx.searching)
+                                    ytx.runSearch(q);
+                                else if (listModel.count > 0)
+                                    ytx.playAll(audio);
+                                event.accepted = true;
+                            }
+                        }
                         Keys.onEscapePressed: (event) => {
                             ytx.requestClose();
                             event.accepted = true;
@@ -434,59 +568,103 @@ Item {
 
                 width: parent.width
                 height: 22
-                visible: ytx.searching || ytx.activeQuery.length > 0
+                visible: ytx.searching || ytx.activeQuery.length > 0 || ytx.homeLoaded || ytx.homeFailed || ytx.pendingHome
 
                 BusyIndicator {
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
                     width: 16
                     height: 16
-                    running: ytx.searching
-                    visible: ytx.searching
+                    running: ytx.searching || ytx.pendingHome
+                    visible: ytx.searching || ytx.pendingHome
                 }
 
                 Text {
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
-                    anchors.leftMargin: ytx.searching ? 22 : 2
-                    width: parent.width - (recentChip.visible ? recentChip.width + 8 : 4)
+                    anchors.leftMargin: ytx.searching || ytx.pendingHome ? 22 : 2
+                    width: parent.width - (chipRow.visible ? chipRow.width + 8 : 4)
                     elide: Text.ElideRight
-                    text: ytx.searching ? "Searching for \u201C" + ytx.activeQuery + "\u201D\u2026" : ytx.searchFailed ? "No results for \u201C" + ytx.activeQuery + "\u201D" : ytx.videos.length + " results for \u201C" + ytx.activeQuery + "\u201D"
+                    text: ytx.searching ? "Searching for \u201C" + ytx.activeQuery + "\u201D\u2026" : ytx.pendingHome ? "Loading recommendations\u2026" : ytx.searchFailed ? "No results for \u201C" + ytx.activeQuery + "\u201D" : ytx.activeQuery.length > 0 ? ytx.videos.length + " results for \u201C" + ytx.activeQuery + "\u201D" : ytx.homeFailed ? "Couldn\u2019t load home recommendations" : ytx.homeLoaded ? ytx.videos.length + " recommended videos" : ""
                     font.family: ytx.uiFont
                     font.pixelSize: Math.max(10, ytx.fontSize - 1)
-                    color: ytx.searchFailed ? Qt.rgba(1, 0.45, 0.4, 1) : ytx.alpha(ytx.fg, 0.6)
+                    color: ytx.searchFailed || ytx.homeFailed ? Qt.rgba(1, 0.45, 0.4, 1) : ytx.alpha(ytx.fg, 0.6)
                 }
 
-                Rectangle {
-                    id: recentChip
+                Row {
+                    id: chipRow
 
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
-                    visible: !ytx.searching && ytx.activeQuery.length > 0
-                    width: 68
-                    height: 22
-                    radius: 11
-                    color: recentHover.containsMouse ? ytx.alpha(ytx.fg, 0.2) : ytx.alpha(ytx.fg, 0.08)
+                    spacing: 8
+                    visible: !ytx.searching && (ytx.activeQuery.length > 0 || ytx.homeLoaded || ytx.homeFailed || ytx.pendingHome)
 
-                    Text {
-                        anchors.centerIn: parent
-                        text: "󰛉 Recent"
-                        color: ytx.fg
-                        font.family: ytx.iconFont
-                        font.pixelSize: Math.max(10, ytx.fontSize - 2)
+                    Rectangle {
+                        id: homeChip
+
+                        visible: ytx.activeQuery.length === 0 && (ytx.homeLoaded || ytx.homeFailed || ytx.pendingHome)
+                        width: homeChipLabel.implicitWidth + 20
+                        height: 22
+                        radius: 11
+                        color: homeHover.containsMouse ? ytx.alpha(ytx.fg, 0.2) : ytx.alpha(ytx.fg, 0.08)
+
+                        Text {
+                            id: homeChipLabel
+
+                            anchors.centerIn: parent
+                            text: "󰅨 Home"
+                            color: ytx.fg
+                            font.family: ytx.iconFont
+                            font.pixelSize: Math.max(10, ytx.fontSize - 2)
+                        }
+
+                        MouseArea {
+                            id: homeHover
+
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                ytx.ensureHome(true);
+                                searchField.text = "";
+                                searchField.forceActiveFocus();
+                                ytx.filter("");
+                            }
+                        }
+
                     }
 
-                    MouseArea {
-                        id: recentHover
+                    Rectangle {
+                        id: recentChip
 
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            ytx.showRecent();
-                            searchField.text = "";
-                            searchField.forceActiveFocus();
+                        width: recentChipLabel.implicitWidth + 20
+                        height: 22
+                        radius: 11
+                        color: recentHover.containsMouse ? ytx.alpha(ytx.fg, 0.2) : ytx.alpha(ytx.fg, 0.08)
+
+                        Text {
+                            id: recentChipLabel
+
+                            anchors.centerIn: parent
+                            text: "󰛉 Recent"
+                            color: ytx.fg
+                            font.family: ytx.iconFont
+                            font.pixelSize: Math.max(10, ytx.fontSize - 2)
                         }
+
+                        MouseArea {
+                            id: recentHover
+
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                ytx.showRecent();
+                                searchField.text = "";
+                                searchField.forceActiveFocus();
+                            }
+                        }
+
                     }
 
                 }
@@ -652,7 +830,7 @@ Item {
 
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: "Enter: play  ·  Alt+Enter: audio  ·  Esc: close"
+                    text: "Enter: play  ·  Alt+Enter: audio  ·  P: playlist  ·  Alt+P: audio playlist  ·  Esc: close"
                     font.family: ytx.uiFont
                     font.pixelSize: Math.max(10, ytx.fontSize - 2)
                     color: ytx.alpha(ytx.fg, 0.4)
