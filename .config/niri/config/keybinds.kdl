@@ -1,6 +1,6 @@
 binds {
     Mod+Shift+Slash { show-hotkey-overlay; }
-    Mod+Shift+S hotkey-overlay-title="Pick Window Shader" { spawn "~/.config/niri/shaders/pick.sh"; }
+    Mod+Shift+S hotkey-overlay-title="Pick Window Shader" { spawn "~/.config/niri/shaders/qs.sh"; }
     Mod+Return hotkey-overlay-title="Open a Terminal: foot" { spawn "foot"; }
     Mod+Space hotkey-overlay-title="Application Launcher" { spawn "qs" "ipc" "call" "launcher" "toggle"; }
     Super+C hotkey-overlay-title="Open Browser: LibreWolf" { spawn "librewolf"; }
@@ -101,13 +101,13 @@ binds {
     Mod+N hotkey-overlay-title="Notifications" { spawn "qs" "ipc" "call" "notifications" "toggle"; }
     Mod+Shift+N { toggle-window-floating; }
     Mod+Shift+V { switch-focus-between-floating-and-tiling; }
-    Mod+V hotkey-overlay-title="Clipboard" { spawn "~/.config/rofi/cliphist/launcher.sh"; }
+    Mod+V hotkey-overlay-title="Clipboard" { spawn "qs" "ipc" "call" "clipboard" "toggle"; }
     Print { screenshot; }
     Mod+Escape { toggle-keyboard-shortcuts-inhibit; }
     Mod+Shift+E { quit; }
     Ctrl+Alt+Delete { quit; }
     Mod+P { power-off-monitors; }
-    Mod+Z hotkey-overlay-title="Open yt-x" { spawn "yt-x"; }
+    Mod+Z hotkey-overlay-title="yt-x history" { spawn "qs" "ipc" "call" "ytx" "toggle"; }
     Mod+G hotkey-overlay-title="Wallpaper Picker" { spawn "qs" "ipc" "call" "wallpaper" "toggle"; }
     Mod+Shift+M hotkey-overlay-title="Notification Center" { spawn "qs" "ipc" "call" "notifications" "toggle"; }
 }
