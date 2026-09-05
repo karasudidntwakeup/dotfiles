@@ -955,7 +955,7 @@ ShellRoot {
     // launcher pill. Click outside / Escape / Enter dismiss.
     property bool launcherActive: false
 
-    function openAppLauncher() { root.launcherActive = true; notifSvc.closeCenter() }
+    function openAppLauncher() { root.launcherActive = true; notifSvc.closeCenter(); root.closeYtx(); root.closeClipboard() }
     function closeAppLauncher() { root.launcherActive = false }
     function toggleAppLauncher() { root.launcherActive = !root.launcherActive }
 
@@ -991,7 +991,7 @@ ShellRoot {
     // `qs ipc call ytx toggle` (niri bind) like the app launcher.
     property bool ytxActive: false
 
-    function openYtx() { root.ytxActive = true; notifSvc.closeCenter(); root.closeAppLauncher() }
+    function openYtx() { root.ytxActive = true; notifSvc.closeCenter(); root.closeAppLauncher(); root.closeClipboard() }
     function closeYtx() { root.ytxActive = false }
     function toggleYtx() { root.ytxActive = !root.ytxActive }
 
@@ -1020,6 +1020,42 @@ ShellRoot {
             rootRef: root
             active: root.ytxActive
             onRequestClose: root.ytxActive = false
+        }
+    }
+
+    // Clipboard manager (cliphist), toggled via `qs ipc call clipboard toggle`
+    // (Mod+V niri bind), replacing the old rofi-cliphist launcher.
+    property bool clipboardActive: false
+
+    function openClipboard() { root.clipboardActive = true; notifSvc.closeCenter(); root.closeAppLauncher(); root.closeYtx() }
+    function closeClipboard() { root.clipboardActive = false }
+    function toggleClipboard() { root.clipboardActive = !root.clipboardActive }
+
+    IpcHandler {
+        target: "clipboard"
+        function toggle(): void {
+            root.toggleClipboard()
+        }
+    }
+
+    PanelWindow {
+        id: clipWin
+        visible: root.clipboardActive || clipContent.animProgress > 0.001
+        focusable: root.clipboardActive
+        color: "transparent"
+        WlrLayershell.namespace: "clipboard-picker"
+        WlrLayershell.layer: WlrLayer.Overlay
+        anchors.top: true
+        anchors.bottom: true
+        anchors.left: true
+        anchors.right: true
+
+        Clipboard {
+            id: clipContent
+            anchors.fill: parent
+            rootRef: root
+            active: root.clipboardActive
+            onRequestClose: root.clipboardActive = false
         }
     }
 
@@ -1140,6 +1176,8 @@ ShellRoot {
     function toggleNotifCenter() {
         if (!notifSvc.centerOpen) {
             root.launcherActive = false
+            root.ytxActive = false
+            root.clipboardActive = false
             root.closeWallpaperPicker()
         }
         notifSvc.toggleCenter()
