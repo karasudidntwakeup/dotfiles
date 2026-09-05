@@ -6,10 +6,10 @@ contrast = 1.0
 # Automatecally set wallpaper using a command
 set = true
 command = "awww img  {{ image }}"
-#[templates.foot]
-#input_path = '~/.local/share/serpantinum/src/assets/matugen/templates/foot.ini.template'
-#output_path = '~/.config/foot/foot.ini'
-#post_hook = '~/.config/matugen/scripts/foot-live.sh'
+[templates.foot]
+input_path = '~/.config/matugen/templates/foot.ini'
+output_path = '~/.config/foot/foot.ini'
+post_hook = '~/.config/matugen/scripts/foot-live.sh'
 
  [templates.firefox-website-colors]
   input_path = "~/.config/matugen/templates/firefox-colors.css"
@@ -20,10 +20,6 @@ output_path = '~/.config/rofi/colors.rasi'
 [templates.telegram-tdesktop-theme]
 input_path = '~/.config/matugen/templates/telegram-tdesktop-theme.tdesktop-theme'
 output_path = '~/.config/telegram/tdesktop-theme.tdesktop-theme'
-[templates.swaync]
-input_path = "~/.config/matugen/templates/swaync-colors.css"
-output_path = "~/.config/swaync/colors.css"
-post_hook = "timeout 3 swaync-client -rs"
 # ...
 [templates.television]
 input_path = '~/.config/matugen/templates/television.toml'
@@ -49,13 +45,10 @@ input_path = '~/.config/matugen/templates/kitty-colors.conf'
 output_path = '~/.config/kitty/colors.conf'
 post_hook = 'killall -USR1 kitty || :'
 
-#[templates.niri]
-#input_path = '~/.config/matugen/templates/niri.kdl'
-#output_path = '~/.config/niri/colors.kdl'
-#post_hook = 'niri msg action load-config-file'
-[templates.quickshell]
-input_path = '~/.config/matugen/templates/quickshell-colors.js'
-output_path = '~/.config/quickshell/colors.js'
+[templates.niri]
+input_path = '~/.config/matugen/templates/niri.kdl'
+output_path = '~/.config/niri/colors.kdl'
+post_hook = 'niri msg action load-config-file'
 [templates.ddg_css]
 input_path = '~/.config/matugen/templates/ddg.css'
 output_path = '~/.librewolf/fuoz9ly2.default-default/chrome/websites/duckduckgo.css'
@@ -83,5 +76,9 @@ input_path = "~/.config/matugen/templates/qt-style.qss.template"
 output_path = "~/.config/qt6ct/qss/matugen-style.qss"
 
 [templates.yt-x]
-input_path = '~/.config/matugen/templates/yt-x.theme'
-output_path = '~/.config/yt-x/extensions/themes/matugen.theme'
+  input_path = '~/.config/matugen/templates/yt-x.theme'
+  output_path = '~/.config/yt-x/extensions/themes/matugen.theme'
+
+[templates.quickshell]
+  input_path = '~/.config/matugen/templates/quickshell-colors.js'
+  output_path = '~/.config/quickshell/colors.js'
