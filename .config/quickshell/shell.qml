@@ -1223,8 +1223,8 @@ ShellRoot {
             screen: modelData
             focusable: true
 
-            anchors.top: true
-            margins.top: 10
+            anchors.bottom: true
+            margins.bottom: 10
             implicitWidth: barContent.width
             implicitHeight: root.barHeight
             color: "transparent"

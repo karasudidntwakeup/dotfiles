@@ -42,13 +42,11 @@ Item {
     readonly property int bottomMargin: 24
     readonly property real slideOffset: (1 - ytx.animProgress) * (ytx.bottomMargin * 2 + card.height)
     readonly property string homeDir: Quickshell.env("HOME")
-    readonly property string recentPath: homeDir + "/.config/yt-x/recent.json"
     readonly property string thumbCache: homeDir + "/.cache/rofi-youtube"
     property var videos: []
     property bool homeLoaded: false
     property bool homeFailed: false
     property bool pendingHome: false
-    property double homeTs: 0
     property var prefetched: ({
     })
 
@@ -59,49 +57,36 @@ Item {
     }
 
     function loadRecent() {
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", "file://" + ytx.recentPath);
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState !== XMLHttpRequest.DONE)
-                return ;
+        if (recentFile)
+            recentFile.reload();
+    }
 
-            if (xhr.status !== 0 && xhr.status !== 200) {
-                console.log("[ytx] failed to load recent.json:", xhr.status);
-                return ;
-            }
-            try {
-                var obj = JSON.parse(xhr.responseText);
-                if (!obj || !obj.entries) {
-                    console.log("[ytx] no entries in recent.json");
-                    return ;
-                }
-                var arr = [];
-                for (var i = 0; i < obj.entries.length && arr.length < ytx.maxItems; i++) {
-                    var e = obj.entries[i];
-                    if (!e || !e.id || !e.url)
-                        continue;
+    function onRecentData(obj) {
+        if (!obj || !obj.entries)
+            return ;
 
-                    arr.push({
-                        "title": e.title || "",
-                        "vid": e.id,
-                        "url": e.url,
-                        "channel": e.channel || "",
-                        "thumb": ytx.thumbCache + "/" + e.id + ".jpg"
-                    });
-                }
-                if (ytx.pendingHome || ytx.homeLoaded)
-                    return ;
+        var arr = [];
+        for (var i = 0; i < obj.entries.length && arr.length < ytx.maxItems; i++) {
+            var e = obj.entries[i];
+            if (!e || !e.id || !e.url)
+                continue;
 
-                ytx.videos = arr;
-                if (ytx.active)
-                    ytx.filter(searchField.text);
+            arr.push({
+                "title": e.title || "",
+                "vid": e.id,
+                "url": e.url,
+                "channel": e.channel || "",
+                "thumb": ytx.thumbCache + "/" + e.id + ".jpg"
+            });
+        }
+        if (ytx.pendingHome || ytx.homeLoaded)
+            return ;
 
-                ytx.prefetchThumbs(arr);
-            } catch (err) {
-                console.log("[ytx] parse error:", err);
-            }
-        };
-        xhr.send();
+        ytx.videos = arr;
+        if (ytx.active)
+            ytx.filter(searchField.text);
+
+        ytx.prefetchThumbs(arr);
     }
 
     function prefetchThumbs(arr) {
@@ -252,15 +237,14 @@ Item {
         ytx.activeQuery = "";
         ytx.searching = false;
         ytx.searchFailed = false;
-        if (!force && ytx.homeLoaded && (Date.now() / 1000) - ytx.homeTs < 600)
+        if (!force) {
+            homeFile.reload();
             return ;
+        }
 
         ytx.pendingHome = true;
-        var args = ["bash", Quickshell.shellDir + "/scripts/ytx-home.sh"];
-        if (force)
-            args.push("force");
-        Quickshell.execDetached(args);
-        homeFile.reload();
+            Quickshell.execDetached(["bash", Quickshell.shellDir + "/scripts/ytx-home.sh", "force"]);
+            pendingTimeout.restart();
     }
 
     function onHomeResults(obj) {
@@ -293,7 +277,6 @@ Item {
         ytx.videos = arr;
         ytx.homeLoaded = true;
         ytx.homeFailed = false;
-        ytx.homeTs = (obj.ts || 0);
         ytx.filter(searchField.text);
         ytx.prefetchThumbs(arr);
     }
@@ -382,12 +365,42 @@ Item {
         }
     }
 
+    FileView {
+        id: recentFile
+
+        path: ytx.homeDir + "/.config/yt-x/recent.json"
+        watchChanges: false
+        blockLoading: true
+        onLoaded: {
+            if (ytx.searching || ytx.activeQuery.length > 0)
+                return ;
+
+            try {
+                var obj = JSON.parse(String(recentFile.text()));
+                ytx.onRecentData(obj);
+            } catch (err) {
+                console.log("[ytx] recent parse error:", err);
+            }
+        }
+        onLoadFailed: (error) => {
+            console.log("[ytx] recent load failed:", error);
+        }
+    }
+
     Timer {
         id: focusRequest
 
         interval: 40
         repeat: false
         onTriggered: searchField.forceActiveFocus()
+    }
+
+    Timer {
+        id: pendingTimeout
+
+        interval: 20000
+        repeat: false
+        onTriggered: ytx.pendingHome = false
     }
 
     Rectangle {
