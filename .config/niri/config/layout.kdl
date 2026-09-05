@@ -1,0 +1,44 @@
+layout {
+    gaps 15
+    center-focused-column "on-overflow"
+    always-center-single-column
+    border {
+        off
+    }
+    focus-ring {
+        off
+    }
+}
+
+window-rule {
+    match app-id=r#".*"#
+    geometry-corner-radius 15
+    clip-to-geometry true
+}
+
+window-rule {
+    match app-id="librewolf"
+    default-column-width { proportion 0.70;}
+}
+
+window-rule {
+    match app-id="pcmanfm"
+}
+
+window-rule {
+    match app-id=r#"telegram"#
+    default-column-width { proportion 0.3;}
+}
+window-rule {
+    match app-id=r#"mpv"#
+    default-column-width { proportion 0.95;}
+}
+
+// Rules for xdg-desktop-portal-gtk
+window-rule {
+    match app-id=r#"xdg-desktop-portal-gtk"#
+    open-floating true
+    default-floating-position x=0 y=0
+    min-width 400
+    min-height 600
+}

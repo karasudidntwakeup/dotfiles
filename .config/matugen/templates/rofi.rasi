@@ -3,6 +3,12 @@
     background: {{colors.background.default.hex}};
     foreground: {{colors.on_background.default.hex}};
 
+    /* Dark (current) surface colors — used by rofi's Dark mode pills. */
+    surface: {{colors.surface_container.default.hex}};
+    onsurface: {{colors.on_surface.default.hex}};
+    onprimary: {{colors.on_primary.default.hex}};
+    error: {{colors.error.default.hex}};
+
     /* Matugen light-scheme variants ("white" colors). Used by rofi's Light
        mode so it matches the QuickShell bar's Light look without re-running
        matugen light. Named without underscores: rofi's rasi parser rejects
@@ -10,4 +16,7 @@
     accentl: {{colors.primary.light.hex}};
     backgroundl: {{colors.background.light.hex}};
     foregroundl: {{colors.on_background.light.hex}};
+    surfacel: {{colors.surface_container.light.hex}};
+    onsurfacel: {{colors.on_surface.light.hex}};
+    onprimaryl: {{colors.on_primary.light.hex}};
 }

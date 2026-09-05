@@ -1,0 +1,26 @@
+hotkey-overlay {
+    skip-at-startup
+}
+
+input {
+    focus-follows-mouse
+    keyboard {
+        repeat-delay 200
+        repeat-rate 40
+        xkb {
+            layout "us,ara"
+            options "grp:ctrl_space_toggle"
+        }
+    }
+
+    touchpad {
+       // natural-scroll
+       accel-speed 0.25
+       click-method "clickfinger"
+       tap
+    }
+    mouse {
+    }
+    trackpoint {
+    }
+}

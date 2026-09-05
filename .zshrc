@@ -96,6 +96,7 @@ export SDL_VIDEODRIVER=wayland
 export QT_QPA_PLATFORM=wayland
 
 #alias
+alias backup-keys='sudo rsync -rv --delete --exclude="S.gpg-agent*" --exclude="S.keyboxd*" ~/.gnupg ~/.password-store /mnt/'
 alias nightmode='gammastep -m wayland -P -O 4500'
 alias cp='cp -a'
 alias cal='calcurse'

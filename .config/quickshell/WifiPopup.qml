@@ -42,19 +42,17 @@ Item {
         }
     }
 
-    // trigger a fresh scan then rebuild the list
     function scanNetworks() {
         wifiPoller.scan = true;
         wifiPoller.running = true;
     }
 
-    // refresh list from cached iwctl results without re-scanning
     function reloadNetworks() {
         wifiPoller.scan = false;
         wifiPoller.running = true;
     }
 
-    // connect to a network; passphrase optional (for open/known nets pass "")
+    // passphrase optional (for open/known networks)
     function doConnect(ssid, passphrase) {
         wifiPopup.passwordFor = "";
         wifiPopup.pendingSsid = ssid;
@@ -82,8 +80,9 @@ Item {
         return "󰤯";
     }
 
-    // pick high-contrast foreground for a given background color
+    // Text color for a given background, respecting the shell's light/dark mode.
     function on(bg) {
+        if (rootRef && rootRef.qsLight) return rootRef.qsPillFg || "#ffffff";
         let lum = bg.r * 0.299 + bg.g * 0.587 + bg.b * 0.114;
         return lum > 0.5 ? "#000000" : "#ffffff";
     }
@@ -94,6 +93,22 @@ Item {
         color: wifiPopup.popupColor.a > 0 ? wifiPopup.popupColor : rootRef.colorOf("surface")
         border.width: 1
         border.color: rootRef.colorOf("outline_variant")
+    }
+
+    // Dark pastel surface in dark mode, genuine `_light` (dark) variant in light
+    // mode so cards match the dark popup theme.
+    function cardBg() {
+        if (rootRef && rootRef.qsLight) return rootRef.popupSurface("surface_container");
+        return rootRef.colorOf("surface_container");
+    }
+    // Raised card fill (input / hover areas).
+    function cardBgRaised() {
+        if (rootRef && rootRef.qsLight) return rootRef.popupSurface("surface_container_highest");
+        return rootRef.colorOf("surface_container_highest");
+    }
+    // Foreground for a card whose background was chosen by cardBg()/cardBgRaised().
+    function cardFg() {
+        return wifiPopup.on(rootRef.colorOf("surface_container"));
     }
 
     ColumnLayout {
@@ -134,7 +149,7 @@ Item {
             Layout.fillWidth: true
             height: 64
             radius: 10
-            color: rootRef.colorOf("surface_container")
+            color: wifiPopup.cardBg()
             visible: wifiPopup.isConnected
 
             RowLayout {
@@ -146,7 +161,7 @@ Item {
                     text: wifiPopup.signalIcon(wifiPopup.currentSignal)
                     font.family: "Symbols Nerd Font"
                     font.pixelSize: 22
-                    color: wifiPopup.on(rootRef.colorOf("surface_container"))
+                    color: wifiPopup.cardFg()
                 }
                 ColumnLayout {
                     Layout.fillWidth: true
@@ -156,7 +171,7 @@ Item {
                         font.family: "Inter"
                         font.pixelSize: 13
                         font.weight: Font.Medium
-                        color: wifiPopup.on(rootRef.colorOf("surface_container"))
+                        color: wifiPopup.cardFg()
                         elide: Text.ElideRight
                         Layout.fillWidth: true
                     }
@@ -164,7 +179,7 @@ Item {
                         text: wifiPopup.currentIp + (wifiPopup.currentSignal ? "  •  " + wifiPopup.currentSignal + "%" : "")
                         font.family: "Inter"
                         font.pixelSize: 11
-                        color: wifiPopup.on(rootRef.colorOf("surface_container"))
+                        color: wifiPopup.cardFg()
                     }
                 }
                 Rectangle {
@@ -196,7 +211,7 @@ Item {
             Layout.fillWidth: true
             height: 48
             radius: 10
-            color: rootRef.colorOf("surface_container")
+            color: wifiPopup.cardBg()
             visible: !wifiPopup.isConnected
 
             RowLayout {
@@ -207,13 +222,13 @@ Item {
                     text: "󰤪"
                     font.family: "Symbols Nerd Font"
                     font.pixelSize: 20
-                    color: wifiPopup.on(rootRef.colorOf("surface_container"))
+                    color: wifiPopup.cardFg()
                 }
                 Text {
                     text: "Not connected"
                     font.family: "Inter"
                     font.pixelSize: 13
-                    color: wifiPopup.on(rootRef.colorOf("surface_container"))
+                    color: wifiPopup.cardFg()
                     Layout.fillWidth: true
                 }
             }
@@ -231,7 +246,7 @@ Item {
             Layout.fillWidth: true
             Layout.preferredHeight: 72
             radius: 8
-            color: rootRef.colorOf("surface_container")
+            color: wifiPopup.cardBg()
             visible: wifiPopup.passwordFor !== ""
 
             ColumnLayout {
@@ -244,7 +259,7 @@ Item {
                     font.family: "Inter"
                     font.pixelSize: 11
                     font.weight: Font.Medium
-                    color: rootRef.colorOf("on_surface")
+                    color: wifiPopup.cardFg()
                     elide: Text.ElideRight
                     Layout.fillWidth: true
                 }
@@ -256,7 +271,7 @@ Item {
                         Layout.fillWidth: true
                         height: 34
                         radius: 6
-                        color: rootRef.colorOf("surface_container_highest")
+                        color: wifiPopup.cardBgRaised()
                         border.width: 1
                         border.color: rootRef.colorOf("outline_variant")
 
@@ -268,7 +283,7 @@ Item {
                             echoMode: TextInput.Password
                             font.family: "Inter"
                             font.pixelSize: 13
-                            color: rootRef.colorOf("on_surface")
+                            color: wifiPopup.cardFg()
                             selectionColor: rootRef.colorOf("primary")
                             selectByMouse: true
                         }
@@ -295,7 +310,7 @@ Item {
                     }
                     Rectangle {
                         width: 34; height: 34; radius: 6
-                        color: passCancel.containsMouse ? rootRef.colorOf("surface_container_highest") : "transparent"
+                        color: passCancel.containsMouse ? wifiPopup.cardBgRaised() : "transparent"
                         Text {
                             anchors.centerIn: parent
                             text: "󰅖"
@@ -352,8 +367,8 @@ Item {
                         property string netSec: modelData ? (modelData.sec || "open") : "open"
                         property bool netKnown: modelData ? modelData.known === true : false
                         property bool isCurrent: netPillRow.netName === wifiPopup.currentSsid
-                        readonly property color rowBg: isCurrent ? rootRef.colorOf("primary_container")
-                            : netArea.containsMouse ? rootRef.colorOf("surface_container_highest")
+                        readonly property color rowBg: isCurrent ? rootRef.pillColor("primary_container")
+                            : netArea.containsMouse ? wifiPopup.cardBgRaised()
                             : rootRef.signalTint(netPillRow.netSig)
                         readonly property color rowFg: wifiPopup.on(netPillRow.rowBg)
 

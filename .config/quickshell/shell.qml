@@ -7,19 +7,14 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Effects
 
-// Waybar-style bar for niri.
-// Mirrors ~/.config/waybar (modules + Material You pill styling).
-// Palette comes from matugen via colors.js (regenerated on wallpaper change).
-
-// matugen 1787526211
+// Waybar-style bar for niri. Palette from matugen via colors.js.
 
 ShellRoot {
     id: root
 
-    // Palette (matugen). colors.js is parsed at runtime and watched for
-    // changes, so regenerating it (wallpaper / scheme style change) recolors
-    // the bar live. A static JS import would be cached by the QML engine and
-    // never pick up new values.
+    // colors.js is parsed at runtime and watched, so regenerating it
+    // (wallpaper change) recolors the bar live. A static import would be
+    // cached by the QML engine and never pick up new values.
     FileView {
         id: colorFile
         property var paletteMap: ({})
@@ -43,10 +38,8 @@ ShellRoot {
         return v === undefined ? "#808080" : v
     }
 
-    // Quick Shell-only light/dark mode, written by the rofi wallpaper changer
-    // into qs-theme.json. Does NOT touch GTK/Qt/terminal or any other app.
-    // mode "dark" = current look (matugen light pills + dark text).
-    // mode "light" = matugen dark pills + white text, Quick Shell only.
+    // Quick Shell light/dark mode, written by the wallpaper changer into
+    // qs-theme.json. Does NOT touch GTK/Qt/terminal or any other app.
     FileView {
         id: qsThemeFile
         property var qsTheme: ({})
@@ -68,42 +61,48 @@ ShellRoot {
 
     readonly property bool qsLight: qsThemeFile.qsTheme["mode"] === "light"
 
-    // Quick Shell-only "Light" mode uses matugen's genuine `_light` scheme
-    // colors for the pill backgrounds. matugen always emits both `_light`
-    // and `_dark` for every palette entry, so choosing Light in the wallpaper
-    // changer gives Quick Shell the matugen light-scheme (dark) pills without
-    // ever re-running matugen in light mode, i.e. the rest of the system is
+    // Light mode uses matugen's genuine `_light` scheme colors for the pill
+    // backgrounds without re-running matugen, so the rest of the system is
     // untouched.
     readonly property color qsPillFg: "#ffffff"
     readonly property color qsPillFallbackBg: "#1a1b1e"
 
-    // Pill background: Light mode -> matugen `_light` variant (dark pill on
-    // these wallpapers), with a dark fallback if a color has no `_light`
-    // variant (e.g. prayer, battery). Dark mode -> normal palette (current look).
+    // Pill background: light mode -> `_light` variant (dark pill), dark
+    // fallback for colors with no `_light` variant (prayer, battery).
     function pillColor(name) {
         if (!root.qsLight) return colorOf(name)
         var v = colorFile.paletteMap[name + "_light"]
         return v === undefined ? root.qsPillFallbackBg : v
     }
 
-    // Palette (matugen, via colors.js)
+    // Same for popup surfaces: `_light` (dark) variants in light mode so they
+    // match the dark popup theme.
+    function popupSurface(name) {
+        var v = colorFile.paletteMap[name + "_light"]
+        return v === undefined ? colorOf(name) : v
+    }
+
     readonly property color primary: colorOf("primary")
     readonly property color error: colorOf("error")
     readonly property color outlineVariant: colorOf("outline_variant")
 
-    // Typography (matches waybar style.css)
+    // Typography
     readonly property string fontFamily: "Ndot 57"
     readonly property string uiFont: "Inter"
     readonly property string iconFont: "Symbols Nerd Font"
     readonly property int fontSize: 13
 
-    // Layout (matches waybar config.jsonc)
+    // Layout
     readonly property int barHeight: 48
     readonly property int pillHeight: 32
     readonly property int groupSpacing: 5
 
-    readonly property color textColor: "#000000"
+    // Popup foregrounds follow the shell light/dark mode.
+    readonly property color textColor: root.qsLight ? root.qsPillFg : "#000000"
+    readonly property color onTextColor: root.qsLight ? "#000000" : "#ffffff"
     readonly property color darkText: colorOf("shadow")
+
+    readonly property string terminalCommand: "kitty"
 
     function luminance(color) {
         return 0.299 * color.r + 0.587 * color.g + 0.114 * color.b
@@ -129,6 +128,7 @@ ShellRoot {
         if (prayerName.length > 0)
             prayerText = prayerName + " in " + fmtCountdown(prayerTarget.getTime() - Date.now())
     }
+
     property string memText: ""
 
     Process {
@@ -212,8 +212,8 @@ ShellRoot {
         onTriggered: memProc.running = true
     }
 
-    // PulseAudio (Pipewire) — read/controlled via pactl (waybar-style, avoids
-    // quickshell's Pipewire node never binding properly in this environment)
+    // PulseAudio (pipewire) via pactl, driven with a subscribe watch so the
+    // pill only refreshes on real sink/server changes.
     property int volumePercent: 0
     property bool muted: false
     readonly property string volumeIcon: muted ? "󰝟" : (volumePercent <= 33 ? "󰕿" : volumePercent <= 66 ? "󰖀" : "󰕾")
@@ -234,8 +234,6 @@ ShellRoot {
         id: volCmd
     }
 
-    // pactl subscribe streams audio-server events, so the pill refreshes only
-    // when a sink or server property actually changes instead of polling.
     Process {
         id: volWatch
         command: ["sh", "-c", "exec pactl subscribe"]
@@ -276,7 +274,7 @@ ShellRoot {
         return root.batteryIcons[i]
     }
 
-    // Keyboard layout (niri) — show short codes like waybar's kblayout script
+    // Keyboard layout (niri): short codes like waybar's kblayout script.
     function shortLayout(name) {
         if (name.indexOf("Arabic") >= 0) return "AR"
         if (name.indexOf("English") >= 0) return "US"
@@ -289,12 +287,12 @@ ShellRoot {
     property bool networkConnected: false
     property int networkSignal: 0
 
-    // strength tint for pills: strong->primary, mid->tertiary, weak->error
+    // Pill tint: strong->primary, mid->tertiary, weak->error
     function signalTint(sig) {
         var s = sig || 0
-        if (s >= 60) return root.colorOf("primary_container")
-        if (s >= 30) return root.colorOf("tertiary_container")
-        return root.colorOf("error_container")
+        if (s >= 60) return root.pillColor("primary_container")
+        if (s >= 30) return root.pillColor("tertiary_container")
+        return root.pillColor("error_container")
     }
 
     Process {
@@ -359,15 +357,7 @@ ShellRoot {
         onTriggered: btProc.running = true
     }
 
-    // Media (playerctl)
     property string mediaStatus: "none"
-    property string mediaText: ""
-    property real mediaPos: 0
-    property real mediaLen: 0
-    property string mediaArt: ""
-    readonly property real mediaProgress: mediaLen > 0
-        ? (mediaPos * 1000000) / mediaLen : 0
-    readonly property string mediaIcon: mediaStatus === "Playing" ? "󰎆" : mediaStatus === "Paused" ? "󰏤" : "󰎇"
 
     Process {
         id: mediaProc
@@ -375,12 +365,7 @@ ShellRoot {
         stdout: SplitParser {
             onRead: data => {
                 if (!data) return
-                var parts = data.trim().split("|")
-                root.mediaStatus = parts[0] || "none"
-                root.mediaText = parts.length > 1 ? parts[1] : ""
-                root.mediaPos = parseFloat(parts[2]) || 0
-                root.mediaLen = parseFloat(parts[3]) || 0
-                root.mediaArt = parts.length > 4 ? parts[4] : ""
+                root.mediaStatus = data.trim().split("|")[0] || "none"
             }
         }
     }
@@ -389,31 +374,14 @@ ShellRoot {
         id: mediaCmd
     }
 
-    // Poll often while something is playing (position tick), slowly otherwise.
+    // Keep the pill in sync with status/title changes.
     Timer {
         interval: 5000
         running: true
         repeat: true
-        onTriggered: {
-            mediaProc.running = true
-            if (root.mediaStatus === "Playing" && root.mediaLen > 0)
-                mediaTick.restart()
-        }
-    }
-    Timer {
-        id: mediaTick
-        interval: 1000
-        repeat: true
-        onTriggered: {
-            if (root.mediaStatus !== "Playing") {
-                mediaTick.stop()
-            } else {
-                mediaProc.running = true
-            }
-        }
+        onTriggered: mediaProc.running = true
     }
 
-    // Countdown timer (controlled from the clock popup)
     readonly property int defaultTimerMs: 25 * 60000
     property real timerRemainingMs: defaultTimerMs
     property bool timerRunning: false
@@ -470,7 +438,7 @@ ShellRoot {
         }
     }
 
-    // Clock (checks every second, only repaints when the minute changes)
+    // Clock (repaints only when the minute changes)
     property string clockText: ""
 
     Timer {
@@ -483,6 +451,12 @@ ShellRoot {
         }
     }
 
+    Process {
+        id: awwwProc
+        command: ["awww-daemon"]
+        running: true
+    }
+
     Component.onCompleted: {
         weatherProc.running = true
         prayerProc.running = true
@@ -492,9 +466,8 @@ ShellRoot {
         mediaProc.running = true
     }
 
-    // niri IPC — raw JSON over the $NIRI_SOCKET unix socket (quickshell's
-    // built-in Niri module was removed). Subscribes to the event stream, which
-    // delivers the full current state up-front, then incremental updates.
+    // niri IPC — raw JSON over the $NIRI_SOCKET socket (the built-in module was
+    // removed). Subscribes to the event stream: full state up-front, then deltas.
     component NiriIpc: Item {
         id: niri
 
@@ -506,12 +479,10 @@ ShellRoot {
             return rt && wd ? rt + "/niri-ipc-" + wd + ".sock" : ""
         })()
 
-        // Keyboard layout: XKB names + index of the active one.
         property var layoutNames: []
         property int layoutIdx: -1
         property string keyboardLayoutName: ""
 
-        // Workspaces as {id, idx, name, output, active, focused, urgent}.
         property var workspaces: []
 
         signal workspacesUpdated()
@@ -612,7 +583,7 @@ ShellRoot {
 
         property string pendingAction: ""
 
-        // Event stream: emits full state, then one-line JSON events.
+        // Event stream: full state, then one-line JSON events.
         Socket {
             id: streamSock
             path: niri.socketPath
@@ -634,7 +605,7 @@ ShellRoot {
             onError: error => console.log("[niri] event stream error:", error)
         }
 
-        // Separate socket for one-off requests (event stream stops reading requests).
+        // Separate socket for one-off requests (the event stream stops reading those).
         Socket {
             id: actionSock
             parser: SplitParser {
@@ -699,21 +670,19 @@ ShellRoot {
         id: niriIpc
     }
 
-    // A pill-shaped module, styled like the waybar modules.
-    // Icons are rendered in a separate Text so Nerd Font glyphs keep full size
-    // (Ndot 57's dot-matrix advance squashes fallback glyphs).
+    // Pill-shaped module like waybar's. Icon is a separate Text so Nerd Font
+    // glyphs stay full-size (Ndot 57 squashes fallback glyphs).
     component Module: Rectangle {
         id: pill
         property string label: ""
         property string icon: ""
         property int padX: 14
+        property bool showControls: false
         property color tint: root.primary
-        property bool whiteText: false
         property alias clickArea: pillArea
         property alias wheelArea: pillArea
 
-        // Light mode: Quick Shell forces white font on its dark pills.
-        // Otherwise: white font on dark pills, black on light pills.
+        // White font on dark pills, black on light ones.
         readonly property color pillTextColor: root.qsLight
             ? root.qsPillFg
             : (root.luminance(tint) > 0.5 ? root.darkText : "#ffffff")
@@ -758,11 +727,43 @@ ShellRoot {
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
             }
+
+            Row {
+                id: pillCtrls
+                visible: pill.showControls
+                spacing: 2
+
+                MediaBtn {
+                    width: pill.height
+                    height: pill.height
+                    icon: "prev"
+                    fore: pill.pillTextColor
+                    back: "#00000000"
+                    onActivated: { mediaCmd.command = ["playerctl", "previous"]; mediaCmd.running = true }
+                }
+                MediaBtn {
+                    width: pill.height
+                    height: pill.height
+                    icon: root.mediaStatus === "Playing" ? "pause" : "play"
+                    fore: "#ffffff"
+                    back: "#00000000"
+                    onActivated: { mediaCmd.command = ["playerctl", "play-pause"]; mediaCmd.running = true }
+                }
+                MediaBtn {
+                    width: pill.height
+                    height: pill.height
+                    icon: "next"
+                    fore: pill.pillTextColor
+                    back: "#00000000"
+                    onActivated: { mediaCmd.command = ["playerctl", "next"]; mediaCmd.running = true }
+                }
+            }
         }
 
         MouseArea {
             id: pillArea
             anchors.fill: parent
+            enabled: !pill.showControls
             acceptedButtons: Qt.LeftButton | Qt.RightButton
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
@@ -770,7 +771,7 @@ ShellRoot {
         }
     }
 
-    // Media control button, serpantinum IconButton style (Nerd Font glyph).
+    // Media control button (Nerd Font glyph).
     component MediaBtn: Rectangle {
         id: mbtn
         property string icon: "play"
@@ -822,8 +823,7 @@ ShellRoot {
         }
     }
 
-    // Workspace dots with a sliding active highlight, wrapped in a pill
-    // container (serpantinum WorkspacesWidget style).
+    // Workspace dots with a sliding active highlight, in a pill container.
     component Workspaces: Rectangle {
         id: wsWidget
         property var workspaces: []
@@ -891,7 +891,7 @@ ShellRoot {
         }
     }
 
-    // ── LOCKSCREEN ──
+    // Lock, triggered by writing to the lock fifo (lock.sh).
     property bool lockActive: false
 
     Process {
@@ -921,6 +921,258 @@ ShellRoot {
                     onUnlocked: lockActive = false
                 }
             }
+        }
+    }
+
+    // Wallpaper picker — full-screen overlay, fades/slides in and out.
+    function openWallpaperPicker() {
+        if (wallPicker.visible || openAnim.running) return
+        notifSvc.closeCenter()
+        pickerContent.opacity = 0
+        pickerContent.anchors.topMargin = -24
+        pickerContent.anchors.bottomMargin = 24
+        wallPicker.visible = true
+        openAnim.start()
+    }
+    function closeWallpaperPicker() {
+        if (!wallPicker.visible || closeAnim.running) return
+        closeAnim.start()
+    }
+    function toggleWallpaperPicker() {
+        if (wallPicker.visible) closeWallpaperPicker()
+        else openWallpaperPicker()
+    }
+
+    // Niri hotkey (Mod+G) drives the picker via `qs ipc call wallpaper toggle`.
+    IpcHandler {
+        target: "wallpaper"
+        function toggle(): void {
+            root.toggleWallpaperPicker()
+        }
+    }
+
+    // App launcher, toggled via `qs ipc call launcher toggle` (niri bind) or the
+    // launcher pill. Click outside / Escape / Enter dismiss.
+    property bool launcherActive: false
+
+    function openAppLauncher() { root.launcherActive = true; notifSvc.closeCenter() }
+    function closeAppLauncher() { root.launcherActive = false }
+    function toggleAppLauncher() { root.launcherActive = !root.launcherActive }
+
+    IpcHandler {
+        target: "launcher"
+        function toggle(): void {
+            root.toggleAppLauncher()
+        }
+    }
+
+    PanelWindow {
+        id: appLauncherWin
+        visible: root.launcherActive || appLauncherContent.animProgress > 0.001
+        focusable: root.launcherActive
+        color: "transparent"
+        WlrLayershell.namespace: "app-launcher"
+        WlrLayershell.layer: WlrLayer.Overlay
+        anchors.top: true
+        anchors.bottom: true
+        anchors.left: true
+        anchors.right: true
+
+        AppLauncher {
+            id: appLauncherContent
+            anchors.fill: parent
+            rootRef: root
+            active: root.launcherActive
+            onRequestClose: root.launcherActive = false
+        }
+    }
+
+    // Video picker: recent yt-x history in a thumbnail grid, toggled via
+    // `qs ipc call ytx toggle` (niri bind) like the app launcher.
+    property bool ytxActive: false
+
+    function openYtx() { root.ytxActive = true; notifSvc.closeCenter(); root.closeAppLauncher() }
+    function closeYtx() { root.ytxActive = false }
+    function toggleYtx() { root.ytxActive = !root.ytxActive }
+
+    IpcHandler {
+        target: "ytx"
+        function toggle(): void {
+            root.toggleYtx()
+        }
+    }
+
+    PanelWindow {
+        id: ytxWin
+        visible: root.ytxActive || ytxContent.animProgress > 0.001
+        focusable: root.ytxActive
+        color: "transparent"
+        WlrLayershell.namespace: "ytx-picker"
+        WlrLayershell.layer: WlrLayer.Overlay
+        anchors.top: true
+        anchors.bottom: true
+        anchors.left: true
+        anchors.right: true
+
+        YtXLauncher {
+            id: ytxContent
+            anchors.fill: parent
+            rootRef: root
+            active: root.ytxActive
+            onRequestClose: root.ytxActive = false
+        }
+    }
+
+    PanelWindow {
+        id: wallPicker
+        visible: false
+        focusable: true
+        color: "transparent"
+        WlrLayershell.namespace: "wallpaper-picker"
+        WlrLayershell.layer: WlrLayer.Overlay
+        anchors.top: true
+        anchors.bottom: true
+        anchors.left: true
+        anchors.right: true
+
+        WallpaperPicker {
+            id: pickerContent
+            anchors.fill: parent
+            // Dark glass, so pale matugen pastels don't wash out the desktop.
+            surfaceColor: "#17181c"
+            borderColor: Qt.color(root.colorOf("outline_variant"))
+            fgColor: "#ffffff"
+            accentColor: Qt.color(root.colorOf("primary"))
+            iconFont: root.iconFont
+            uiFont: root.uiFont
+            onRequestClose: root.closeWallpaperPicker()
+        }
+
+        onVisibleChanged: {
+            pickerContent.visible_ = visible
+            if (visible) {
+                pickerContent.triggerIndexer()
+            }
+        }
+    }
+
+    SequentialAnimation {
+        id: openAnim
+        running: false
+        ParallelAnimation {
+            NumberAnimation {
+                target: pickerContent
+                property: "opacity"
+                from: 0
+                to: 1
+                duration: 240
+                easing.type: Easing.OutCubic
+            }
+            NumberAnimation {
+                target: pickerContent
+                property: "anchors.topMargin"
+                from: -24
+                to: 0
+                duration: 240
+                easing.type: Easing.OutCubic
+            }
+            NumberAnimation {
+                target: pickerContent
+                property: "anchors.bottomMargin"
+                from: 24
+                to: 0
+                duration: 240
+                easing.type: Easing.OutCubic
+            }
+        }
+    }
+
+    SequentialAnimation {
+        id: closeAnim
+        running: false
+        ParallelAnimation {
+            NumberAnimation {
+                target: pickerContent
+                property: "opacity"
+                to: 0
+                duration: 220
+                easing.type: Easing.OutCubic
+            }
+            NumberAnimation {
+                target: pickerContent
+                property: "anchors.topMargin"
+                to: 24
+                duration: 220
+                easing.type: Easing.OutCubic
+            }
+            NumberAnimation {
+                target: pickerContent
+                property: "anchors.bottomMargin"
+                to: -24
+                duration: 220
+                easing.type: Easing.OutCubic
+            }
+        }
+        ScriptAction {
+            script: {
+                wallPicker.visible = false
+                pickerContent.anchors.topMargin = 0
+                pickerContent.anchors.bottomMargin = 0
+                pickerContent.opacity = 1
+            }
+        }
+    }
+
+    // Notification service: DBus daemon + history/popup models.
+    NotificationService {
+        id: notifSvc
+    }
+
+    // Popup toasts, stacked at the top-right of the primary screen.
+    NotifPopups {
+        id: notifPopups
+        rootRef: root
+        svc: notifSvc
+    }
+
+    // Notification center — right-docked panel. Toggle via
+    // `qs ipc call notifications toggle` (Mod+Shift+M) or the bell pill.
+    function toggleNotifCenter() {
+        if (!notifSvc.centerOpen) {
+            root.launcherActive = false
+            root.closeWallpaperPicker()
+        }
+        notifSvc.toggleCenter()
+    }
+
+    IpcHandler {
+        target: "notifications"
+        function toggle(): void {
+            root.toggleNotifCenter()
+        }
+    }
+
+    PanelWindow {
+        id: notifCenterWin
+        visible: notifSvc.centerOpen || notifCenterContent.animProgress > 0.001
+        focusable: notifSvc.centerOpen
+        color: "transparent"
+        WlrLayershell.namespace: "notification-center"
+        WlrLayershell.layer: WlrLayer.Overlay
+        anchors.top: true
+        anchors.bottom: true
+        anchors.left: true
+        anchors.right: true
+
+        NotifCenter {
+            id: notifCenterContent
+            anchors.fill: parent
+            rootRef: root
+            svc: notifSvc
+        }
+
+        onVisibleChanged: {
+            if (visible) Qt.callLater(() => notifCenterContent.forceActiveFocus())
         }
     }
 
@@ -964,7 +1216,6 @@ ShellRoot {
                 width: barRow.implicitWidth + 10
                 height: root.barHeight
                 anchors.horizontalCenter: parent.horizontalCenter
-
 
                 Row {
                     id: barRow
@@ -1013,16 +1264,9 @@ ShellRoot {
 
                     Module {
                         id: mediaPill
-                        icon: root.mediaIcon
                         tint: root.pillColor("primary_fixed_dim")
-                        visible: root.mediaStatus === "Playing"
-
-                        clickArea.onClicked: {
-                            calPopup.forceClose()
-                            wifiPopup.wifiForceClose()
-                            if (mediaPopup.visible) mediaPopup.mediaClose()
-                            else mediaPopup.mediaOpen()
-                        }
+                        visible: root.mediaStatus !== "none"
+                        showControls: true
                     }
 
                     Module {
@@ -1061,7 +1305,6 @@ ShellRoot {
 
                         clickArea.onClicked: {
                             calPopup.forceClose()
-                            mediaPopup.mediaForceClose()
                             if (wifiPopup.visible) wifiPopup.wifiClose()
                             else wifiPopup.wifiOpen()
                         }
@@ -1074,7 +1317,6 @@ ShellRoot {
                             : root.batteryIcon(root.batteryPercent)
                         label: root.batteryPercent + " %"
                         tint: root.pillColor("battery")
-                        color: root.pillColor("battery")
                     }
 
                     Module {
@@ -1084,204 +1326,11 @@ ShellRoot {
                         tint: root.pillColor("secondary_fixed")
 
                         clickArea.onClicked: {
-                            mediaPopup.mediaForceClose()
                             wifiPopup.wifiForceClose()
                             calPopup.open()
                         }
                     }
                 }
-            }
-
-            // Music popup, opens above the media pill
-            PopupWindow {
-            id: mediaPopup
-            visible: false
-            grabFocus: true
-            implicitWidth: 300
-            implicitHeight: 160
-            color: "transparent"
-
-            BackgroundEffect.blurRegion: Region {
-                item: mediaPopupBody
-                radius: 20
-            }
-            mask: Region {
-                Region { item: mediaPopupBody; radius: 20 }
-            }
-
-            // Body fills the whole surface; dismiss via outside click.
-            Rectangle {
-                id: mediaPopupBody
-                width: parent.width
-                height: parent.height
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.top: parent.top
-                anchors.topMargin: mediaPopup.animProgress < 1 ? 16 * (1.0 - mediaPopup.animProgress) : 0
-                radius: 20
-                color: root.colorOf("primary_fixed_dim")
-                border.width: 1
-                border.color: root.withAlpha(root.outlineVariant, 0.35)
-                opacity: mediaPopup.animProgress
-                scale: 0.92 + (0.08 * mediaPopup.animProgress)
-                transformOrigin: Item.Top
-
-                Column {
-                    anchors.fill: parent
-                    anchors.margins: 14
-                    spacing: 8
-
-                    Row {
-                        width: parent.width
-                        spacing: 10
-
-                        Rectangle {
-                            width: 52
-                            height: 52
-                            radius: 8
-                            color: root.withAlpha(root.textColor, 0.1)
-                            clip: true
-
-                            Image {
-                                anchors.fill: parent
-                                source: root.mediaArt
-                                fillMode: Image.PreserveAspectCrop
-                                visible: root.mediaArt.length > 0
-                            }
-
-                            Text {
-                                anchors.centerIn: parent
-                                text: root.mediaIcon
-                                color: root.textColor
-                                font.family: root.iconFont
-                                font.pixelSize: root.fontSize + 4
-                            }
-                        }
-
-                        Text {
-                            id: mediaPopupTitle
-                            width: parent.width - 52 - 10
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: root.mediaText
-                            wrapMode: Text.Wrap
-                            color: root.textColor
-                            font.family: root.uiFont
-                            font.pixelSize: root.fontSize + 1
-                            font.weight: Font.Bold
-                        }
-                    }
-
-                    // Seek slider
-                    Item {
-                        width: parent.width
-                        height: 18
-
-                        Rectangle {
-                            anchors.left: parent.left
-                            anchors.right: parent.right
-                            anchors.verticalCenter: parent.verticalCenter
-                            height: 5
-                            radius: 3
-                            color: root.withAlpha(root.textColor, 0.2)
-                        }
-                        Rectangle {
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: parent.width * root.mediaProgress
-                            height: 5
-                            radius: 3
-                            color: root.textColor
-                        }
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: mouse => {
-                                var frac = mouse.x / parent.width
-                                mediaCmd.command = ["playerctl", "position",
-                                    String(frac * root.mediaLen / 1000000)]
-                                mediaCmd.running = true
-                            }
-                        }
-                    }
-
-                    Row {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        spacing: 10
-
-                        MediaBtn {
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: 26
-                            height: 26
-                            icon: "prev"
-                            fore: root.textColor
-                            back: root.withAlpha(root.textColor, 0.08)
-                            onActivated: { mediaCmd.command = ["playerctl", "previous"]; mediaCmd.running = true }
-                        }
-                        MediaBtn {
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: 40
-                            height: 40
-                            icon: root.mediaStatus === "Playing" ? "pause" : "play"
-                            fore: root.textColor
-                            back: root.primary
-                            onActivated: { mediaCmd.command = ["playerctl", "play-pause"]; mediaCmd.running = true }
-                        }
-                        MediaBtn {
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: 26
-                            height: 26
-                            icon: "next"
-                            fore: root.textColor
-                            back: root.withAlpha(root.textColor, 0.08)
-                            onActivated: { mediaCmd.command = ["playerctl", "next"]; mediaCmd.running = true }
-                        }
-                    }
-                }
-            }
-
-            property bool mediaClosing: false
-            property real animProgress: 0
-
-            Behavior on animProgress {
-                NumberAnimation {
-                    duration: mediaPopup.visible ? 280 : 220
-                    easing.type: Easing.OutCubic
-                }
-            }
-
-            function mediaOpen() {
-                if (mediaClosing) return
-                mediaPopup.visible = true
-                mediaPopup.animProgress = 0
-                Qt.callLater(() => mediaPopup.animProgress = 1)
-            }
-            function mediaClose() {
-                if (mediaClosing) return
-                mediaClosing = true
-                mediaPopup.animProgress = 0
-            }
-            function mediaForceClose() {
-                mediaPopup.visible = false
-                mediaPopup.mediaClosing = false
-                mediaPopup.animProgress = 0
-            }
-
-            onAnimProgressChanged: {
-                if (mediaClosing && animProgress <= 0.01) {
-                    mediaPopup.visible = false
-                    mediaClosing = false
-                }
-            }
-
-            anchor {
-                item: mediaPill
-                edges: Edges.Top
-                gravity: Edges.Top
-                adjustment: PopupAdjustment.All
-                rect.x: 0
-                rect.y: -14
-                rect.w: mediaPill.width
-                rect.h: mediaPill.height + 28
-            }
             }
 
             // Wifi popup, opens above the network pill
@@ -1299,7 +1348,7 @@ ShellRoot {
                 id: wifiPopupBody
                 anchors.fill: parent
                 rootRef: root
-                popupColor: root.colorOf("secondary_container")
+                popupColor: root.pillColor("secondary_container")
                 anchors.topMargin: wifiPopup.animProgress < 1 ? 16 * (1.0 - wifiPopup.animProgress) : 0
                 opacity: wifiPopup.animProgress
                 transform: Scale {
@@ -1358,11 +1407,6 @@ ShellRoot {
             grabFocus: true
             implicitWidth: 250
             color: "transparent"
-
-            BackgroundEffect.blurRegion: Region {
-                item: calPopupBody
-                radius: 25
-                }
 
             // Input only where content actually is, so the empty area of the
             // fixed-size window passes clicks through.
@@ -1689,7 +1733,7 @@ ShellRoot {
                     }
 
                     radius: 25
-                    color: root.colorOf("secondary_fixed")
+                    color: root.pillColor("secondary_fixed")
                     border.width: 1
                     border.color: root.withAlpha(root.outlineVariant, 0.35)
                     clip: true
@@ -1849,7 +1893,7 @@ ShellRoot {
                                             anchors.centerIn: parent
                                             visible: day > 0
                                             text: day
-                                            color: isSelected ? "#ffffff" : root.textColor
+                                            color: isSelected ? root.onTextColor : root.textColor
                                             font.family: root.fontFamily
                                             font.pixelSize: root.fontSize
                                             font.weight: isSelected || isToday ? Font.Black : Font.Normal
@@ -1863,7 +1907,7 @@ ShellRoot {
                                             width: 4
                                             height: 4
                                             radius: 2
-                                            color: isSelected ? "#ffffff" : root.textColor
+                                            color: isSelected ? root.onTextColor : root.textColor
                                         }
 
                                         MouseArea {
@@ -2087,7 +2131,7 @@ ShellRoot {
                                                         visible: entryDone
                                                         anchors.centerIn: parent
                                                         text: "󰄲"
-                                                        color: "#ffffff"
+                                                        color: root.onTextColor
                                                         font.family: root.iconFont
                                                         font.pixelSize: root.fontSize - 2
                                                     }
@@ -2213,7 +2257,7 @@ ShellRoot {
                         id: timerBody
                         anchors.fill: parent
                         radius: 25
-                        color: root.colorOf("secondary_fixed")
+                        color: root.pillColor("secondary_fixed")
                         border.width: 1
                         border.color: root.withAlpha(root.outlineVariant, 0.35)
                         opacity: 0
