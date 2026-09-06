@@ -6,6 +6,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Effects
+import "components"
 
 // Waybar-style bar for niri. Palette from matugen via colors.js.
 
@@ -220,7 +221,7 @@ ShellRoot {
 
     Process {
         id: volProc
-        command: ["sh", "-c", "~/.config/quickshell/scripts/volume.sh"]
+        command: ["sh", "-c", Quickshell.shellDir + "/scripts/volume.sh"]
         stdout: SplitParser {
             onRead: data => {
                 var parts = data.trim().split("|")
@@ -297,7 +298,7 @@ ShellRoot {
 
     Process {
         id: netProc
-        command: ["sh", "-c", "sh ~/.config/quickshell/scripts/wifi.sh"]
+        command: ["sh", "-c", "sh " + Quickshell.shellDir + "/scripts/wifi.sh"]
         stdout: SplitParser {
             onRead: data => {
                 if (data) {
@@ -326,7 +327,7 @@ ShellRoot {
 
     Process {
         id: btProc
-        command: ["sh", "-c", "~/.config/quickshell/scripts/bluetooth.sh"]
+        command: ["sh", "-c", Quickshell.shellDir + "/scripts/bluetooth.sh"]
         stdout: SplitParser {
             onRead: data => {
                 if (data) {
@@ -361,7 +362,7 @@ ShellRoot {
 
     Process {
         id: mediaProc
-        command: ["sh", "-c", "~/.config/quickshell/scripts/media.sh"]
+        command: ["sh", "-c", Quickshell.shellDir + "/scripts/media.sh"]
         stdout: SplitParser {
             onRead: data => {
                 if (!data) return
@@ -458,6 +459,7 @@ ShellRoot {
     }
 
     Component.onCompleted: {
+        Quickshell.execDetached(["mkdir", "-p", Quickshell.env("HOME") + "/.cache/quickshell"])
         weatherProc.running = true
         prayerProc.running = true
         memProc.running = true
@@ -652,7 +654,6 @@ ShellRoot {
                     niri.refreshOccupied()
                 }
             }
-            onExited: {}
         }
 
         Timer {
@@ -891,15 +892,20 @@ ShellRoot {
         }
     }
 
-    // Lock, triggered by writing to the lock fifo (lock.sh).
+    // Lock requests from lock.sh (writes "lock" to the request file). A plain
+    // FileView watch replaces the old fifo + `while true; cat` pair, which used
+    // to leave orphaned shell processes behind on every reload.
     property bool lockActive: false
 
-    Process {
-        id: lockListener
-        command: ["sh", "-c", "mkdir -p ~/.cache/quickshell && mkfifo ~/.cache/quickshell/lock-fifo 2>/dev/null; while true; do cat ~/.cache/quickshell/lock-fifo; done"]
-        running: true
-        stdout: SplitParser {
-            onRead: data => { if (data) lockActive = true }
+    FileView {
+        id: lockReq
+        path: Quickshell.env("HOME") + "/.cache/quickshell/lock-request"
+        watchChanges: true
+        blockLoading: true
+        printErrors: false
+        onFileChanged: lockReq.reload()
+        onLoaded: {
+            if (String(lockReq.text()).trim() === "lock") lockActive = true
         }
     }
 
@@ -918,6 +924,8 @@ ShellRoot {
                 LockSurface {
                     id: passSurface
                     anchors.fill: parent
+                    rootRef: root
+                    locked: root.lockActive
                     onUnlocked: lockActive = false
                 }
             }
@@ -1339,7 +1347,6 @@ ShellRoot {
                         icon: root.networkConnected ? "󰖩" : "󰖪"
                         label: root.networkConnected ? (root.networkIp + (root.networkSignal ? "  •  " + root.networkSignal + "%" : "") || root.networkText) : "No net"
                         tint: root.pillColor("secondary_container")
-                        visible: true
 
                         clickArea.onClicked: {
                             calPopup.forceClose()
@@ -1500,17 +1507,13 @@ ShellRoot {
                         }
                         calPopup.entrySeq = maxId
                         calPopup.notes = converted
-                        console.log("[cal] notesFile loaded, keys=" + Object.keys(converted).length)
                     }
 
                     onLoadFailed: error => {
-                        console.log("[cal] notesFile loadFailed error=" + error)
                         if (error === FileViewError.FileNotFound) notesFile.writeAdapter()
                     }
 
                     onAdapterUpdated: notesFile.writeAdapter()
-
-                    onSaved: console.log("[cal] notesFile saved")
                     onSaveFailed: error => console.log("[cal] notesFile saveFailed error=" + error)
 
                     JsonAdapter {
@@ -1608,7 +1611,6 @@ ShellRoot {
                         calPopup.expanded = false
                         return
                     }
-                    console.log("[cal] selectDay key=" + key)
                     calPopup.selectedKey = key
                     calPopup.selectedEntryId = -1
                     calPopup.newEntryId = -1

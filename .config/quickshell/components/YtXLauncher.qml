@@ -63,7 +63,7 @@ Item {
     }
 
     function onRecentData(obj) {
-        if (!obj || !obj.entries)
+        if (!obj || !obj.entries || !ytx.active)
             return ;
 
         var arr = [];
@@ -91,6 +91,7 @@ Item {
     }
 
     function prefetchThumbs(arr) {
+        if (!ytx.active) return
         for (var i = 0; i < arr.length; i++) {
             var v = arr[i];
             if (ytx.prefetched[v.vid])
@@ -250,7 +251,7 @@ Item {
     }
 
     function onHomeResults(obj) {
-        if (ytx.searching || ytx.activeQuery.length > 0)
+        if (ytx.searching || ytx.activeQuery.length > 0 || !ytx.active)
             return ;
 
         ytx.pendingHome = false;
@@ -295,10 +296,6 @@ Item {
     }
 
     opacity: ytx.animProgress
-    Component.onCompleted: {
-        Quickshell.execDetached(["mkdir", "-p", ytx.thumbCache]);
-        ytx.loadRecent();
-    }
     onActiveChanged: {
         if (ytx.active) {
             ytx.activeQuery = "";
