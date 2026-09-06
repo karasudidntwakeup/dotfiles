@@ -23,8 +23,8 @@ QUICK_THEME_FILE="$HOME/.config/quickshell/qs-theme.json"
 
 # matugen prefer
 case "$MODE" in
-  light|Light) PREFER="lightness"; QUICK='{"mode": "light"}' ;;
-  *)           PREFER="darkness";  QUICK='{"mode": "dark"}'  ;;
+  light|Light) PREFER="lightness"; QUICK='{"mode": "dark"}';  ;;
+  *)           PREFER="darkness";  QUICK='{"mode": "light"}'; ;;
 esac
 
 # Build matugen source + optional --type

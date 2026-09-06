@@ -5,53 +5,53 @@
 
 /* Base scheme colors used by the shell */
 
-var primary = "#ddf3ff"
+var primary = "#def5ee"
 
-var primary_container = "#7acdef"
+var primary_container = "#b1c7c1"
 
-var primary_fixed_dim = "#7ed1f4"
+var primary_fixed_dim = "#b5cbc5"
 
 var error = "#ffece9"
 
 var error_container = "#ffaea4"
 
-var outline_variant = "#d8bbc1"
+var outline_variant = "#bec4c1"
 
 var shadow = "#000000"
 
 var on_primary_container = "#000000"
 
-var secondary_container = "#f1b4a6"
+var secondary_container = "#bcc4c1"
 
-var secondary_fixed = "#ffdad2"
+var secondary_fixed = "#dce4e1"
 
-var secondary_fixed_dim = "#f6b8aa"
+var secondary_fixed_dim = "#c0c8c5"
 
-var tertiary_container = "#ccc57a"
+var tertiary_container = "#c1c1d6"
 
-var tertiary_fixed_dim = "#d0c97d"
+var tertiary_fixed_dim = "#c5c5da"
 
 /* Light scheme variants (QS "Light" mode pill backgrounds) */
 
-var primary_container_light = "#005066"
+var primary_container_light = "#1b2f2b"
 
-var primary_fixed_dim_light = "#003848"
+var primary_fixed_dim_light = "#223632"
 
-var secondary_container_light = "#693e33"
+var secondary_container_light = "#434b49"
 
-var secondary_fixed_light = "#693e33"
+var secondary_fixed_light = "#434b49"
 
-var secondary_fixed_dim_light = "#4f281f"
+var secondary_fixed_dim_light = "#2c3432"
 
-var tertiary_container_light = "#4f4b0b"
+var tertiary_container_light = "#292a3a"
 
-var tertiary_fixed_dim_light = "#373400"
+var tertiary_fixed_dim_light = "#303142"
 
 /* Custom widget colors */
-var prayer = "#f1b4a6"
+var prayer = "#bcc4c1"
 
-var prayer_light = "#693e33"
+var prayer_light = "#434b49"
 
-var battery = "#7acdef"
+var battery = "#b1c7c1"
 
-var battery_light = "#005066"
+var battery_light = "#1b2f2b"

@@ -47,6 +47,7 @@ Item {
     property bool homeLoaded: false
     property bool homeFailed: false
     property bool pendingHome: false
+    property string feedMode: "home"
     property var prefetched: ({
     })
 
@@ -92,7 +93,7 @@ Item {
     function prefetchThumbs(arr) {
         for (var i = 0; i < arr.length; i++) {
             var v = arr[i];
-            if (ytx.prefetched[v.id])
+            if (ytx.prefetched[v.vid])
                 continue;
 
             ytx.prefetched[v.vid] = true;
@@ -233,7 +234,8 @@ Item {
         ytx.filter(searchField.text);
     }
 
-    function ensureHome(force) {
+    function ensureHome(force, mode) {
+        ytx.feedMode = mode || "home";
         ytx.activeQuery = "";
         ytx.searching = false;
         ytx.searchFailed = false;
@@ -243,7 +245,7 @@ Item {
         }
 
         ytx.pendingHome = true;
-            Quickshell.execDetached(["bash", Quickshell.shellDir + "/scripts/ytx-home.sh", "force"]);
+            Quickshell.execDetached(["bash", Quickshell.shellDir + "/scripts/ytx-home.sh", ytx.feedMode, "force"]);
             pendingTimeout.restart();
     }
 
@@ -262,12 +264,15 @@ Item {
             if (!r || !r.id || !r.url)
                 continue;
 
+            var tid = r.id.replace(/^RD/, "");
+            var isMix = tid !== r.id;
+
             arr.push({
                 "title": r.title || "",
-                "vid": r.id,
-                "url": r.url,
+                "vid": tid,
+                "url": isMix ? ("https://www.youtube.com/watch?v=" + tid + "&list=" + r.id) : r.url,
                 "channel": r.channel || "",
-                "thumb": ytx.thumbCache + "/" + r.id + ".jpg"
+                "thumb": ytx.thumbCache + "/" + tid + ".jpg"
             });
         }
         if (arr.length === 0) {
@@ -342,7 +347,7 @@ Item {
     FileView {
         id: homeFile
 
-        path: ytx.homeDir + "/.cache/quickshell/ytx-home.json"
+        path: ytx.feedMode === "music" ? (ytx.homeDir + "/.cache/quickshell/ytx-music.json") : (ytx.homeDir + "/.cache/quickshell/ytx-home.json")
         watchChanges: true
         blockLoading: false
         onFileChanged: homeFile.reload()
@@ -590,7 +595,7 @@ Item {
                     anchors.leftMargin: ytx.searching || ytx.pendingHome ? 22 : 2
                     width: parent.width - (chipRow.visible ? chipRow.width + 8 : 4)
                     elide: Text.ElideRight
-                    text: ytx.searching ? "Searching for \u201C" + ytx.activeQuery + "\u201D\u2026" : ytx.pendingHome ? "Loading recommendations\u2026" : ytx.searchFailed ? "No results for \u201C" + ytx.activeQuery + "\u201D" : ytx.activeQuery.length > 0 ? ytx.videos.length + " results for \u201C" + ytx.activeQuery + "\u201D" : ytx.homeFailed ? "Couldn\u2019t load home recommendations" : ytx.homeLoaded ? ytx.videos.length + " recommended videos" : ""
+                    text: ytx.searching ? "Searching for \u201C" + ytx.activeQuery + "\u201D\u2026" : ytx.pendingHome ? "Loading " + (ytx.feedMode === "music" ? "music mixes\u2026" : "recommendations\u2026") : ytx.searchFailed ? "No results for \u201C" + ytx.activeQuery + "\u201D" : ytx.activeQuery.length > 0 ? ytx.videos.length + " results for \u201C" + ytx.activeQuery + "\u201D" : ytx.homeFailed ? "Couldn\u2019t load " + (ytx.feedMode === "music" ? "music mixes" : "home recommendations") : ytx.homeLoaded ? ytx.videos.length + (ytx.feedMode === "music" ? " music mixes" : " recommended videos") : ""
                     font.family: ytx.uiFont
                     font.pixelSize: Math.max(10, ytx.fontSize - 1)
                     color: ytx.searchFailed || ytx.homeFailed ? Qt.rgba(1, 0.45, 0.4, 1) : ytx.alpha(ytx.fg, 0.6)
@@ -631,6 +636,41 @@ Item {
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 ytx.ensureHome(true);
+                                searchField.text = "";
+                                searchField.forceActiveFocus();
+                                ytx.filter("");
+                            }
+                        }
+
+                    }
+
+                    Rectangle {
+                        id: musicChip
+
+                        visible: ytx.activeQuery.length === 0 && (ytx.homeLoaded || ytx.homeFailed || ytx.pendingHome)
+                        width: musicChipLabel.implicitWidth + 20
+                        height: 22
+                        radius: 11
+                        color: musicHover.containsMouse ? ytx.alpha(ytx.fg, 0.2) : ytx.alpha(ytx.fg, 0.08)
+
+                        Text {
+                            id: musicChipLabel
+
+                            anchors.centerIn: parent
+                            text: "󰝚 Music"
+                            color: ytx.fg
+                            font.family: ytx.iconFont
+                            font.pixelSize: Math.max(10, ytx.fontSize - 2)
+                        }
+
+                        MouseArea {
+                            id: musicHover
+
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                ytx.ensureHome(true, "music");
                                 searchField.text = "";
                                 searchField.forceActiveFocus();
                                 ytx.filter("");

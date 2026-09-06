@@ -27,7 +27,7 @@ CONFIG_ENABLE_COLORS="true"
 
 # The menu launcher tool used for the ui
 # Options: fzf, rofi, gum (Default: fzf)
-CONFIG_LAUNCHER="rofi"
+CONFIG_LAUNCHER="fzf"
 
 # Enable image/video previews within the selector
 # Options: true, false (Default: false)
