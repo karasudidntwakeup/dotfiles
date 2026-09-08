@@ -9,37 +9,37 @@ __yt_x_matugen_esc() {
     "$(printf '%d' "0x${h#????}")"
 }
 
-THEME_FZF_ICON_COLOR_PRIMARY="$(__yt_x_matugen_esc '#ffffff')"
-THEME_FZF_ICON_COLOR_SECONDARY="$(__yt_x_matugen_esc '#ffffff')"
-THEME_FZF_ICON_COLOR_ACCENT="$(__yt_x_matugen_esc '#f0f0f0')"
-THEME_FZF_ICON_COLOR_ERROR="$(__yt_x_matugen_esc '#ffece9')"
-THEME_FZF_PREVIEW_TITLE="$(__yt_x_matugen_esc '#ffffff')"
-THEME_FZF_PREVIEW_KEY="$(__yt_x_matugen_esc '#ffffff')"
-THEME_FZF_PREVIEW_VALUE="$(__yt_x_matugen_esc '#ffffff')"
-THEME_FZF_PREVIEW_DIVIDER="$(__yt_x_matugen_esc '#c2c2c2')"
-THEME_PLAYER_START="$(__yt_x_matugen_esc '#ffffff')"
+THEME_FZF_ICON_COLOR_PRIMARY="$(__yt_x_matugen_esc '#89b4fa')"
+THEME_FZF_ICON_COLOR_SECONDARY="$(__yt_x_matugen_esc '#a6adc8')"
+THEME_FZF_ICON_COLOR_ACCENT="$(__yt_x_matugen_esc '#fab387')"
+THEME_FZF_ICON_COLOR_ERROR="$(__yt_x_matugen_esc '#f38ba8')"
+THEME_FZF_PREVIEW_TITLE="$(__yt_x_matugen_esc '#cdd6f4')"
+THEME_FZF_PREVIEW_KEY="$(__yt_x_matugen_esc '#89b4fa')"
+THEME_FZF_PREVIEW_VALUE="$(__yt_x_matugen_esc '#a6adc8')"
+THEME_FZF_PREVIEW_DIVIDER="$(__yt_x_matugen_esc '#7f849c')"
+THEME_PLAYER_START="$(__yt_x_matugen_esc '#89b4fa')"
 
 CONFIG_FZF_OPTS="
   --ansi
   --border
   --scheme=history
   --style=full
-  --color=bg+:#474747
-  --color=bg:#131313
-  --color=border:#f0f0f0
-  --color=fg:#ffffff
-  --color=gutter:#131313
-  --color=header:#ffffff
-  --color=hl+:#ffffff
-  --color=hl:#ffffff
-  --color=info:#f0f0f0
-  --color=marker:#f0f0f0
-  --color=pointer:#ffffff
-  --color=prompt:#ffffff
-  --color=query:#ffffff:regular
-  --color=scrollbar:#c2c2c2
-  --color=separator:#f0f0f0
-  --color=spinner:#f0f0f0
+  --color=bg+:#585b70
+  --color=bg:#11111b
+  --color=border:#bac2de
+  --color=fg:#cdd6f4
+  --color=gutter:#11111b
+  --color=header:#89b4fa
+  --color=hl+:#89b4fa
+  --color=hl:#89b4fa
+  --color=info:#bac2de
+  --color=marker:#fab387
+  --color=pointer:#89b4fa
+  --color=prompt:#89b4fa
+  --color=query:#cdd6f4:regular
+  --color=scrollbar:#7f849c
+  --color=separator:#a6e3a1
+  --color=spinner:#fab387
   --border=rounded
   --border-label=''
   --prompt=' >'

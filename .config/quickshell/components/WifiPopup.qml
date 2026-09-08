@@ -100,9 +100,16 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: 12
-        color: wifiPopup.popupColor.a > 0 ? wifiPopup.popupColor : rootRef.colorOf("surface")
+        color: wifiPopup.popupColor.a > 0 ? wifiPopup.popupColor : rootRef.colorOf("surface_container")
         border.width: 1
         border.color: rootRef.colorOf("outline_variant")
+
+        SurfaceGradient {
+            anchors.fill: parent
+            inset: 1
+            radius: 12
+            color: wifiPopup.popupColor.a > 0 ? wifiPopup.popupColor : rootRef.colorOf("surface_container")
+        }
     }
 
     // Dark pastel surface in dark mode, genuine `_light` (dark) variant in light
@@ -144,6 +151,40 @@ Item {
                 font.weight: Font.DemiBold
                 color: wifiPopup.on(wifiPopup.popupColor)
                 Layout.fillWidth: true
+            }
+            Rectangle {
+                width: 26; height: 26; radius: 6
+                color: refreshArea.containsMouse
+                    ? rootRef.colorOf("primary_container") : "transparent"
+                RotationAnimation on rotation {
+                    running: wifiPoller.scan
+                    from: 0
+                    to: 360
+                    duration: 800
+                    loops: Animation.Infinite
+                }
+                Text {
+                    anchors.centerIn: parent
+                    text: "󰁑"
+                    font.family: "Symbols Nerd Font"
+                    font.pixelSize: 14
+                    color: rootRef.colorOf("primary")
+                }
+                MouseArea {
+                    id: refreshArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: wifiPopup.scanNetworks()
+                }
+            }
+            Text {
+                text: "Scanning"
+                font.family: "Inter"
+                font.pixelSize: 12
+                font.weight: Font.Medium
+                color: wifiPopup.on(wifiPopup.popupColor)
+                visible: wifiPoller.scan
             }
             Text {
                 text: "󰦖"

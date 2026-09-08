@@ -27,9 +27,9 @@ Item {
     readonly property int titleHeight: Math.round((fontSize - 1) * 1.2) * 2
     readonly property int channelHeight: Math.max(10, fontSize - 3)
     readonly property int cellHeight: cellInset * 2 + thumbHeight + 7 + titleHeight + 3 + channelHeight
-    readonly property string cardTile: "secondary_fixed"
+    readonly property string cardTile: "ytx_card"
     readonly property color cardColor: rootRef ? (rootRef.qsLight ? (rootRef.pillColor(cardTile)) : rootRef.colorOf(cardTile)) : "#f3dfd1"
-    readonly property color cardBorder: rootRef ? rootRef.withAlpha(rootRef.colorOf("outline_variant"), rootRef.qsLight ? 0.5 : 0.35) : "#00000000"
+    readonly property color cardBorder: rootRef ? rootRef.withAlpha(rootRef.colorOf("widget_border"), rootRef.qsLight ? 0.5 : 0.35) : "#00000000"
     readonly property color fg: rootRef ? (rootRef.qsLight ? rootRef.qsPillFg : rootRef.textColor) : "#000000"
     readonly property color accent: fg
     readonly property color accentText: rootRef && rootRef.qsLight ? "#000000" : "#ffffff"
@@ -418,6 +418,13 @@ Item {
         border.color: ytx.cardBorder
         clip: true
 
+        SurfaceGradient {
+            anchors.fill: parent
+            inset: 1
+            color: ytx.cardColor
+            radius: ytx.cornerRadius
+        }
+
         Column {
             id: contentColumn
 
@@ -499,6 +506,22 @@ Item {
                             event.accepted = true;
                         }
                         Keys.onPressed: (event) => {
+                            if (event.key === Qt.Key_1 && (event.modifiers & Qt.AltModifier)) {
+                                ytx.ensureHome(false);
+                                searchField.text = "";
+                                searchField.forceActiveFocus();
+                                ytx.filter("");
+                                event.accepted = true;
+                                return ;
+                            }
+                            if (event.key === Qt.Key_2 && (event.modifiers & Qt.AltModifier)) {
+                                ytx.ensureHome(false, "music");
+                                searchField.text = "";
+                                searchField.forceActiveFocus();
+                                ytx.filter("");
+                                event.accepted = true;
+                                return ;
+                            }
                             if (event.key === Qt.Key_P) {
                                 var q = searchField.text.trim();
                                 if (q.length > 0 && ytx.activeQuery.length === 0 && !ytx.searching)
@@ -904,9 +927,8 @@ Item {
 
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: ytx.feedMode === "music"
-                                  ? "Enter: audio  ·  Alt+Enter: video  ·  P: playlist  ·  Esc: close"
-                                  : "Enter: video  ·  Alt+Enter: audio  ·  P: playlist  ·  Esc: close"
+                    text: (ytx.feedMode === "music" ? "Enter: audio  ·  Alt+Enter: video" : "Enter: video  ·  Alt+Enter: audio")
+                                  + "  ·  P: playlist  ·  Alt+1: home  ·  Alt+2: music  ·  Esc: close"
                     font.family: ytx.uiFont
                     font.pixelSize: Math.max(10, ytx.fontSize - 2)
                     color: ytx.alpha(ytx.fg, 0.4)

@@ -5,7 +5,6 @@ import Quickshell.Services.UPower
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Effects
 import "components"
 
 // Waybar-style bar for niri. Palette from matugen via colors.js.
@@ -118,6 +117,7 @@ ShellRoot {
     property string prayerText: ""
     property string prayerName: ""
     property date prayerTarget: new Date(0)
+    property bool prayerAlerted: false
 
     function fmtCountdown(ms) {
         var m = Math.max(0, Math.round(ms / 60000))
@@ -169,6 +169,7 @@ ShellRoot {
                 }
                 prayerTarget = d
                 prayerName = parts[0]
+                prayerAlerted = false
                 updatePrayerCountdown()
             }
         }
@@ -204,6 +205,22 @@ ShellRoot {
         running: true
         repeat: true
         onTriggered: updatePrayerCountdown()
+    }
+
+    Timer {
+        id: prayerAlertTimer
+        interval: 30000
+        running: root.prayerName.length > 0 && !root.prayerAlerted
+        repeat: true
+        onTriggered: {
+            if (root.prayerTarget.getTime() - Date.now() > 0)
+                return
+            root.prayerAlerted = true
+            Quickshell.execDetached(["sh", "-c",
+                "paplay ~/.local/share/sounds/bell.oga &\n" +
+                "notify-send -u critical -i appointment-soon -t 15000 '" + root.prayerName + "' 'It is time for " + root.prayerName + " 󰦕'"])
+            root.prayerProc.running = true
+        }
     }
 
     Timer {
@@ -359,6 +376,9 @@ ShellRoot {
     }
 
     property string mediaStatus: "none"
+    property real mediaPosMs: 0
+    property real mediaLenMs: 0
+    property string mediaInfo: ""
 
     Process {
         id: mediaProc
@@ -366,7 +386,29 @@ ShellRoot {
         stdout: SplitParser {
             onRead: data => {
                 if (!data) return
-                root.mediaStatus = data.trim().split("|")[0] || "none"
+                var fields = data.trim().split("|")
+                if (fields[0]) root.mediaStatus = fields[0]
+                // Title may contain "|", so anchor numeric fields from the right:
+                // [status, info..., pos, len, art]
+                var n = fields.length
+                var pos = (parseFloat(fields[n - 3]) || 0) / 1000
+                var len = parseFloat(fields[n - 2]) / 1000
+                var info = fields.slice(1, n - 3).join("|").trim()
+                var trackChanged = info && info !== root.mediaInfo
+                if (trackChanged) root.mediaInfo = info
+                // Retain the last known length if the player momentarily drops
+                // mpris:length for the same track (Firefox quirk after seeking).
+                root.mediaLenMs =
+                    (isFinite(len) && len > 0) ? len
+                    : (!trackChanged && root.mediaLenMs > 0) ? root.mediaLenMs
+                    : 0
+                // While playing, let the local ticker drive the bar forward and
+                // only adopt the player position if it's ahead (drift fix).
+                // Firefox resets position to ~0 after a seek, so never regress.
+                root.mediaPosMs =
+                    trackChanged ? pos
+                    : root.mediaStatus === "Playing" ? Math.max(root.mediaPosMs, pos)
+                    : pos
             }
         }
     }
@@ -375,12 +417,30 @@ ShellRoot {
         id: mediaCmd
     }
 
-    // Keep the pill in sync with status/title changes.
+    // Throttle periodic sync so the local ticker stays authoritative.
     Timer {
-        interval: 5000
+        id: mediaSync
+        interval: 2000
         running: true
         repeat: true
         onTriggered: mediaProc.running = true
+    }
+
+    // Smoothly advance the position locally between playerctl polls so the
+    // seek bar stays live instead of jumping once per sync.
+    Timer {
+        id: mediaTicker
+        interval: 100
+        running: root.mediaStatus === "Playing"
+        repeat: true
+        onTriggered: {
+            if (root.mediaStatus === "Playing")
+                root.mediaPosMs = Math.min(root.mediaPosMs + 100, root.mediaLenMs)
+        }
+        onRunningChanged: {
+            // Resync with the player when playback starts to avoid drift.
+            if (running) mediaProc.running = true
+        }
     }
 
     readonly property int defaultTimerMs: 25 * 60000
@@ -692,6 +752,9 @@ ShellRoot {
         implicitHeight: root.pillHeight - 2
         radius: 8
         color: tint
+        border.width: 1
+        border.color: root.withAlpha(root.outlineVariant, 0.4)
+
         scale: (pillArea.pressed ? 0.96 : (pillArea.containsMouse ? 1.03 : 1.0)) * pill.popScale
         Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
 
@@ -729,34 +792,83 @@ ShellRoot {
                 verticalAlignment: Text.AlignVCenter
             }
 
-            Row {
+            // Plain seekbar: played region lit, upcoming dimmed, drag to seek.
+            Item {
                 id: pillCtrls
                 visible: pill.showControls
-                spacing: 2
+                readonly property real seekPadX: 4
+                implicitWidth: 140
+                implicitHeight: pill.height
 
-                MediaBtn {
-                    width: pill.height
-                    height: pill.height
-                    icon: "prev"
-                    fore: pill.pillTextColor
-                    back: "#00000000"
-                    onActivated: { mediaCmd.command = ["playerctl", "previous"]; mediaCmd.running = true }
+                property real progress: root.mediaLenMs > 0
+                    ? Math.max(0, Math.min(1, root.mediaPosMs / root.mediaLenMs))
+                    : 0
+                readonly property color vizLit: pill.pillTextColor
+                readonly property color vizDim: Qt.rgba(pill.pillTextColor.r, pill.pillTextColor.g, pill.pillTextColor.b, 0.25)
+
+                // Rounded track (background of the timeline).
+                Rectangle {
+                    id: seekTrack
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.leftMargin: pillCtrls.seekPadX
+                    anchors.rightMargin: pillCtrls.seekPadX
+                    anchors.verticalCenter: parent.verticalCenter
+                    height: 8
+                    radius: height / 2
+                    color: pillCtrls.vizDim
                 }
-                MediaBtn {
-                    width: pill.height
-                    height: pill.height
-                    icon: root.mediaStatus === "Playing" ? "pause" : "play"
-                    fore: "#ffffff"
-                    back: "#00000000"
-                    onActivated: { mediaCmd.command = ["playerctl", "play-pause"]; mediaCmd.running = true }
+
+                // Progress fill up to the playhead.
+                Rectangle {
+                    id: seekFill
+                    anchors.left: seekTrack.left
+                    anchors.top: seekTrack.top
+                    anchors.bottom: seekTrack.bottom
+                    width: pillCtrls.progress * seekTrack.width
+                    radius: seekTrack.radius
+                    color: pillCtrls.vizLit
                 }
-                MediaBtn {
-                    width: pill.height
-                    height: pill.height
-                    icon: "next"
-                    fore: pill.pillTextColor
-                    back: "#00000000"
-                    onActivated: { mediaCmd.command = ["playerctl", "next"]; mediaCmd.running = true }
+
+                // Playhead handle, appears while hovering / dragging.
+                Rectangle {
+                    id: timelineKnob
+                    anchors.verticalCenter: parent.verticalCenter
+                    x: pillCtrls.seekPadX + pillCtrls.progress * (pillCtrls.width - pillCtrls.seekPadX * 2) - width * 0.5
+                    width: 3
+                    height: pillCtrls.height - 8
+                    radius: 1.5
+                    color: pill.pillTextColor
+                    visible: timelineArea.hovered || timelineArea.dragging
+                    opacity: timelineArea.dragging ? 1.0 : 0.85
+                }
+
+                MouseArea {
+                    id: timelineArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    property bool dragging: false
+
+                    function seekTo(posX) {
+                        if (root.mediaLenMs <= 0) return
+                        var ratio = Math.max(0, Math.min(1, posX / timelineArea.width))
+                        var targetMs = Math.round(ratio * root.mediaLenMs)
+                        mediaCmd.command = ["playerctl", "position", String(targetMs / 1000)]
+                        mediaCmd.running = true
+                        root.mediaPosMs = targetMs
+                    }
+
+                    onPressed: (mouse) => {
+                        dragging = true
+                        seekTo(mouse.x)
+                    }
+                    onPositionChanged: (mouse) => {
+                        if (dragging) seekTo(mouse.x)
+                    }
+                    onReleased: (mouse) => {
+                        dragging = false
+                    }
                 }
             }
         }
@@ -769,58 +881,6 @@ ShellRoot {
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onClicked: pillPopAnim.start()
-        }
-    }
-
-    // Media control button (Nerd Font glyph).
-    component MediaBtn: Rectangle {
-        id: mbtn
-        property string icon: "play"
-        property color fore: "#000000"
-        property color back: "#00000000"
-        property real radiusPx: 10
-        signal activated()
-
-        readonly property string glyph: mbtn.icon === "prev" ? "󰒮"
-            : mbtn.icon === "next" ? "󰒭"
-            : mbtn.icon === "pause" ? "󰏤"
-            : "󰐊"
-
-        radius: radiusPx
-        color: !mbtn.enabled ? back
-            : (mbtnArea.pressed ? Qt.darker(back, 1.12)
-            : (mbtnArea.containsMouse ? Qt.lighter(back, 1.12) : back))
-        Behavior on color { ColorAnimation { duration: 180 } }
-
-        scale: (!mbtn.enabled ? 1.0
-            : (mbtnArea.pressed ? 1.06 : (mbtnArea.containsMouse ? 1.04 : 1.0))) * mbtn.popScale
-        Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
-        property real popScale: 1.0
-        SequentialAnimation {
-            id: mbtnPopAnim
-            running: false
-            NumberAnimation { target: mbtn; property: "popScale"; to: 1.1; duration: 110; easing.type: Easing.OutQuad }
-            NumberAnimation { target: mbtn; property: "popScale"; to: 1.0; duration: 420; easing.type: Easing.OutQuint }
-        }
-
-        Text {
-            anchors.centerIn: parent
-            text: mbtn.glyph
-            font.family: root.iconFont
-            font.pixelSize: Math.min(mbtn.width, mbtn.height) * 0.5
-            color: mbtn.fore
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-        }
-
-        MouseArea {
-            id: mbtnArea
-            anchors.fill: parent
-            cursorShape: Qt.PointingHandCursor
-            onClicked: {
-                mbtn.activated()
-                mbtnPopAnim.start()
-            }
         }
     }
 
@@ -1231,8 +1291,8 @@ ShellRoot {
             screen: modelData
             focusable: true
 
-            anchors.bottom: true
-            margins.bottom: 10
+            anchors.top: true
+            margins.top: 10
             implicitWidth: barContent.width
             implicitHeight: root.barHeight
             color: "transparent"
@@ -1286,7 +1346,7 @@ ShellRoot {
                         id: btPill
                         icon: root.bluetoothStatus === "off" ? "󰂲" : root.bluetoothStatus === "connected" ? "󰂱" : "󰂯"
                         label: root.bluetoothText
-                        tint: root.pillColor("tertiary_container")
+                        tint: root.pillColor("tertiary_fixed")
                         visible: root.bluetoothStatus === "connected"
 
                         clickArea.onClicked: {
@@ -1305,13 +1365,14 @@ ShellRoot {
                     Module {
                         id: kbPill
                         label: root.shortLayout(niriIpc.keyboardLayoutName)
-                        tint: root.pillColor("tertiary_fixed_dim")
+                        tint: root.pillColor("primary_fixed")
                     }
 
                     Module {
                         id: mediaPill
                         tint: root.pillColor("primary_fixed_dim")
                         visible: root.mediaStatus !== "none"
+                        padX: 10
                         showControls: true
                     }
 
@@ -1361,7 +1422,7 @@ ShellRoot {
                             ? "󰋠 󰛞 󰋑 󰋑"
                             : root.batteryIcon(root.batteryPercent)
                         label: root.batteryPercent + " %"
-                        tint: root.pillColor("battery")
+                        tint: root.pillColor("source")
                     }
 
                     Module {
@@ -1777,6 +1838,13 @@ ShellRoot {
                     border.width: 1
                     border.color: root.withAlpha(root.outlineVariant, 0.35)
                     clip: true
+
+                    SurfaceGradient {
+                        anchors.fill: parent
+                        inset: 1
+                        radius: 25
+                        color: root.pillColor("secondary_fixed")
+                    }
                     opacity: calPopup.animProgress
                     scale: 0.92 + (0.08 * calPopup.animProgress)
                     transformOrigin: Item.Top
@@ -2301,6 +2369,13 @@ ShellRoot {
                         border.width: 1
                         border.color: root.withAlpha(root.outlineVariant, 0.35)
                         opacity: 0
+
+                        SurfaceGradient {
+                            anchors.fill: parent
+                            inset: 1
+                            radius: 25
+                            color: root.pillColor("secondary_fixed")
+                        }
 
                         ColumnLayout {
                             anchors.fill: parent

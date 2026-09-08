@@ -304,6 +304,8 @@ Item {
             })
 
             if (!svc.dnd || n.urgency === NotificationUrgency.Critical) {
+                Quickshell.execDetached(["paplay", Quickshell.env("HOME") + "/.local/share/sounds/bell.oga"])
+
                 if (!svc.centerOpen) {
                     popupsModel.insert(0, {
                         uid: uid,

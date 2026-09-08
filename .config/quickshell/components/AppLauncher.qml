@@ -19,14 +19,14 @@ Item {
     readonly property int cornerRadius: 20
 
     // Light mode: matugen `_light` (dark) card, white text. Dark: pastel card.
-    readonly property string cardTile: "secondary_fixed"
+    readonly property string cardTile: "widget_card"
     readonly property color cardColor: rootRef
         ? (rootRef.qsLight
             ? (rootRef.pillColor(cardTile))
             : rootRef.colorOf(cardTile))
         : "#f3dfd1"
     readonly property color cardBorder: rootRef
-        ? rootRef.withAlpha(rootRef.colorOf("outline_variant"),
+        ? rootRef.withAlpha(rootRef.colorOf("widget_border"),
             rootRef.qsLight ? 0.5 : 0.35)
         : "#00000000"
 
@@ -272,6 +272,13 @@ Item {
         border.width: 1
         border.color: launcher.cardBorder
         clip: true
+
+        SurfaceGradient {
+            anchors.fill: parent
+            inset: 1
+            color: launcher.cardColor
+            radius: launcher.cornerRadius
+        }
 
         Column {
             id: contentColumn

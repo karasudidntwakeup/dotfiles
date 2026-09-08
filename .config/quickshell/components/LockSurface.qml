@@ -12,7 +12,6 @@ Item {
     property bool locked: false
 
     readonly property string fontMain: "Ndot 55"
-    readonly property string fontAlt: "Lettera Mono LL"
     readonly property string fontAltBold: "Lettera Mono LL"
     readonly property string fontCaps: "Ndot55Caps"
     readonly property string fontJp: "Noto Sans CJK JP"

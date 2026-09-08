@@ -13,10 +13,10 @@ Item {
     readonly property int panelWidth: 400
     readonly property int pad: 12
     readonly property color panelColor: "#15161a"
-    readonly property color panelBorder: rootRef ? Qt.color(rootRef.colorOf("outline_variant")) : "#ffffff33"
+    readonly property color panelBorder: rootRef ? Qt.color(rootRef.colorOf("widget_border")) : "#ffffff33"
     readonly property color fg: "#ffffff"
     readonly property color muteFg: Qt.rgba(1, 1, 1, 0.55)
-    readonly property color accent: rootRef ? Qt.color(rootRef.colorOf("primary")) : "#ff8fb2"
+    readonly property color accent: rootRef ? Qt.color(rootRef.colorOf("widget_accent")) : "#ff8fb2"
     readonly property string iconFont: rootRef ? rootRef.iconFont : "Symbols Nerd Font"
     readonly property string uiFont: rootRef ? rootRef.uiFont : "Inter"
     readonly property string fontFamily: rootRef ? rootRef.fontFamily : "Ndot 57"
@@ -67,6 +67,13 @@ Item {
         border.width: 1
         border.color: center.panelBorder
         clip: true
+
+        SurfaceGradient {
+            anchors.fill: parent
+            inset: 1
+            color: center.panelColor
+            radius: 22
+        }
 
         // Panel is fully opaque; the backdrop below never tints this sheet.
         transform: Translate { x: (1.0 - center.animProgress) * (center.panelWidth + 48) }

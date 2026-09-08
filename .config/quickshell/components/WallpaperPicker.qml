@@ -89,9 +89,11 @@ Item {
                     filePath: it.filePath || "",
                     thumbUrl: it.thumbUrl || "",
                     colors: (it.colors || []).slice(0, 8),
-                    bucket: it.bucket || "Monochrome"
+                    bucket: it.bucket || "Monochrome",
+                    mtime: Number(it.mtime) || 0
                 })
             }
+            out.sort(function (a, b) { return b.mtime - a.mtime })
         } catch (e) {
             console.log("[wallpaper] manifest parse error:", e, "len=" + raw.length)
         }
@@ -169,28 +171,39 @@ Item {
     property bool showPanel: false
     property var selectedItem: null
     property string applyMode: "dark"
-    property string applyScheme: "content"
+    property string applyScheme: "tonal_spot"
     property string applyColor: ""
 
     readonly property var schemeData: [
-        { key: "content",      label: "Content" },
-        { key: "expressive",   label: "Expressive" },
-        { key: "fidelity",     label: "Fidelity" },
-        { key: "fruit_salad",  label: "Fruit Salad" },
-        { key: "monochrome",   label: "Monochrome" },
-        { key: "neutral",      label: "Neutral" },
-        { key: "rainbow",      label: "Rainbow" },
-        { key: "smart",        label: "Smart" },
-        { key: "vibrant",      label: "Vibrant" },
-        { key: "wallpaper_color", label: "Wallpaper Colors" }
+        // Auto — material schemes derived from the wallpaper.
+        { key: "tonal_spot", label: "Tonal Spot",      group: "Auto",    hint: "#9ccfd8" },
+        { key: "content",    label: "Content",         group: "Auto",    hint: "#c9a7e8" },
+        { key: "vibrant",    label: "Vibrant",         group: "Auto",    hint: "#f0a6d0" },
+        { key: "fidelity",   label: "Fidelity",        group: "Auto",    hint: "#94d3b8" },
+        { key: "neutral",    label: "Neutral",         group: "Auto",    hint: "#b0b0bc" },
+        { key: "monochrome", label: "Monochrome",      group: "Auto",    hint: "#c8c8c8" },
+        // Custom — built from a color you pick below.
+        { key: "wallpaper_color",   label: "Wallpaper Color",   group: "Custom", hint: "#96c8f6" }
     ]
+
+    readonly property var schemeGroups: [
+        { title: "From wallpaper", name: "Auto" },
+        { title: "Custom color", name: "Custom" }
+    ]
+
+    function schemesOf(groupName) {
+        var out = []
+        for (var i = 0; i < window.schemeData.length; i++)
+            if (window.schemeData[i].group === groupName) out.push(window.schemeData[i])
+        return out
+    }
 
     function openPanel(index) {
         if (index < 0 || index >= window.displayModel.length) return
         var item = window.displayModel[index]
         window.selectedItem = item
         window.applyMode = "dark"
-        window.applyScheme = "content"
+        window.applyScheme = "tonal_spot"
         window.applyColor = (item.colors && item.colors.length > 0) ? item.colors[0] : ""
         window.showPanel = true
     }
@@ -376,6 +389,13 @@ Item {
         border.color: window.borderColor
         border.width: 1
 
+        SurfaceGradient {
+            anchors.fill: parent
+            inset: 1
+            color: window.baseColor
+            radius: window.cornerRadius
+        }
+
         Row {
             id: filterRow
             anchors.centerIn: parent
@@ -478,6 +498,13 @@ Item {
         Behavior on anchors.bottomMargin { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
         Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
 
+        SurfaceGradient {
+            anchors.fill: parent
+            inset: 1
+            color: window.baseColor
+            radius: window.cornerRadius
+        }
+
         Column {
             id: panelCol
             anchors.left: parent.left
@@ -497,10 +524,12 @@ Item {
                 elide: Text.ElideMiddle
             }
 
-            // Color swatches row
+            // Color swatches row — used by the "Wallpaper Color" scheme.
             Row {
                 spacing: window.u * 6
-                visible: window.selectedItem && window.selectedItem.colors && window.selectedItem.colors.length > 0
+                visible: window.applyScheme === "wallpaper_color"
+                         && window.selectedItem && window.selectedItem.colors
+                         && window.selectedItem.colors.length > 0
                 Repeater {
                     model: window.selectedItem && window.selectedItem.colors ? window.selectedItem.colors : []
                     delegate: Rectangle {
@@ -570,45 +599,78 @@ Item {
                 }
             }
 
-            // Scheme row
-            Flow {
+            // Scheme row — grouped: auto (from wallpaper) vs custom color.
+            Column {
                 width: parent.width
-                spacing: window.u * 6
+                spacing: window.u * 8
                 Text {
-                    text: "Scheme"
+                    text: "Color scheme"
                     color: window.subtextColor
                     font.family: window.uiFont
                     font.pixelSize: window.u * 11
                 }
                 Repeater {
-                    model: window.schemeData
-                    delegate: Rectangle {
+                    model: window.schemeGroups
+                    delegate: Column {
                         required property var modelData
-                        width: schemeLabel.implicitWidth + window.u * 16
-                        height: window.u * 28
-                        radius: window.u * 8
-                        color: window.applyScheme === modelData.key ? window.surface2
-                             : (schHover.containsMouse ? window.surface1 : window.surface0)
-                        border.color: window.applyScheme === modelData.key ? window.textColor : window.borderColor
-                        border.width: window.applyScheme === modelData.key ? (window.u === 1 ? 1.5 : 1) : 1
-                        scale: window.applyScheme === modelData.key ? 1.04 : (schHover.containsMouse ? 1.02 : 1.0)
-                        Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutQuint } }
-                        Behavior on color { ColorAnimation { duration: 200 } }
+                        width: parent.width
+                        spacing: window.u * 6
                         Text {
-                            id: schemeLabel
-                            anchors.centerIn: parent
-                            text: modelData.label
-                            color: window.applyScheme === modelData.key ? window.textColor : window.subtextColor
+                            text: modelData.title
+                            color: window.subtextColor
                             font.family: window.uiFont
-                            font.pixelSize: window.u * 11
-                            font.weight: window.applyScheme === modelData.key ? Font.Bold : Font.Normal
+                            font.pixelSize: window.u * 9
+                            opacity: 0.7
                         }
-                        MouseArea {
-                            id: schHover
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: window.applyScheme = modelData.key
+                        Flow {
+                            width: parent.width
+                            spacing: window.u * 6
+                            Repeater {
+                                model: window.schemesOf(modelData.name)
+                                delegate: Rectangle {
+                                    required property var modelData
+                                    width: schemeLabel.implicitWidth + window.u * 30
+                                    height: window.u * 28
+                                    radius: window.u * 8
+                                    color: window.applyScheme === modelData.key ? window.surface2
+                                         : (schHover.containsMouse ? window.surface1 : window.surface0)
+                                    border.color: window.applyScheme === modelData.key ? window.textColor : window.borderColor
+                                    border.width: window.applyScheme === modelData.key ? (window.u === 1 ? 1.5 : 1) : 1
+                                    scale: window.applyScheme === modelData.key ? 1.04 : (schHover.containsMouse ? 1.02 : 1.0)
+                                    Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutQuint } }
+                                    Behavior on color { ColorAnimation { duration: 200 } }
+                                    Row {
+                                        anchors.left: parent.left
+                                        anchors.leftMargin: window.u * 6
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        spacing: window.u * 6
+                                        Rectangle {
+                                            width: window.u * 12; height: window.u * 12
+                                            radius: window.u * 4
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            color: modelData.hint
+                                            border.width: 1
+                                            border.color: window.borderColor
+                                        }
+                                        Text {
+                                            id: schemeLabel
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            text: modelData.label
+                                            color: window.applyScheme === modelData.key ? window.textColor : window.subtextColor
+                                            font.family: window.uiFont
+                                            font.pixelSize: window.u * 11
+                                            font.weight: window.applyScheme === modelData.key ? Font.Bold : Font.Normal
+                                        }
+                                    }
+                                    MouseArea {
+                                        id: schHover
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: window.applyScheme = modelData.key
+                                    }
+                                }
+                            }
                         }
                     }
                 }

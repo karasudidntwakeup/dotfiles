@@ -110,4 +110,5 @@ binds {
     Mod+Z hotkey-overlay-title="yt-x history" { spawn "qs" "ipc" "call" "ytx" "toggle"; }
     Mod+G hotkey-overlay-title="Wallpaper Picker" { spawn "qs" "ipc" "call" "wallpaper" "toggle"; }
     Mod+Shift+M hotkey-overlay-title="Notification Center" { spawn "qs" "ipc" "call" "notifications" "toggle"; }
+    Mod+Shift+C hotkey-overlay-title="Color Scheme Picker" { spawn "~/.config/quickshell/scripts/scheme_fzf.sh"; }
 }

@@ -217,6 +217,7 @@ def main():
             "hex": hexcolor,
             "colors": color_palette(path),
             "bucket": bucket,
+            "mtime": os.stat(path).st_mtime,
             "sig": sig,
         }
         cache[name] = entry
@@ -231,8 +232,17 @@ def main():
 
     save_cache(cache_dir, cache)
 
-    # Preserve a stable order: Filenames (works with unicode/中文 names).
-    items.sort(key=lambda e: e["fileName"])
+    # Order by most recently modified first (new/changed wallpapers surface
+    # at the top of the picker). Also backfill mtime for cache-reused entries.
+    def mtime_of(item):
+        try:
+            st = os.stat(item["filePath"])
+            item["mtime"] = st.st_mtime
+            return st.st_mtime
+        except Exception:
+            return 0.0
+
+    items.sort(key=mtime_of, reverse=True)
     manifest = {
         "srcDir": src_dir,
         "done": processed == 0 or processed < CHUNK_MAX,

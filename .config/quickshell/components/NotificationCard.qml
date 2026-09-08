@@ -17,7 +17,6 @@ Item {
     // Model access
     readonly property int uid: nData && nData.uid !== undefined ? nData.uid : -1
     readonly property int urgency: nData && nData.urgency !== undefined ? nData.urgency : 1
-    readonly property bool unread: nData ? (nData.read !== undefined ? !nData.read : true) : true
     property var realNotif: (function() {
         if (svc && svc.liveNotifs && card.uid >= 0 && svc.liveNotifs[card.uid])
             return svc.liveNotifs[card.uid]
@@ -33,12 +32,12 @@ Item {
     // Theme tokens (same language as AppLauncher.qml)
     readonly property bool isLight: rootRef ? rootRef.qsLight : false
     readonly property color cardColor: rootRef
-        ? (isLight ? rootRef.pillColor("secondary_fixed") : rootRef.colorOf("secondary_fixed"))
+        ? (isLight ? rootRef.pillColor("widget_card") : rootRef.colorOf("widget_card"))
         : "#f3dfd1"
     readonly property color borderColor: rootRef
-        ? rootRef.withAlpha(rootRef.colorOf("outline_variant"), isLight ? 0.5 : 0.35)
+        ? rootRef.withAlpha(rootRef.colorOf("widget_border"), isLight ? 0.5 : 0.35)
         : "#00000000"
-    readonly property color errorColor: rootRef ? Qt.color(rootRef.colorOf("error")) : "#dc4446"
+    readonly property color errorColor: rootRef ? Qt.color(rootRef.colorOf("widget_error")) : "#dc4446"
     readonly property color fg: rootRef
         ? (isLight ? rootRef.qsPillFg : rootRef.textColor)
         : "#000000"
@@ -220,6 +219,13 @@ Item {
         border.width: card.urgency === 2 ? 1.5 : 1
         border.color: card.urgency === 2 ? card.errorColor : card.borderColor
         clip: true
+
+        SurfaceGradient {
+            anchors.fill: parent
+            inset: card.urgency === 2 ? 1.5 : 1
+            color: card.cardColor
+            radius: 20
+        }
 
         transform: Translate { x: card.dragX }
         opacity: Math.max(0.0, 1.0 - Math.abs(card.dragX) / Math.max(1, card.width * 0.7))
@@ -434,7 +440,7 @@ Item {
         visible: card.selected
         color: "transparent"
         border.width: 2
-        border.color: rootRef ? Qt.color(rootRef.colorOf("primary")) : "#888888"
+        border.color: rootRef ? Qt.color(rootRef.colorOf("widget_accent")) : "#888888"
     }
 
     // Interactions

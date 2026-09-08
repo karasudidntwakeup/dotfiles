@@ -19,14 +19,14 @@ Item {
     readonly property int pad: 14
     readonly property int cornerRadius: 20
 
-    readonly property string cardTile: "secondary_fixed"
+    readonly property string cardTile: "widget_card"
     readonly property color cardColor: rootRef
         ? (rootRef.qsLight
             ? rootRef.pillColor(cardTile)
             : rootRef.colorOf(cardTile))
         : "#f3dfd1"
     readonly property color cardBorder: rootRef
-        ? rootRef.withAlpha(rootRef.colorOf("outline_variant"),
+        ? rootRef.withAlpha(rootRef.colorOf("widget_border"),
             rootRef.qsLight ? 0.5 : 0.35)
         : "#00000000"
 
@@ -37,7 +37,7 @@ Item {
     readonly property color accentText: rootRef && rootRef.qsLight
         ? "#000000" : "#ffffff"
     readonly property color selectedFg: accentText
-    readonly property color errorColor: rootRef ? rootRef.error : "#e30000"
+    readonly property color errorColor: rootRef ? Qt.color(rootRef.colorOf("widget_error")) : "#e30000"
     readonly property string iconFont: rootRef ? rootRef.iconFont : "Symbols Nerd Font"
     readonly property string fontFamily: rootRef ? rootRef.fontFamily : "Ndot 57"
     readonly property string uiFont: rootRef ? rootRef.uiFont : "Inter"
@@ -217,6 +217,13 @@ Item {
         border.width: 1
         border.color: clipMgr.cardBorder
         clip: true
+
+        SurfaceGradient {
+            anchors.fill: parent
+            inset: 1
+            color: clipMgr.cardColor
+            radius: clipMgr.cornerRadius
+        }
 
         Column {
             id: contentColumn
