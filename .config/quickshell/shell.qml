@@ -743,10 +743,8 @@ ShellRoot {
         property alias clickArea: pillArea
         property alias wheelArea: pillArea
 
-        // White font on dark pills, black on light ones.
-        readonly property color pillTextColor: root.qsLight
-            ? root.qsPillFg
-            : (root.luminance(tint) > 0.5 ? root.darkText : "#ffffff")
+        // Black font on light pills, white on dark ones.
+        readonly property color pillTextColor: root.luminance(tint) > 0.5 ? "#000000" : "#ffffff"
 
         implicitWidth: pillRow.implicitWidth + pill.padX
         implicitHeight: root.pillHeight - 2

@@ -86,11 +86,13 @@ if [ -f "$QS_THEME" ]; then
   [ "$QM" = "dark" ] && MODE="light" || MODE="dark"
 fi
 
+PREVIEW_PY="$SCRIPT_DIR/scheme_preview.py"
+
 PICK="$(printf '%s\n' "${SCHEMES[@]}" | fzf \
-    --prompt="Color scheme > " \
-    --height 60% --layout=reverse --border \
+    --prompt="scheme > " \
     --delimiter='|' --with-nth=2 \
-    --color='fg:#cdd6f4,bg:#11111b,hl:#89b4fa,fg+:#ffffff,bg+:#313244,info:#6c7086,pointer:#89b4fa,prompt:#89b4fa,spinner:#89b4fa,border:#313244,label:#8aadf4')" || exit 0
+    --preview="python3 '$PREVIEW_PY' {1} {2}" \
+    --preview-window=right:30%:wrap)" || exit 0
 
 KEY="${PICK%%|*}"
 [ -n "$KEY" ] || exit 0
