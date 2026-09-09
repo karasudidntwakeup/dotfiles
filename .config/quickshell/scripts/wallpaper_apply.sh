@@ -22,6 +22,8 @@ PIN_WIDGETS="${5:-0}"
 
 QUICK_THEME_FILE="$HOME/.config/quickshell/qs-theme.json"
 CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/quickshell/wallpaper"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+EXTRA_PALETTES="$SCRIPT_DIR/nvim_themes.json"
 mkdir -p "$CACHE"
 
 [ -f "$IMG" ] || { echo "wallpaper_apply: not found: $IMG" >&2; exit 1; }
@@ -36,10 +38,11 @@ esac
 # feed it to `matugen json`, mirroring how serpantinum maps their palette to
 # MD3 roles.
 apply_preset() {
-  local flavor="$1" out="$CACHE/palette_${flavor}.json"
-  python3 - "$flavor" "$out" <<'PY'
+  local flavor="$1"
+  local out="$CACHE/palette_${flavor}.json"
+  python3 - "$flavor" "$out" "$EXTRA_PALETTES" <<'PY'
 import json, sys
-flavor, out = sys.argv[1:3]
+flavor, out, extra = sys.argv[1:4]
 
 p = {
   # serpantinum default = Catppuccin Mocha
@@ -378,6 +381,12 @@ p = {
   },
 }
 
+try:
+    with open(extra) as f:
+        p.update(json.load(f))
+except OSError:
+    pass
+
 c = p[flavor]
 def lum(h):
     h = h.lstrip("#")
@@ -484,6 +493,20 @@ case "$SCHEME" in
   gruvbox_light)                     PRESET="gruvbox_light" ;;
   tokyoday)                          PRESET="tokyoday" ;;
   everforest_light)                  PRESET="everforest_light" ;;
+  # NvChad base46 themes (nvim), stored in nvim_themes.json
+  nv_*)                              PRESET="${SCHEME#nv_}"
+        if ! python3 - "$PRESET" "$EXTRA_PALETTES" <<'PY'
+import json, sys
+sys.exit(0 if sys.argv[1] in json.load(open(sys.argv[2])) else 1)
+PY
+        then PRESET=""; TYPE="scheme-tonal-spot"; fi ;;
+  *) if [ -f "$EXTRA_PALETTES" ] && python3 - "$SCHEME" "$EXTRA_PALETTES" <<'PY'
+import json, sys
+sys.exit(0 if sys.argv[1] in json.load(open(sys.argv[2])) else 1)
+PY
+     then PRESET="$SCHEME"
+     else TYPE="scheme-tonal-spot"
+     fi ;;
 esac
 
 if [ -n "$PRESET" ]; then

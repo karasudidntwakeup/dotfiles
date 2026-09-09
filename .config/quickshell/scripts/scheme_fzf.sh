@@ -88,7 +88,25 @@ fi
 
 PREVIEW_PY="$SCRIPT_DIR/scheme_preview.py"
 
-PICK="$(printf '%s\n' "${SCHEMES[@]}" | fzf \
+# NvChad base46 themes (nvim). Skip ones already covered by the list above.
+NV_SKIP=" catppuccin nord tokyonight gruvbox gruvbox_light rosepine rosepine-dawn kanagawa everforest everforest_light solarized_dark solarized_light onedark ayu_dark horizon nightowl palenight oceanic-next github_dark nightfox zenburn vscode_dark wombat "
+mapfile -t NV_SCHEMES < <(python3 - "$SCRIPT_DIR/nvim_themes.json" "$NV_SKIP" <<'PY'
+import json, sys
+path, skip = sys.argv[1:3]
+skip = set(skip.split())
+data = json.load(open(path))
+def pretty(name):
+    return " ".join(w for w in name.replace("-", " ").replace("_", " ").title().split() if w)
+for name in sorted(data):
+    if name in skip:
+        continue
+    print(f"nv_{name}|{pretty(name)} (nvim)")
+PY
+)
+
+ALL_SCHEMES=("${SCHEMES[@]}" "${NV_SCHEMES[@]}")
+
+PICK="$(printf '%s\n' "${ALL_SCHEMES[@]}" | fzf \
     --prompt="scheme > " \
     --delimiter='|' --with-nth=2 \
     --preview="python3 '$PREVIEW_PY' {1} {2}" \

@@ -1,71 +1,50 @@
 #!/usr/bin/env python3
 """fzf preview for scheme_fzf.sh — render a color scheme as swatches.
 
-Reads the fixed palettes from wallpaper_apply.sh (embedded python), so there
-is a single source of truth. Auto schemes (generated from the wallpaper) get
-a short text note instead.
+Reads the fixed palettes from wallpaper_apply.sh (embedded python) plus the
+nvim base46 themes (nvim_themes.json), so there is a single source of truth.
+Auto schemes (generated from the wallpaper) get a short text note instead.
 """
+import json
+import re
 import sys
 from pathlib import Path
+
+SCRIPTS = Path.home() / ".config/quickshell/scripts"
 
 if len(sys.argv) >= 3:
     KEY, LABEL = sys.argv[1], sys.argv[2]
 else:
     KEY, _, LABEL = sys.argv[1].partition("|")
 
-ALIAS = {
-    "serpantinum": "mocha", "catppuccin": "mocha", "mocha": "mocha",
-    "catppuccin_frappe": "frappe", "frappe": "frappe",
-    "catppuccin_latte": "latte", "latte": "latte",
-    "catppuccin_macchiato": "macchiato", "macchiato": "macchiato",
-    "nord": "nord",
-    "tokyo": "tokyo", "tokyonight": "tokyo", "tokyo_night": "tokyo",
-    "dracula": "dracula",
-    "gruvbox": "gruvbox",
-    "rosepine": "rosepine", "rose_pine": "rosepine",
-    "kanagawa": "kanagawa",
-    "everforest": "everforest",
-    "solarized": "solarized",
-    "onedark": "onedark", "one_dark": "onedark",
-    "ayu": "ayu",
-    "horizon": "horizon",
-    "nightowl": "nightowl", "night_owl": "nightowl",
-    "material": "material",
-    "monokai": "monokai",
-    "palenight": "palenight",
-    "oceanic": "oceanic",
-    "snazzy": "snazzy",
-    "github_dark": "github_dark", "github-dark": "github_dark",
-    "nightfox": "nightfox",
-    "rosepine_moon": "rosepine_moon", "rose_pine_moon": "rosepine_moon",
-    "rosepine_dawn": "rosepine_dawn", "rose_pine_dawn": "rosepine_dawn",
-    "zenburn": "zenburn",
-    "synthwave": "synthwave",
-    "doom": "doom",
-    "vscode_dark": "vscode_dark", "vscode-dark": "vscode_dark",
-    "moonfly": "moonfly",
-    "cobalt": "cobalt", "cobalt2": "cobalt",
-    "wombat": "wombat",
-    "shades_of_purple": "shades_of_purple", "shades-of-purple": "shades_of_purple",
-    "solarized_light": "solarized_light",
-    "gruvbox_light": "gruvbox_light",
-    "tokyoday": "tokyoday",
-    "everforest_light": "everforest_light",
-}
+apply = SCRIPTS / "wallpaper_apply.sh"
+text = apply.read_text()
 
-apply = Path.home() / ".config/quickshell/scripts/wallpaper_apply.sh"
-raw = apply.read_text()
-body = raw.split("<<'PY'", 1)[1].split("\nPY", 1)[0]
+# Derive scheme-name -> preset mapping from wallpaper_apply.sh's case
+# statement so new presets don't require touching this file.
+ALIAS = {}
+for m in re.finditer(r"^  ([a-z0-9_|.+\-]+)\)\s+PRESET=\"([a-z0-9_]+)\"\s*;;", text, re.M):
+    for name in m.group(1).split("|"):
+        ALIAS[name.strip()] = m.group(2)
+
+body = text.split("<<'PY'", 1)[1].split("\nPY", 1)[0]
 ns = {}
 argv = sys.argv
-sys.argv = ["_", "mocha", "/tmp/scheme_preview_dummy.json"]
+sys.argv = ["_", "mocha", "/tmp/scheme_preview_dummy.json", str(SCRIPTS / "nvim_themes.json")]
 try:
     exec(body, ns)
 finally:
     sys.argv = argv
-PALETTES = ns["p"]
+PALETTES = dict(ns["p"])
+try:
+    PALETTES.update(json.load(open(SCRIPTS / "nvim_themes.json")))
+except OSError:
+    pass
 
-flavor = ALIAS.get(KEY)
+if KEY.startswith("nv_"):
+    flavor = KEY[3:]
+else:
+    flavor = ALIAS.get(KEY)
 if not flavor or flavor not in PALETTES:
     print(f"◆ {LABEL or KEY}")
     print()
