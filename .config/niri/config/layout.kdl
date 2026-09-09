@@ -1,6 +1,6 @@
 layout {
     gaps 15
-    center-focused-column "on-overflow"
+    //center-focused-column "on-overflow"
     always-center-single-column
     border {
         off
@@ -14,6 +14,9 @@ window-rule {
     match app-id=r#".*"#
     geometry-corner-radius 15
     clip-to-geometry true
+    background-effect {
+      blur true
+    }
 }
 
 window-rule {

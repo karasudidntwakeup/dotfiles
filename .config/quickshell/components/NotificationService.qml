@@ -192,9 +192,23 @@ Item {
         svc.recountUnread()
     }
 
-    function openCenter() { svc.centerOpen = true }
+    function hideAllPopups() {
+        for (var i = popupsModel.count - 1; i >= 0; i--)
+            svc.hidePopup(popupsModel.get(i).uid)
+    }
+
+    function openCenter() {
+        svc.hideAllPopups()
+        svc.centerOpen = true
+    }
+
     function closeCenter() { svc.centerOpen = false }
-    function toggleCenter() { svc.centerOpen = !svc.centerOpen }
+    function toggleCenter() {
+        if (svc.centerOpen)
+            svc.closeCenter()
+        else
+            svc.openCenter()
+    }
 
     // Recompute unread whenever history is mutated.
     Connections {

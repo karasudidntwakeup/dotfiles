@@ -14,9 +14,6 @@ post_hook = '~/.config/matugen/scripts/foot-live.sh'
  [templates.firefox-website-colors]
   input_path = "~/.config/matugen/templates/firefox-colors.css"
   output_path = "~/.librewolf/fuoz9ly2.default-default/chrome/colors.css"
-[templates.rofi]
-input_path = '~/.config/matugen/templates/rofi.rasi'
-output_path = '~/.config/rofi/colors.rasi'
 [templates.telegram-tdesktop-theme]
 input_path = '~/.config/matugen/templates/telegram-tdesktop-theme.tdesktop-theme'
 output_path = '~/.config/telegram/tdesktop-theme.tdesktop-theme'
@@ -82,3 +79,7 @@ output_path = "~/.config/qt6ct/qss/matugen-style.qss"
 [templates.quickshell]
   input_path = '~/.config/matugen/templates/quickshell-colors.js'
   output_path = '~/.config/quickshell/colors.js'
+
+[templates.yazi]
+  input_path = '~/.config/matugen/templates/yazi.toml'
+  output_path = '~/.config/yazi/theme.toml'

@@ -90,6 +90,7 @@ export PATH="$PATH:$HOME/.npm-global/bin"
 export PATH="$PATH:/sbin:/usr/sbin:usr/local/sbin"
 export PATH="${PATH}:${HOME}/.local/bin/"
 export PATH="${PATH}:${HOME}/.cargo/bin"
+export PATH="${PATH}:${HOME}/go/bin"
 export OLLAMA_NOPRUNE=true
 export XDG_SESSION_TYPE=wayland
 export SDL_VIDEODRIVER=wayland
@@ -151,17 +152,11 @@ open-in-herdr() {
     command "$@"
   fi
 }
-yt-x() { open-in-herdr yt-x yt-x "$@" }
 alias yt='yt-x'
-opencode() { open-in-herdr opencode opencode "$@" }
-wp-tui() { open-in-herdr wp-tui wp-tui "$@" }
 alias ytd='yt-dlp  -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]" --audio-quality 0'
 alias ytdm='yt-dlp -f "bestaudio[ext=m4a]","bestaudio[ext=webm]" -x '
 alias v='nvim'
-alias timer='tclock timer -d 20m -M'
-alias lf='yazi'
 alias fzf='fzf --preview "bat --color=always   {}"'
-alias sxiv-t="imv \$(ls | fzf)"
 
 
 # --- ripgrep sane defaults ---
@@ -249,3 +244,4 @@ bindkey '\e[6^'   __nop    # ctrl+pagedown (rxvt)
 
 # convert a single video to best-quality a www live wallpaper
 alias mp4towall='~/.local/bin/mp4towall'
+

@@ -19,7 +19,7 @@ Item {
     readonly property int cornerRadius: 20
 
     // Light mode: matugen `_light` (dark) card, white text. Dark: pastel card.
-    readonly property string cardTile: "widget_card"
+    readonly property string cardTile: "launcher_card"
     readonly property color cardColor: rootRef
         ? (rootRef.qsLight
             ? (rootRef.pillColor(cardTile))

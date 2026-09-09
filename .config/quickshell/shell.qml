@@ -994,6 +994,10 @@ ShellRoot {
     function openWallpaperPicker() {
         if (wallPicker.visible || openAnim.running) return
         notifSvc.closeCenter()
+        root.launcherActive = false
+        root.ytxActive = false
+        root.clipboardActive = false
+        root.whatsappActive = false
         pickerContent.opacity = 0
         pickerContent.anchors.topMargin = -24
         pickerContent.anchors.bottomMargin = 24
@@ -1021,7 +1025,7 @@ ShellRoot {
     // launcher pill. Click outside / Escape / Enter dismiss.
     property bool launcherActive: false
 
-    function openAppLauncher() { root.launcherActive = true; notifSvc.closeCenter(); root.closeYtx(); root.closeClipboard() }
+    function openAppLauncher() { root.launcherActive = true; notifSvc.closeCenter(); root.closeYtx(); root.closeClipboard(); root.closeWhatsApp() }
     function closeAppLauncher() { root.launcherActive = false }
     function toggleAppLauncher() { root.launcherActive = !root.launcherActive }
 
@@ -1057,7 +1061,7 @@ ShellRoot {
     // `qs ipc call ytx toggle` (niri bind) like the app launcher.
     property bool ytxActive: false
 
-    function openYtx() { root.ytxActive = true; notifSvc.closeCenter(); root.closeAppLauncher(); root.closeClipboard() }
+    function openYtx() { root.ytxActive = true; notifSvc.closeCenter(); root.closeAppLauncher(); root.closeClipboard(); root.closeWhatsApp() }
     function closeYtx() { root.ytxActive = false }
     function toggleYtx() { root.ytxActive = !root.ytxActive }
 
@@ -1089,11 +1093,47 @@ ShellRoot {
         }
     }
 
+    // WhatsApp chat panel backed by wacli, toggled via `qs ipc call whatsapp
+    // toggle` (Mod+Shift+W niri bind). Chat list + messages load on demand.
+    property bool whatsappActive: false
+
+    function openWhatsApp() { root.whatsappActive = true; notifSvc.closeCenter(); root.closeAppLauncher(); root.closeYtx(); root.closeClipboard() }
+    function closeWhatsApp() { root.whatsappActive = false }
+    function toggleWhatsApp() { root.whatsappActive = !root.whatsappActive }
+
+    IpcHandler {
+        target: "whatsapp"
+        function toggle(): void {
+            root.toggleWhatsApp()
+        }
+    }
+
+    PanelWindow {
+        id: whatsappWin
+        visible: root.whatsappActive || waContent.animProgress > 0.001
+        focusable: root.whatsappActive
+        color: "transparent"
+        WlrLayershell.namespace: "whatsapp-picker"
+        WlrLayershell.layer: WlrLayer.Overlay
+        anchors.top: true
+        anchors.bottom: true
+        anchors.left: true
+        anchors.right: true
+
+        WhatsApp {
+            id: waContent
+            anchors.fill: parent
+            rootRef: root
+            active: root.whatsappActive
+            onRequestClose: root.whatsappActive = false
+        }
+    }
+
     // Clipboard manager (cliphist), toggled via `qs ipc call clipboard toggle`
     // (Mod+V niri bind), replacing the old rofi-cliphist launcher.
     property bool clipboardActive: false
 
-    function openClipboard() { root.clipboardActive = true; notifSvc.closeCenter(); root.closeAppLauncher(); root.closeYtx() }
+    function openClipboard() { root.clipboardActive = true; notifSvc.closeCenter(); root.closeAppLauncher(); root.closeYtx(); root.closeWhatsApp() }
     function closeClipboard() { root.clipboardActive = false }
     function toggleClipboard() { root.clipboardActive = !root.clipboardActive }
 
@@ -1244,6 +1284,7 @@ ShellRoot {
             root.launcherActive = false
             root.ytxActive = false
             root.clipboardActive = false
+            root.whatsappActive = false
             root.closeWallpaperPicker()
         }
         notifSvc.toggleCenter()

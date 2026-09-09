@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+"""WhatsApp live-message notifier.
+
+Listens for wacli sync --webhook POSTs and raises desktop notifications for
+incoming messages via notify-send (shown by quickshell's notification daemon).
+"""
+
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+HOST = "127.0.0.1"
+PORT = 51828
+
+if "go/bin" not in os.environ.get("PATH", ""):
+    gobin = os.path.expanduser("~/go/bin")
+    os.environ["PATH"] = os.environ.get("PATH", "") + os.pathsep + gobin
+
+NOTIFY = shutil.which("notify-send")
+
+
+def contact_name(jid, cache):
+    """Best-effort display name for a contact JID (lazily cached)."""
+    if jid in cache:
+        return cache[jid]
+    name = ""
+    phone = re.sub(r"[@:].*$", "", jid or "")
+    if phone and phone != "0":
+        try:
+            out = subprocess.run(
+                ["wacli", "--json", "contacts", "search", phone, "--limit", "1"],
+                capture_output=True,
+                text=True,
+                timeout=4,
+            )
+            data = json.loads(out.stdout or "{}")
+            rows = (data or {}).get("data") or []
+            if rows and rows[0].get("name"):
+                name = rows[0]["name"]
+        except Exception:
+            pass
+    cache[jid] = name
+    return name
+
+
+class Handler(BaseHTTPRequestHandler):
+    cache = {}
+
+    def do_POST(self):
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+            body = self.rfile.read(length)
+            msg = json.loads(body or b"{}")
+            self.notify(msg)
+        except Exception:
+            pass
+        try:
+            self.send_response(204)
+            self.end_headers()
+        except Exception:
+            pass
+
+    def notify(self, msg):
+        if not msg or msg.get("FromMe") is True:
+            return
+        chat = msg.get("Chat") or ""
+        gid = chat.lower().endswith(".g.us")
+        text = (msg.get("Text") or "").strip()
+        if not text:
+            text = "[Media]" if msg.get("Media") else "[Message]"
+        text = " ".join(text.split())[:220]
+
+        title = msg.get("ChatName") or chat
+        if gid:
+            sender = self.cache.get(msg.get("SenderJID") or "", "")
+            if not sender:
+                sender = contact_name(msg.get("SenderJID") or "", self.cache)
+                self.cache[msg.get("SenderJID") or ""] = sender
+            sender = sender or msg.get("PushName") or ""
+            body = f"{sender}: {text}" if sender else text
+            source = "Group"
+        else:
+            body = text
+            source = title or "WhatsApp"
+
+        if not NOTIFY:
+            return
+        args = [NOTIFY, "-a", "WhatsApp", "-t", "12000", "-u", "normal"]
+        try:
+            subprocess.Popen(
+                args + [title, body], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+            )
+        except Exception:
+            pass
+
+    def log_message(self, *args):
+        pass
+
+
+def main():
+    try:
+        srv = ThreadingHTTPServer((HOST, PORT), Handler)
+    except OSError:
+        return 0  # already running from a previous session
+    srv.daemon_threads = True
+    srv.serve_forever()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
