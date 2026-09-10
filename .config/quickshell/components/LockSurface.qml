@@ -78,7 +78,6 @@ Item {
         }
     }
 
-    // Wallpaper (matches hyprlock blur/brightness/contrast/vibrancy)
     Image {
         id: wallpaper
         anchors.fill: parent
@@ -135,8 +134,6 @@ Item {
         }
     }
 
-    // Elements (positions match the old hyprlock config)
-    // Clock-hour, left, top
     Text {
         id: clockHour
         x: 7
@@ -149,7 +146,6 @@ Item {
         styleColor: Qt.rgba(0, 0, 0, 0.35)
     }
 
-    // Clock-minute, below hour
     Text {
         id: clockMinute
         x: 7
@@ -162,7 +158,6 @@ Item {
         styleColor: Qt.rgba(0, 0, 0, 0.35)
     }
 
-    // Date, vertical strip on the right edge
     Item {
         id: dateWrap
         width: Math.max(28, parent.height * 0.045)
@@ -190,7 +185,6 @@ Item {
         }
     }
 
-    // Name, center-bottom
     Text {
         text: (Quickshell.env("USER") || "HUMAN").toUpperCase() + "-01"
         anchors.horizontalCenter: parent.horizontalCenter
@@ -202,7 +196,6 @@ Item {
         color: lockRoot.fg
     }
 
-    // Tag, right-bottom
     Text {
         text: "ManchmalKarasu"
         anchors.right: parent.right
@@ -215,7 +208,6 @@ Item {
         color: lockRoot.fg
     }
 
-    // Hiragana, center-bottom
     Text {
         text: "かいぜん"
         anchors.horizontalCenter: parent.horizontalCenter
@@ -227,7 +219,6 @@ Item {
         color: lockRoot.fg
     }
 
-    // Quote, top
     Text {
         id: quoteTop
         text: "You can have everything and feel nothing."
@@ -239,7 +230,6 @@ Item {
         color: lockRoot.fg
     }
 
-    // Quote, bottom
     Text {
         id: quoteBot
         text: "What you resist, persists. What you accept, dissolves."
@@ -251,7 +241,6 @@ Item {
         color: lockRoot.fg
     }
 
-    // Avatar, left-bottom
     Image {
         source: lockRoot.assetDir + "globe-3d.png"
         width: 110; height: 110
@@ -263,7 +252,6 @@ Item {
         asynchronous: true
     }
 
-    // Passcode box, center-bottom
     Rectangle {
         id: passBox
         width: 80; height: 25; radius: 3

@@ -1,8 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
 
-// Shared card for popup toasts (NotifPopups.qml) and the notification center.
-// The two contexts differ in sizing/timeout behaviour only.
 Item {
     id: card
 
@@ -14,7 +12,6 @@ Item {
 
     signal cardSelected()
 
-    // Model access
     readonly property int uid: nData && nData.uid !== undefined ? nData.uid : -1
     readonly property int urgency: nData && nData.urgency !== undefined ? nData.urgency : 1
     property var realNotif: (function() {
@@ -29,7 +26,6 @@ Item {
         return []
     })()
 
-    // Theme tokens (same language as AppLauncher.qml)
     readonly property bool isLight: rootRef ? rootRef.qsLight : false
     readonly property color cardColor: rootRef
         ? (isLight ? rootRef.pillColor("widget_card") : rootRef.colorOf("widget_card"))
@@ -47,13 +43,11 @@ Item {
     readonly property string fontFamily: rootRef ? rootRef.fontFamily : "Ndot 57"
     readonly property int fontSize: rootRef ? rootRef.fontSize : 13
 
-    // Typography/geometry
     readonly property bool isPopup: context === "popup"
     readonly property int pad: 14
     readonly property int badgeSize: isPopup ? 40 : 42
     readonly property string name: nData ? (nData.appName || "System") : ""
 
-    // Image / icon
     readonly property string imgSrc: nData ? (nData.image || "") : ""
     readonly property string iconSrc: (function() {
         var name_ = nData ? (nData.iconName || "") : ""
@@ -71,7 +65,6 @@ Item {
         function onIconPathsUpdated() { card.iconTick++ }
     }
 
-    // Time
     readonly property int ts: nData && nData.timestamp !== undefined ? nData.timestamp : Date.now()
     property string timeText: ""
     function fmtTime(t) {
@@ -96,7 +89,7 @@ Item {
     }
     function refreshTime() { card.timeText = card.fmtTime(card.ts) }
     onTsChanged: card.refreshTime()
-    
+
     Timer {
         interval: 15000
         repeat: true
@@ -104,7 +97,6 @@ Item {
         onTriggered: card.refreshTime()
     }
 
-    // Popup auto-dismiss
     readonly property int timeoutMs: (function() {
         if (card.urgency === 2) return 0
         var n = card.realNotif
@@ -130,7 +122,6 @@ Item {
         }
     }
 
-    // Actions
     function invokeAction(actionId) {
         var n = card.realNotif
         if (!n || !n.actions) return
@@ -179,7 +170,6 @@ Item {
         return "󰅂"
     }
 
-    // Drag-to-dismiss
     property real dragX: 0
     property bool dragging: false
 
@@ -209,7 +199,6 @@ Item {
 
     implicitHeight: cardBody.height
 
-    // Visual card body
     Rectangle {
         id: cardBody
         width: parent.width
@@ -230,7 +219,6 @@ Item {
         transform: Translate { x: card.dragX }
         opacity: Math.max(0.0, 1.0 - Math.abs(card.dragX) / Math.max(1, card.width * 0.7))
 
-        // Hover highlight (fg-tinted so it works on pastel and dark pills).
         Rectangle {
             anchors.fill: parent
             radius: card.urgency === 2 ? 18.5 : 19
@@ -241,7 +229,6 @@ Item {
             }
         }
 
-        // Urgent glow.
         Rectangle {
             anchors.top: parent.top
             anchors.topMargin: -1
@@ -257,8 +244,6 @@ Item {
             }
         }
 
-        // Large image thumbnail. Only rendered once the image decodes, so a broken
-        // image hint doesn't reserve an empty box.
         Image {
             anchors.top: cardContent.bottom
             anchors.topMargin: card.pad
@@ -284,8 +269,6 @@ Item {
             anchors.topMargin: card.pad
             spacing: 6
 
-            // Header: badge + name/time + summary/body. Right margin reserves space
-            // for the dismiss (X) button.
             RowLayout {
                 Layout.fillWidth: true
                 Layout.rightMargin: 22
@@ -367,7 +350,6 @@ Item {
                 }
             }
 
-            // Action buttons
             RowLayout {
                 Layout.fillWidth: true
                 Layout.topMargin: 2
@@ -429,11 +411,9 @@ Item {
         }
     }
 
-    // Only reserved/rendered once the image decodes.
     readonly property int imageBoxHeight: card.isPopup ? 150 : 180
     property bool imageOk: false
 
-    // Selection ring (keyboard/click highlight).
     Rectangle {
         anchors.fill: parent
         radius: 20
@@ -443,7 +423,6 @@ Item {
         border.color: rootRef ? Qt.color(rootRef.colorOf("widget_accent")) : "#888888"
     }
 
-    // Interactions
     MouseArea {
         id: cardArea
         anchors.fill: parent
@@ -486,7 +465,6 @@ Item {
         onPressedChanged: card.hovering = containsMouse || pressed
     }
 
-    // Dismiss (X) button — top-right, sits in the space reserved by the header.
     Rectangle {
         anchors.top: parent.top
         anchors.right: parent.right

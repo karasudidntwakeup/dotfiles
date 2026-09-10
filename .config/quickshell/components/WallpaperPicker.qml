@@ -22,7 +22,6 @@ Item {
     property bool visible_: false
     property string currentPath: ""
 
-    // Theme hooks (provided by shell.qml)
     property color surfaceColor: "#1f1f24"
     property color borderColor: "#3a3a42"
     property color fgColor: "#ffffff"
@@ -30,20 +29,18 @@ Item {
     property string uiFont: "Inter"
     property string iconFont: "Symbols Nerd Font"
 
-    // Derived surfaces
     function withAlpha(c, a) { return Qt.rgba(c.r, c.g, c.b, a) }
     function brighten(c, f) {
         return Qt.rgba(Math.min(1, c.r * f), Math.min(1, c.g * f), Math.min(1, c.b * f), 1)
     }
-    readonly property color baseColor: withAlpha(surfaceColor, 0.90) // filter pill bg
+    readonly property color baseColor: withAlpha(surfaceColor, 0.90)
     readonly property color surface0: surfaceColor
-    readonly property color surface1: brighten(surfaceColor, 1.18) // tab hover
-    readonly property color surface2: brighten(surfaceColor, 1.45) // tab active
+    readonly property color surface1: brighten(surfaceColor, 1.18)
+    readonly property color surface2: brighten(surfaceColor, 1.45)
     readonly property color textColor: fgColor
     readonly property color subtextColor: withAlpha(fgColor, 0.55)
     readonly property color blue: accentColor
 
-    // Sizing
     readonly property real u: Screen.height >= 1400 ? 1.0 : 0.85
     readonly property real itemWidth: 400 * u
     readonly property real itemHeight: 420 * u
@@ -65,7 +62,6 @@ Item {
         { name: "Monochrome", hex: "#A9A9A9" }
     ]
 
-    // Manifest (thumbnails + buckets from indexer)
     FileView {
         id: listFile
         path: window.cacheDir + "/wallpaper-list.json"
@@ -136,7 +132,6 @@ Item {
         window.jumpToCurrent()
     }
 
-    // Reopen on the currently applied wallpaper.
     function jumpToCurrent() {
         var path = window.currentPath
         if (path === "") {
@@ -167,7 +162,6 @@ Item {
         view.forceActiveFocus()
     }
 
-    // Click opens the apply panel (scheme/mode/color), not immediate apply.
     property bool showPanel: false
     property var selectedItem: null
     property string applyMode: "dark"
@@ -175,14 +169,14 @@ Item {
     property string applyColor: ""
 
     readonly property var schemeData: [
-        // Auto — material schemes derived from the wallpaper.
+
         { key: "tonal_spot", label: "Tonal Spot",      group: "Auto",    hint: "#9ccfd8" },
         { key: "content",    label: "Content",         group: "Auto",    hint: "#c9a7e8" },
         { key: "vibrant",    label: "Vibrant",         group: "Auto",    hint: "#f0a6d0" },
         { key: "fidelity",   label: "Fidelity",        group: "Auto",    hint: "#94d3b8" },
         { key: "neutral",    label: "Neutral",         group: "Auto",    hint: "#b0b0bc" },
         { key: "monochrome", label: "Monochrome",      group: "Auto",    hint: "#c8c8c8" },
-        // Custom — built from a color you pick below.
+
         { key: "wallpaper_color",   label: "Wallpaper Color",   group: "Custom", hint: "#96c8f6" }
     ]
 
@@ -231,7 +225,6 @@ Item {
         }
     }
 
-    // Read the last-applied wallpaper so reopening lands on it.
     Process {
         id: currentReader
         command: ["cat", window.cacheDir + "/current.txt"]
@@ -251,7 +244,6 @@ Item {
         }
     }
 
-    // Carousel (skewed horizontal)
     ListView {
         id: view
         anchors.fill: parent
@@ -293,7 +285,6 @@ Item {
             Behavior on width { enabled: window.isLoaded && !window.isApplying; NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
             Behavior on height { enabled: window.isLoaded && !window.isApplying; NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
 
-            // Skewed wrapper (Matrix4x4 shear).
             Item {
                 id: skewedWrapper
                 anchors.centerIn: parent
@@ -319,7 +310,6 @@ Item {
                     anchors.fill: parent
                     anchors.margins: window.borderWidth
 
-                    // Card background + rounded mask.
                     Rectangle { anchors.fill: parent; radius: window.cornerRadius; color: window.surface0 }
 
                     Rectangle {
@@ -354,7 +344,6 @@ Item {
                         }
                     }
 
-                    // Selected border on the current card.
                     Rectangle {
                         anchors.fill: parent
                         radius: window.cornerRadius
@@ -371,11 +360,10 @@ Item {
         }
     }
 
-    // Top filter pill (translucent)
     Rectangle {
         id: filterBar
         anchors.horizontalCenter: parent.horizontalCenter
-        // Sit directly above the centered carousel cards, not at screen top.
+
         anchors.verticalCenter: parent.verticalCenter
         anchors.verticalCenterOffset: window.u * 24
                                        - (window.itemHeight + window.u * 30) / 2
@@ -409,7 +397,6 @@ Item {
                     height: window.u * 34
                     anchors.verticalCenter: parent.verticalCenter
 
-                    // "All" — 2x2 grid icon.
                     Rectangle {
                         visible: modelData.hex === ""
                         anchors.fill: parent
@@ -423,7 +410,6 @@ Item {
                         Behavior on border.color { ColorAnimation { duration: 200 } }
                         Behavior on color { ColorAnimation { duration: 200 } }
 
-                        // 2x2 grid using small tiles.
                         Column {
                             anchors.centerIn: parent
                             spacing: (window.u * 34 - 24) < 0 ? 1 : window.u * 2
@@ -454,7 +440,6 @@ Item {
                         }
                     }
 
-                    // Color swatch tabs.
                     Rectangle {
                         visible: modelData.hex !== ""
                         anchors.fill: parent
@@ -480,7 +465,6 @@ Item {
         }
     }
 
-    // Bottom sheet: scheme / mode / color / apply
     Rectangle {
         id: applyPanel
         visible: window.showPanel && !window.isApplying
@@ -513,7 +497,6 @@ Item {
             anchors.margins: window.u * 16
             spacing: window.u * 12
 
-            // Title
             Text {
                 text: window.selectedItem ? window.selectedItem.fileName : ""
                 width: parent.width
@@ -524,7 +507,6 @@ Item {
                 elide: Text.ElideMiddle
             }
 
-            // Color swatches row — used by the "Wallpaper Color" scheme.
             Row {
                 spacing: window.u * 6
                 visible: window.applyScheme === "wallpaper_color"
@@ -552,7 +534,6 @@ Item {
                 }
             }
 
-            // Mode row
             Row {
                 spacing: window.u * 6
                 Text {
@@ -599,7 +580,6 @@ Item {
                 }
             }
 
-            // Scheme row — grouped: auto (from wallpaper) vs custom color.
             Column {
                 width: parent.width
                 spacing: window.u * 8
@@ -676,7 +656,6 @@ Item {
                 }
             }
 
-            // Apply / Cancel row
             Row {
                 anchors.horizontalCenter: parent.horizontalCenter
                 spacing: window.u * 10
@@ -733,7 +712,6 @@ Item {
         }
     }
 
-    // Click outside panel to dismiss.
     MouseArea {
         anchors.fill: parent
         visible: window.showPanel && !window.isApplying
@@ -742,7 +720,6 @@ Item {
         onClicked: window.showPanel = false
     }
 
-    // Keyboard
     Shortcut {
         sequence: "Left"; enabled: window.visible_ && !window.isApplying && !window.showPanel
         onActivated: window.stepToNextValidIndex(-1)

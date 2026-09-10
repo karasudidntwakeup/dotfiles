@@ -3,12 +3,10 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Notifications
 
-// Owns the org.freedesktop.Notifications daemon + history/popup models.
-// UI/style lives in the card components; this file only manages state.
 Item {
     id: svc
 
-    property bool dnd: false // persisted to disk
+    property bool dnd: false
     property bool centerOpen: false
     property int unreadCount: 0
     property var liveNotifs: ({})
@@ -33,8 +31,6 @@ Item {
         return id
     }
 
-    // Resolve icon: desktop-entry > app icon > `image://icon/<name>` URL.
-    // Returns a theme-icon NAME (or path); the card resolves names via iconPathFor.
     function resolveIcon(appName, desktopEntry, appIcon, image) {
         var entry = null
         if (desktopEntry && desktopEntry !== "")
@@ -51,8 +47,6 @@ Item {
         return ""
     }
 
-    // Quickshell.iconPath() only rewraps image://icon URLs, so we resolve plain
-    // theme names to real files ourselves (cached, one shell call per name).
     function iconPathFor(name) {
         if (!name || name === "") return ""
         var n = name.toString()
@@ -164,14 +158,12 @@ Item {
         }
     }
 
-    // Timeout/swipe-hide: toast disappears, stays in history (read).
     function hidePopup(uid) {
         svc.removeFromModel(popupsModel, uid)
         delete svc.liveNotifs[uid]
         svc.markRead(uid)
     }
 
-    // Explicit dismissal: closes the DBus notification and drops it from history.
     function dismissNotif(uid) {
         var n = svc.liveNotifs[uid]
         if (n && typeof n.dismiss === "function") n.dismiss()
@@ -210,13 +202,11 @@ Item {
             svc.openCenter()
     }
 
-    // Recompute unread whenever history is mutated.
     Connections {
         target: historyModel
         function onCountChanged() { svc.recountUnread() }
     }
 
-    // DND persistence
     FileView {
         id: cfgFile
         path: Quickshell.env("HOME") + "/.cache/quickshell/notif-config.json"
@@ -244,7 +234,6 @@ Item {
         if (!svc._loadingDnd) cfgAdapter.dnd = svc.dnd
     }
 
-    // DBus daemon
     NotificationServer {
         id: notifServer
         keepOnReload: true
@@ -256,7 +245,6 @@ Item {
             var n = notification
             var now = Date.now()
 
-            // Swallow duplicates from the same burst (<100ms).
             if (n.urgency !== NotificationUrgency.Critical && now - svc.lastNotifTime < 100)
                 return
             svc.lastNotifTime = now

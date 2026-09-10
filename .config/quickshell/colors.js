@@ -5,92 +5,92 @@
 
 /* Base scheme colors used by the shell */
 
-var primary = "#ffece6"
+var primary = "#7797b7"
 
-var primary_container = "#ffb090"
+var primary_container = "#9aafe6"
 
-var primary_fixed_dim = "#ffb598"
+var primary_fixed_dim = "#7797b7"
 
-var error = "#ffece9"
+var error = "#bf616a"
 
-var error_container = "#ffaea4"
+var error_container = "#b48ead"
 
-var outline_variant = "#d4beb6"
+var outline_variant = "#565c68"
 
 var shadow = "#000000"
 
-var on_primary_container = "#000000"
+var on_primary_container = "#2a303c"
 
-var secondary_container = "#e2baaa"
+var secondary_container = "#ebcb8b"
 
-var secondary_fixed = "#ffdbcd"
+var secondary_fixed = "#ebcb8b"
 
-var secondary_fixed_dim = "#e7beae"
+var secondary_fixed_dim = "#a3be8c"
 
-var tertiary_container = "#cfc38b"
+var tertiary_container = "#d57780"
 
-var primary_fixed = "#ffdbcd"
+var primary_fixed = "#9aafe6"
 
-var tertiary_fixed = "#f0e3a8"
+var tertiary_fixed = "#d57780"
 
-var source = "#a2644a"
+var source = "#7797b7"
 
 /* Popup surface tones: neutral + raised variants used by popups. */
-var surface_container = "#382e2a"
+var surface_container = "#373d49"
 
-var surface_container_highest = "#504440"
+var surface_container_highest = "#494f5b"
 
 /* Light scheme variants (QS "Light" mode pill backgrounds) */
 
-var surface_container_light = "#f1dfd9"
+var surface_container_light = "#373d49"
 
-var surface_container_highest_light = "#d4c3bd"
+var surface_container_highest_light = "#494f5b"
 
-var primary_container_light = "#74381e"
+var primary_container_light = "#9aafe6"
 
-var error_container_light = "#98000a"
+var error_container_light = "#b48ead"
 
-var primary_fixed_dim_light = "#582309"
+var primary_fixed_dim_light = "#7797b7"
 
-var secondary_container_light = "#5f4237"
+var secondary_container_light = "#ebcb8b"
 
-var secondary_fixed_light = "#5f4237"
+var secondary_fixed_light = "#ebcb8b"
 
-var secondary_fixed_dim_light = "#462c22"
+var secondary_fixed_dim_light = "#a3be8c"
 
-var tertiary_container_light = "#51491d"
+var tertiary_container_light = "#d57780"
 
-var primary_fixed_light = "#74381e"
+var primary_fixed_light = "#9aafe6"
 
-var tertiary_fixed_light = "#51491d"
+var tertiary_fixed_light = "#d57780"
 
-var source_light = "#a2644a"
+var source_light = "#7797b7"
 
 /* Custom widget colors */
-var prayer = "#e2baaa"
+var prayer = "#ebcb8b"
 
-var prayer_light = "#5f4237"
+var prayer_light = "#ebcb8b"
 
 /* Widget colors: yt-x, clipboard, notification, launcher. These follow
    matugen by default; scheme_fzf.sh pins them via wallpaper_apply.sh. */
-var ytx_card = "#cfc38b"
+var ytx_card = "#d57780"
 
-var ytx_card_light = "#51491d"
+var ytx_card_light = "#d57780"
 
-var widget_card = "#cfc38b"
+var widget_card = "#d57780"
 
-var widget_card_light = "#51491d"
+var widget_card_light = "#d57780"
 
-var launcher_card = "#ffb090"
+var launcher_card = "#9aafe6"
 
-var launcher_card_light = "#74381e"
+var launcher_card_light = "#9aafe6"
 
-var whatsapp_card = "#e7beae"
+var whatsapp_card = "#a3be8c"
 
-var whatsapp_card_light = "#462c22"
+var whatsapp_card_light = "#a3be8c"
 
-var widget_accent = "#ffece6"
+var widget_accent = "#7797b7"
 
-var widget_border = "#d4beb6"
+var widget_border = "#565c68"
 
-var widget_error = "#ffece9"
+var widget_error = "#bf616a"

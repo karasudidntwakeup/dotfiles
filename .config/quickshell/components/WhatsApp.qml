@@ -4,10 +4,6 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 
-// WhatsApp chat panel backed by wacli CLI. Everything is fetched on demand:
-// the chat list loads when the overlay opens, and messages load when a chat
-// is selected. No background process is kept alive.
-
 Item {
     id: wa
 
@@ -27,7 +23,10 @@ Item {
     readonly property int cornerRadius: 20
     readonly property int msgPad: 12
     readonly property real bubbleMaxW: 380
+    readonly property int imgMaxW: 300
+    readonly property int imgMaxH: 240
     property string activeTab: "chats"
+    property string playingAudioSrc: ""
 
     readonly property string cardTile: "whatsapp_card"
     readonly property color cardColor: rootRef
@@ -66,7 +65,6 @@ Item {
     readonly property real slideOffset: (1.0 - wa.animProgress) * (wa.bottomMargin * 2 + card.height)
     opacity: wa.animProgress
 
-    // ---- state ----
     property var rawChats: []
     property var currentChat: null
     property string currentJid: ""
@@ -116,7 +114,6 @@ Item {
             : (t.getMonth() + 1) + "/" + (t.getDate() < 10 ? "0" : "") + t.getDate() + " " + wa.fmtTime(iso)
     }
 
-    // ---- loading ----
     onActiveChanged: {
         if (wa.active) {
             wa.currentChat = null
@@ -170,7 +167,6 @@ Item {
         chatList.currentIndex = 0
     }
 
-    // ---- chat selection ----
     function selectChat(chat) {
         if (!chat || !chat.jid) return
         wa.currentChat = chat
@@ -196,18 +192,19 @@ Item {
         for (var i = obj.messages.length - 1; i >= 0; i--) {
             var m = obj.messages[i]
             if (!m || !m.MsgID) continue
-            var body = String(m.DisplayText || m.Text || "")
+            var body = String(m.MediaCaption || m.DisplayText || m.Text || "")
             messageModel.append({
                 fromMe: m.FromMe === true,
                 sender: String(m.SenderName || (m.FromMe ? "You" : "")),
                 text: body,
+                mediaType: String(m.MediaType || ""),
+                src: String(m.src || ""),
                 time: wa.fmtDate(m.Timestamp)
             })
         }
         Qt.callLater(msgList.positionViewAtEnd)
     }
 
-    // ---- send ----
     function sendMessage() {
         var text = sendField.text.trim()
         if (text.length === 0 || !wa.currentJid) return
@@ -223,6 +220,24 @@ Item {
         sendField.text = ""
         Qt.callLater(msgList.positionViewAtEnd)
         refreshTimer.restart()
+    }
+
+    function sendFile() {
+        if (!wa.currentJid) return
+        sendFileProc.command = ["bash", Quickshell.shellDir + "/scripts/wa-send-file.sh", wa.currentJid]
+        sendFileProc.running = true
+    }
+
+    function toggleAudio(src: string) {
+        if (src.length === 0) return
+        if (wa.playingAudioSrc === src) {
+            audioPlayer.terminate()
+            wa.playingAudioSrc = ""
+            return
+        }
+        audioPlayer.command = ["mpv", "--no-video", "--no-terminal", "--really-quiet", "--", src]
+        wa.playingAudioSrc = src
+        audioPlayer.running = true
     }
 
     ListModel {
@@ -284,6 +299,21 @@ Item {
         }
     }
 
+    Process {
+        id: sendFileProc
+        onExited: () => {
+            wa.sending = false
+            refreshTimer.restart()
+        }
+    }
+
+    Process {
+        id: audioPlayer
+        onExited: () => {
+            wa.playingAudioSrc = ""
+        }
+    }
+
     Timer {
         id: refreshTimer
         interval: 1600
@@ -320,7 +350,6 @@ Item {
         onTriggered: sendField.forceActiveFocus()
     }
 
-    // ---- body height ----
     function countKind(kind): int {
         var n = 0
         for (var i = 0; i < wa.rawChats.length; i++) {
@@ -334,7 +363,6 @@ Item {
         return wa.chatRowHeight * rows + 2 * (rows - 1) + 20
     }
 
-    // ---- background click to dismiss ----
     Rectangle {
         z: 0
         anchors.fill: parent
@@ -372,7 +400,6 @@ Item {
             width: wa.cardWidth - wa.pad * 2
             spacing: 10
 
-            // -------- header --------
             RowLayout {
                 width: parent.width
                 spacing: 6
@@ -452,7 +479,6 @@ Item {
                 }
             }
 
-            // -------- search box --------
             Rectangle {
                 id: searchBox
                 width: parent.width
@@ -547,7 +573,6 @@ Item {
                 }
             }
 
-            // -------- section tabs --------
             Rectangle {
                 width: 216
                 height: 30
@@ -636,12 +661,10 @@ Item {
                 }
             }
 
-            // -------- body: chat list + conversation --------
             Row {
                 width: parent.width
                 spacing: 10
 
-                // left: chat list
                 Item {
                     width: wa.leftWidth
                     height: wa.bodyHeight()
@@ -819,7 +842,6 @@ Item {
                     }
                 }
 
-                // right: conversation
                 Item {
                     width: wa.cardWidth - wa.pad * 2 - wa.leftWidth - 10
                     height: wa.bodyHeight()
@@ -901,7 +923,6 @@ Item {
                                 }
                             }
 
-                            // messages list
                             Item {
                                 width: parent.width
                                 height: wa.bodyHeight() - 16 - wa.headerHeight - 8 - wa.sendHeight
@@ -922,11 +943,15 @@ Item {
                                         required property string sender
                                         required property string text
                                         required property string time
+                                        required property string mediaType
+                                        required property string src
+
+                                        readonly property bool isImage: mediaType === "image" && src !== ""
+                                        readonly property bool isAudio: mediaType === "audio" && src !== ""
 
                                         width: msgList.width
                                         height: bubbleCol.implicitHeight + 8
 
-                                        // bubble aligned left (received) or right (sent)
                                         Column {
                                             id: bubbleCol
                                             anchors.top: parent.top
@@ -940,6 +965,94 @@ Item {
                                             spacing: 2
 
                                             Rectangle {
+                                                id: imageBubble
+                                                visible: msgItem.isImage
+                                                width: Math.min(wa.imgMaxW, bubbleCol.width - 8)
+                                                height: wa.imgMaxH
+                                                radius: 10
+                                                clip: true
+                                                color: wa.alpha(wa.fg, 0.08)
+                                                Image {
+                                                    anchors.fill: parent
+                                                    source: msgItem.src ? "file://" + msgItem.src : ""
+                                                    fillMode: Image.PreserveAspectFit
+                                                    asynchronous: true
+                                                    smooth: true
+                                                }
+                                                Text {
+                                                    visible: msgItem.text.length === 0
+                                                    anchors.right: parent.right
+                                                    anchors.bottom: parent.bottom
+                                                    anchors.margins: 6
+                                                    text: msgItem.time
+                                                    color: "#ffffff"
+                                                    style: Text.Outline
+                                                    styleColor: "#000000aa"
+                                                    font.family: wa.uiFont
+                                                    font.pixelSize: Math.max(8, wa.fontSize - 3)
+                                                }
+                                            }
+
+                                            Rectangle {
+                                                id: audioBubble
+                                                visible: msgItem.isAudio
+                                                width: Math.min(230, bubbleCol.width - 8)
+                                                height: 40
+                                                radius: 10
+                                                color: fromMe ? wa.accent : wa.alpha(wa.fg, 0.10)
+                                                Behavior on color {
+                                                    ColorAnimation {
+                                                        duration: 120
+                                                    }
+                                                }
+                                                MouseArea {
+                                                    anchors.fill: parent
+                                                    cursorShape: Qt.PointingHandCursor
+                                                    onClicked: wa.toggleAudio(msgItem.src)
+                                                }
+                                                Item {
+                                                    anchors.fill: parent
+                                                    anchors.leftMargin: 8
+                                                    anchors.rightMargin: 10
+                                                    Rectangle {
+                                                        id: playBtn
+                                                        anchors.verticalCenter: parent.verticalCenter
+                                                        width: 26
+                                                        height: 26
+                                                        radius: 13
+                                                        color: wa.alpha("#ffffff", 0.25)
+                                                        Text {
+                                                            anchors.centerIn: parent
+                                                            text: wa.playingAudioSrc === msgItem.src ? "II" : "▶"
+                                                            color: wa.accentText
+                                                            font.pixelSize: Math.max(9, wa.fontSize - 1)
+                                                        }
+                                                    }
+                                                    Text {
+                                                        anchors.left: playBtn.right
+                                                        anchors.leftMargin: 8
+                                                        anchors.verticalCenter: parent.verticalCenter
+                                                        text: "Voice note"
+                                                        color: wa.accentText
+                                                        font.family: wa.uiFont
+                                                        font.pixelSize: wa.fontSize
+                                                        elide: Text.ElideRight
+                                                        width: parent.width - 26 - 8 - timeText.implicitWidth - 10
+                                                    }
+                                                    Text {
+                                                        id: audioTimeText
+                                                        anchors.right: parent.right
+                                                        anchors.verticalCenter: parent.verticalCenter
+                                                        text: msgItem.time
+                                                        color: wa.alpha(wa.accentText, 0.7)
+                                                        font.family: wa.uiFont
+                                                        font.pixelSize: Math.max(8, wa.fontSize - 3)
+                                                    }
+                                                }
+                                            }
+
+                                            Rectangle {
+                                                visible: msgItem.text.length > 0
                                                 width: Math.min(
                                                     Math.min(bubbleText.implicitWidth, wa.bubbleMaxW) + timeText.implicitWidth + 6 + wa.msgPad * 2,
                                                     bubbleCol.width > 0 ? bubbleCol.width : 9999)
@@ -1006,7 +1119,6 @@ Item {
                                 }
                             }
 
-                            // send row
                             Rectangle {
                                 id: sendBox
                                 width: parent.width
@@ -1048,6 +1160,28 @@ Item {
                                         Layout.preferredWidth: 30
                                         Layout.preferredHeight: 30
                                         radius: 15
+                                        color: wa.alpha(wa.fg, 0.06)
+                                        enabled: wa.currentJid !== null && !wa.sending
+                                        Image {
+                                            anchors.centerIn: parent
+                                            width: 15
+                                            height: 15
+                                            source: "data:image/svg+xml;utf8," + encodeURIComponent(
+                                                "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='" +
+                                                wa.alpha(wa.fg, enabled ? 0.7 : 0.25).toString() +
+                                                "'><path d='M21,19V5c0,-1.1 -0.9,-2 -2,-2H5C3.9,3 3,3.9 3,5v14c0,1.1 0.9,2 2,2h14c1.1,0 2,-0.9 2,-2zM8.5,13.5l2.5,3.01L14.5,12l4.5,6H5l3.5,-4.5z'/></svg>")
+                                        }
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: wa.sendFile()
+                                        }
+                                    }
+
+                                    Rectangle {
+                                        Layout.preferredWidth: 30
+                                        Layout.preferredHeight: 30
+                                        radius: 15
                                         color: sendHover.containsMouse || sendField.text.length > 0
                                             ? wa.accent : wa.alpha(wa.fg, 0.15)
                                         Behavior on color {
@@ -1077,7 +1211,6 @@ Item {
                 }
             }
 
-            // -------- hints --------
             Text {
                 width: parent.width
                 horizontalAlignment: Text.AlignHCenter

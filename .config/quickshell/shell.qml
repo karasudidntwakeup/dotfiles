@@ -7,14 +7,9 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import "components"
 
-// Waybar-style bar for niri. Palette from matugen via colors.js.
-
 ShellRoot {
     id: root
 
-    // colors.js is parsed at runtime and watched, so regenerating it
-    // (wallpaper change) recolors the bar live. A static import would be
-    // cached by the QML engine and never pick up new values.
     FileView {
         id: colorFile
         property var paletteMap: ({})
@@ -38,8 +33,6 @@ ShellRoot {
         return v === undefined ? "#808080" : v
     }
 
-    // Quick Shell light/dark mode, written by the wallpaper changer into
-    // qs-theme.json. Does NOT touch GTK/Qt/terminal or any other app.
     FileView {
         id: qsThemeFile
         property var qsTheme: ({})
@@ -61,22 +54,15 @@ ShellRoot {
 
     readonly property bool qsLight: qsThemeFile.qsTheme["mode"] === "light"
 
-    // Light mode uses matugen's genuine `_light` scheme colors for the pill
-    // backgrounds without re-running matugen, so the rest of the system is
-    // untouched.
     readonly property color qsPillFg: "#ffffff"
     readonly property color qsPillFallbackBg: "#1a1b1e"
 
-    // Pill background: light mode -> `_light` variant (dark pill), dark
-    // fallback for colors with no `_light` variant.
     function pillColor(name) {
         if (!root.qsLight) return colorOf(name)
         var v = colorFile.paletteMap[name + "_light"]
         return v === undefined ? root.qsPillFallbackBg : v
     }
 
-    // Same for popup surfaces: `_light` (dark) variants in light mode so they
-    // match the dark popup theme.
     function popupSurface(name) {
         var v = colorFile.paletteMap[name + "_light"]
         return v === undefined ? colorOf(name) : v
@@ -86,18 +72,15 @@ ShellRoot {
     readonly property color error: colorOf("error")
     readonly property color outlineVariant: colorOf("outline_variant")
 
-    // Typography
     readonly property string fontFamily: "Ndot 57"
     readonly property string uiFont: "Inter"
     readonly property string iconFont: "Symbols Nerd Font"
     readonly property int fontSize: 13
 
-    // Layout
     readonly property int barHeight: 48
     readonly property int pillHeight: 32
     readonly property int groupSpacing: 5
 
-    // Popup foregrounds follow the shell light/dark mode.
     readonly property color textColor: root.qsLight ? root.qsPillFg : "#000000"
     readonly property color onTextColor: root.qsLight ? "#000000" : "#ffffff"
     readonly property color darkText: colorOf("shadow")
@@ -112,7 +95,6 @@ ShellRoot {
         return Qt.rgba(color.r, color.g, color.b, a)
     }
 
-    // Script-driven modules
     property string weatherText: ""
     property string prayerText: ""
     property string prayerName: ""
@@ -230,8 +212,6 @@ ShellRoot {
         onTriggered: memProc.running = true
     }
 
-    // PulseAudio (pipewire) via pactl, driven with a subscribe watch so the
-    // pill only refreshes on real sink/server changes.
     property int volumePercent: 0
     property bool muted: false
     readonly property string volumeIcon: muted ? "󰝟" : (volumePercent <= 33 ? "󰕿" : volumePercent <= 66 ? "󰖀" : "󰕾")
@@ -273,7 +253,6 @@ ShellRoot {
         onTriggered: volWatch.running = true
     }
 
-    // Battery (UPower)
     readonly property var battery: UPower.displayDevice
     readonly property int batteryPercent: battery ? Math.round(battery.percentage * 100) : 0
     readonly property bool charging: battery && (battery.state === UPowerDeviceState.Charging
@@ -292,20 +271,17 @@ ShellRoot {
         return root.batteryIcons[i]
     }
 
-    // Keyboard layout (niri): short codes like waybar's kblayout script.
     function shortLayout(name) {
         if (name.indexOf("Arabic") >= 0) return "AR"
         if (name.indexOf("English") >= 0) return "US"
         return name
     }
 
-    // Network (iwd)
     property string networkText: ""
     property string networkIp: ""
     property bool networkConnected: false
     property int networkSignal: 0
 
-    // Pill tint: strong->primary, mid->tertiary, weak->error
     function signalTint(sig) {
         var s = sig || 0
         if (s >= 60) return root.pillColor("primary_container")
@@ -338,7 +314,6 @@ ShellRoot {
         onTriggered: netProc.running = true
     }
 
-    // Bluetooth (bluetoothctl)
     property string bluetoothText: ""
     property string bluetoothStatus: "off"
 
@@ -388,23 +363,19 @@ ShellRoot {
                 if (!data) return
                 var fields = data.trim().split("|")
                 if (fields[0]) root.mediaStatus = fields[0]
-                // Title may contain "|", so anchor numeric fields from the right:
-                // [status, info..., pos, len, art]
+
                 var n = fields.length
                 var pos = (parseFloat(fields[n - 3]) || 0) / 1000
                 var len = parseFloat(fields[n - 2]) / 1000
                 var info = fields.slice(1, n - 3).join("|").trim()
                 var trackChanged = info && info !== root.mediaInfo
                 if (trackChanged) root.mediaInfo = info
-                // Retain the last known length if the player momentarily drops
-                // mpris:length for the same track (Firefox quirk after seeking).
+
                 root.mediaLenMs =
                     (isFinite(len) && len > 0) ? len
                     : (!trackChanged && root.mediaLenMs > 0) ? root.mediaLenMs
                     : 0
-                // While playing, let the local ticker drive the bar forward and
-                // only adopt the player position if it's ahead (drift fix).
-                // Firefox resets position to ~0 after a seek, so never regress.
+
                 root.mediaPosMs =
                     trackChanged ? pos
                     : root.mediaStatus === "Playing" ? Math.max(root.mediaPosMs, pos)
@@ -417,7 +388,6 @@ ShellRoot {
         id: mediaCmd
     }
 
-    // Throttle periodic sync so the local ticker stays authoritative.
     Timer {
         id: mediaSync
         interval: 2000
@@ -426,8 +396,6 @@ ShellRoot {
         onTriggered: mediaProc.running = true
     }
 
-    // Smoothly advance the position locally between playerctl polls so the
-    // seek bar stays live instead of jumping once per sync.
     Timer {
         id: mediaTicker
         interval: 100
@@ -438,7 +406,7 @@ ShellRoot {
                 root.mediaPosMs = Math.min(root.mediaPosMs + 100, root.mediaLenMs)
         }
         onRunningChanged: {
-            // Resync with the player when playback starts to avoid drift.
+
             if (running) mediaProc.running = true
         }
     }
@@ -499,7 +467,6 @@ ShellRoot {
         }
     }
 
-    // Clock (repaints only when the minute changes)
     property string clockText: ""
 
     Timer {
@@ -528,8 +495,6 @@ ShellRoot {
         mediaProc.running = true
     }
 
-    // niri IPC — raw JSON over the $NIRI_SOCKET socket (the built-in module was
-    // removed). Subscribes to the event stream: full state up-front, then deltas.
     component NiriIpc: Item {
         id: niri
 
@@ -645,7 +610,6 @@ ShellRoot {
 
         property string pendingAction: ""
 
-        // Event stream: full state, then one-line JSON events.
         Socket {
             id: streamSock
             path: niri.socketPath
@@ -667,7 +631,6 @@ ShellRoot {
             onError: error => console.log("[niri] event stream error:", error)
         }
 
-        // Separate socket for one-off requests (the event stream stops reading those).
         Socket {
             id: actionSock
             parser: SplitParser {
@@ -702,7 +665,6 @@ ShellRoot {
             niri.workspacesUpdated()
         }
 
-        // Poll open windows so workspace dots show as occupied/empty.
         Process {
             id: ocProc
             property var queue: []
@@ -731,8 +693,6 @@ ShellRoot {
         id: niriIpc
     }
 
-    // Pill-shaped module like waybar's. Icon is a separate Text so Nerd Font
-    // glyphs stay full-size (Ndot 57 squashes fallback glyphs).
     component Module: Rectangle {
         id: pill
         property string label: ""
@@ -743,7 +703,6 @@ ShellRoot {
         property alias clickArea: pillArea
         property alias wheelArea: pillArea
 
-        // Black font on light pills, white on dark ones.
         readonly property color pillTextColor: root.luminance(tint) > 0.5 ? "#000000" : "#ffffff"
 
         implicitWidth: pillRow.implicitWidth + pill.padX
@@ -790,7 +749,6 @@ ShellRoot {
                 verticalAlignment: Text.AlignVCenter
             }
 
-            // Plain seekbar: played region lit, upcoming dimmed, drag to seek.
             Item {
                 id: pillCtrls
                 visible: pill.showControls
@@ -804,7 +762,6 @@ ShellRoot {
                 readonly property color vizLit: pill.pillTextColor
                 readonly property color vizDim: Qt.rgba(pill.pillTextColor.r, pill.pillTextColor.g, pill.pillTextColor.b, 0.25)
 
-                // Rounded track (background of the timeline).
                 Rectangle {
                     id: seekTrack
                     anchors.left: parent.left
@@ -817,7 +774,6 @@ ShellRoot {
                     color: pillCtrls.vizDim
                 }
 
-                // Progress fill up to the playhead.
                 Rectangle {
                     id: seekFill
                     anchors.left: seekTrack.left
@@ -828,7 +784,6 @@ ShellRoot {
                     color: pillCtrls.vizLit
                 }
 
-                // Playhead handle, appears while hovering / dragging.
                 Rectangle {
                     id: timelineKnob
                     anchors.verticalCenter: parent.verticalCenter
@@ -882,7 +837,6 @@ ShellRoot {
         }
     }
 
-    // Workspace dots with a sliding active highlight, in a pill container.
     component Workspaces: Rectangle {
         id: wsWidget
         property var workspaces: []
@@ -950,9 +904,6 @@ ShellRoot {
         }
     }
 
-    // Lock requests from lock.sh (writes "lock" to the request file). A plain
-    // FileView watch replaces the old fifo + `while true; cat` pair, which used
-    // to leave orphaned shell processes behind on every reload.
     property bool lockActive: false
 
     FileView {
@@ -990,7 +941,6 @@ ShellRoot {
         }
     }
 
-    // Wallpaper picker — full-screen overlay, fades/slides in and out.
     function openWallpaperPicker() {
         if (wallPicker.visible || openAnim.running) return
         notifSvc.closeCenter()
@@ -1013,7 +963,6 @@ ShellRoot {
         else openWallpaperPicker()
     }
 
-    // Niri hotkey (Mod+G) drives the picker via `qs ipc call wallpaper toggle`.
     IpcHandler {
         target: "wallpaper"
         function toggle(): void {
@@ -1021,8 +970,6 @@ ShellRoot {
         }
     }
 
-    // App launcher, toggled via `qs ipc call launcher toggle` (niri bind) or the
-    // launcher pill. Click outside / Escape / Enter dismiss.
     property bool launcherActive: false
 
     function openAppLauncher() { root.launcherActive = true; notifSvc.closeCenter(); root.closeYtx(); root.closeClipboard(); root.closeWhatsApp() }
@@ -1057,8 +1004,6 @@ ShellRoot {
         }
     }
 
-    // Video picker: recent yt-x history in a thumbnail grid, toggled via
-    // `qs ipc call ytx toggle` (niri bind) like the app launcher.
     property bool ytxActive: false
 
     function openYtx() { root.ytxActive = true; notifSvc.closeCenter(); root.closeAppLauncher(); root.closeClipboard(); root.closeWhatsApp() }
@@ -1093,8 +1038,6 @@ ShellRoot {
         }
     }
 
-    // WhatsApp chat panel backed by wacli, toggled via `qs ipc call whatsapp
-    // toggle` (Mod+Shift+W niri bind). Chat list + messages load on demand.
     property bool whatsappActive: false
 
     function openWhatsApp() { root.whatsappActive = true; notifSvc.closeCenter(); root.closeAppLauncher(); root.closeYtx(); root.closeClipboard() }
@@ -1129,8 +1072,6 @@ ShellRoot {
         }
     }
 
-    // Clipboard manager (cliphist), toggled via `qs ipc call clipboard toggle`
-    // (Mod+V niri bind), replacing the old rofi-cliphist launcher.
     property bool clipboardActive: false
 
     function openClipboard() { root.clipboardActive = true; notifSvc.closeCenter(); root.closeAppLauncher(); root.closeYtx(); root.closeWhatsApp() }
@@ -1180,7 +1121,7 @@ ShellRoot {
         WallpaperPicker {
             id: pickerContent
             anchors.fill: parent
-            // Dark glass, so pale matugen pastels don't wash out the desktop.
+
             surfaceColor: "#17181c"
             borderColor: Qt.color(root.colorOf("outline_variant"))
             fgColor: "#ffffff"
@@ -1265,20 +1206,16 @@ ShellRoot {
         }
     }
 
-    // Notification service: DBus daemon + history/popup models.
     NotificationService {
         id: notifSvc
     }
 
-    // Popup toasts, stacked at the top-right of the primary screen.
     NotifPopups {
         id: notifPopups
         rootRef: root
         svc: notifSvc
     }
 
-    // Notification center — right-docked panel. Toggle via
-    // `qs ipc call notifications toggle` (Mod+Shift+M) or the bell pill.
     function toggleNotifCenter() {
         if (!notifSvc.centerOpen) {
             root.launcherActive = false
@@ -1447,12 +1384,6 @@ ShellRoot {
                         icon: root.networkConnected ? "󰖩" : "󰖪"
                         label: root.networkConnected ? (root.networkIp + (root.networkSignal ? "  •  " + root.networkSignal + "%" : "") || root.networkText) : "No net"
                         tint: root.pillColor("secondary_container")
-
-                        clickArea.onClicked: {
-                            calPopup.forceClose()
-                            if (wifiPopup.visible) wifiPopup.wifiClose()
-                            else wifiPopup.wifiOpen()
-                        }
                     }
 
                     Module {
@@ -1470,82 +1401,11 @@ ShellRoot {
                         label: root.clockText
                         tint: root.pillColor("secondary_fixed")
 
-                        clickArea.onClicked: {
-                            wifiPopup.wifiForceClose()
-                            calPopup.open()
-                        }
+                        clickArea.onClicked: calPopup.open()
                     }
                 }
             }
 
-            // Wifi popup, opens above the network pill
-            PopupWindow {
-            id: wifiPopup
-            visible: false
-            grabFocus: true
-            implicitWidth: 360
-            implicitHeight: Math.min(wifiPopupBody.implicitHeight, 640) + 32
-            color: "transparent"
-            property bool wifiClosing: false
-            property real animProgress: 0
-
-            WifiPopup {
-                id: wifiPopupBody
-                anchors.fill: parent
-                rootRef: root
-                popupColor: root.pillColor("secondary_container")
-                anchors.topMargin: wifiPopup.animProgress < 1 ? 16 * (1.0 - wifiPopup.animProgress) : 0
-                opacity: wifiPopup.animProgress
-                transform: Scale {
-                    xScale: 0.92 + 0.08 * wifiPopup.animProgress
-                    yScale: 0.92 + 0.08 * wifiPopup.animProgress
-                }
-            }
-
-            Behavior on animProgress {
-                NumberAnimation {
-                    duration: wifiPopup.visible ? 280 : 220
-                    easing.type: Easing.OutCubic
-                }
-            }
-
-            function wifiOpen() {
-                if (wifiClosing) return
-                wifiPopup.visible = true
-                wifiPopup.animProgress = 0
-                wifiPopupBody.reloadNetworks()
-                Qt.callLater(() => wifiPopup.animProgress = 1)
-            }
-            function wifiClose() {
-                if (wifiClosing) return
-                wifiClosing = true
-                wifiPopup.animProgress = 0
-            }
-            function wifiForceClose() {
-                wifiPopup.visible = false
-                wifiPopup.wifiClosing = false
-                wifiPopup.animProgress = 0
-            }
-            onAnimProgressChanged: {
-                if (wifiClosing && animProgress <= 0.01) {
-                    wifiPopup.visible = false
-                    wifiClosing = false
-                }
-            }
-
-            anchor {
-                item: netPill
-                edges: Edges.Top
-                gravity: Edges.Top
-                adjustment: PopupAdjustment.All
-                rect.x: 0
-                rect.y: -14
-                rect.w: netPill.width
-                rect.h: netPill.height + 28
-            }
-            }
-
-            // Calendar popup, opens above the clock pill
             PopupWindow {
             id: calPopup
             visible: false
@@ -1553,8 +1413,6 @@ ShellRoot {
             implicitWidth: 250
             color: "transparent"
 
-            // Input only where content actually is, so the empty area of the
-            // fixed-size window passes clicks through.
             mask: Region {
                 Region { item: calPopupBody; radius: 25 }
                 Region { item: timerSection }
@@ -1565,13 +1423,9 @@ ShellRoot {
                 property int shownYear: new Date().getFullYear()
                 property int shownMonth: new Date().getMonth()
 
-                // Date -> todo list, keyed by "YYYY-MM-DD". Each entry is
-                // { id, text, saved, done }. Reassigned on every change
-                // (never mutated in place) so day-delegate bindings refresh.
                 property var notes: ({})
                 property string selectedKey: ""
 
-                // Todo entries of the currently selected date.
                 property var entries: []
                 property int selectedEntryId: -1
                 property int newEntryId: -1
@@ -1579,7 +1433,6 @@ ShellRoot {
 
                 readonly property int editorHeight: 164
 
-                // Whether the todo list section is expanded (animated).
                 property bool expanded: false
 
                 FileView {
@@ -1589,7 +1442,7 @@ ShellRoot {
                     printErrors: false
 
                     onLoaded: {
-                        // Migrate the old "date -> string" format to entry lists.
+
                         var raw = notesAdapter.notes || {}
                         var converted = {}
                         var maxId = 0
@@ -1646,8 +1499,6 @@ ShellRoot {
                     calPopup.animProgress = 0
                 }
 
-                // Immediate close (no animation) used when switching to the
-                // media popup, so the two never overlap or double-close.
                 function forceClose() {
                     calPopup.closingBySelf = true
                     calPopup.visible = false
@@ -1706,7 +1557,7 @@ ShellRoot {
                 }
 
                 function selectDay(key) {
-                    // Clicking the selected date again collapses the todo list.
+
                     if (calPopup.selectedKey === key && calPopup.expanded) {
                         calPopup.expanded = false
                         return
@@ -1798,9 +1649,6 @@ ShellRoot {
                     return Qt.formatDate(new Date(y, m, d), "ddd, MMM d")
                 }
 
-                // Window is a FIXED full size: resizing a Wayland surface per
-                // frame is laggy, so the body animates inside this constant
-                // surface and the timer section rides below it.
                 readonly property int collapsedHeight: 312
                 readonly property int timerGap: 8
                 readonly property int timerHeight: 64
@@ -2370,9 +2218,6 @@ ShellRoot {
                     }
                 }
 
-                // Timer section — lives in the same window as the calendar so
-                // it just rides along with the animated body height (no second
-                // Wayland surface being repositioned every frame).
                 Item {
                     id: timerSection
                     anchors.top: calPopupBody.bottom
@@ -2564,4 +2409,3 @@ ShellRoot {
         }
     }
 }
-

@@ -18,7 +18,6 @@ Item {
     readonly property int pad: 14
     readonly property int cornerRadius: 20
 
-    // Light mode: matugen `_light` (dark) card, white text. Dark: pastel card.
     readonly property string cardTile: "launcher_card"
     readonly property color cardColor: rootRef
         ? (rootRef.qsLight
@@ -30,7 +29,6 @@ Item {
             rootRef.qsLight ? 0.5 : 0.35)
         : "#00000000"
 
-    // Foreground mirrors Module.pillTextColor.
     readonly property color fg: rootRef
         ? (rootRef.qsLight ? rootRef.qsPillFg : rootRef.textColor)
         : "#000000"
@@ -48,7 +46,6 @@ Item {
         return Qt.rgba(c.r, c.g, c.b, a)
     }
 
-    // Entrance/exit: pops up from the bottom edge.
     property real animProgress: launcher.active ? 1.0 : 0.0
     Behavior on animProgress {
         NumberAnimation {
@@ -287,7 +284,6 @@ Item {
             width: launcher.cardWidth - launcher.pad * 2
             spacing: 8
 
-            // Search field
             Rectangle {
                 id: searchBox
                 width: parent.width
@@ -381,7 +377,6 @@ Item {
                 }
             }
 
-            // App list
             Item {
                 id: listContainer
                 width: parent.width
@@ -397,7 +392,6 @@ Item {
                     boundsBehavior: Flickable.StopAtBounds
                     clip: true
 
-                    // Sliding selection highlight (renders behind the rows).
                     Rectangle {
                         id: morphHighlight
                         parent: appList.contentItem
@@ -438,7 +432,6 @@ Item {
                         height: launcher.rowHeight
                         z: 1
 
-                        // Hover fill (transparent, lets the sliding highlight show).
                         Rectangle {
                             anchors.fill: parent
                             radius: 9

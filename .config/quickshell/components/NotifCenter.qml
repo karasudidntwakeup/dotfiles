@@ -45,14 +45,12 @@ Item {
         event.accepted = true
     }
 
-    // Clicking anywhere outside the panel dismisses the center.
     MouseArea {
         id: backdropArea
         anchors.fill: parent
         onClicked: { if (svc) svc.closeCenter() }
     }
 
-    // Panel
     Rectangle {
         id: panel
         width: center.panelWidth
@@ -75,7 +73,6 @@ Item {
             radius: 22
         }
 
-        // Panel is fully opaque; the backdrop below never tints this sheet.
         transform: Translate { x: (1.0 - center.animProgress) * (center.panelWidth + 48) }
         scale: 0.98 + 0.02 * center.animProgress
         transformOrigin: Item.Right
@@ -88,7 +85,6 @@ Item {
             anchors.bottomMargin: center.pad
             spacing: 10
 
-            // Header
             RowLayout {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 30
@@ -147,7 +143,6 @@ Item {
                 }
             }
 
-            // History list
             ListView {
                 id: centerList
                 Layout.fillWidth: true
@@ -190,7 +185,6 @@ Item {
                 }
             }
 
-            // Empty state
             Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
@@ -216,7 +210,6 @@ Item {
         }
     }
 
-    // Small header button
     component HeaderBtn: Item {
         id: btn
         property string glyph: ""

@@ -1,9 +1,5 @@
 import QtQuick
 
-// Rounded surface that paints a left->right gradient (darker left, brighter
-// right) like the bar pills. Drop it inside any rounded card Rectangle so the
-// whole quickshell UI shares one consistent sweep. `inset` keeps a 1px border
-// ring visible when the host rectangle draws one.
 Canvas {
     id: root
 

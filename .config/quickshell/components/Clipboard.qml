@@ -48,7 +48,6 @@ Item {
         return Qt.rgba(c.r, c.g, c.b, a)
     }
 
-    // Entrance/exit: pops up from the bottom edge like the app launcher.
     property real animProgress: clipMgr.active ? 1.0 : 0.0
     Behavior on animProgress {
         NumberAnimation {
@@ -327,7 +326,6 @@ Item {
                 }
             }
 
-            // Search field
             Rectangle {
                 id: searchBox
                 width: parent.width
@@ -426,7 +424,6 @@ Item {
                 }
             }
 
-            // Entry list
             Item {
                 id: listContainer
                 width: parent.width
@@ -519,8 +516,6 @@ Item {
                                     cache: false
                                     source: ""
 
-                                    // Decode the cached thumbnail (once per open; the file
-                                    // persists in /tmp so later opens reuse it instantly).
                                     Process {
                                         id: thumbGen
                                         command: ["sh", "-c",
@@ -636,7 +631,6 @@ Item {
                     }
                 }
 
-                // Empty state (overlays the list container)
                 Item {
                     anchors.fill: parent
                     visible: listModel.count === 0
@@ -671,7 +665,6 @@ Item {
                 }
             }
 
-            // Footer hints
             RowLayout {
                 width: parent.width
                 spacing: 6
