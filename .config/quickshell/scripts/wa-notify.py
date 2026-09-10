@@ -21,6 +21,23 @@ if "go/bin" not in os.environ.get("PATH", ""):
     os.environ["PATH"] = os.environ.get("PATH", "") + os.pathsep + gobin
 
 NOTIFY = shutil.which("notify-send")
+ICON = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", "assets", "whatsapp.png"
+)
+DND_FILE = os.path.join(
+    os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache")),
+    "quickshell",
+    "notif-config.json",
+)
+
+
+def dnd_enabled():
+    """True when quickshell's Do-Not-Disturb mode (notif-config.json) is on."""
+    try:
+        with open(DND_FILE) as f:
+            return bool(json.load(f).get("dnd"))
+    except Exception:
+        return False
 
 
 def contact_name(jid, cache):
@@ -68,28 +85,21 @@ class Handler(BaseHTTPRequestHandler):
         if not msg or msg.get("FromMe") is True:
             return
         chat = msg.get("Chat") or ""
-        gid = chat.lower().endswith(".g.us")
+        if chat.lower().endswith(".g.us"):
+            return  # no notifications for group chats
+        if dnd_enabled():
+            return  # quickshell Do-Not-Disturb is on
         text = (msg.get("Text") or "").strip()
         if not text:
             text = "[Media]" if msg.get("Media") else "[Message]"
         text = " ".join(text.split())[:220]
 
-        title = msg.get("ChatName") or chat
-        if gid:
-            sender = self.cache.get(msg.get("SenderJID") or "", "")
-            if not sender:
-                sender = contact_name(msg.get("SenderJID") or "", self.cache)
-                self.cache[msg.get("SenderJID") or ""] = sender
-            sender = sender or msg.get("PushName") or ""
-            body = f"{sender}: {text}" if sender else text
-            source = "Group"
-        else:
-            body = text
-            source = title or "WhatsApp"
+        title = msg.get("ChatName") or "WhatsApp"
+        body = text
 
         if not NOTIFY:
             return
-        args = [NOTIFY, "-a", "WhatsApp", "-t", "12000", "-u", "normal"]
+        args = [NOTIFY, "-a", "WhatsApp", "-i", ICON, "-t", "12000", "-u", "normal"]
         try:
             subprocess.Popen(
                 args + [title, body], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL

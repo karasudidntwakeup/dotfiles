@@ -57,8 +57,6 @@ Item {
     }
 
     readonly property int bottomMargin: 24
-    readonly property real slideOffset: (1.0 - clipMgr.animProgress)
-        * (clipMgr.bottomMargin * 2 + card.height)
 
     opacity: clipMgr.animProgress
 
@@ -209,7 +207,7 @@ Item {
         z: 1
         width: clipMgr.cardWidth
         anchors.horizontalCenter: parent.horizontalCenter
-        y: Math.floor(parent.height - card.height - clipMgr.bottomMargin) + clipMgr.slideOffset
+        y: Math.floor(parent.height - card.height - clipMgr.bottomMargin)
         height: contentColumn.implicitHeight + clipMgr.pad * 2
         radius: clipMgr.cornerRadius
         color: clipMgr.cardColor

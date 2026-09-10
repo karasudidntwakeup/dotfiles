@@ -30,7 +30,9 @@ Item {
 
     readonly property string cardTile: "whatsapp_card"
     readonly property color cardColor: rootRef
-        ? (rootRef.qsLight ? rootRef.pillColor(cardTile) : rootRef.colorOf(cardTile))
+        ? (rootRef.qsLight
+            ? rootRef.pillColor(cardTile)
+            : rootRef.colorOf(cardTile))
         : "#f3dfd1"
     readonly property color cardBorder: rootRef
         ? rootRef.withAlpha(rootRef.colorOf("widget_border"), rootRef.qsLight ? 0.5 : 0.35)
@@ -62,7 +64,6 @@ Item {
     }
 
     readonly property int bottomMargin: 24
-    readonly property real slideOffset: (1.0 - wa.animProgress) * (wa.bottomMargin * 2 + card.height)
     opacity: wa.animProgress
 
     property var rawChats: []
@@ -378,7 +379,7 @@ Item {
         z: 1
         width: wa.cardWidth
         anchors.horizontalCenter: parent.horizontalCenter
-        y: Math.floor(parent.height - card.height - wa.bottomMargin) + wa.slideOffset
+        y: Math.floor(parent.height - card.height - wa.bottomMargin)
         height: contentColumn.implicitHeight + wa.pad * 2
         radius: wa.cornerRadius
         color: wa.cardColor

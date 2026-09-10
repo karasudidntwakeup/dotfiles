@@ -130,13 +130,13 @@ Item {
                 }
 
                 HeaderBtn {
-                    glyph: svc && svc.dnd ? "󰼓" : "󰋲"
+                    glyph: svc && svc.dnd ? "󰂛" : "󰂚"
                     active: svc ? svc.dnd : false
                     onTapped: { if (svc) svc.dnd = !svc.dnd }
                 }
 
                 HeaderBtn {
-                    glyph: "󰩈"
+                    glyph: "󰗩"
                     enabled_: svc && svc.history.count > 0
                     active: false
                     onTapped: { if (svc) svc.clearAll() }

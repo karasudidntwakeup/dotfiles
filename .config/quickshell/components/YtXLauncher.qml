@@ -40,7 +40,7 @@ Item {
     readonly property int fontSize: rootRef ? rootRef.fontSize : 13
     property real animProgress: ytx.active ? 1 : 0
     readonly property int bottomMargin: 24
-    readonly property real slideOffset: (1 - ytx.animProgress) * (ytx.bottomMargin * 2 + card.height)
+
     readonly property string homeDir: Quickshell.env("HOME")
     readonly property string thumbCache: homeDir + "/.cache/rofi-youtube"
     property var videos: []
@@ -410,7 +410,7 @@ Item {
 
         width: ytx.cardWidth
         anchors.horizontalCenter: parent.horizontalCenter
-        y: Math.floor(parent.height - card.height - ytx.bottomMargin) + ytx.slideOffset
+        y: Math.floor(parent.height - card.height - ytx.bottomMargin)
         height: contentColumn.implicitHeight + ytx.pad * 2
         radius: ytx.cornerRadius
         color: ytx.cardColor

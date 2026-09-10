@@ -21,7 +21,7 @@ Item {
     readonly property string cardTile: "launcher_card"
     readonly property color cardColor: rootRef
         ? (rootRef.qsLight
-            ? (rootRef.pillColor(cardTile))
+            ? rootRef.pillColor(cardTile)
             : rootRef.colorOf(cardTile))
         : "#f3dfd1"
     readonly property color cardBorder: rootRef
@@ -55,8 +55,6 @@ Item {
     }
 
     readonly property int bottomMargin: 24
-    readonly property real slideOffset: (1.0 - launcher.animProgress)
-        * (launcher.bottomMargin * 2 + card.height)
 
     opacity: launcher.animProgress
 
@@ -262,7 +260,7 @@ Item {
         id: card
         width: launcher.cardWidth
         anchors.horizontalCenter: parent.horizontalCenter
-        y: Math.floor(parent.height - card.height - launcher.bottomMargin) + launcher.slideOffset
+        y: Math.floor(parent.height - card.height - launcher.bottomMargin)
         height: contentColumn.implicitHeight + launcher.pad * 2
         radius: launcher.cornerRadius
         color: launcher.cardColor
