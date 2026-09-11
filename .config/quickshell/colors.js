@@ -95,6 +95,8 @@ var whatsapp_card = "#a3be8c"
 
 var whatsapp_card_light = "#a3be8c"
 
+var panel_bg = "#ebcb8b"
+
 var widget_accent = "#7797b7"
 
 var widget_border = "#565c68"

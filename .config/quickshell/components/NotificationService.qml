@@ -57,6 +57,13 @@ Item {
         return ""
     }
 
+    function isRealIconPath(name) {
+        if (!name) return false
+        var n = name.toString()
+        if (n.indexOf("://") !== -1 || n.charAt(0) === "/") return true
+        return false
+    }
+
     function resolveIconName(name) {
         if (svc.iconPending[name]) return
         svc.iconPending[name] = "queued"
@@ -275,14 +282,14 @@ Item {
             }
             var appLabel = (n.appName && n.appName !== "") ? n.appName : "System"
             var summaryText = (n.summary && n.summary !== "") ? n.summary : "Notification"
-            var bodyText = n.body || ""
-            var iconName = svc.resolveIcon(n.appName, n.desktopEntry, n.appIcon, n.image)
+            var bodyText = (n.body || "").replace(/<\s*img\b[^>]*>/gi, "")
+            var iconName = svc.iconPathFor(svc.resolveIcon(n.appName, n.desktopEntry, n.appIcon, n.image))
 
             var entry = {
                 uid: uid,
                 appName: appLabel,
                 desktopEntry: n.desktopEntry || "",
-                appIcon: n.appIcon || "",
+                appIcon: svc.isRealIconPath(n.appIcon) ? n.appIcon : "",
                 iconName: iconName,
                 image: imageVal,
                 summary: summaryText,

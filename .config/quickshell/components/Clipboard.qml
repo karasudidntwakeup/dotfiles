@@ -19,7 +19,7 @@ Item {
     readonly property int pad: 14
     readonly property int cornerRadius: 20
 
-    readonly property string cardTile: "widget_card"
+    readonly property string cardTile: "panel_bg"
     readonly property color cardColor: rootRef
         ? (rootRef.qsLight
             ? rootRef.pillColor(cardTile)
@@ -33,20 +33,37 @@ Item {
     readonly property color fg: rootRef
         ? (rootRef.qsLight ? rootRef.qsPillFg : rootRef.textColor)
         : "#000000"
-    readonly property color accent: fg
-    readonly property color accentText: rootRef && rootRef.qsLight
-        ? "#000000" : "#ffffff"
+    readonly property color accent: rootRef
+        ? Qt.color(rootRef.colorOf("tertiary_container"))
+        : "#d57780"
+    readonly property color accentText: clipMgr.contrastColor(clipMgr.accent)
     readonly property color selectedFg: accentText
     readonly property color errorColor: rootRef ? Qt.color(rootRef.colorOf("widget_error")) : "#e30000"
-    readonly property string iconFont: rootRef ? rootRef.iconFont : "Symbols Nerd Font"
-    readonly property string fontFamily: rootRef ? rootRef.fontFamily : "Ndot 57"
-    readonly property string uiFont: rootRef ? rootRef.uiFont : "Inter"
-    readonly property int fontSize: rootRef ? rootRef.fontSize : 13
-    readonly property string thumbDir: "/tmp/quickshell-cliphist"
 
     function alpha(c: color, a: double): color {
         return Qt.rgba(c.r, c.g, c.b, a)
     }
+
+    function _lin(v: double): double {
+        if (v <= 0.03928) return v / 12.92
+        return Math.pow((v + 0.055) / 1.055, 2.4)
+    }
+
+    function relLum(c: color): double {
+        return 0.2126 * clipMgr._lin(c.r) + 0.7152 * clipMgr._lin(c.g) + 0.0722 * clipMgr._lin(c.b)
+    }
+
+    function contrastColor(c: color): color {
+        var l = clipMgr.relLum(c)
+        var white = (1.05) / (l + 0.05)
+        var black = (l + 0.05) / (0.05)
+        return white >= black ? "#ffffff" : "#000000"
+    }
+    readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
+    readonly property string fontFamily: rootRef && rootRef.fontFamily ? rootRef.fontFamily : "Ndot 57"
+    readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Inter"
+    readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
+    readonly property string thumbDir: "/tmp/quickshell-cliphist"
 
     property real animProgress: clipMgr.active ? 1.0 : 0.0
     Behavior on animProgress {
@@ -498,7 +515,7 @@ Item {
                                     anchors.fill: parent
                                     radius: 8
                                     color: isSelected
-                                        ? clipMgr.alpha(clipMgr.accentText, 0.14)
+                                        ? clipMgr.alpha(clipMgr.accent, 0.30)
                                         : clipMgr.alpha(clipMgr.fg, 0.10)
                                     Behavior on color { ColorAnimation { duration: 150 } }
                                 }

@@ -28,7 +28,7 @@ Item {
     property string activeTab: "chats"
     property string playingAudioSrc: ""
 
-    readonly property string cardTile: "whatsapp_card"
+    readonly property string cardTile: "panel_bg"
     readonly property color cardColor: rootRef
         ? (rootRef.qsLight
             ? rootRef.pillColor(cardTile)
@@ -40,15 +40,17 @@ Item {
     readonly property color fg: rootRef
         ? (rootRef.qsLight ? rootRef.qsPillFg : rootRef.textColor)
         : "#000000"
-    readonly property color accent: fg
+    readonly property color accent: rootRef
+        ? Qt.color(rootRef.colorOf("secondary_fixed_dim"))
+        : "#a3be8c"
     readonly property color accentText: wa.contrastColor(wa.accent)
     readonly property color selectedFg: accentText
     readonly property color errorColor: rootRef ? Qt.color(rootRef.colorOf("widget_error")) : "#e30000"
-    readonly property string iconFont: rootRef ? rootRef.iconFont : "Symbols Nerd Font"
-    readonly property string fontFamily: rootRef ? rootRef.fontFamily : "Ndot 57"
-    readonly property string uiFont: rootRef ? rootRef.uiFont : "Inter"
+    readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
+    readonly property string fontFamily: rootRef && rootRef.fontFamily ? rootRef.fontFamily : "Ndot 57"
+    readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Inter"
     readonly property string arabicFont: "SF Arabic"
-    readonly property int fontSize: rootRef ? rootRef.fontSize : 13
+    readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
     readonly property string homeDir: Quickshell.env("HOME")
 
     function alpha(c: color, a: double): color {
@@ -291,7 +293,7 @@ Item {
 
     FileView {
         id: messagesFile
-        path: wa.homeDir + "/.cache/quickshell/wa-messages-none.json"
+        path: ""
         watchChanges: true
         blockLoading: true
         onFileChanged: messagesFile.reload()
@@ -306,6 +308,7 @@ Item {
             }
         }
         onLoadFailed: (error) => {
+            if (!wa.currentJid) return
             console.log("[wa] messages load failed:", error)
             wa.msgsLoading = false
             wa.msgsFailed = true
@@ -758,7 +761,7 @@ Item {
                                             anchors.fill: parent
                                             radius: 20
                                             color: isSelected
-                                                ? wa.alpha(wa.accentText, 0.16)
+                                                ? wa.alpha(wa.accent, 0.28)
                                                 : wa.alpha(wa.fg, 0.10)
                                             Behavior on color {
                                                 ColorAnimation {

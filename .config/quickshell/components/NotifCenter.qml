@@ -17,10 +17,10 @@ Item {
     readonly property color fg: "#ffffff"
     readonly property color muteFg: Qt.rgba(1, 1, 1, 0.55)
     readonly property color accent: rootRef ? Qt.color(rootRef.colorOf("widget_accent")) : "#ff8fb2"
-    readonly property string iconFont: rootRef ? rootRef.iconFont : "Symbols Nerd Font"
-    readonly property string uiFont: rootRef ? rootRef.uiFont : "Inter"
-    readonly property string fontFamily: rootRef ? rootRef.fontFamily : "Ndot 57"
-    readonly property int fontSize: rootRef ? rootRef.fontSize : 13
+    readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
+    readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Inter"
+    readonly property string fontFamily: rootRef && rootRef.fontFamily ? rootRef.fontFamily : "Ndot 57"
+    readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
 
     property real animProgress: svc && svc.centerOpen ? 1.0 : 0.0
     Behavior on animProgress {

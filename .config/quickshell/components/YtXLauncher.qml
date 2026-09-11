@@ -27,22 +27,43 @@ Item {
     readonly property int titleHeight: Math.round((fontSize - 1) * 1.2) * 2
     readonly property int channelHeight: Math.max(10, fontSize - 3)
     readonly property int cellHeight: cellInset * 2 + thumbHeight + 7 + titleHeight + 3 + channelHeight
-    readonly property string cardTile: "ytx_card"
+    readonly property string cardTile: "panel_bg"
     readonly property color cardColor: rootRef ? (rootRef.qsLight ? (rootRef.pillColor(cardTile)) : rootRef.colorOf(cardTile)) : "#f3dfd1"
     readonly property color cardBorder: rootRef ? rootRef.withAlpha(rootRef.colorOf("widget_border"), rootRef.qsLight ? 0.7 : 0.5) : "#00000000"
     readonly property color fg: rootRef ? (rootRef.qsLight ? rootRef.qsPillFg : rootRef.textColor) : "#000000"
-    readonly property color accent: fg
-    readonly property color accentText: rootRef && rootRef.qsLight ? "#000000" : "#ffffff"
-    readonly property color selectedFg: accentText
-    readonly property string iconFont: rootRef ? rootRef.iconFont : "Symbols Nerd Font"
-    readonly property string fontFamily: rootRef ? rootRef.fontFamily : "Ndot 57"
-    readonly property string uiFont: rootRef ? rootRef.uiFont : "Inter"
-    readonly property int fontSize: rootRef ? rootRef.fontSize : 13
+    readonly property color accent: rootRef
+        ? Qt.color(rootRef.colorOf("widget_error"))
+        : "#bf616a"
+    readonly property color accentText: ytx.contrastColor(ytx.accent)
+    readonly property color selectedFg: rootRef
+        ? Qt.color(rootRef.colorOf("widget_error"))
+        : "#bf616a"
+
+    function _lin(v: double): double {
+        if (v <= 0.03928) return v / 12.92
+        return Math.pow((v + 0.055) / 1.055, 2.4)
+    }
+
+    function relLum(c: color): double {
+        return 0.2126 * ytx._lin(c.r) + 0.7152 * ytx._lin(c.g) + 0.0722 * ytx._lin(c.b)
+    }
+
+    function contrastColor(c: color): color {
+        var l = ytx.relLum(c)
+        var white = (1.05) / (l + 0.05)
+        var black = (l + 0.05) / (0.05)
+        return white >= black ? "#ffffff" : "#000000"
+    }
+    readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
+    readonly property string fontFamily: rootRef && rootRef.fontFamily ? rootRef.fontFamily : "Ndot 57"
+    readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Inter"
+    readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
     property real animProgress: ytx.active ? 1 : 0
     readonly property int bottomMargin: 24
 
     readonly property string homeDir: Quickshell.env("HOME")
     readonly property string thumbCache: homeDir + "/.cache/rofi-youtube"
+    property real thumbTicks: 0
     property var videos: []
     property bool homeLoaded: false
     property bool homeFailed: false
@@ -50,6 +71,13 @@ Item {
     property string feedMode: "home"
     property var prefetched: ({
     })
+
+    Process {
+        id: thumbProc
+        onExited: () => {
+            ytx.thumbTicks++
+        }
+    }
 
     signal requestClose()
 
@@ -92,15 +120,18 @@ Item {
 
     function prefetchThumbs(arr) {
         if (!ytx.active) return
+        var cmds = [];
         for (var i = 0; i < arr.length; i++) {
             var v = arr[i];
             if (ytx.prefetched[v.vid])
                 continue;
 
             ytx.prefetched[v.vid] = true;
-            var cmd = "test -s '" + v.thumb + "' || { curl -sfL --max-time 10 " + "'https://i.ytimg.com/vi/" + v.vid + "/mqdefault.jpg' -o '" + v.thumb + ".part' && mv '" + v.thumb + ".part' '" + v.thumb + "'; }";
-            Quickshell.execDetached(["bash", "-c", cmd]);
+            cmds.push("test -s '" + v.thumb + "' || { curl -sfL --max-time 10 " + "'https://i.ytimg.com/vi/" + v.vid + "/mqdefault.jpg' -o '" + v.thumb + ".part' && mv '" + v.thumb + ".part' '" + v.thumb + "'; }");
         }
+        if (cmds.length === 0) return
+        thumbProc.command = ["bash", "-c", cmds.join("; ")];
+        thumbProc.start();
     }
 
     function isSubsequence(sub, str) {
@@ -837,7 +868,9 @@ Item {
                                     id: thumbImg
 
                                     anchors.fill: parent
-                                    source: "file://" + thumb
+                                    source: ytx.thumbTicks > 0
+                                        ? "file://" + thumb + "?t=" + ytx.thumbTicks
+                                        : "https://i.ytimg.com/vi/" + vid + "/mqdefault.jpg"
                                     sourceSize: Qt.size(ytx.thumbWidth * 2, ytx.thumbHeight * 2)
                                     fillMode: Image.PreserveAspectCrop
                                     asynchronous: true
