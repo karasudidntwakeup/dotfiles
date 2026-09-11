@@ -375,7 +375,7 @@ Item {
         radius: window.cornerRadius
         color: window.baseColor
         border.color: window.borderColor
-        border.width: 1
+        border.width: 2
 
         SurfaceGradient {
             anchors.fill: parent
@@ -665,8 +665,6 @@ Item {
                     height: window.u * 32
                     radius: window.u * 10
                     color: cancelHov.containsMouse ? window.surface1 : "transparent"
-                    border.color: window.borderColor
-                    border.width: 1
                     Text {
                         id: cancelLabel
                         anchors.centerIn: parent

@@ -5,6 +5,7 @@ Listens for wacli sync --webhook POSTs and raises desktop notifications for
 incoming messages via notify-send (shown by quickshell's notification daemon).
 """
 
+import datetime
 import json
 import os
 import re
@@ -15,6 +16,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 HOST = "127.0.0.1"
 PORT = 51828
+LOG = os.path.expanduser("~/.cache/quickshell/wa-webhook.log")
+LOG_MAX = 400
 
 if "go/bin" not in os.environ.get("PATH", ""):
     gobin = os.path.expanduser("~/go/bin")
@@ -24,20 +27,6 @@ NOTIFY = shutil.which("notify-send")
 ICON = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "..", "assets", "whatsapp.png"
 )
-DND_FILE = os.path.join(
-    os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache")),
-    "quickshell",
-    "notif-config.json",
-)
-
-
-def dnd_enabled():
-    """True when quickshell's Do-Not-Disturb mode (notif-config.json) is on."""
-    try:
-        with open(DND_FILE) as f:
-            return bool(json.load(f).get("dnd"))
-    except Exception:
-        return False
 
 
 def contact_name(jid, cache):
@@ -72,6 +61,7 @@ class Handler(BaseHTTPRequestHandler):
             length = int(self.headers.get("Content-Length") or 0)
             body = self.rfile.read(length)
             msg = json.loads(body or b"{}")
+            self._log(msg)
             self.notify(msg)
         except Exception:
             pass
@@ -81,14 +71,30 @@ class Handler(BaseHTTPRequestHandler):
         except Exception:
             pass
 
+    def _log(self, msg):
+        try:
+            ts = datetime.datetime.now().strftime("%H:%M:%S")
+            line = "%s chat=%s FromMe=%s text=%r\n" % (
+                ts,
+                msg.get("Chat") or "",
+                msg.get("FromMe"),
+                (msg.get("Text") or "")[:80],
+            )
+            with open(LOG, "a") as f:
+                f.write(line)
+            with open(LOG) as f:
+                lines = f.readlines()[-LOG_MAX:]
+            with open(LOG, "w") as f:
+                f.writelines(lines)
+        except Exception:
+            pass
+
     def notify(self, msg):
         if not msg or msg.get("FromMe") is True:
             return
         chat = msg.get("Chat") or ""
         if chat.lower().endswith(".g.us"):
             return  # no notifications for group chats
-        if dnd_enabled():
-            return  # quickshell Do-Not-Disturb is on
         text = (msg.get("Text") or "").strip()
         if not text:
             text = "[Media]" if msg.get("Media") else "[Message]"

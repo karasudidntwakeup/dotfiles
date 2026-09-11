@@ -13,7 +13,7 @@ Item {
     readonly property int panelWidth: 400
     readonly property int pad: 12
     readonly property color panelColor: "#15161a"
-    readonly property color panelBorder: rootRef ? Qt.color(rootRef.colorOf("widget_border")) : "#ffffff33"
+    readonly property color panelBorder: rootRef ? rootRef.withAlpha(Qt.color(rootRef.colorOf("widget_border")), rootRef.qsLight ? 0.7 : 0.5) : "#ffffff33"
     readonly property color fg: "#ffffff"
     readonly property color muteFg: Qt.rgba(1, 1, 1, 0.55)
     readonly property color accent: rootRef ? Qt.color(rootRef.colorOf("widget_accent")) : "#ff8fb2"
@@ -62,7 +62,7 @@ Item {
         anchors.rightMargin: 10
         color: center.panelColor
         radius: 22
-        border.width: 1
+        border.width: 2
         border.color: center.panelBorder
         clip: true
 

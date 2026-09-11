@@ -153,6 +153,8 @@ open-in-herdr() {
   fi
 }
 alias yt='yt-x'
+opencode() { open-in-herdr opencode opencode "$@" }
+wp-tui() { open-in-herdr wp-tui wp-tui "$@" }
 alias ytd='yt-dlp  -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]" --audio-quality 0'
 alias ytdm='yt-dlp -f "bestaudio[ext=m4a]","bestaudio[ext=webm]" -x '
 alias v='nvim'

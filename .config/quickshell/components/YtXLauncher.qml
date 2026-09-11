@@ -29,7 +29,7 @@ Item {
     readonly property int cellHeight: cellInset * 2 + thumbHeight + 7 + titleHeight + 3 + channelHeight
     readonly property string cardTile: "ytx_card"
     readonly property color cardColor: rootRef ? (rootRef.qsLight ? (rootRef.pillColor(cardTile)) : rootRef.colorOf(cardTile)) : "#f3dfd1"
-    readonly property color cardBorder: rootRef ? rootRef.withAlpha(rootRef.colorOf("widget_border"), rootRef.qsLight ? 0.5 : 0.35) : "#00000000"
+    readonly property color cardBorder: rootRef ? rootRef.withAlpha(rootRef.colorOf("widget_border"), rootRef.qsLight ? 0.7 : 0.5) : "#00000000"
     readonly property color fg: rootRef ? (rootRef.qsLight ? rootRef.qsPillFg : rootRef.textColor) : "#000000"
     readonly property color accent: fg
     readonly property color accentText: rootRef && rootRef.qsLight ? "#000000" : "#ffffff"
@@ -414,7 +414,7 @@ Item {
         height: contentColumn.implicitHeight + ytx.pad * 2
         radius: ytx.cornerRadius
         color: ytx.cardColor
-        border.width: 1
+        border.width: 2
         border.color: ytx.cardBorder
         clip: true
 

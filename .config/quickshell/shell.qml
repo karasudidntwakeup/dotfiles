@@ -95,6 +95,29 @@ ShellRoot {
         return Qt.rgba(color.r, color.g, color.b, a)
     }
 
+    function mixColor(c1, c2, t) {
+        var a = Qt.color(c1)
+        var b = Qt.color(c2)
+        t = Math.max(0, Math.min(1, t))
+        return Qt.rgba(a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t,
+                       a.b + (b.b - a.b) * t, 1)
+    }
+
+    function memTint(p) {
+        var g = root.pillColor("secondary_fixed_dim")
+        var a = root.pillColor("secondary_container")
+        var r = root.pillColor("error")
+        if (p <= 50) return root.mixColor(g, a, p / 50)
+        return root.mixColor(a, r, (p - 50) / 50)
+    }
+
+    function volTint() {
+        if (root.muted) return root.pillColor("error")
+        return root.mixColor(root.pillColor("secondary_container"),
+                             root.pillColor("secondary_fixed_dim"),
+                             root.volumePercent / 100)
+    }
+
     property string weatherText: ""
     property string prayerText: ""
     property string prayerName: ""
@@ -113,6 +136,7 @@ ShellRoot {
     }
 
     property string memText: ""
+    property int memPercent: 0
 
     Process {
         id: weatherProc
@@ -160,10 +184,14 @@ ShellRoot {
 
     Process {
         id: memProc
-        command: ["sh", "-c", "~/.config/waybar/scripts/memory.sh"]
+        command: ["sh", "-c", Quickshell.shellDir + "/scripts/mem.sh"]
         stdout: SplitParser {
             onRead: data => {
-                if (data) memText = data.trim().replace(/^󰍛\s+/, "")
+                if (!data) return
+                var parts = data.trim().split("|")
+                var used = parts[0] || ""
+                root.memText = used ? used + "MB" : ""
+                root.memPercent = parseInt(parts[1] || "0", 10) || 0
             }
         }
     }
@@ -284,9 +312,9 @@ ShellRoot {
 
     function signalTint(sig) {
         var s = sig || 0
-        if (s >= 60) return root.pillColor("primary_container")
-        if (s >= 30) return root.pillColor("tertiary_container")
-        return root.pillColor("error_container")
+        if (s >= 60) return root.pillColor("secondary_fixed_dim")
+        if (s >= 30) return root.pillColor("secondary_container")
+        return root.pillColor("error")
     }
 
     Process {
@@ -935,7 +963,10 @@ ShellRoot {
                     anchors.fill: parent
                     rootRef: root
                     locked: root.lockActive
-                    onUnlocked: lockActive = false
+                    onUnlocked: {
+                        lockActive = false
+                        Quickshell.execDetached(["sh", "-c", "rm -f '" + Quickshell.env("HOME") + "/.cache/quickshell/lock-request'"])
+                    }
                 }
             }
         }
@@ -1341,12 +1372,12 @@ ShellRoot {
                     Module {
                         id: kbPill
                         label: root.shortLayout(niriIpc.keyboardLayoutName)
-                        tint: root.pillColor("primary_fixed")
+                        tint: root.pillColor("surface_container_highest")
                     }
 
                     Module {
                         id: mediaPill
-                        tint: root.pillColor("primary_fixed_dim")
+                        tint: root.pillColor("error")
                         visible: root.mediaStatus !== "none"
                         padX: 10
                         showControls: true
@@ -1356,16 +1387,16 @@ ShellRoot {
                         id: volPill
                         icon: root.volumeIcon
                         label: root.muted ? "MUTE" : root.volumePercent + "%"
-                        tint: root.pillColor("secondary_fixed_dim")
+                        tint: root.volTint()
 
                         clickArea.onClicked: {
-                            volCmd.command = ["pactl", "set-sink-mute", "@DEFAULT_SINK@", "toggle"]
+                            volCmd.command = ["sh", "-c", Quickshell.shellDir + "/scripts/vol.sh mute"]
                             volCmd.running = true
                             volProc.running = true
                         }
                         wheelArea.onWheel: event => {
                             var delta = event.angleDelta.y > 0 ? "+5%" : "-5%"
-                            volCmd.command = ["pactl", "set-sink-volume", "@DEFAULT_SINK@", delta]
+                            volCmd.command = ["sh", "-c", Quickshell.shellDir + "/scripts/vol.sh set " + delta]
                             volCmd.running = true
                             volProc.running = true
                             event.accepted = true
@@ -1376,14 +1407,16 @@ ShellRoot {
                         id: memPill
                         icon: "󰍛"
                         label: root.memText
-                        tint: root.pillColor("primary_container")
+                        tint: root.memTint(root.memPercent)
                     }
 
                     Module {
                         id: netPill
                         icon: root.networkConnected ? "󰖩" : "󰖪"
                         label: root.networkConnected ? (root.networkIp + (root.networkSignal ? "  •  " + root.networkSignal + "%" : "") || root.networkText) : "No net"
-                        tint: root.pillColor("secondary_container")
+                        tint: root.networkConnected
+                            ? root.signalTint(root.networkSignal)
+                            : root.pillColor("error")
                     }
 
                     Module {
@@ -1392,14 +1425,14 @@ ShellRoot {
                             ? "󰋠 󰛞 󰋑 󰋑"
                             : root.batteryIcon(root.batteryPercent)
                         label: root.batteryPercent + " %"
-                        tint: root.pillColor("source")
+                        tint: root.pillColor("primary_container")
                     }
 
                     Module {
                         id: clockPill
                         icon: "󰥔"
                         label: root.clockText
-                        tint: root.pillColor("secondary_fixed")
+                        tint: root.pillColor("surface_container")
 
                         clickArea.onClicked: calPopup.open()
                     }
@@ -1655,6 +1688,8 @@ ShellRoot {
                 implicitHeight: collapsedHeight + calPopup.editorHeight + 6
                     + calPopup.timerGap + calPopup.timerHeight
 
+                readonly property color popupFg: root.luminance(Qt.color(clockPill.tint)) > 0.45 ? "#000000" : "#ffffff"
+
                 property real animProgress: 0
 
                 Behavior on animProgress {
@@ -1721,7 +1756,7 @@ ShellRoot {
                     }
 
                     radius: 25
-                    color: root.pillColor("secondary_fixed")
+                    color: clockPill.tint
                     border.width: 1
                     border.color: root.withAlpha(root.outlineVariant, 0.35)
                     clip: true
@@ -1730,7 +1765,7 @@ ShellRoot {
                         anchors.fill: parent
                         inset: 1
                         radius: 25
-                        color: root.pillColor("secondary_fixed")
+                        color: clockPill.tint
                     }
                     opacity: calPopup.animProgress
                     scale: 0.92 + (0.08 * calPopup.animProgress)
@@ -1748,35 +1783,35 @@ ShellRoot {
 
                             Text {
                                 text: "󰁍"
-                                color: root.textColor
-                                font.family: root.iconFont
-                                font.pixelSize: root.fontSize + 1
-                                Layout.preferredWidth: 24
-                                Layout.preferredHeight: 26
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
+                                    color: calPopup.popupFg
+                                    font.family: root.iconFont
+                                    font.pixelSize: root.fontSize + 1
+                                    Layout.preferredWidth: 24
+                                    Layout.preferredHeight: 26
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
 
-                                MouseArea {
-                                    anchors.fill: parent
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: calPopup.shiftMonth(-1)
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: calPopup.shiftMonth(-1)
+                                    }
                                 }
-                            }
 
-                            Item { Layout.fillWidth: true }
+                                Item { Layout.fillWidth: true }
 
-                            Text {
-                                text: "󰁔"
-                                color: root.textColor
-                                font.family: root.iconFont
-                                font.pixelSize: root.fontSize + 1
-                                Layout.preferredWidth: 24
-                                Layout.preferredHeight: 26
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
+                                Text {
+                                    text: "󰁔"
+                                    color: calPopup.popupFg
+                                    font.family: root.iconFont
+                                    font.pixelSize: root.fontSize + 1
+                                    Layout.preferredWidth: 24
+                                    Layout.preferredHeight: 26
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
 
-                                MouseArea {
-                                    anchors.fill: parent
+                                    MouseArea {
+                                        anchors.fill: parent
                                     cursorShape: Qt.PointingHandCursor
                                     onClicked: calPopup.shiftMonth(1)
                                 }
@@ -1784,7 +1819,7 @@ ShellRoot {
 
                             Text {
                                 text: "󰅖"
-                                color: root.textColor
+                                color: calPopup.popupFg
                                 font.family: root.iconFont
                                 font.pixelSize: root.fontSize + 1
                                 Layout.preferredWidth: 24
@@ -1809,7 +1844,7 @@ ShellRoot {
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: "󰥔"
-                                color: root.textColor
+                                color: calPopup.popupFg
                                 font.family: root.iconFont
                                 font.pixelSize: root.fontSize + 3
                             }
@@ -1817,7 +1852,7 @@ ShellRoot {
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: Qt.formatDate(new Date(), "dddd, MMMM d, yyyy")
-                                color: root.textColor
+                                color: calPopup.popupFg
                                 font.family: root.fontFamily
                                 font.pixelSize: root.fontSize + 2
                                 font.weight: Font.Black
@@ -1834,7 +1869,7 @@ ShellRoot {
                                     width: (calPopupBody.width - 24) / 7
                                     horizontalAlignment: Text.AlignHCenter
                                     text: modelData
-                                    color: root.textColor
+                                    color: calPopup.popupFg
                                     font.family: root.fontFamily
                                     font.pixelSize: root.fontSize - 2
                                 }
@@ -1878,17 +1913,17 @@ ShellRoot {
                                         radius: 8
                                         visible: day > 0
                                         color: isSelected
-                                            ? root.textColor
+                                            ? calPopup.popupFg
                                             : dayHover.containsMouse
-                                                ? root.withAlpha(root.textColor, 0.18)
-                                                : isToday ? root.withAlpha(root.textColor, 0.4) : "transparent"
+                                                ? root.withAlpha(calPopup.popupFg, 0.18)
+                                                : isToday ? root.withAlpha(calPopup.popupFg, 0.4) : "transparent"
 
                                         Text {
                                             id: dayNum
                                             anchors.centerIn: parent
                                             visible: day > 0
                                             text: day
-                                            color: isSelected ? root.onTextColor : root.textColor
+                                            color: isSelected ? root.onTextColor : calPopup.popupFg
                                             font.family: root.fontFamily
                                             font.pixelSize: root.fontSize
                                             font.weight: isSelected || isToday ? Font.Black : Font.Normal
@@ -1902,7 +1937,7 @@ ShellRoot {
                                             width: 4
                                             height: 4
                                             radius: 2
-                                            color: isSelected ? root.onTextColor : root.textColor
+                                            color: isSelected ? root.onTextColor : calPopup.popupFg
                                         }
 
                                         MouseArea {
@@ -1931,7 +1966,7 @@ ShellRoot {
 
                                 Text {
                                     text: "󰃭"
-                                    color: root.textColor
+                                    color: calPopup.popupFg
                                     font.family: root.iconFont
                                     font.pixelSize: root.fontSize + 1
                                     Layout.preferredWidth: 22
@@ -1942,7 +1977,7 @@ ShellRoot {
 
                                 Text {
                                     text: calPopup.selectedDateLabel()
-                                    color: root.textColor
+                                    color: calPopup.popupFg
                                     font.family: root.fontFamily
                                     font.pixelSize: root.fontSize
                                     font.weight: Font.Black
@@ -1960,7 +1995,7 @@ ShellRoot {
                                                 if (list[i].done) done++
                                             return done + "/" + list.length + " tasks"
                                         })()
-                                    color: root.textColor
+                                    color: calPopup.popupFg
                                     font.family: root.fontFamily
                                     font.pixelSize: root.fontSize - 2
                                     verticalAlignment: Text.AlignVCenter
@@ -1968,7 +2003,7 @@ ShellRoot {
 
                                 Text {
                                     text: "󰅖"
-                                    color: root.textColor
+                                    color: calPopup.popupFg
                                     font.family: root.iconFont
                                     font.pixelSize: root.fontSize + 1
                                     Layout.preferredWidth: 20
@@ -1995,13 +2030,13 @@ ShellRoot {
                                     Layout.fillHeight: true
                                     radius: 7
                                     color: addHover.containsMouse
-                                        ? root.withAlpha(root.textColor, 0.35)
-                                        : root.withAlpha(root.textColor, 0.22)
+                                        ? root.withAlpha(calPopup.popupFg, 0.35)
+                                        : root.withAlpha(calPopup.popupFg, 0.22)
 
                                     Text {
                                         anchors.centerIn: parent
                                         text: "+"
-                                        color: root.textColor
+                                        color: calPopup.popupFg
                                         font.family: root.fontFamily
                                         font.pixelSize: root.fontSize + 2
                                         font.weight: Font.Black
@@ -2023,13 +2058,13 @@ ShellRoot {
                                     radius: 7
                                     color: minusHover.containsMouse && calPopup.selectedEntryId >= 0
                                         ? root.withAlpha(root.error, 0.35)
-                                        : root.withAlpha(root.textColor, calPopup.selectedEntryId >= 0 ? 0.12 : 0.05)
+                                        : root.withAlpha(calPopup.popupFg, calPopup.selectedEntryId >= 0 ? 0.12 : 0.05)
                                     enabled: calPopup.selectedEntryId >= 0
 
                                     Text {
                                         anchors.centerIn: parent
                                         text: "-"
-                                        color: calPopup.selectedEntryId >= 0 ? root.error : root.withAlpha(root.textColor, 0.3)
+                                        color: calPopup.selectedEntryId >= 0 ? root.error : root.withAlpha(calPopup.popupFg, 0.3)
                                         font.family: root.fontFamily
                                         font.pixelSize: root.fontSize + 2
                                         font.weight: Font.Black
@@ -2048,7 +2083,7 @@ ShellRoot {
 
                                 Text {
                                     text: "Enter to save"
-                                    color: root.textColor
+                                    color: calPopup.popupFg
                                     font.family: root.fontFamily
                                     font.pixelSize: root.fontSize - 2
                                     verticalAlignment: Text.AlignVCenter
@@ -2072,7 +2107,7 @@ ShellRoot {
                                     contentItem: Rectangle {
                                         implicitWidth: 3
                                         radius: 2
-                                        color: root.withAlpha(root.textColor, 0.3)
+                                        color: root.withAlpha(calPopup.popupFg, 0.3)
                                     }
                                 }
 
@@ -2096,11 +2131,11 @@ ShellRoot {
                                             width: entriesCol.width
                                             height: 30
                                             radius: 8
-                                            color: root.withAlpha(root.textColor, saved ? 0.05 : 0.08)
+                                            color: root.withAlpha(calPopup.popupFg, saved ? 0.05 : 0.08)
                     border.width: 0
                                             border.color: isSelected
-                                                ? root.textColor
-                                                : saved ? "transparent" : root.withAlpha(root.textColor, 0.15)
+                                                ? calPopup.popupFg
+                                                : saved ? "transparent" : root.withAlpha(calPopup.popupFg, 0.15)
 
                                             RowLayout {
                                                 z: 1
@@ -2115,10 +2150,10 @@ ShellRoot {
                                                     Layout.preferredHeight: 18
                                                     radius: 5
                                                     color: entryDone
-                                                        ? (todoCheckArea.containsMouse ? root.withAlpha(root.textColor, 0.8) : root.textColor)
-                                                        : (todoCheckArea.containsMouse ? root.withAlpha(root.textColor, 0.08) : "transparent")
+                                                        ? (todoCheckArea.containsMouse ? root.withAlpha(calPopup.popupFg, 0.8) : calPopup.popupFg)
+                                                        : (todoCheckArea.containsMouse ? root.withAlpha(calPopup.popupFg, 0.08) : "transparent")
                                                     border.width: 1
-                                                    border.color: entryDone ? root.textColor : root.withAlpha(root.textColor, 0.35)
+                                                    border.color: entryDone ? calPopup.popupFg : root.withAlpha(calPopup.popupFg, 0.35)
 
                                                     Behavior on color { ColorAnimation { duration: 120 } }
 
@@ -2147,7 +2182,7 @@ ShellRoot {
                                                     Layout.fillWidth: true
                                                     Layout.fillHeight: true
                                                     text: entryText
-                                                    color: root.textColor
+                                                    color: calPopup.popupFg
                                                     font.family: root.uiFont
                                                     font.pixelSize: root.fontSize
                                                     selectByMouse: true
@@ -2163,7 +2198,7 @@ ShellRoot {
                                                     Layout.fillWidth: true
                                                     Layout.fillHeight: true
                                                     text: entryText
-                                                    color: root.textColor
+                                                    color: calPopup.popupFg
                                                     font.family: root.uiFont
                                                     font.pixelSize: root.fontSize
                                                     font.strikeout: entryDone
@@ -2176,12 +2211,12 @@ ShellRoot {
                                                     Layout.preferredWidth: 22
                                                     Layout.preferredHeight: 22
                                                     radius: 6
-                                                    color: saveHover.containsMouse ? root.withAlpha(root.textColor, 0.25) : "transparent"
+                                                    color: saveHover.containsMouse ? root.withAlpha(calPopup.popupFg, 0.25) : "transparent"
 
                                                     Text {
                                                         anchors.centerIn: parent
                                                         text: "󰄴"
-                                                        color: root.textColor
+                                                        color: calPopup.popupFg
                                                         font.family: root.iconFont
                                                         font.pixelSize: root.fontSize
                                                     }
@@ -2249,7 +2284,7 @@ ShellRoot {
                         id: timerBody
                         anchors.fill: parent
                         radius: 25
-                        color: root.pillColor("secondary_fixed")
+                        color: clockPill.tint
                         border.width: 1
                         border.color: root.withAlpha(root.outlineVariant, 0.35)
                         opacity: 0
@@ -2258,7 +2293,7 @@ ShellRoot {
                             anchors.fill: parent
                             inset: 1
                             radius: 25
-                            color: root.pillColor("secondary_fixed")
+                            color: clockPill.tint
                         }
 
                         ColumnLayout {
@@ -2273,7 +2308,7 @@ ShellRoot {
 
                                 Text {
                                     text: "󰄉"
-                                    color: root.textColor
+                                    color: calPopup.popupFg
                                     font.family: root.iconFont
                                     font.pixelSize: root.fontSize + 2
                                     Layout.preferredWidth: 22
@@ -2284,7 +2319,7 @@ ShellRoot {
 
                                 Text {
                                     text: root.fmtTimer(root.timerRemainingMs)
-                                    color: root.timerRemainingMs <= 0 ? root.error : root.textColor
+                                    color: root.timerRemainingMs <= 0 ? root.error : calPopup.popupFg
                                     font.family: root.fontFamily
                                     font.pixelSize: root.fontSize + 8
                                     font.weight: Font.Black
@@ -2299,13 +2334,13 @@ ShellRoot {
                                     Layout.alignment: Qt.AlignVCenter
                                     radius: 7
                                     color: timerMinusHover.containsMouse
-                                        ? root.withAlpha(root.textColor, 0.35)
-                                        : root.withAlpha(root.textColor, 0.18)
+                                        ? root.withAlpha(calPopup.popupFg, 0.35)
+                                        : root.withAlpha(calPopup.popupFg, 0.18)
 
                                     Text {
                                         anchors.centerIn: parent
                                         text: "-"
-                                        color: root.textColor
+                                        color: calPopup.popupFg
                                         font.family: root.fontFamily
                                         font.pixelSize: root.fontSize + 2
                                         font.weight: Font.Black
@@ -2327,13 +2362,13 @@ ShellRoot {
                                     Layout.alignment: Qt.AlignVCenter
                                     radius: 7
                                     color: timerPlusHover.containsMouse
-                                        ? root.withAlpha(root.textColor, 0.35)
-                                        : root.withAlpha(root.textColor, 0.18)
+                                        ? root.withAlpha(calPopup.popupFg, 0.35)
+                                        : root.withAlpha(calPopup.popupFg, 0.18)
 
                                     Text {
                                         anchors.centerIn: parent
                                         text: "+"
-                                        color: root.textColor
+                                        color: calPopup.popupFg
                                         font.family: root.fontFamily
                                         font.pixelSize: root.fontSize + 2
                                         font.weight: Font.Black
@@ -2355,13 +2390,13 @@ ShellRoot {
                                     Layout.alignment: Qt.AlignVCenter
                                     radius: 7
                                     color: timerToggleHover.containsMouse
-                                        ? root.withAlpha(root.textColor, 0.45)
-                                        : root.withAlpha(root.textColor, 0.28)
+                                        ? root.withAlpha(calPopup.popupFg, 0.45)
+                                        : root.withAlpha(calPopup.popupFg, 0.28)
 
                                     Text {
                                         anchors.centerIn: parent
                                         text: root.timerRunning ? "󰏤" : "󰐊"
-                                        color: root.textColor
+                                        color: calPopup.popupFg
                                         font.family: root.iconFont
                                         font.pixelSize: root.fontSize + 2
                                     }
@@ -2383,7 +2418,7 @@ ShellRoot {
                                     radius: 7
                                     color: timerResetHover.containsMouse
                                         ? root.withAlpha(root.error, 0.35)
-                                        : root.withAlpha(root.textColor, 0.08)
+                                        : root.withAlpha(calPopup.popupFg, 0.08)
 
                                     Text {
                                         anchors.centerIn: parent

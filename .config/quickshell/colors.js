@@ -35,6 +35,8 @@ var tertiary_fixed = "#d57780"
 
 var source = "#7797b7"
 
+var surface = "#2a303c"
+
 /* Popup surface tones: neutral + raised variants used by popups. */
 var surface_container = "#373d49"
 
@@ -50,6 +52,8 @@ var primary_container_light = "#9aafe6"
 
 var error_container_light = "#b48ead"
 
+var error_light = "#bf616a"
+
 var primary_fixed_dim_light = "#7797b7"
 
 var secondary_container_light = "#ebcb8b"
@@ -63,6 +67,8 @@ var tertiary_container_light = "#d57780"
 var primary_fixed_light = "#9aafe6"
 
 var tertiary_fixed_light = "#d57780"
+
+var outline_variant_light = "#565c68"
 
 var source_light = "#7797b7"
 

@@ -6,9 +6,9 @@ binds {
     Super+C hotkey-overlay-title="Open Browser: LibreWolf" { spawn "librewolf"; }
     Super+Shift+Q hotkey-overlay-title="Lock the Screen" { spawn "~/.config/quickshell/lock.sh"; }
     /////////
-    XF86AudioRaiseVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1+"; }
-    XF86AudioLowerVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1-"; }
-    XF86AudioMute        allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"; }
+    XF86AudioRaiseVolume allow-when-locked=true { spawn "~/.config/quickshell/scripts/vol.sh" "up"; }
+    XF86AudioLowerVolume allow-when-locked=true { spawn "~/.config/quickshell/scripts/vol.sh" "down"; }
+    XF86AudioMute        allow-when-locked=true { spawn "~/.config/quickshell/scripts/vol.sh" "mute"; }
     XF86AudioMicMute     allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; }
     XF86AudioPlay        allow-when-locked=true { spawn-sh "playerctl play-pause"; }
     XF86AudioStop        allow-when-locked=true { spawn-sh "playerctl stop"; }

@@ -35,13 +35,13 @@ Item {
             : rootRef.colorOf(cardTile))
         : "#f3dfd1"
     readonly property color cardBorder: rootRef
-        ? rootRef.withAlpha(rootRef.colorOf("widget_border"), rootRef.qsLight ? 0.5 : 0.35)
+        ? rootRef.withAlpha(rootRef.colorOf("widget_border"), rootRef.qsLight ? 0.7 : 0.5)
         : "#00000000"
     readonly property color fg: rootRef
         ? (rootRef.qsLight ? rootRef.qsPillFg : rootRef.textColor)
         : "#000000"
     readonly property color accent: fg
-    readonly property color accentText: rootRef && rootRef.qsLight ? "#000000" : "#ffffff"
+    readonly property color accentText: wa.contrastColor(wa.accent)
     readonly property color selectedFg: accentText
     readonly property color errorColor: rootRef ? Qt.color(rootRef.colorOf("widget_error")) : "#e30000"
     readonly property string iconFont: rootRef ? rootRef.iconFont : "Symbols Nerd Font"
@@ -53,6 +53,24 @@ Item {
 
     function alpha(c: color, a: double): color {
         return Qt.rgba(c.r, c.g, c.b, a)
+    }
+
+    function _lin(v: double): double {
+        if (v <= 0.03928) return v / 12.92
+        return Math.pow((v + 0.055) / 1.055, 2.4)
+    }
+
+    function relLum(c: color): double {
+        return 0.2126 * wa._lin(c.r) + 0.7152 * wa._lin(c.g) + 0.0722 * wa._lin(c.b)
+    }
+
+    // Pick the text color (black/white) with the higher WCAG contrast ratio
+    // against the given background, using relative luminance like the human eye.
+    function contrastColor(c: color): color {
+        var l = wa.relLum(c)
+        var white = (1.05) / (l + 0.05)
+        var black = (l + 0.05) / (0.05)
+        return white >= black ? "#ffffff" : "#000000"
     }
 
     property real animProgress: wa.active ? 1.0 : 0.0
@@ -162,7 +180,8 @@ Item {
                 kind: kind,
                 unread: c.unread === true,
                 unreadCount: c.unread_count || 0,
-                lastTs: c.last_message_ts || ""
+                lastTs: c.last_message_ts || "",
+                muted: c.muted_until !== undefined ? c.muted_until : 0
             })
         }
         chatList.currentIndex = 0
@@ -383,7 +402,7 @@ Item {
         height: contentColumn.implicitHeight + wa.pad * 2
         radius: wa.cornerRadius
         color: wa.cardColor
-        border.width: 1
+        border.width: 2
         border.color: wa.cardBorder
         clip: true
 
@@ -716,7 +735,9 @@ Item {
                                 required property bool unread
                                 required property int unreadCount
                                 required property string lastTs
+                                required property int muted
 
+                                readonly property bool isMuted: kind === "group" && muted !== 0
                                 readonly property bool isSelected: chatList.currentIndex === index
                                 width: chatList.width
                                 height: wa.chatRowHeight
@@ -795,6 +816,16 @@ Item {
                                             font.pixelSize: 8
                                             color: isSelected ? wa.accent : wa.accentText
                                         }
+                                    }
+
+                                    Text {
+                                        Layout.preferredWidth: 16
+                                        Layout.alignment: Qt.AlignVCenter
+                                        visible: isMuted
+                                        text: "󰂛"
+                                        color: isSelected ? wa.alpha(wa.selectedFg, 0.7) : wa.alpha(wa.fg, 0.55)
+                                        font.family: wa.iconFont
+                                        font.pixelSize: Math.max(10, wa.fontSize - 1)
                                     }
 
                                     Text {

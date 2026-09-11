@@ -27,7 +27,7 @@ Item {
         : "#f3dfd1"
     readonly property color cardBorder: rootRef
         ? rootRef.withAlpha(rootRef.colorOf("widget_border"),
-            rootRef.qsLight ? 0.5 : 0.35)
+            rootRef.qsLight ? 0.7 : 0.5)
         : "#00000000"
 
     readonly property color fg: rootRef
@@ -211,7 +211,7 @@ Item {
         height: contentColumn.implicitHeight + clipMgr.pad * 2
         radius: clipMgr.cornerRadius
         color: clipMgr.cardColor
-        border.width: 1
+        border.width: 2
         border.color: clipMgr.cardBorder
         clip: true
 
