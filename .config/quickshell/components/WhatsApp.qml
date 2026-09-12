@@ -250,6 +250,12 @@ Item {
         sendFileProc.running = true
     }
 
+    function sendPaste() {
+        if (!wa.currentJid) return
+        sendFileProc.command = ["bash", Quickshell.shellDir + "/scripts/wa-send-clip.sh", wa.currentJid]
+        sendFileProc.running = true
+    }
+
     function toggleAudio(src: string) {
         if (src.length === 0) return
         if (wa.playingAudioSrc === src) {
@@ -1014,6 +1020,18 @@ Item {
                                                     asynchronous: true
                                                     smooth: true
                                                 }
+                                                MouseArea {
+                                                    anchors.fill: parent
+                                                    hoverEnabled: true
+                                                    cursorShape: Qt.PointingHandCursor
+                                                    onClicked: {
+                                                        if (msgItem.src.length === 0) {
+                                                            refreshTimer.start()
+                                                            return
+                                                        }
+                                                        Quickshell.execDetached(["swayimg", msgItem.src])
+                                                    }
+                                                }
                                                 Text {
                                                     visible: msgItem.text.length === 0
                                                     anchors.right: parent.right
@@ -1195,19 +1213,61 @@ Item {
                                         Layout.preferredWidth: 30
                                         Layout.preferredHeight: 30
                                         radius: 15
-                                        color: wa.alpha(wa.fg, 0.06)
+                                        color: pasteHover.containsMouse
+                                            ? wa.alpha(wa.fg, 0.14)
+                                            : wa.alpha(wa.fg, 0.06)
+                                        Behavior on color {
+                                            ColorAnimation {
+                                                duration: 120
+                                            }
+                                        }
                                         enabled: wa.currentJid !== null && !wa.sending
+                                        opacity: enabled ? 1 : 0.4
                                         Image {
                                             anchors.centerIn: parent
                                             width: 15
                                             height: 15
                                             source: "data:image/svg+xml;utf8," + encodeURIComponent(
                                                 "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='" +
-                                                wa.alpha(wa.fg, enabled ? 0.7 : 0.25).toString() +
+                                                wa.accent.toString() +
+                                                "'><path d='M19,2h-4.18C14.4,0.84 13.3,0 12,0S9.6,0.84 9.18,2H5C3.9,2 3,2.9 3,4v16c0,1.1 0.9,2 2,2h14c1.1,0 2,-0.9 2,-2V4C21,2.9 20.1,2 19,2zM12,2c0.55,0 1,0.45 1,1s-0.45,1 -1,1 -1,-0.45 -1,-1 0.45,-1 1,-1zM19,20H5V4h2v3h10V4h2V20z'/></svg>")
+                                        }
+                                        MouseArea {
+                                            id: pasteHover
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: wa.sendPaste()
+                                        }
+                                    }
+
+                                    Rectangle {
+                                        Layout.preferredWidth: 30
+                                        Layout.preferredHeight: 30
+                                        radius: 15
+                                        color: photoHover.containsMouse
+                                            ? wa.alpha(wa.fg, 0.14)
+                                            : wa.alpha(wa.fg, 0.06)
+                                        Behavior on color {
+                                            ColorAnimation {
+                                                duration: 120
+                                            }
+                                        }
+                                        enabled: wa.currentJid !== null && !wa.sending
+                                        opacity: enabled ? 1 : 0.4
+                                        Image {
+                                            anchors.centerIn: parent
+                                            width: 15
+                                            height: 15
+                                            source: "data:image/svg+xml;utf8," + encodeURIComponent(
+                                                "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='" +
+                                                wa.alpha(wa.fg, 0.7).toString() +
                                                 "'><path d='M21,19V5c0,-1.1 -0.9,-2 -2,-2H5C3.9,3 3,3.9 3,5v14c0,1.1 0.9,2 2,2h14c1.1,0 2,-0.9 2,-2zM8.5,13.5l2.5,3.01L14.5,12l4.5,6H5l3.5,-4.5z'/></svg>")
                                         }
                                         MouseArea {
+                                            id: photoHover
                                             anchors.fill: parent
+                                            hoverEnabled: true
                                             cursorShape: Qt.PointingHandCursor
                                             onClicked: wa.sendFile()
                                         }
