@@ -888,6 +888,7 @@ ShellRoot {
         property int padX: 14
 
         readonly property color fg: root.colorOf("on_primary")
+        readonly property color stroke: root.mixColor(bat.tint, "#000000", 0.5)
 
         implicitWidth: batRow.implicitWidth + bat.padX
         implicitHeight: root.pillHeight
@@ -904,17 +905,17 @@ ShellRoot {
 
             Item {
                 id: batIcon
-                implicitWidth: 48
-                implicitHeight: 22
+                implicitWidth: 40
+                implicitHeight: 18
 
                 Rectangle {
                     id: batNub
                     anchors.left: parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     width: 3
-                    height: 10
+                    height: 9
                     radius: 1.5
-                    color: bat.fg
+                    color: bat.stroke
                 }
 
                 Rectangle {
@@ -922,7 +923,7 @@ ShellRoot {
                     anchors.fill: parent
                     radius: 7
                     border.width: 2
-                    border.color: bat.fg
+                    border.color: bat.stroke
                     color: "transparent"
                 }
 
@@ -942,14 +943,15 @@ ShellRoot {
                 Canvas {
                     id: bolt
                     anchors.centerIn: batBody
-                    width: 12
-                    height: 16
+                    width: 10
+                    height: 13
                     visible: root.charging
 
                     onPaint: {
                         var ctx = getContext("2d")
                         ctx.reset()
-                        ctx.fillStyle = bat.fg
+                        ctx.scale(bolt.width / 12, bolt.height / 16)
+                        ctx.fillStyle = bat.stroke
                         ctx.beginPath()
                         ctx.moveTo(7.5, 0)
                         ctx.lineTo(2.3, 9.2)
