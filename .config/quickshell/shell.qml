@@ -312,8 +312,11 @@ ShellRoot {
 
     function signalTint(sig) {
         var s = sig || 0
-        if (s >= 60) return root.pillColor("secondary_fixed_dim")
+        if (s >= 85) return root.pillColor("secondary")
+        if (s >= 65) return root.pillColor("tertiary")
+        if (s >= 45) return root.pillColor("primary_fixed")
         if (s >= 30) return root.pillColor("secondary_container")
+        if (s >= 15) return root.pillColor("tertiary_container")
         return root.pillColor("error")
     }
 
@@ -737,8 +740,7 @@ ShellRoot {
         implicitHeight: root.pillHeight
         radius: 10
         color: tint
-        border.width: 1
-        border.color: root.withAlpha(root.outlineVariant, 0.4)
+        border.width: 0
 
         scale: (pillArea.pressed ? 0.96 : (pillArea.containsMouse ? 1.03 : 1.0)) * pill.popScale
         Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
@@ -1372,7 +1374,7 @@ ShellRoot {
                     Module {
                         id: kbPill
                         label: root.shortLayout(niriIpc.keyboardLayoutName)
-                        tint: root.pillColor("surface_container_highest")
+                        tint: root.pillColor("secondary_fixed")
                     }
 
                     Module {
@@ -1425,14 +1427,14 @@ ShellRoot {
                             ? "󰋠 󰛞 󰋑 󰋑"
                             : root.batteryIcon(root.batteryPercent)
                         label: root.batteryPercent + " %"
-                        tint: root.pillColor("primary_container")
+                        tint: root.pillColor("primary_fixed")
                     }
 
                     Module {
                         id: clockPill
                         icon: "󰥔"
                         label: root.clockText
-                        tint: root.pillColor("surface_container")
+                        tint: root.pillColor("tertiary_container")
 
                         clickArea.onClicked: calPopup.open()
                     }

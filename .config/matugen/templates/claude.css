@@ -135,5 +135,22 @@
         --claude-text-400: {{ colors.outline.default.hex }} !important;
         --claude-text-500: {{ colors.outline.default.hex }} !important;
         --claude-description-text: {{ colors.on_surface_variant.default.hex }} !important;
+
+        /* ---------- More colors: success / warning / info / code ---------- */
+        --cds-bg-success: {{ colors.secondary.default.hex }} !important;
+        --cds-bg-success-chip: {{ colors.secondary_container.default.hex }} !important;
+        --cds-text-success: {{ colors.secondary.default.hex }} !important;
+        --cds-text-success-chip: {{ colors.on_secondary_container.default.hex }} !important;
+        --cds-bg-warning: {{ colors.tertiary.default.hex }} !important;
+        --cds-text-warning: {{ colors.tertiary.default.hex }} !important;
+        --cds-bg-info: {{ colors.primary_container.default.hex }} !important;
+        --cds-text-info: {{ colors.primary.default.hex }} !important;
+        --cds-bg-code: {{ colors.surface_container_highest.default.hex }} !important;
+        --cds-text-code: {{ colors.tertiary.default.hex }} !important;
+        --cds-selection-bg: {{ colors.secondary_container.default.hex }} !important;
+        --cds-selection-fg: {{ colors.on_secondary_container.default.hex }} !important;
+        --accent-success-400: {{ colors.secondary.default.hue }} {{ colors.secondary.default.saturation }} {{ colors.secondary.default.lightness }} !important;
+        --accent-warning-400: {{ colors.tertiary.default.hue }} {{ colors.tertiary.default.saturation }} {{ colors.tertiary.default.lightness }} !important;
+        --accent-danger-400: {{ colors.error.default.hue }} {{ colors.error.default.saturation }} {{ colors.error.default.lightness }} !important;
     }
 }

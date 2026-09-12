@@ -24,12 +24,12 @@ except Exception:
     Image = None
 
 BUCKETS = [
-    ("Red",      (345, 15)),
+    ("Red",      (345, 360)),
     ("Orange",   (15, 45)),
     ("Yellow",   (45, 70)),
     ("Green",    (70, 160)),
-    ("Blue",     (160, 260)),
-    ("Purple",   (260, 300)),
+    ("Blue",     (160, 255)),
+    ("Purple",   (255, 300)),
     ("Pink",     (300, 345)),
 ]
 
@@ -42,15 +42,40 @@ THUMB_HEIGHT = 420
 CHUNK_MAX = 80
 
 
-def bucket_from_hsl(h, s):
+def bucket_from_rgb(r, g, b):
+    """Bucket a dominant color.
+
+    Ordered by perception: pitch (near-black) first, then monochrome
+    (desaturated), then dark-red maroon before bright red, and pale/muted
+    purple as mauve before straight purple.
+    """
+    h, s, v = colorsys.rgb_to_hsv(r / 255.0, g / 255.0, b / 255.0)
+    hd = h * 360.0
+    _, l, _ = colorsys.rgb_to_hls(r / 255.0, g / 255.0, b / 255.0)
+    if l <= 0.12:
+        return "Pitch"
     if s < 0.15:
         return "Monochrome"
-    if h >= 345 or h < 15:
-        return "Red"
+    if 235 <= hd < 275 and l >= 0.6:
+        return "Mauve"
+    if hd >= 345 or hd < 15:
+        return "Maroon" if l < 0.45 else "Red"
     for name, (lo, hi) in BUCKETS:
-        if lo <= h < hi:
+        if lo <= hd < hi:
             return name
     return "Red"
+
+
+def bucket_from_hex(hexcolor):
+    """Reclassify a cached entry from its stored dominant hex (no image work)."""
+    try:
+        hexcolor = hexcolor.lstrip("#")
+        if len(hexcolor) != 6:
+            return None
+        r, g, b = (int(hexcolor[i:i + 2], 16) for i in (0, 2, 4))
+        return bucket_from_rgb(r, g, b)
+    except Exception:
+        return None
 
 
 def dominant_color(path):
@@ -183,6 +208,9 @@ def main():
         # Reuse cached result if the file is unchanged and the thumb exists.
         if cached and cached.get("sig") == sig and \
            os.path.isfile(cached.get("thumbPath", "")):
+            rb = bucket_from_hex(cached.get("hex", ""))
+            if rb:
+                cached["bucket"] = rb
             items.append(cached)
             continue
 
@@ -194,8 +222,7 @@ def main():
             continue
 
         r, g, b = dominant_color(path)
-        h, s, _ = colorsys.rgb_to_hsv(r / 255.0, g / 255.0, b / 255.0)
-        bucket = bucket_from_hsl(h * 360.0, s)
+        bucket = bucket_from_rgb(r, g, b)
         hexcolor = "#{:02x}{:02x}{:02x}".format(r, g, b)
 
         digest = hashlib.md5(name.encode("utf-8")).hexdigest()[:12]

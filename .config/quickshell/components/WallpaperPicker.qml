@@ -52,14 +52,17 @@ Item {
 
     readonly property var filterData: [
         { name: "All", hex: "", icon: "grid" },
-        { name: "Red", hex: "#FF4500" },
+        { name: "Red", hex: "#E60000" },
+        { name: "Maroon", hex: "#800000" },
         { name: "Orange", hex: "#FFA500" },
         { name: "Yellow", hex: "#FFD700" },
         { name: "Green", hex: "#32CD32" },
         { name: "Blue", hex: "#1E90FF" },
         { name: "Purple", hex: "#8A2BE2" },
+        { name: "Mauve", hex: "#A49DC8" },
         { name: "Pink", hex: "#FF69B4" },
-        { name: "Monochrome", hex: "#A9A9A9" }
+        { name: "Monochrome", hex: "#A9A9A9" },
+        { name: "Pitch", hex: "#1A1A1A" }
     ]
 
     FileView {
@@ -374,8 +377,7 @@ Item {
         width: filterRow.width + window.u * 20
         radius: window.cornerRadius
         color: window.baseColor
-        border.color: window.borderColor
-        border.width: 2
+        border.width: 0
 
         SurfaceGradient {
             anchors.fill: parent
@@ -403,11 +405,9 @@ Item {
                         radius: window.cornerRadius
                         color: window.currentFilter === modelData.name ? window.surface2
                              : (tabMouse.containsMouse ? window.surface1 : window.surface0)
-                        border.color: window.currentFilter === modelData.name ? window.textColor : window.borderColor
-                        border.width: window.currentFilter === modelData.name ? (window.u === 1 ? 1.5 : 1) : 1
+                        border.width: 0
                         scale: window.currentFilter === modelData.name ? 1.05 : (tabMouse.containsMouse ? 1.03 : 1.0)
                         Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
-                        Behavior on border.color { ColorAnimation { duration: 200 } }
                         Behavior on color { ColorAnimation { duration: 200 } }
 
                         Column {
@@ -445,11 +445,10 @@ Item {
                         anchors.fill: parent
                         radius: window.cornerRadius
                         color: modelData.hex
-                        border.color: window.currentFilter === modelData.name ? window.textColor : window.borderColor
-                        border.width: window.currentFilter === modelData.name ? (window.u === 1 ? 1.5 : 1) : 1
+                        border.width: 0
                         scale: window.currentFilter === modelData.name ? 1.05 : (swatchMouse.containsMouse ? 1.03 : 1.0)
                         Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
-                        Behavior on border.color { ColorAnimation { duration: 200 } }
+                        Behavior on color { ColorAnimation { duration: 200 } }
 
                         MouseArea {
                             id: swatchMouse
@@ -475,8 +474,7 @@ Item {
         height: panelCol.height + window.u * 32
         radius: window.cornerRadius
         color: window.baseColor
-        border.color: window.borderColor
-        border.width: 1
+        border.width: 0
         z: 200
         opacity: visible ? 1.0 : 0.0
         Behavior on anchors.bottomMargin { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }

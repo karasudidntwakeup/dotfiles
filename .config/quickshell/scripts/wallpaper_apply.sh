@@ -422,6 +422,25 @@ md = {
     "inverse_primary":          c["mauve"],
 }
 
+# Expose the theme's accent green/mauve as first-class MD3 roles so any
+# matugen template can use {{colors.green.*.hex}} / {{colors.mauve.*.hex}}.
+md["green"] = c["green"]
+md["mauve"] = c["mauve"]
+
+# Additional raw accent hues as first-class roles. Not every palette defines
+# each hue, so fall back to a visually-related color it does define.
+extra_hues = [
+    ("teal", "green"),
+    ("sky", "sapphire"),
+    ("lavender", "mauve"),
+    ("flamingo", "peach"),
+    ("rosewater", "pink"),
+    ("maroon", "maroon"),
+]
+for role, fallback in extra_hues:
+    md[role] = c.get(role, c[fallback])
+    md["on_" + role] = on(md[role])
+
 accents = [("primary", c["blue"]), ("secondary", c["green"]),
            ("tertiary", c["peach"]), ("error", c["red"])]
 containers = [("primary", c["sapphire"]), ("secondary", c["yellow"]),
@@ -559,6 +578,73 @@ PY
 fi
 
 matugen "${MATUGEN[@]}"
+
+# Accent green/mauve into colors.js: preset runs already carry native theme
+# green/mauve roles; image runs get them by hue-rotating the source color so
+# the accents always exist and follow the active wallpaper.
+PALETTE_JSON=""
+if [ -n "$PRESET" ]; then PALETTE_JSON="$CACHE/palette_${PRESET}.json"; fi
+python3 - "$COLOR_JS" "$PALETTE_JSON" <<'PY'
+import colorsys, json, os, re, sys
+COLOR_JS, PALETTE_JSON = sys.argv[1], sys.argv[2] or ""
+content = open(COLOR_JS).read()
+
+
+def grab(k):
+    m = re.findall(r'var\s+%s\s*=\s*"([^"]*)"' % k, content)
+    return m[-1] if m else None
+
+
+def rot(hx, target, lo=0.62, hi=0.78):
+    hx = hx.lstrip("#")
+    r, g, b = [int(hx[i:i + 2], 16) / 255.0 for i in (0, 2, 4)]
+    h, l, s = colorsys.rgb_to_hls(r, g, b)
+    # Clamp lightness into a readable pill band so a too-dark source can't
+    # produce near-black accents.
+    l = max(lo, min(hi, l))
+    return "#%02x%02x%02x" % tuple(
+        round(c * 255) for c in colorsys.hls_to_rgb(target, l, s))
+
+
+def norm(hx, lo=0.62, hi=0.78):
+    """Keep hue/saturation, remap lightness into the pill band."""
+    hx = hx.lstrip("#")
+    r, g, b = [int(hx[i:i + 2], 16) / 255.0 for i in (0, 2, 4)]
+    h, l, s = colorsys.rgb_to_hls(r, g, b)
+    l = max(lo, min(hi, l))
+    return "#%02x%02x%02x" % tuple(
+        round(c * 255) for c in colorsys.hls_to_rgb(h, l, s))
+
+
+src = grab("source") or grab("primary") or "#808080"
+src_l = grab("source_light") or src
+
+green = mauve = ""
+pctx = None
+if PALETTE_JSON and os.path.isfile(PALETTE_JSON):
+    try:
+        pctx = json.load(open(PALETTE_JSON)).get("colors", {})
+    except Exception:
+        pctx = None
+if pctx and "green" in pctx:
+    green = norm(pctx["green"]["default"]["hex"])
+    mauve = norm(pctx["mauve"]["default"]["hex"])
+else:
+    green = rot(src, 1.0 / 3.0)
+    mauve = rot(src, 0.75)
+
+marker = "/* Matugen accent green/mauve */"
+idx = content.find(marker)
+if idx != -1:
+    content = content[:idx]
+block = (marker + "\n"
+         + 'var green = "%s"\n' % green
+         + 'var green_light = "%s"\n' % norm(rot(src_l, 1.0 / 3.0, 0.7, 0.82), 0.7, 0.82)
+         + 'var mauve = "%s"\n' % mauve
+         + 'var mauve_light = "%s"\n' % norm(rot(src_l, 0.75, 0.7, 0.82), 0.7, 0.82) + "\n")
+with open(COLOR_JS, "w") as f:
+    f.write(content.rstrip("\n") + "\n\n" + block)
+PY
 
 if [ "$PIN_WIDGETS" = "1" ] && [ -n "$widget_snapshot" ]; then
   printf '\n/* Widget colors pinned by color-scheme picker */\n%s\n' "$widget_snapshot" >> "$COLOR_JS"
