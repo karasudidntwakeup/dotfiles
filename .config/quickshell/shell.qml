@@ -1299,11 +1299,11 @@ ShellRoot {
             focusable: true
 
             anchors.top: true
-            margins.top: 8
+            margins.top: 15
             implicitWidth: barContent.width
             implicitHeight: root.barHeight
             color: "transparent"
-            exclusiveZone: root.barHeight - 6
+            exclusiveZone: root.barHeight
 
             readonly property string outputName: modelData ? modelData.name : ""
             property var workspaceList: []
