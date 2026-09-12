@@ -77,9 +77,9 @@ ShellRoot {
     readonly property string iconFont: "Symbols Nerd Font"
     readonly property int fontSize: 13
 
-    readonly property int barHeight: 48
+    readonly property int barHeight: 36
     readonly property int pillHeight: 32
-    readonly property int groupSpacing: 5
+    readonly property int groupSpacing: 3
 
     readonly property color textColor: root.qsLight ? root.qsPillFg : "#000000"
     readonly property color onTextColor: root.qsLight ? "#000000" : "#ffffff"
@@ -734,8 +734,8 @@ ShellRoot {
         readonly property color pillTextColor: root.luminance(tint) > 0.5 ? "#000000" : "#ffffff"
 
         implicitWidth: pillRow.implicitWidth + pill.padX
-        implicitHeight: root.pillHeight - 2
-        radius: 8
+        implicitHeight: root.pillHeight
+        radius: 10
         color: tint
         border.width: 1
         border.color: root.withAlpha(root.outlineVariant, 0.4)
@@ -876,12 +876,12 @@ ShellRoot {
                 if (workspaces[j].active) return j
             return -1
         })()
-        readonly property real dotW: 18
-        readonly property real activeW: 36
-        readonly property real dotH: 18
-        readonly property real dotSpacing: 8
-        readonly property real pillPad: 11
-        readonly property real dotRadius: 8
+        readonly property real dotW: 13
+        readonly property real activeW: 24
+        readonly property real dotH: 13
+        readonly property real dotSpacing: 6
+        readonly property real pillPad: 10
+        readonly property real dotRadius: 7
 
         function contentWidth() {
             return (count - 1) * dotW + activeW + dotSpacing * (count - 1)
@@ -889,7 +889,7 @@ ShellRoot {
 
         width: contentWidth() + pillPad * 2
         height: root.pillHeight
-        radius: 8
+        radius: 10
         color: root.pillColor("primary_container")
         border.width: 0
 
@@ -1299,11 +1299,11 @@ ShellRoot {
             focusable: true
 
             anchors.top: true
-            margins.top: 10
+            margins.top: 8
             implicitWidth: barContent.width
             implicitHeight: root.barHeight
             color: "transparent"
-            exclusiveZone: root.barHeight
+            exclusiveZone: root.barHeight - 6
 
             readonly property string outputName: modelData ? modelData.name : ""
             property var workspaceList: []

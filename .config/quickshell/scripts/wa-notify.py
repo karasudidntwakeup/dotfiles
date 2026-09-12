@@ -6,10 +6,12 @@ incoming messages via notify-send (shown by quickshell's notification daemon).
 """
 
 import datetime
+import glob
 import json
 import os
 import re
 import shutil
+import socket
 import subprocess
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -27,6 +29,54 @@ NOTIFY = shutil.which("notify-send")
 ICON = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "..", "assets", "whatsapp.png"
 )
+BUS_FILE = os.path.expanduser("~/.cache/quickshell/wa-session.env")
+
+
+def bus_alive(addr):
+    if not addr:
+        return False
+    try:
+        if addr.startswith("unix:path="):
+            path = addr[len("unix:path="):].split(",", 1)[0]
+        elif addr.startswith("unix:abstract="):
+            path = "\0" + addr[len("unix:abstract="):].split(",", 1)[0]
+        else:
+            return False
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        try:
+            s.settimeout(0.5)
+            s.connect(path)
+            return True
+        finally:
+            s.close()
+    except Exception:
+        return False
+
+
+def session_bus():
+    """Current D-Bus session address, refreshing stale ones at runtime.
+
+    Long-lived processes keep a session-bus address that dies whenever the
+    compositor session restarts; the watcher records a fresh one per session,
+    and as a last resort we connect-probe /tmp/dbus-* sockets (stale daemons
+    reject the connect, the live one accepts).
+    """
+    candidates = [os.environ.get("DBUS_SESSION_BUS_ADDRESS")]
+    try:
+        with open(BUS_FILE) as f:
+            raw = f.read().strip()
+        if "=" in raw:
+            candidates.append(raw.split("=", 1)[1])
+    except Exception:
+        pass
+    for c in candidates:
+        if bus_alive(c):
+            return c
+    for fn in sorted(glob.glob("/tmp/dbus-*"), key=os.path.getmtime, reverse=True):
+        addr = "unix:path=" + fn
+        if bus_alive(addr):
+            return addr
+    return os.environ.get("DBUS_SESSION_BUS_ADDRESS")
 
 
 def contact_name(jid, cache):
@@ -107,8 +157,15 @@ class Handler(BaseHTTPRequestHandler):
             return
         args = [NOTIFY, "-a", "WhatsApp", "-i", ICON, "-t", "12000", "-u", "normal"]
         try:
+            env = dict(os.environ)
+            bus = session_bus()
+            if bus:
+                env["DBUS_SESSION_BUS_ADDRESS"] = bus
             subprocess.Popen(
-                args + [title, body], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+                args + [title, body],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                env=env,
             )
         except Exception:
             pass
