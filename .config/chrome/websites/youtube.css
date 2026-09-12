@@ -20,6 +20,10 @@
         --yt-spec-badge-chip-background: var(--surface_container_high) !important;
         --yt-spec-button-chip-background-hover: var(--surface_bright) !important;
         --yt-saturated-raised-background: var(--surface_container) !important;
+        --yt-lightsource-section2-color: var(--surface_container) !important;
+        --yt-lightsource-section4-color: var(--background) !important;
+        --yt-lightsource-primary-title-color: var(--on_surface) !important;
+        --yt-lightsource-secondary-title-color: var(--on_surface_variant) !important;
     }
     html, body, ytd-app.style-scope, ytd-app#ytd-app,
     #content.ytd-app, #page-container.ytd-app {
@@ -31,9 +35,16 @@
         background-color: var(--background) !important;
         background-image: none !important;
     }
+    tp-yt-app-drawer, tp-yt-app-drawer.style-scope,
+    .style-scope.tp-yt-app-drawer {
+        background-color: var(--background) !important;
+        background-image: none !important;
+        color: var(--on_background) !important;
+    }
     ytd-page-manager, #page-manager, #content.ytd-page-manager,
     ytd-two-column-browse-results-renderer, ytd-browse,
-    ytd-browse[page-subtype="home"], ytd-watch-flexy, ytd-search {
+    ytd-browse[page-subtype="home"], ytd-watch-flexy, ytd-watch-flexy.style-scope,
+    .style-scope.ytd-watch-flexy, ytd-search {
         background-color: var(--surface_container) !important;
         background-image: none !important;
     }

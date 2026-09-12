@@ -5,6 +5,7 @@ import Quickshell.Services.UPower
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import Qt5Compat.GraphicalEffects
 import "components"
 
 ShellRoot {
@@ -119,6 +120,7 @@ ShellRoot {
     }
 
     property string weatherText: ""
+    property string weatherKey: "cloud"
     property string prayerText: ""
     property string prayerName: ""
     property date prayerTarget: new Date(0)
@@ -144,10 +146,19 @@ ShellRoot {
         stdout: SplitParser {
             onRead: data => {
                 var t = data ? data.trim() : ""
-                if (t && !/error|unavailable|failed|not available|⚠/i.test(t))
-                    weatherText = t
-                else
+                if (t && !/error|unavailable|failed|not available|⚠|N\/A/i.test(t)) {
+                    var parts = t.split("|")
+                    if (parts.length === 2 && parts[1].trim().length > 0) {
+                        weatherKey = parts[0].trim()
+                        weatherText = parts[1].trim()
+                    } else {
+                        weatherKey = "cloud"
+                        weatherText = ""
+                    }
+                } else {
+                    weatherKey = "cloud"
                     weatherText = ""
+                }
             }
         }
         onExited: code => { if (code !== 0) weatherText = "" }
@@ -287,18 +298,6 @@ ShellRoot {
         || battery.state === UPowerDeviceState.FullyCharged
         || battery.state === UPowerDeviceState.PendingCharge)
 
-    readonly property var batteryIcons: [
-        "󱢠 󱢠 󱢠  ", "󱢠 󱢠 󰛞  ", "󱢠 󱢠 󰛞  ", "󱢠 󱢠 󰋑  ", "󱢠 󰛞 󰋑  ",
-        "󱢠 󰛞 󰋑  ", "󱢠 󰋑 󰋑  ", "󰛞 󰋑 󰋑  ", "󰛞 󰋑 󰋑  ", "󰋑 󰋑 󰋑  "
-    ]
-
-    function batteryIcon(cap) {
-        var i = Math.floor(cap / 10)
-        if (i < 0) i = 0
-        if (i > 9) i = 9
-        return root.batteryIcons[i]
-    }
-
     function shortLayout(name) {
         if (name.indexOf("Arabic") >= 0) return "AR"
         if (name.indexOf("English") >= 0) return "US"
@@ -317,6 +316,15 @@ ShellRoot {
         if (s >= 45) return root.pillColor("primary_fixed")
         if (s >= 30) return root.pillColor("secondary_container")
         if (s >= 15) return root.pillColor("tertiary_container")
+        return root.pillColor("error")
+    }
+
+    function batteryTint(p) {
+        if (root.charging) return root.pillColor("primary_fixed")
+        if (p >= 80) return root.pillColor("primary")
+        if (p >= 50) return root.pillColor("primary_fixed")
+        if (p >= 30) return root.pillColor("tertiary")
+        if (p >= 15) return root.pillColor("secondary_container")
         return root.pillColor("error")
     }
 
@@ -728,6 +736,7 @@ ShellRoot {
         id: pill
         property string label: ""
         property string icon: ""
+        property Component iconSource: null
         property int padX: 14
         property bool showControls: false
         property color tint: root.primary
@@ -756,6 +765,12 @@ ShellRoot {
             id: pillRow
             anchors.centerIn: parent
             spacing: 4
+
+            Loader {
+                visible: pill.iconSource != null
+                anchors.verticalCenter: parent.verticalCenter
+                sourceComponent: pill.iconSource
+            }
 
             Text {
                 id: pillIcon
@@ -864,6 +879,429 @@ ShellRoot {
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onClicked: pillPopAnim.start()
+        }
+    }
+
+    component BatteryPill: Rectangle {
+        id: bat
+        property color tint: root.batteryTint(root.batteryPercent)
+        property int padX: 14
+
+        readonly property color fg: root.colorOf("on_primary")
+
+        implicitWidth: batRow.implicitWidth + bat.padX
+        implicitHeight: root.pillHeight
+        radius: 10
+        color: tint
+        border.width: 0
+
+        Behavior on color { ColorAnimation { duration: 250 } }
+
+        Row {
+            id: batRow
+            anchors.centerIn: parent
+            spacing: 5
+
+            Item {
+                id: batIcon
+                implicitWidth: 48
+                implicitHeight: 22
+
+                Rectangle {
+                    id: batNub
+                    anchors.left: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 3
+                    height: 10
+                    radius: 1.5
+                    color: bat.fg
+                }
+
+                Rectangle {
+                    id: batBody
+                    anchors.fill: parent
+                    radius: 7
+                    border.width: 2
+                    border.color: bat.fg
+                    color: "transparent"
+                }
+
+                Rectangle {
+                    id: batFill
+                    anchors.left: batBody.left
+                    anchors.top: batBody.top
+                    anchors.bottom: batBody.bottom
+                    anchors.margins: 3
+                    readonly property real fillRatio: Math.min(1, root.batteryPercent / 100)
+                    width: Math.max(0, (batBody.width - 6) * fillRatio)
+                    radius: 4
+                    color: root.mixColor(bat.tint, "#000000", 0.22)
+                    Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
+                }
+
+                Canvas {
+                    id: bolt
+                    anchors.centerIn: batBody
+                    width: 12
+                    height: 16
+                    visible: root.charging
+
+                    onPaint: {
+                        var ctx = getContext("2d")
+                        ctx.reset()
+                        ctx.fillStyle = bat.fg
+                        ctx.beginPath()
+                        ctx.moveTo(7.5, 0)
+                        ctx.lineTo(2.3, 9.2)
+                        ctx.lineTo(5.8, 9.2)
+                        ctx.lineTo(4.5, 16)
+                        ctx.lineTo(10, 6)
+                        ctx.lineTo(6.4, 6)
+                        ctx.closePath()
+                        ctx.fill()
+                    }
+                }
+            }
+        }
+    }
+
+    component WifiIcon: Canvas {
+        id: wifi
+        property color tint: "#ffffff"
+        implicitWidth: 22
+        implicitHeight: 17
+
+        onTintChanged: requestPaint()
+
+        onPaint: {
+            var ctx = getContext("2d")
+            ctx.reset()
+            ctx.strokeStyle = wifi.tint
+            ctx.fillStyle = wifi.tint
+            ctx.lineCap = "round"
+            var cx = wifi.width / 2
+            var baseY = wifi.height - 3
+            for (var i = 0; i < 3; i++) {
+                ctx.lineWidth = 2
+                ctx.beginPath()
+                ctx.arc(cx, baseY, 3 + i * 3.2, Math.PI * 1.25, Math.PI * 1.75, false)
+                ctx.stroke()
+            }
+            ctx.beginPath()
+            ctx.arc(cx, wifi.height - 4, 1.7, 0, Math.PI * 2)
+            ctx.fill()
+        }
+    }
+
+    component VolumeIcon: Canvas {
+        id: v
+        property color tint: "#ffffff"
+        property bool muted: false
+        property int percent: 50
+        implicitWidth: 22
+        implicitHeight: 22
+
+        onTintChanged: requestPaint()
+        onMutedChanged: requestPaint()
+        onPercentChanged: requestPaint()
+
+        onPaint: {
+            var ctx = getContext("2d")
+            ctx.reset()
+            ctx.scale(v.width / 24, v.height / 24)
+            ctx.strokeStyle = v.tint
+            ctx.fillStyle = v.tint
+            ctx.lineWidth = 2
+            ctx.lineCap = "round"
+            ctx.lineJoin = "round"
+
+            ctx.beginPath()
+            ctx.moveTo(11, 5)
+            ctx.lineTo(6, 9)
+            ctx.lineTo(2, 9)
+            ctx.lineTo(2, 15)
+            ctx.lineTo(6, 15)
+            ctx.lineTo(11, 19)
+            ctx.closePath()
+            ctx.stroke()
+
+            if (v.muted) {
+                ctx.beginPath()
+                ctx.moveTo(16, 9)
+                ctx.lineTo(22, 15)
+                ctx.moveTo(22, 9)
+                ctx.lineTo(16, 15)
+                ctx.stroke()
+            } else {
+                var arcs = v.percent > 66 ? 2 : v.percent > 0 ? 1 : 0
+                for (var i = 0; i < arcs; i++) {
+                    ctx.beginPath()
+                    ctx.arc(12, 12, 5 + i * 5, -Math.PI / 4, Math.PI / 4, false)
+                    ctx.stroke()
+                }
+            }
+        }
+    }
+
+    component BluetoothIcon: Canvas {
+        id: bt
+        property color tint: "#ffffff"
+        implicitWidth: 18
+        implicitHeight: 18
+
+        onTintChanged: requestPaint()
+
+        onPaint: {
+            var ctx = getContext("2d")
+            ctx.reset()
+            ctx.save()
+            ctx.scale(bt.width / 24, bt.height / 24)
+            ctx.fillStyle = bt.tint
+
+            ctx.beginPath()
+            ctx.moveTo(17.71, 7.71)
+            ctx.lineTo(12, 2)
+            ctx.lineTo(11, 2)
+            ctx.lineTo(11, 9.59)
+            ctx.lineTo(6.41, 5)
+            ctx.lineTo(5, 6.41)
+            ctx.lineTo(10.59, 12)
+            ctx.lineTo(5, 17.59)
+            ctx.lineTo(6.41, 19)
+            ctx.lineTo(11, 14.41)
+            ctx.lineTo(11, 22)
+            ctx.lineTo(12, 22)
+            ctx.lineTo(17.71, 16.29)
+            ctx.lineTo(13.41, 12)
+            ctx.lineTo(17.71, 7.71)
+            ctx.closePath()
+
+            ctx.moveTo(13, 5.83)
+            ctx.lineTo(14.88, 7.71)
+            ctx.lineTo(13, 9.59)
+            ctx.closePath()
+
+            ctx.moveTo(13, 18.17)
+            ctx.lineTo(11.12, 16.29)
+            ctx.lineTo(13, 14.41)
+            ctx.closePath()
+
+            ctx.fill()
+            ctx.restore()
+        }
+    }
+
+    component MemoryIcon: Canvas {
+        id: m
+        property color tint: "#ffffff"
+        implicitWidth: 20
+        implicitHeight: 20
+
+        onTintChanged: requestPaint()
+
+        onPaint: {
+            var ctx = getContext("2d")
+            ctx.reset()
+            ctx.strokeStyle = m.tint
+            ctx.fillStyle = m.tint
+            ctx.lineWidth = 1.6
+
+            var x = 5, y = 6, w = 10, hh = 8
+            for (var i = 0; i < 3; i++) {
+                var px = x + 2 + i * 3
+                ctx.fillRect(px, y - 2.2, 1.8, 2.2)
+                ctx.fillRect(px, y + hh, 1.8, 2.2)
+            }
+            for (var j = 0; j < 2; j++) {
+                var py = y + 2 + j * 3
+                ctx.fillRect(x - 2.2, py, 2.2, 1.8)
+                ctx.fillRect(x + w, py, 2.2, 1.8)
+            }
+
+            ctx.beginPath()
+            var r = 2.5
+            ctx.moveTo(x + r, y)
+            ctx.arcTo(x + w, y, x + w, y + hh, r)
+            ctx.arcTo(x + w, y + hh, x, y + hh, r)
+            ctx.arcTo(x, y + hh, x, y, r)
+            ctx.arcTo(x, y, x + w, y, r)
+            ctx.closePath()
+            ctx.stroke()
+        }
+    }
+
+    component ClockIcon: Canvas {
+        id: cl
+        property color tint: "#ffffff"
+        implicitWidth: 19
+        implicitHeight: 19
+
+        onTintChanged: requestPaint()
+
+        onPaint: {
+            var ctx = getContext("2d")
+            ctx.reset()
+            var c = cl.width / 2
+            ctx.strokeStyle = cl.tint
+            ctx.fillStyle = cl.tint
+            ctx.lineCap = "round"
+
+            ctx.lineWidth = 1.6
+            ctx.beginPath()
+            ctx.arc(c, c, 7.4, 0, Math.PI * 2)
+            ctx.stroke()
+
+            ctx.lineWidth = 2.4
+            ctx.beginPath()
+            ctx.moveTo(c, c)
+            ctx.lineTo(c, c - 4)
+            ctx.stroke()
+
+            ctx.lineWidth = 2.4
+            ctx.beginPath()
+            ctx.moveTo(c, c)
+            ctx.lineTo(c + 3.2, c - 3.2)
+            ctx.stroke()
+
+            ctx.lineWidth = 1.1
+            for (var i = 0; i < 4; i++) {
+                var a = i * Math.PI / 2 - Math.PI / 2
+                ctx.beginPath()
+                ctx.moveTo(c + Math.cos(a) * 5.6, c + Math.sin(a) * 5.6)
+                ctx.lineTo(c + Math.cos(a) * 6.9, c + Math.sin(a) * 6.9)
+                ctx.stroke()
+            }
+
+            ctx.beginPath()
+            ctx.arc(c, c, 1.5, 0, Math.PI * 2)
+            ctx.fill()
+        }
+    }
+
+    component WeatherIcon: Canvas {
+        id: wi
+        property color tint: "#ffffff"
+        property string variant: "cloud"
+        implicitWidth: 26
+        implicitHeight: 22
+
+        onTintChanged: requestPaint()
+        onVariantChanged: requestPaint()
+
+        function cloud(ctx, cx, cy, s) {
+            ctx.beginPath()
+            ctx.arc(cx - s * 0.55, cy - s * 0.1, s * 0.4, 0, Math.PI * 2)
+            ctx.arc(cx, cy - s * 0.32, s * 0.48, 0, Math.PI * 2)
+            ctx.arc(cx + s * 0.55, cy - s * 0.1, s * 0.4, 0, Math.PI * 2)
+            ctx.fill()
+            ctx.fillRect(cx - s * 0.55, cy - s * 0.15, s * 1.1, s * 0.55)
+        }
+
+        function sun(ctx, cx, cy, r) {
+            ctx.beginPath()
+            ctx.arc(cx, cy, r, 0, Math.PI * 2)
+            ctx.fill()
+            ctx.strokeStyle = wi.tint
+            ctx.lineCap = "round"
+            ctx.lineWidth = 1.5
+            for (var i = 0; i < 8; i++) {
+                var a = i * Math.PI / 4
+                ctx.beginPath()
+                ctx.moveTo(cx + Math.cos(a) * (r + 2.2), cy + Math.sin(a) * (r + 2.2))
+                ctx.lineTo(cx + Math.cos(a) * (r + 3.6), cy + Math.sin(a) * (r + 3.6))
+                ctx.stroke()
+            }
+        }
+
+        onPaint: {
+            var ctx = getContext("2d")
+            ctx.reset()
+            ctx.strokeStyle = wi.tint
+            ctx.fillStyle = wi.tint
+            ctx.lineCap = "round"
+
+            if (wi.variant === "sun") {
+                wi.sun(ctx, wi.width / 2, wi.height / 2 - 1, 3.4)
+            } else if (wi.variant === "partly") {
+                wi.sun(ctx, 9, 6, 2.6)
+                wi.cloud(ctx, 16, 13, 5)
+            } else if (wi.variant === "rain" || wi.variant === "snow" || wi.variant === "storm" || wi.variant === "fog") {
+                wi.cloud(ctx, 13, 8, 6)
+                if (wi.variant === "rain") {
+                    ctx.lineWidth = 1.6
+                    for (var i = 0; i < 3; i++) {
+                        var x = 13 - 3.6 + i * 3.6
+                        ctx.beginPath()
+                        ctx.moveTo(x, 12.5)
+                        ctx.lineTo(x - 1.3, 15.2)
+                        ctx.stroke()
+                    }
+                } else if (wi.variant === "snow") {
+                    ctx.lineWidth = 1.4
+                    for (var j = 0; j < 3; j++) {
+                        var sx = 13 - 3.6 + j * 3.6
+                        var sy = 14
+                        ctx.beginPath()
+                        ctx.moveTo(sx - 1.4, sy); ctx.lineTo(sx + 1.4, sy)
+                        ctx.moveTo(sx, sy - 1.4); ctx.lineTo(sx, sy + 1.4)
+                        ctx.stroke()
+                    }
+                } else if (wi.variant === "storm") {
+                    ctx.beginPath()
+                    ctx.moveTo(15.2, 11)
+                    ctx.lineTo(11.6, 14.6)
+                    ctx.lineTo(13, 14.6)
+                    ctx.lineTo(10.8, 18.6)
+                    ctx.lineTo(15.4, 13.4)
+                    ctx.lineTo(13.9, 13.4)
+                    ctx.closePath()
+                    ctx.fill()
+                } else {
+                    ctx.lineWidth = 1.4
+                    for (var k = 0; k < 3; k++) {
+                        ctx.beginPath()
+                        ctx.moveTo(6.5, 13 + k * 2)
+                        ctx.lineTo(19.5, 13 + k * 2)
+                        ctx.stroke()
+                    }
+                }
+            } else {
+                wi.cloud(ctx, 13, 11, 6)
+            }
+        }
+    }
+
+    component NetworkPill: Rectangle {
+        id: net
+        property color tint: root.networkConnected ? root.signalTint(root.networkSignal) : root.pillColor("error")
+        readonly property color pillTextColor: root.luminance(tint) > 0.5 ? "#000000" : "#ffffff"
+
+        implicitWidth: netRow.implicitWidth + 14
+        implicitHeight: root.pillHeight
+        radius: 10
+        color: tint
+
+        Row {
+            id: netRow
+            anchors.centerIn: parent
+            spacing: 4
+
+            WifiIcon {
+                tint: net.pillTextColor
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
+            Text {
+                text: root.networkConnected
+                    ? (root.networkIp + (root.networkSignal ? "  •  " + root.networkSignal + "%" : "") || root.networkText)
+                    : "No net"
+                color: net.pillTextColor
+                font.family: root.fontFamily
+                font.pixelSize: root.fontSize
+                font.weight: Font.Black
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
         }
     }
 
@@ -1332,6 +1770,23 @@ ShellRoot {
                 height: root.barHeight
                 anchors.horizontalCenter: parent.horizontalCenter
 
+                Rectangle {
+                    id: barShadowSrc
+                    anchors.fill: barRow
+                    radius: 12
+                    color: Qt.rgba(0, 0, 0, 0.01)
+                }
+
+                DropShadow {
+                    anchors.fill: barShadowSrc
+                    source: barShadowSrc
+                    horizontalOffset: 0
+                    verticalOffset: 4
+                    radius: 14
+                    samples: 22
+                    color: Qt.rgba(0, 0, 0, 0.5)
+                }
+
                 Row {
                     id: barRow
                     anchors.centerIn: parent
@@ -1339,9 +1794,18 @@ ShellRoot {
 
                     Module {
                         id: weatherPill
+                        iconSource: weatherIconSource
                         label: root.weatherText
                         tint: root.pillColor("primary_fixed_dim")
                         visible: root.weatherText.length > 0
+
+                        Component {
+                            id: weatherIconSource
+                            WeatherIcon {
+                                tint: weatherPill.pillTextColor
+                                variant: root.weatherKey
+                            }
+                        }
                     }
 
                     Module {
@@ -1353,10 +1817,15 @@ ShellRoot {
 
                     Module {
                         id: btPill
-                        icon: root.bluetoothStatus === "off" ? "󰂲" : root.bluetoothStatus === "connected" ? "󰂱" : "󰂯"
+                        iconSource: bluetoothIconSource
                         label: root.bluetoothText
                         tint: root.pillColor("tertiary_fixed")
                         visible: root.bluetoothStatus === "connected"
+
+                        Component {
+                            id: bluetoothIconSource
+                            BluetoothIcon { tint: btPill.pillTextColor }
+                        }
 
                         clickArea.onClicked: {
                             btCmd.command = ["sh", "-c", "bluetoothctl disconnect"]
@@ -1387,9 +1856,18 @@ ShellRoot {
 
                     Module {
                         id: volPill
-                        icon: root.volumeIcon
+                        iconSource: volIconSource
                         label: root.muted ? "MUTE" : root.volumePercent + "%"
                         tint: root.volTint()
+
+                        Component {
+                            id: volIconSource
+                            VolumeIcon {
+                                tint: volPill.pillTextColor
+                                muted: root.muted
+                                percent: root.volumePercent
+                            }
+                        }
 
                         clickArea.onClicked: {
                             volCmd.command = ["sh", "-c", Quickshell.shellDir + "/scripts/vol.sh mute"]
@@ -1407,27 +1885,22 @@ ShellRoot {
 
                     Module {
                         id: memPill
-                        icon: "󰍛"
+                        iconSource: memIconSource
                         label: root.memText
                         tint: root.memTint(root.memPercent)
+
+                        Component {
+                            id: memIconSource
+                            MemoryIcon { tint: memPill.pillTextColor }
+                        }
                     }
 
-                    Module {
+                    NetworkPill {
                         id: netPill
-                        icon: root.networkConnected ? "󰖩" : "󰖪"
-                        label: root.networkConnected ? (root.networkIp + (root.networkSignal ? "  •  " + root.networkSignal + "%" : "") || root.networkText) : "No net"
-                        tint: root.networkConnected
-                            ? root.signalTint(root.networkSignal)
-                            : root.pillColor("error")
                     }
 
-                    Module {
+                    BatteryPill {
                         id: batPill
-                        icon: root.charging
-                            ? "󰋠 󰛞 󰋑 󰋑"
-                            : root.batteryIcon(root.batteryPercent)
-                        label: root.batteryPercent + " %"
-                        tint: root.pillColor("primary_fixed")
                     }
 
                     Module {
