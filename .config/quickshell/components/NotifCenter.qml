@@ -12,16 +12,31 @@ Item {
 
     readonly property int panelWidth: 400
     readonly property int pad: 12
-    readonly property color panelColor: "#15161a"
+    readonly property color panelColor: rootRef
+        ? (rootRef.qsLight ? rootRef.pillColor("surface") : rootRef.colorOf("surface"))
+        : "#15161a"
     readonly property color panelBorder: rootRef ? rootRef.withAlpha(Qt.color(rootRef.colorOf("widget_border")), rootRef.qsLight ? 0.7 : 0.5) : "#ffffff33"
-    readonly property color fg: "#ffffff"
-    readonly property color muteFg: Qt.rgba(1, 1, 1, 0.55)
+    readonly property color fg: rootRef ? center.contrastColor(center.panelColor) : "#ffffff"
+    readonly property color muteFg: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.55)
     readonly property color accent: rootRef ? Qt.color(rootRef.colorOf("widget_accent")) : "#ff8fb2"
     readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
     readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Inter"
     readonly property string fontFamily: rootRef && rootRef.fontFamily ? rootRef.fontFamily : "Ndot 57"
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
 
+    function _lin(v: double): double {
+        if (v <= 0.03928) return v / 12.92
+        return Math.pow((v + 0.055) / 1.055, 2.4)
+    }
+    function relLum(c: color): double {
+        return 0.2126 * center._lin(c.r) + 0.7152 * center._lin(c.g) + 0.0722 * center._lin(c.b)
+    }
+    function contrastColor(c: color): color {
+        var l = center.relLum(c)
+        var white = (1.05) / (l + 0.05)
+        var black = (l + 0.05) / (0.05)
+        return white >= black ? "#ffffff" : "#000000"
+    }
     property real animProgress: svc && svc.centerOpen ? 1.0 : 0.0
     Behavior on animProgress {
         NumberAnimation { duration: 300; easing.type: Easing.OutCubic }

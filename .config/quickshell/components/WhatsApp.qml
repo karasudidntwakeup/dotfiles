@@ -28,7 +28,7 @@ Item {
     property string activeTab: "chats"
     property string playingAudioSrc: ""
 
-    readonly property string cardTile: "panel_bg"
+    readonly property string cardTile: "surface"
     readonly property color cardColor: rootRef
         ? (rootRef.qsLight
             ? rootRef.pillColor(cardTile)
@@ -38,7 +38,7 @@ Item {
         ? rootRef.withAlpha(rootRef.colorOf("widget_border"), rootRef.qsLight ? 0.7 : 0.5)
         : "#00000000"
     readonly property color fg: rootRef
-        ? (rootRef.qsLight ? rootRef.qsPillFg : rootRef.textColor)
+        ? wa.contrastColor(wa.cardColor)
         : "#000000"
     readonly property color accent: rootRef
         ? Qt.color(rootRef.colorOf("secondary_fixed_dim"))

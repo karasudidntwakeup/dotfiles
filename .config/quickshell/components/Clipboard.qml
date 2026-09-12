@@ -19,7 +19,7 @@ Item {
     readonly property int pad: 14
     readonly property int cornerRadius: 20
 
-    readonly property string cardTile: "panel_bg"
+    readonly property string cardTile: "surface"
     readonly property color cardColor: rootRef
         ? (rootRef.qsLight
             ? rootRef.pillColor(cardTile)
@@ -31,7 +31,7 @@ Item {
         : "#00000000"
 
     readonly property color fg: rootRef
-        ? (rootRef.qsLight ? rootRef.qsPillFg : rootRef.textColor)
+        ? clipMgr.contrastColor(clipMgr.cardColor)
         : "#000000"
     readonly property color accent: rootRef
         ? Qt.color(rootRef.colorOf("tertiary_container"))

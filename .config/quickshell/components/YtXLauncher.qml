@@ -27,10 +27,10 @@ Item {
     readonly property int titleHeight: Math.round((fontSize - 1) * 1.2) * 2
     readonly property int channelHeight: Math.max(10, fontSize - 3)
     readonly property int cellHeight: cellInset * 2 + thumbHeight + 7 + titleHeight + 3 + channelHeight
-    readonly property string cardTile: "panel_bg"
+    readonly property string cardTile: "surface"
     readonly property color cardColor: rootRef ? (rootRef.qsLight ? (rootRef.pillColor(cardTile)) : rootRef.colorOf(cardTile)) : "#f3dfd1"
     readonly property color cardBorder: rootRef ? rootRef.withAlpha(rootRef.colorOf("widget_border"), rootRef.qsLight ? 0.7 : 0.5) : "#00000000"
-    readonly property color fg: rootRef ? (rootRef.qsLight ? rootRef.qsPillFg : rootRef.textColor) : "#000000"
+    readonly property color fg: rootRef ? ytx.contrastColor(ytx.cardColor) : "#000000"
     readonly property color accent: rootRef
         ? Qt.color(rootRef.colorOf("widget_error"))
         : "#bf616a"
