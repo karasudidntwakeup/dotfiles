@@ -34,3 +34,41 @@
   background-color: transparent !important;
   color: var(--on_surface) !important;
 }
+
+/* ===== Compact whole UI ===== */
+
+/* Shrink the top tab bar. --tab-min-height also drives toolbar-button size
+   (toolbar buttons scale as (tab-min-height - 16px) / 2), so reducing it
+   compacts both tabs and toolbar buttons together. */
+:root {
+  --tab-min-height: 28px !important;
+  --tab-block-margin: 2px !important;
+  --tab-label-line-height: 1.3 !important;
+  --tab-inline-padding: 6px !important;
+}
+
+#TabsToolbar {
+  min-height: 28px !important;
+  padding-block: 0 !important;
+}
+
+#tabbrowser-tabs,
+.tab-stack,
+.tab-background,
+.tabbrowser-tab {
+  min-height: 28px !important;
+}
+
+/* Compact toolbar buttons a bit further */
+:root {
+  --toolbarbutton-padding-outer: 2px !important;
+}
+
+/* Compact the navigation bar / URL bar */
+#urlbar {
+  --urlbar-padding-block: 3px !important;
+  --urlbar-min-height: 30px !important;
+}
+#urlbar-background {
+  min-height: 30px !important;
+}
