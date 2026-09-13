@@ -882,6 +882,32 @@ ShellRoot {
         }
     }
 
+    component BoltGlyph: Canvas {
+        id: boltG
+        property color tintColor: "#ffffff"
+        anchors.centerIn: parent
+        width: 8
+        height: 10
+
+        onTintColorChanged: requestPaint()
+
+        onPaint: {
+            var ctx = getContext("2d")
+            ctx.reset()
+            ctx.scale(boltG.width / 12, boltG.height / 16)
+            ctx.fillStyle = boltG.tintColor
+            ctx.beginPath()
+            ctx.moveTo(7.5, 0)
+            ctx.lineTo(2.3, 9.2)
+            ctx.lineTo(5.8, 9.2)
+            ctx.lineTo(4.5, 16)
+            ctx.lineTo(10, 6)
+            ctx.lineTo(6.4, 6)
+            ctx.closePath()
+            ctx.fill()
+        }
+    }
+
     component BatteryPill: Rectangle {
         id: bat
         property color tint: root.batteryTint(root.batteryPercent)
@@ -898,71 +924,147 @@ ShellRoot {
 
         Behavior on color { ColorAnimation { duration: 250 } }
 
-        Row {
-            id: batRow
-            anchors.centerIn: parent
-            spacing: 5
+        property int iconVariant: 0 // 0 = solid bar, 1 = material outline + cap, 2 = segmented level bars
 
+        Component {
+            id: batIconSolid
             Item {
-                id: batIcon
-                implicitWidth: 40
+                implicitWidth: 14
                 implicitHeight: 18
 
                 Rectangle {
-                    id: batNub
-                    anchors.left: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: 3
-                    height: 9
-                    radius: 1.5
+                    anchors.fill: parent
+                    radius: parent.height / 2
+                    color: root.mixColor(bat.tint, "#000000", 0.35)
+                }
+
+                Rectangle {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    anchors.leftMargin: 1.5
+                    anchors.rightMargin: 1.5
+                    anchors.bottomMargin: 1.5
+                    readonly property real fillRatio: Math.min(1, root.batteryPercent / 100)
+                    height: Math.max(0, (parent.height - 3) * fillRatio)
+                    radius: (parent.width - 3) / 2
+                    color: root.mixColor(bat.tint, "#ffffff", 0.55)
+                    Behavior on height { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
+                }
+
+                BoltGlyph {
+                    tintColor: bat.stroke
+                    visible: root.charging
+                }
+            }
+        }
+
+        Component {
+            id: batIconOutline
+            Item {
+                implicitWidth: 9
+                implicitHeight: 20
+
+                Rectangle {
+                    anchors.bottom: parent.top
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: 4
+                    height: 2
+                    radius: 1
                     color: bat.stroke
                 }
 
                 Rectangle {
-                    id: batBody
                     anchors.fill: parent
-                    radius: 7
+                    radius: 4
                     border.width: 2
                     border.color: bat.stroke
                     color: "transparent"
                 }
 
                 Rectangle {
-                    id: batFill
-                    anchors.left: batBody.left
-                    anchors.top: batBody.top
-                    anchors.bottom: batBody.bottom
-                    anchors.margins: 3
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    anchors.leftMargin: 2
+                    anchors.rightMargin: 2
+                    anchors.bottomMargin: 2
                     readonly property real fillRatio: Math.min(1, root.batteryPercent / 100)
-                    width: Math.max(0, (batBody.width - 6) * fillRatio)
-                    radius: 4
-                    color: root.mixColor(bat.tint, "#000000", 0.22)
-                    Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
+                    height: Math.max(0, (parent.height - 4) * fillRatio)
+                    radius: 3
+                    color: root.mixColor(bat.tint, "#ffffff", 0.45)
+                    Behavior on height { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
                 }
 
-                Canvas {
-                    id: bolt
-                    anchors.centerIn: batBody
-                    width: 10
-                    height: 13
+                BoltGlyph {
+                    tintColor: bat.stroke
                     visible: root.charging
+                }
+            }
+        }
 
-                    onPaint: {
-                        var ctx = getContext("2d")
-                        ctx.reset()
-                        ctx.scale(bolt.width / 12, bolt.height / 16)
-                        ctx.fillStyle = bat.stroke
-                        ctx.beginPath()
-                        ctx.moveTo(7.5, 0)
-                        ctx.lineTo(2.3, 9.2)
-                        ctx.lineTo(5.8, 9.2)
-                        ctx.lineTo(4.5, 16)
-                        ctx.lineTo(10, 6)
-                        ctx.lineTo(6.4, 6)
-                        ctx.closePath()
-                        ctx.fill()
+        Component {
+            id: batIconSegmented
+            Rectangle {
+                implicitWidth: 10
+                implicitHeight: 20
+                radius: 2
+                border.width: 1
+                border.color: root.mixColor(bat.tint, "#000000", 0.3)
+                color: "transparent"
+
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 1.6
+
+                    Repeater {
+                        model: 4
+                        delegate: Rectangle {
+                            required property int index
+                            width: 7
+                            height: 3.2
+                            radius: 1.6
+                            readonly property bool lit: {
+                                if (root.charging) return true
+                                return Math.round(root.batteryPercent) > (3 - index) * 25
+                            }
+                            color: lit
+                                ? root.mixColor(bat.tint, "#ffffff", 0.55)
+                                : root.mixColor(bat.tint, "#000000", 0.18)
+                        }
                     }
                 }
+
+                BoltGlyph {
+                    tintColor: bat.stroke
+                    visible: root.charging
+                }
+            }
+        }
+
+        Row {
+            id: batRow
+            anchors.centerIn: parent
+            spacing: 5
+
+            Loader {
+                id: batIconLoader
+                anchors.verticalCenter: parent.verticalCenter
+                sourceComponent: [
+                    batIconSolid,
+                    batIconOutline,
+                    batIconSegmented
+                ][Math.max(0, Math.min(2, bat.iconVariant))]
+            }
+
+            Text {
+                text: root.batteryPercent + "%"
+                color: bat.fg
+                font.family: root.fontFamily
+                font.pixelSize: root.fontSize
+                font.weight: Font.Black
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
             }
         }
     }
@@ -1000,8 +1102,8 @@ ShellRoot {
         property color tint: "#ffffff"
         property bool muted: false
         property int percent: 50
-        implicitWidth: 22
-        implicitHeight: 22
+        implicitWidth: 18
+        implicitHeight: 18
 
         onTintChanged: requestPaint()
         onMutedChanged: requestPaint()
