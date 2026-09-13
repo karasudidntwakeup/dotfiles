@@ -1531,6 +1531,7 @@ ShellRoot {
         root.ytxActive = false
         root.clipboardActive = false
         root.whatsappActive = false
+        root.notesActive = false
         pickerContent.opacity = 0
         pickerContent.anchors.topMargin = -24
         pickerContent.anchors.bottomMargin = 24
@@ -1555,7 +1556,7 @@ ShellRoot {
 
     property bool launcherActive: false
 
-    function openAppLauncher() { root.launcherActive = true; notifSvc.closeCenter(); root.closeYtx(); root.closeClipboard(); root.closeWhatsApp() }
+    function openAppLauncher() { root.launcherActive = true; notifSvc.closeCenter(); root.closeYtx(); root.closeClipboard(); root.closeWhatsApp(); root.closeNotes() }
     function closeAppLauncher() { root.launcherActive = false }
     function toggleAppLauncher() { root.launcherActive = !root.launcherActive }
 
@@ -1589,7 +1590,7 @@ ShellRoot {
 
     property bool ytxActive: false
 
-    function openYtx() { root.ytxActive = true; notifSvc.closeCenter(); root.closeAppLauncher(); root.closeClipboard(); root.closeWhatsApp() }
+    function openYtx() { root.ytxActive = true; notifSvc.closeCenter(); root.closeAppLauncher(); root.closeClipboard(); root.closeWhatsApp(); root.closeNotes() }
     function closeYtx() { root.ytxActive = false }
     function toggleYtx() { root.ytxActive = !root.ytxActive }
 
@@ -1623,7 +1624,7 @@ ShellRoot {
 
     property bool whatsappActive: false
 
-    function openWhatsApp() { root.whatsappActive = true; notifSvc.closeCenter(); root.closeAppLauncher(); root.closeYtx(); root.closeClipboard() }
+    function openWhatsApp() { root.whatsappActive = true; notifSvc.closeCenter(); root.closeAppLauncher(); root.closeYtx(); root.closeClipboard(); root.closeNotes() }
     function closeWhatsApp() { root.whatsappActive = false }
     function toggleWhatsApp() { root.whatsappActive = !root.whatsappActive }
 
@@ -1657,7 +1658,7 @@ ShellRoot {
 
     property bool clipboardActive: false
 
-    function openClipboard() { root.clipboardActive = true; notifSvc.closeCenter(); root.closeAppLauncher(); root.closeYtx(); root.closeWhatsApp() }
+    function openClipboard() { root.clipboardActive = true; notifSvc.closeCenter(); root.closeAppLauncher(); root.closeYtx(); root.closeWhatsApp(); root.closeNotes() }
     function closeClipboard() { root.clipboardActive = false }
     function toggleClipboard() { root.clipboardActive = !root.clipboardActive }
 
@@ -1686,6 +1687,40 @@ ShellRoot {
             rootRef: root
             active: root.clipboardActive
             onRequestClose: root.clipboardActive = false
+        }
+    }
+
+    property bool notesActive: false
+
+    function openNotes() { root.notesActive = true; notifSvc.closeCenter(); root.closeAppLauncher(); root.closeYtx(); root.closeClipboard(); root.closeWhatsApp() }
+    function closeNotes() { root.notesActive = false }
+    function toggleNotes() { root.notesActive = !root.notesActive }
+
+    IpcHandler {
+        target: "notes"
+        function toggle(): void {
+            root.toggleNotes()
+        }
+    }
+
+    PanelWindow {
+        id: notesWin
+        visible: root.notesActive || notesContent.animProgress > 0.001
+        focusable: root.notesActive
+        color: "transparent"
+        WlrLayershell.namespace: "notes-picker"
+        WlrLayershell.layer: WlrLayer.Overlay
+        anchors.top: true
+        anchors.bottom: true
+        anchors.left: true
+        anchors.right: true
+
+        Notes {
+            id: notesContent
+            anchors.fill: parent
+            rootRef: root
+            active: root.notesActive
+            onRequestClose: root.notesActive = false
         }
     }
 
