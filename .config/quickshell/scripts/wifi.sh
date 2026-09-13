@@ -13,6 +13,7 @@ state="$(echo "$status" | awk '/State/ { print $NF; exit }')"
 
 signal=""
 ip=""
+down=""
 connected="false"
 if [ "$state" = "connected" ]; then
     connected="true"
@@ -23,6 +24,23 @@ if [ "$state" = "connected" ]; then
         [ "$signal" -lt 0 ] && signal=0
     fi
     ip="$(ip -4 addr show "$iface" 2>/dev/null | awk '/inet / { print $2; exit }' | cut -d/ -f1)"
+
+    # download speed (bytes/sec) sampled from rx counter between polls
+    rxnow="$(cat "/sys/class/net/$iface/statistics/rx_bytes" 2>/dev/null)"
+    if [ -n "$rxnow" ] && [ "$rxnow" -gt 0 ] 2>/dev/null; then
+        statefile="/tmp/wifi-down-${iface}.state"
+        old="$(cat "$statefile" 2>/dev/null)"
+        now="$(date +%s)"
+        echo "$now $rxnow" > "$statefile"
+        if [ -n "$old" ]; then
+            set -- $old
+            [ "$now" -gt "$1" ] && {
+                drx=$(( rxnow - $2 ))
+                [ "$drx" -lt 0 ] && drx=0
+                down=$(( drx / (now - "$1") ))
+            }
+        fi
+    fi
 fi
 
 # known (saved) SSIDs, one per line, names may contain spaces
@@ -48,5 +66,5 @@ if [ -n "$nets" ]; then
         }')"
 fi
 
-printf '{"connected":%s,"iface":"%s","ssid":"%s","signal":"%s","ip":"%s","networks":[%s]}' \
-    "$connected" "${iface:-}" "$ssid" "$signal" "$ip" "$networks"
+printf '{"connected":%s,"iface":"%s","ssid":"%s","signal":"%s","down":%d,"ip":"%s","networks":[%s]}' \
+    "$connected" "${iface:-}" "$ssid" "$signal" "${down:-0}" "$ip" "$networks"

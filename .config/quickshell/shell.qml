@@ -80,7 +80,7 @@ ShellRoot {
 
     readonly property int barHeight: 36
     readonly property int pillHeight: 32
-    readonly property int groupSpacing: 3
+    readonly property int groupSpacing: 8
 
     readonly property color textColor: root.qsLight ? root.qsPillFg : "#000000"
     readonly property color onTextColor: root.qsLight ? "#000000" : "#ffffff"
@@ -308,6 +308,13 @@ ShellRoot {
     property string networkIp: ""
     property bool networkConnected: false
     property int networkSignal: 0
+    property int networkDown: 0
+
+    function formatSpeed(bytesPerSec) {
+        var b = bytesPerSec || 0
+        if (b >= 1048576) return (b / 1048576).toFixed(1) + " MB/s"
+        return Math.round(b / 1024) + " KB/s"
+    }
 
     function signalTint(sig) {
         var s = sig || 0
@@ -340,6 +347,7 @@ ShellRoot {
                         root.networkText = d.ssid || ""
                         root.networkIp = d.ip || ""
                         root.networkSignal = parseInt(d.signal) || 0
+                        root.networkDown = parseInt(d.down) || 0
                     } catch(e) {}
                 }
             }
@@ -884,10 +892,10 @@ ShellRoot {
 
     component BoltGlyph: Canvas {
         id: boltG
-        property color tintColor: "#ffffff"
+        property color tintColor: bat.tint
         anchors.centerIn: parent
-        width: 8
-        height: 10
+        width: 14
+        height: 18
 
         onTintColorChanged: requestPaint()
 
@@ -929,7 +937,7 @@ ShellRoot {
         Component {
             id: batIconSolid
             Item {
-                implicitWidth: 14
+                implicitWidth: 26
                 implicitHeight: 18
 
                 Rectangle {
@@ -948,12 +956,12 @@ ShellRoot {
                     readonly property real fillRatio: Math.min(1, root.batteryPercent / 100)
                     height: Math.max(0, (parent.height - 3) * fillRatio)
                     radius: (parent.width - 3) / 2
-                    color: root.mixColor(bat.tint, "#ffffff", 0.55)
+                    color: "#000000"
                     Behavior on height { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
                 }
 
                 BoltGlyph {
-                    tintColor: bat.stroke
+                    tintColor: bat.tint
                     visible: root.charging
                 }
             }
@@ -997,7 +1005,7 @@ ShellRoot {
                 }
 
                 BoltGlyph {
-                    tintColor: bat.stroke
+                    tintColor: bat.tint
                     visible: root.charging
                 }
             }
@@ -1029,14 +1037,14 @@ ShellRoot {
                                 return Math.round(root.batteryPercent) > (3 - index) * 25
                             }
                             color: lit
-                                ? root.mixColor(bat.tint, "#ffffff", 0.55)
+                                ? "#000000"
                                 : root.mixColor(bat.tint, "#000000", 0.18)
                         }
                     }
                 }
 
                 BoltGlyph {
-                    tintColor: bat.stroke
+                    tintColor: bat.tint
                     visible: root.charging
                 }
             }
@@ -1397,7 +1405,7 @@ ShellRoot {
 
             Text {
                 text: root.networkConnected
-                    ? (root.networkIp + (root.networkSignal ? "  •  " + root.networkSignal + "%" : "") || root.networkText)
+                    ? (root.networkIp + "  ↓  " + root.formatSpeed(root.networkDown) || root.networkText)
                     : "No net"
                 color: net.pillTextColor
                 font.family: root.fontFamily
