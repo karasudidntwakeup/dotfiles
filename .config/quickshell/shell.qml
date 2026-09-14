@@ -1890,7 +1890,7 @@ ShellRoot {
             implicitWidth: barContent.width
             implicitHeight: barContent.height
             color: "transparent"
-            exclusiveZone: margins.top + barRow.y + barRow.height + 4
+            exclusiveZone: margins.top + barRow.y + barRow.height - 5
 
             mask: Region {
                 item: barRow
