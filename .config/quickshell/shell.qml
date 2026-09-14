@@ -5,7 +5,7 @@ import Quickshell.Services.UPower
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 import "components"
 
 ShellRoot {
@@ -1886,11 +1886,15 @@ ShellRoot {
             focusable: true
 
             anchors.top: true
-            margins.top: 15
+            margins.top: 12
             implicitWidth: barContent.width
-            implicitHeight: root.barHeight
+            implicitHeight: barContent.height
             color: "transparent"
-            exclusiveZone: root.barHeight
+            exclusiveZone: margins.top + barRow.y + barRow.height + 4
+
+            mask: Region {
+                item: barRow
+            }
 
             readonly property string outputName: modelData ? modelData.name : ""
             property var workspaceList: []
@@ -1913,30 +1917,27 @@ ShellRoot {
 
             Item {
                 id: barContent
-                width: barRow.implicitWidth + 10
-                height: root.barHeight
+                width: barRow.implicitWidth + 24
+                height: root.barHeight + 24
                 anchors.horizontalCenter: parent.horizontalCenter
 
-                Rectangle {
-                    id: barShadowSrc
+                MultiEffect {
+                    id: barShadowFx
                     anchors.fill: barRow
-                    radius: 12
-                    color: Qt.rgba(0, 0, 0, 0.01)
-                }
-
-                DropShadow {
-                    anchors.fill: barShadowSrc
-                    source: barShadowSrc
-                    horizontalOffset: 0
-                    verticalOffset: 4
-                    radius: 14
-                    samples: 22
-                    color: Qt.rgba(0, 0, 0, 0.5)
+                    source: barRow
+                    shadowEnabled: true
+                    shadowBlur: 0.85
+                    blurMax: 24
+                    shadowHorizontalOffset: 0
+                    shadowVerticalOffset: 5
+                    shadowColor: Qt.rgba(0, 0, 0, 0.65)
+                    shadowOpacity: 0.6
                 }
 
                 Row {
                     id: barRow
                     anchors.centerIn: parent
+                    anchors.verticalCenterOffset: -2
                     spacing: root.groupSpacing
 
                     Module {

@@ -17,7 +17,7 @@ binds {
     XF86MonBrightnessUp     allow-when-locked=true { spawn "light" "-A" "10"; }
     XF86MonBrightnessDown     allow-when-locked=true { spawn "light" "-U" "10"; }
     Mod+0 repeat=false { toggle-overview; }
-    Mod+W repeat=false { toggle-overview; }
+    Mod+W repeat=true { toggle-overview; }
     Mod+Shift+o repeat=false { toggle-overview; }
     Mod+X repeat=false { close-window; }
     Mod+Left  { focus-column-left; }
@@ -102,7 +102,6 @@ binds {
     Mod+Shift+N { toggle-window-floating; }
     Mod+Shift+V { switch-focus-between-floating-and-tiling; }
     Mod+V hotkey-overlay-title="Clipboard" { spawn "qs" "ipc" "call" "clipboard" "toggle"; }
-    Mod+T hotkey-overlay-title="Quick Notes" { spawn "qs" "ipc" "call" "notes" "toggle"; }
     Print { screenshot; }
     Mod+Escape { toggle-keyboard-shortcuts-inhibit; }
     Mod+Shift+E { quit; }

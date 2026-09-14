@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Effects
 
 Item {
     id: card
@@ -212,22 +211,6 @@ Item {
     }
 
     implicitHeight: cardBody.height
-
-    MultiEffect {
-        id: cardBodyShadow
-        visible: card.isPopup
-        anchors.fill: cardBody
-        source: cardBody
-        transform: Translate { x: card.dragX }
-        opacity: Math.max(0.0, 1.0 - Math.abs(card.dragX) / Math.max(1, card.width * 0.7))
-        shadowEnabled: true
-        shadowBlur: 0.75
-        blurMax: 20
-        shadowHorizontalOffset: 0
-        shadowVerticalOffset: 6
-        shadowColor: Qt.rgba(0, 0, 0, 0.6)
-        shadowOpacity: 0.4
-    }
 
     Rectangle {
         id: cardBody
