@@ -742,6 +742,7 @@ ShellRoot {
         property string icon: ""
         property Component iconSource: null
         property int padX: 14
+        property int iconSize: root.fontSize + 2
         property color tint: root.primary
         property alias clickArea: pillArea
         property alias wheelArea: pillArea
@@ -772,7 +773,7 @@ ShellRoot {
                 color: pill.pillTextColor
                 anchors.verticalCenter: parent.verticalCenter
                 font.family: root.iconFont
-                font.pixelSize: root.fontSize + 2
+                font.pixelSize: pill.iconSize
                 font.weight: Font.Normal
             }
 
@@ -826,6 +827,8 @@ ShellRoot {
         id: bat
         property color tint: root.batteryTint(root.batteryPercent)
         property int padX: 14
+        property int icoW: 26
+        property int icoH: 18
 
         readonly property color fg: root.colorOf("on_primary")
         readonly property color stroke: root.mixColor(bat.tint, "#000000", 0.5)
@@ -843,8 +846,8 @@ ShellRoot {
         Component {
             id: batIconSolid
             Item {
-                implicitWidth: 26
-                implicitHeight: 18
+                implicitWidth: bat.icoW
+                implicitHeight: bat.icoH
 
                 Rectangle {
                     anchors.fill: parent
@@ -1292,6 +1295,7 @@ ShellRoot {
         id: net
         property color tint: root.networkConnected ? root.signalTint(root.networkSignal) : root.pillColor("error")
         readonly property color pillTextColor: root.luminance(tint) > 0.5 ? "#000000" : "#ffffff"
+        property int iconSize: root.fontSize + 2
 
         implicitWidth: netRow.implicitWidth + 14
         implicitHeight: root.pillHeight
@@ -1308,7 +1312,7 @@ ShellRoot {
                 color: net.pillTextColor
                 anchors.verticalCenter: parent.verticalCenter
                 font.family: root.iconFont
-                font.pixelSize: root.fontSize + 2
+                font.pixelSize: net.iconSize
             }
 
             Text {
@@ -1944,15 +1948,19 @@ ShellRoot {
 
                     NetworkPill {
                         id: netPill
+                        iconSize: root.fontSize
                     }
 
                     BatteryPill {
                         id: batPill
+                        icoW: 22
+                        icoH: 15
                     }
 
                     Module {
                         id: clockPill
                         icon: "󰥔"
+iconSize: root.fontSize + 3
                         label: root.clockText
                         tint: root.pillColor("tertiary_container")
 
