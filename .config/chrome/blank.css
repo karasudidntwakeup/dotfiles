@@ -5,5 +5,71 @@
   }
   :root {
     --newtab-background-color: var(--surface) !important;
+    --newtab-background-secondary: var(--surface_container_low) !important;
+    --newtab-element-hover-color: var(--surface_container) !important;
+    --newtab-element-active-color: var(--surface_container_highest) !important;
+    --newtab-text-primary-color: var(--on_surface) !important;
+    --newtab-text-secondary-color: var(--on_surface_variant) !important;
+    --newtab-primary-action-background: var(--primary) !important;
+    --newtab-primary-action-color: var(--on_primary) !important;
+    --newtab-contextmenu-background-color: var(--surface_container) !important;
+    --newtab-contextmenu-button-color: var(--on_surface_variant) !important;
+    --newtab-border-color: var(--outline_variant) !important;
+    --newtab-tile-radius: 10px !important;
+    --newtab-tile-size: 46px !important;
+    --newtab-card-radius: 10px !important;
+    --newtab-inner-card-radius: 8px !important;
+    --newtab-shortcut-customize-icon-color: var(--on_surface_variant) !important;
+  }
+
+  .logo,
+  .wordmark,
+  #newtab-logo {
+    display: none !important;
+  }
+
+  .search-wrapper,
+  .search-handoff-button,
+  .search-inner-wrapper,
+  #searchTop {
+    display: none !important;
+  }
+
+  .top-sites-list,
+  #shortcuts-view {
+    justify-content: center !important;
+  }
+
+  .top-site-outer {
+    border-radius: 10px !important;
+  }
+
+  .top-site-outer .tile {
+    border-radius: 10px !important;
+    background-color: var(--surface_container) !important;
+    box-shadow: none !important;
+  }
+
+  .top-site-outer .title {
+    color: var(--on_surface_variant) !important;
+  }
+
+  .top-site-outer .title:hover {
+    background-color: var(--surface_container) !important;
+    color: var(--on_surface) !important;
+  }
+
+  #newtab-customize-button {
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  #newtab-customize-button:hover {
+    background-color: var(--surface_container) !important;
+  }
+
+  .spacer,
+  .top-sites {
+    background: transparent !important;
   }
 }

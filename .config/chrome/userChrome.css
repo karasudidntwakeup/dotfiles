@@ -1,20 +1,183 @@
 /* ~/.librewolf/fuoz9ly2.default-default/chrome/userChrome.css */
 @import "colors.css";
-@import "websites/github.css";
-@import "websites/youtube.css";
-@import "websites/duckduckgo.css";
+
 :root {
   --lwt-accent-color: var(--surface) !important;
+  --lwt-accent-color-inactive: var(--surface_container_low) !important;
+  --lwt-text-color: var(--on_surface) !important;
+  --toolbar-bgcolor: var(--surface) !important;
+  --toolbar-bgimage: unset !important;
+  --toolbar-color: var(--on_surface) !important;
+  --lwt-toolbar-field-background-color: var(--surface_container) !important;
+  --lwt-toolbar-field-color: var(--on_surface) !important;
+  --lwt-toolbar-field-border-color: transparent !important;
+  --lwt-toolbar-field-focus: var(--surface_container) !important;
+  --lwt-toolbar-field-focus-color: var(--on_surface) !important;
+  --toolbar-field-background-color: var(--surface_container) !important;
+  --toolbar-field-color: var(--on_surface) !important;
+  --toolbar-field-border-color: transparent !important;
+  --toolbar-field-focus-background-color: var(--surface_container) !important;
+  --toolbar-field-focus-color: var(--on_surface) !important;
+  --toolbar-field-focus-border-color: transparent !important;
+  --urlbar-box-bgcolor: var(--surface_container_high) !important;
+  --urlbar-box-focus-bgcolor: var(--surface_container_high) !important;
+  --urlbar-box-hover-bgcolor: var(--surface_container_highest) !important;
+  --urlbar-box-border-color: transparent !important;
   --sidebar-background-color: var(--surface) !important;
   --sidebar-text-color: var(--on_surface) !important;
+  --toolbarbutton-border-radius: 8px !important;
+  --toolbarbutton-padding-outer: 2px !important;
+  --toolbarbutton-hover-background: var(--surface_container_high) !important;
+  --toolbarbutton-active-background: var(--surface_container_highest) !important;
+  --toolbarbutton-icon-fill-opacity: 1 !important;
+  --tab-min-height: 31px !important;
+  --tab-block-margin: 2px !important;
+  --tab-inline-padding: 6px !important;
+  --tablabel-margin-inline: 0px !important;
+  --panel-background: var(--surface_container) !important;
+  --panel-color: var(--on_surface) !important;
+  --panel-border-color: var(--outline_variant) !important;
+  --panel-border-radius: 12px !important;
+  --arrowpanel-background: var(--panel-background) !important;
+  --arrowpanel-color: var(--panel-color) !important;
+  --arrowpanel-border-color: var(--panel-border-color) !important;
+  --arrowpanel-border-radius: var(--panel-border-radius) !important;
+  --arrowpanel-menuitem-border-radius: 8px !important;
+  --primary-color: var(--primary) !important;
 }
 
+#titlebar,
 #TabsToolbar,
 #nav-bar,
-#titlebar {
+#toolbar-menubar,
+#toolbar-menubar-autohide {
   background-color: var(--surface) !important;
+  background-image: none !important;
   color: var(--on_surface) !important;
 }
+
+#navigator-toolbox {
+  background-color: var(--surface) !important;
+  background-image: none !important;
+  border: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+#titlebar,
+#TabsToolbar,
+#nav-bar,
+#toolbar-menubar {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+#identity-box,
+#urlbar-zoom-button,
+#tracking-protection-icon-container,
+#urlbar-container {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* ===== Helium tabs ===== */
+
+.tabbrowser-tab,
+.tab-stack,
+.tab-background {
+  min-height: 31px !important;
+  max-height: 31px !important;
+}
+
+.tab-background {
+  border-radius: 8px !important;
+  border: none !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.tabbrowser-tab[selected="true"] .tab-background,
+.tabbrowser-tab[visuallyselected="true"] .tab-background {
+  background-color: var(--surface_container) !important;
+}
+
+.tabbrowser-tab:not([selected="true"]):not([visuallyselected="true"]):hover .tab-background {
+  background-color: var(--surface_container_low) !important;
+}
+
+.tabbrowser-tab:not([selected="true"]):not([visuallyselected="true"]) .tab-background {
+  background-color: transparent !important;
+}
+
+.tab-label {
+  color: var(--on_surface_variant) !important;
+}
+
+.tabbrowser-tab[selected="true"] .tab-label,
+.tabbrowser-tab[visuallyselected="true"] .tab-label {
+  color: var(--on_surface) !important;
+}
+
+.tab-close-button,
+#new-tab-button,
+#tabs-newtab-button,
+#vertical-tabs-newtab-button {
+  border-radius: 8px !important;
+}
+
+#tabs-newtab-button,
+#vertical-tabs-newtab-button {
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+#tabs-newtab-button:hover,
+#vertical-tabs-newtab-button:hover,
+#new-tab-button:hover {
+  background-color: var(--surface_container_high) !important;
+}
+
+/* ===== Helium address bar ===== */
+
+#urlbar {
+  --urlbar-height: 28px !important;
+  --urlbar-min-height: 28px !important;
+  --urlbar-padding-block: 0px !important;
+  --urlbar-container-height: 30px !important;
+  margin-inline: 4px !important;
+}
+
+#urlbar-background {
+  background-color: var(--surface_container) !important;
+  border: none !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+}
+
+#urlbar[focused="true"] {
+  outline: none !important;
+}
+
+#urlbar-progress,
+#urlbar-progress-fill,
+#urlbar-progress::part(fill) {
+  background-color: var(--primary) !important;
+  height: 1.25px !important;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+#urlbar-progress::-moz-progress-bar {
+  background-color: var(--primary) !important;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+/* ===== Helium sidebar / vertical tabs ===== */
 
 #sidebar-main,
 #sidebar-box,
@@ -22,8 +185,7 @@
 #sidebar,
 #sidebar-header,
 #sidebar-splitter,
-#vertical-tabs,
-.sidebar-panel {
+#vertical-tabs {
   background-color: var(--surface) !important;
   color: var(--on_surface) !important;
 }
@@ -35,40 +197,24 @@
   color: var(--on_surface) !important;
 }
 
-/* ===== Compact whole UI ===== */
+/* ===== Helium rounded content frame ===== */
 
-/* Shrink the top tab bar. --tab-min-height also drives toolbar-button size
-   (toolbar buttons scale as (tab-min-height - 16px) / 2), so reducing it
-   compacts both tabs and toolbar buttons together. */
-:root {
-  --tab-min-height: 28px !important;
-  --tab-block-margin: 2px !important;
-  --tab-label-line-height: 1.3 !important;
-  --tab-inline-padding: 6px !important;
+#browser,
+#tabbrowser-tabbox {
+  border-radius: 8px;
 }
 
-#TabsToolbar {
-  min-height: 28px !important;
-  padding-block: 0 !important;
+/* ===== Popups & panels ===== */
+
+menupopup,
+panel {
+  --panel-background: var(--surface_container) !important;
+  --panel-color: var(--on_surface) !important;
+  --panel-border-color: var(--outline_variant) !important;
+  --panel-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
 }
 
-#tabbrowser-tabs,
-.tab-stack,
-.tab-background,
-.tabbrowser-tab {
-  min-height: 28px !important;
-}
-
-/* Compact toolbar buttons a bit further */
-:root {
-  --toolbarbutton-padding-outer: 2px !important;
-}
-
-/* Compact the navigation bar / URL bar */
-#urlbar {
-  --urlbar-padding-block: 3px !important;
-  --urlbar-min-height: 30px !important;
-}
-#urlbar-background {
-  min-height: 30px !important;
+menupopup > menuitem,
+menupopup > menu {
+  border-radius: 8px !important;
 }

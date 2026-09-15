@@ -1959,7 +1959,7 @@ ShellRoot {
                     Module {
                         id: prayerPill
                         label: root.prayerText
-                        tint: root.pillColor("inverse_primary")
+                        tint: root.pillColor("secondary_container")
                         visible: root.prayerText.length > 0
                     }
 
