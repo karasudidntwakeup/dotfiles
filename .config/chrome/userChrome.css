@@ -1,4 +1,5 @@
-/* ~/.librewolf/fuoz9ly2.default-default/chrome/userChrome.css */
+/* ~/.librewolf/fuoz9ly2.default-default/chrome/userChrome.css
+   Safari-style: pill tabs + centered address field on a single toolbar row. */
 @import "colors.css";
 
 :root {
@@ -8,111 +9,128 @@
   --toolbar-bgcolor: var(--surface) !important;
   --toolbar-bgimage: unset !important;
   --toolbar-color: var(--on_surface) !important;
-  --lwt-toolbar-field-background-color: var(--surface_container) !important;
-  --lwt-toolbar-field-color: var(--on_surface) !important;
-  --lwt-toolbar-field-border-color: transparent !important;
-  --lwt-toolbar-field-focus: var(--surface_container) !important;
-  --lwt-toolbar-field-focus-color: var(--on_surface) !important;
   --toolbar-field-background-color: var(--surface_container) !important;
   --toolbar-field-color: var(--on_surface) !important;
   --toolbar-field-border-color: transparent !important;
   --toolbar-field-focus-background-color: var(--surface_container) !important;
   --toolbar-field-focus-color: var(--on_surface) !important;
   --toolbar-field-focus-border-color: transparent !important;
-  --urlbar-box-bgcolor: var(--surface_container_high) !important;
-  --urlbar-box-focus-bgcolor: var(--surface_container_high) !important;
-  --urlbar-box-hover-bgcolor: var(--surface_container_highest) !important;
-  --urlbar-box-border-color: transparent !important;
   --sidebar-background-color: var(--surface) !important;
   --sidebar-text-color: var(--on_surface) !important;
   --toolbarbutton-border-radius: 8px !important;
   --toolbarbutton-padding-outer: 2px !important;
-  --toolbarbutton-hover-background: var(--surface_container_high) !important;
-  --toolbarbutton-active-background: var(--surface_container_highest) !important;
+  --toolbarbutton-hover-background: color-mix(in srgb, #ffffff 7%, transparent) !important;
+  --toolbarbutton-active-background: color-mix(in srgb, #ffffff 12%, transparent) !important;
   --toolbarbutton-icon-fill-opacity: 1 !important;
-  --tab-min-height: 31px !important;
-  --tab-block-margin: 2px !important;
-  --tab-inline-padding: 6px !important;
-  --tablabel-margin-inline: 0px !important;
   --panel-background: var(--surface_container) !important;
   --panel-color: var(--on_surface) !important;
   --panel-border-color: var(--outline_variant) !important;
-  --panel-border-radius: 12px !important;
+  --panel-border-radius: 10px !important;
   --arrowpanel-background: var(--panel-background) !important;
   --arrowpanel-color: var(--panel-color) !important;
   --arrowpanel-border-color: var(--panel-border-color) !important;
   --arrowpanel-border-radius: var(--panel-border-radius) !important;
-  --arrowpanel-menuitem-border-radius: 8px !important;
+  --arrowpanel-menuitem-border-radius: 6px !important;
   --primary-color: var(--primary) !important;
+
+  --tab-min-height: 30px !important;
+  --tab-block-margin: 5px !important;
+  --tab-inline-padding: 10px !important;
+  --tab-border-radius: 15px !important;
+  --tab-min-width: 110px !important;
 }
 
+/* Flat surface everywhere, no header line */
+#navigator-toolbox,
+#toolbar-menubar,
+#toolbar-menubar-autohide,
 #titlebar,
 #TabsToolbar,
-#nav-bar,
-#toolbar-menubar,
-#toolbar-menubar-autohide {
+#nav-bar {
   background-color: var(--surface) !important;
   background-image: none !important;
   color: var(--on_surface) !important;
-}
-
-#navigator-toolbox {
-  background-color: var(--surface) !important;
-  background-image: none !important;
   border: none !important;
   border-bottom: none !important;
   box-shadow: none !important;
 }
 
-#titlebar,
-#TabsToolbar,
 #nav-bar,
-#toolbar-menubar {
-  border: none !important;
-  box-shadow: none !important;
+#TabsToolbar {
+  border-top: none !important;
 }
 
-#identity-box,
-#urlbar-zoom-button,
-#tracking-protection-icon-container,
-#urlbar-container {
-  background-color: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
+/* ===== Safari single-row layout (tabs | centered field | empty) =====
+   Only active when vertical tabs are turned off. */
+@media not -moz-pref("sidebar.verticalTabs") {
+  :root:not([chromehidden~="toolbar"]) #navigator-toolbox {
+    display: grid;
+    grid-template-columns: 1fr minmax(340px, 520px) 1fr;
+  }
+
+  #toolbar-menubar,
+  #PersonalToolbar,
+  .global-notificationbox,
+  #notifications-toolbar,
+  #tab-notification-deck {
+    grid-column: 1/4;
+  }
+
+  #TabsToolbar {
+    grid-column: 1;
+    grid-row: 2/3;
+  }
+
+  #nav-bar {
+    grid-column: 2;
+    grid-row: 2/3;
+  }
 }
 
-/* ===== Helium tabs ===== */
+/* Safari has no navigation buttons in the top bar */
+#nav-bar toolbarbutton {
+  display: none !important;
+}
 
+/* ===== Safari pill tabs ===== */
 .tabbrowser-tab,
 .tab-stack,
 .tab-background {
-  min-height: 31px !important;
-  max-height: 31px !important;
+  min-height: 30px !important;
 }
 
 .tab-background {
-  border-radius: 8px !important;
   border: none !important;
   background-image: none !important;
   box-shadow: none !important;
   outline: none !important;
+  border-radius: var(--tab-border-radius) !important;
 }
 
 .tabbrowser-tab[selected="true"] .tab-background,
 .tabbrowser-tab[visuallyselected="true"] .tab-background {
-  background-color: var(--surface_container) !important;
+  background-color: color-mix(in srgb, #ffffff 14%, transparent) !important;
+}
+
+.tabbrowser-tab[visuallyselected="true"]:hover .tab-background,
+.tabbrowser-tab[selected="true"]:hover .tab-background {
+  background-color: color-mix(in srgb, #ffffff 18%, transparent) !important;
 }
 
 .tabbrowser-tab:not([selected="true"]):not([visuallyselected="true"]):hover .tab-background {
-  background-color: var(--surface_container_low) !important;
+  background-color: color-mix(in srgb, #ffffff 7%, transparent) !important;
 }
 
-.tabbrowser-tab:not([selected="true"]):not([visuallyselected="true"]) .tab-background {
-  background-color: transparent !important;
+#tabbrowser-tabs {
+  margin-inline: 6px !important;
+}
+
+.tabbrowser-tab {
+  margin-inline: 3px !important;
 }
 
 .tab-label {
-  color: var(--on_surface_variant) !important;
+  color: color-mix(in srgb, var(--on_surface) 68%, var(--surface)) !important;
 }
 
 .tabbrowser-tab[selected="true"] .tab-label,
@@ -122,63 +140,56 @@
 
 .tab-close-button,
 #new-tab-button,
-#tabs-newtab-button,
-#vertical-tabs-newtab-button {
-  border-radius: 8px !important;
+#tabs-newtab-button {
+  border-radius: var(--tab-border-radius) !important;
 }
 
 #tabs-newtab-button,
-#vertical-tabs-newtab-button {
-  background-color: transparent !important;
-  background-image: none !important;
+#new-tab-button {
+  background: transparent !important;
   border: none !important;
   box-shadow: none !important;
 }
 
 #tabs-newtab-button:hover,
-#vertical-tabs-newtab-button:hover,
 #new-tab-button:hover {
-  background-color: var(--surface_container_high) !important;
+  background-color: color-mix(in srgb, #ffffff 7%, transparent) !important;
 }
 
-/* ===== Helium address bar ===== */
-
+/* ===== Safari centered address field ===== */
 #urlbar {
   --urlbar-height: 28px !important;
   --urlbar-min-height: 28px !important;
   --urlbar-padding-block: 0px !important;
   --urlbar-container-height: 30px !important;
-  margin-inline: 4px !important;
+  margin-inline: 6px !important;
 }
 
 #urlbar-background {
-  background-color: var(--surface_container) !important;
-  border: none !important;
-  border-radius: 6px !important;
+  background-color: color-mix(in srgb, #ffffff 10%, var(--surface)) !important;
+  border: 1px solid color-mix(in srgb, #ffffff 7%, transparent) !important;
+  border-radius: 15px !important;
   box-shadow: none !important;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease !important;
 }
 
-#urlbar[focused="true"] {
-  outline: none !important;
+#urlbar[focused="true"] #urlbar-background {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 1px var(--primary),
+    inset 0 0 6px color-mix(in srgb, var(--primary) 25%, transparent) !important;
 }
 
-#urlbar-progress,
-#urlbar-progress-fill,
-#urlbar-progress::part(fill) {
-  background-color: var(--primary) !important;
-  height: 1.25px !important;
-  border: none !important;
-  border-radius: 0 !important;
+#urlbar-input {
+  text-align: center !important;
 }
 
 #urlbar-progress::-moz-progress-bar {
   background-color: var(--primary) !important;
   border: none !important;
-  border-radius: 0 !important;
+  border-radius: 0 0 14px 14px !important;
 }
 
-/* ===== Helium sidebar / vertical tabs ===== */
-
+/* ===== Sidebar / vertical tabs surfaces ===== */
 #sidebar-main,
 #sidebar-box,
 #sidebar-container,
@@ -197,15 +208,7 @@
   color: var(--on_surface) !important;
 }
 
-/* ===== Helium rounded content frame ===== */
-
-#browser,
-#tabbrowser-tabbox {
-  border-radius: 8px;
-}
-
 /* ===== Popups & panels ===== */
-
 menupopup,
 panel {
   --panel-background: var(--surface_container) !important;
@@ -216,5 +219,5 @@ panel {
 
 menupopup > menuitem,
 menupopup > menu {
-  border-radius: 8px !important;
+  border-radius: 6px !important;
 }
