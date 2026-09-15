@@ -5,236 +5,236 @@
 
 /* Base scheme colors used by the shell */
 
-var primary = "#7aa2f7"
+var primary = "#8bbec7"
 
-var on_primary = "#16161e"
+var on_primary = "#13111e"
 
-var primary_container = "#7dcfff"
+var primary_container = "#a3d6df"
 
-var on_primary_container = "#16161e"
+var on_primary_container = "#13111e"
 
-var inverse_primary = "#bb9af7"
+var inverse_primary = "#c4a7e7"
 
-var primary_fixed = "#7dcfff"
+var primary_fixed = "#a3d6df"
 
-var primary_fixed_dim = "#7aa2f7"
+var primary_fixed_dim = "#8bbec7"
 
-var on_primary_fixed = "#16161e"
+var on_primary_fixed = "#13111e"
 
-var on_primary_fixed_variant = "#565f89"
+var on_primary_fixed_variant = "#474552"
 
-var secondary = "#9ece6a"
+var secondary = "#abe9b3"
 
-var on_secondary = "#16161e"
+var on_secondary = "#13111e"
 
-var secondary_container = "#e0af68"
+var secondary_container = "#f6c177"
 
-var on_secondary_container = "#16161e"
+var on_secondary_container = "#13111e"
 
-var secondary_fixed = "#e0af68"
+var secondary_fixed = "#f6c177"
 
-var secondary_fixed_dim = "#9ece6a"
+var secondary_fixed_dim = "#abe9b3"
 
-var on_secondary_fixed = "#16161e"
+var on_secondary_fixed = "#13111e"
 
-var on_secondary_fixed_variant = "#565f89"
+var on_secondary_fixed_variant = "#474552"
 
-var tertiary = "#ff9e64"
+var tertiary = "#f6c177"
 
-var on_tertiary = "#16161e"
+var on_tertiary = "#13111e"
 
-var tertiary_container = "#d3869b"
+var tertiary_container = "#ff83a6"
 
-var on_tertiary_container = "#16161e"
+var on_tertiary_container = "#13111e"
 
-var tertiary_fixed = "#d3869b"
+var tertiary_fixed = "#ff83a6"
 
-var tertiary_fixed_dim = "#ff9e64"
+var tertiary_fixed_dim = "#f6c177"
 
-var on_tertiary_fixed = "#16161e"
+var on_tertiary_fixed = "#13111e"
 
-var on_tertiary_fixed_variant = "#565f89"
+var on_tertiary_fixed_variant = "#474552"
 
-var error = "#f7768e"
+var error = "#eb6f92"
 
-var on_error = "#16161e"
+var on_error = "#13111e"
 
-var error_container = "#db4b4b"
+var error_container = "#524f67"
 
-var on_error_container = "#c0caf5"
+var on_error_container = "#e0def4"
 
-var background = "#16161e"
+var background = "#13111e"
 
-var on_background = "#c0caf5"
+var on_background = "#e0def4"
 
-var surface = "#16161e"
+var surface = "#13111e"
 
-var on_surface = "#c0caf5"
+var on_surface = "#e0def4"
 
-var surface_variant = "#2f3549"
+var surface_variant = "#2d2b38"
 
-var on_surface_variant = "#a9b1d6"
+var on_surface_variant = "#e0def4"
 
-var surface_dim = "#24283b"
+var surface_dim = "#191724"
 
-var surface_bright = "#2f3549"
+var surface_bright = "#2d2b38"
 
-var surface_tint = "#7aa2f7"
+var surface_tint = "#8bbec7"
 
-var inverse_surface = "#4b526d"
+var inverse_surface = "#3f3d4a"
 
-var inverse_on_surface = "#24283b"
+var inverse_on_surface = "#191724"
 
-var outline = "#bac2e8"
+var outline = "#908caa"
 
-var outline_variant = "#565f89"
+var outline_variant = "#474552"
 
 var scrim = "#000000"
 
 var shadow = "#000000"
 
-var source = "#7aa2f7"
+var source = "#8bbec7"
 
 /* Popup surface tones: neutral + raised variants used by popups. */
-var surface_container_lowest = "#24283b"
+var surface_container_lowest = "#191724"
 
-var surface_container_low = "#1e2233"
+var surface_container_low = "#201e2b"
 
-var surface_container = "#292e42"
+var surface_container = "#262431"
 
-var surface_container_high = "#2f3549"
+var surface_container_high = "#2d2b38"
 
-var surface_container_highest = "#3d4157"
+var surface_container_highest = "#353340"
 
 /* Light scheme variants (QS "Light" mode pill backgrounds) */
 
-var primary_light = "#7aa2f7"
+var primary_light = "#8bbec7"
 
-var on_primary_light = "#16161e"
+var on_primary_light = "#13111e"
 
-var primary_container_light = "#7dcfff"
+var primary_container_light = "#a3d6df"
 
-var on_primary_container_light = "#16161e"
+var on_primary_container_light = "#13111e"
 
-var inverse_primary_light = "#bb9af7"
+var inverse_primary_light = "#c4a7e7"
 
-var primary_fixed_light = "#7dcfff"
+var primary_fixed_light = "#a3d6df"
 
-var primary_fixed_dim_light = "#7aa2f7"
+var primary_fixed_dim_light = "#8bbec7"
 
-var on_primary_fixed_light = "#16161e"
+var on_primary_fixed_light = "#13111e"
 
-var on_primary_fixed_variant_light = "#565f89"
+var on_primary_fixed_variant_light = "#474552"
 
-var secondary_light = "#9ece6a"
+var secondary_light = "#abe9b3"
 
-var on_secondary_light = "#16161e"
+var on_secondary_light = "#13111e"
 
-var secondary_container_light = "#e0af68"
+var secondary_container_light = "#f6c177"
 
-var on_secondary_container_light = "#16161e"
+var on_secondary_container_light = "#13111e"
 
-var secondary_fixed_light = "#e0af68"
+var secondary_fixed_light = "#f6c177"
 
-var secondary_fixed_dim_light = "#9ece6a"
+var secondary_fixed_dim_light = "#abe9b3"
 
-var on_secondary_fixed_light = "#16161e"
+var on_secondary_fixed_light = "#13111e"
 
-var on_secondary_fixed_variant_light = "#565f89"
+var on_secondary_fixed_variant_light = "#474552"
 
-var tertiary_light = "#ff9e64"
+var tertiary_light = "#f6c177"
 
-var on_tertiary_light = "#16161e"
+var on_tertiary_light = "#13111e"
 
-var tertiary_container_light = "#d3869b"
+var tertiary_container_light = "#ff83a6"
 
-var on_tertiary_container_light = "#16161e"
+var on_tertiary_container_light = "#13111e"
 
-var tertiary_fixed_light = "#d3869b"
+var tertiary_fixed_light = "#ff83a6"
 
-var tertiary_fixed_dim_light = "#ff9e64"
+var tertiary_fixed_dim_light = "#f6c177"
 
-var on_tertiary_fixed_light = "#16161e"
+var on_tertiary_fixed_light = "#13111e"
 
-var on_tertiary_fixed_variant_light = "#565f89"
+var on_tertiary_fixed_variant_light = "#474552"
 
-var error_light = "#f7768e"
+var error_light = "#eb6f92"
 
-var on_error_light = "#16161e"
+var on_error_light = "#13111e"
 
-var error_container_light = "#db4b4b"
+var error_container_light = "#524f67"
 
-var on_error_container_light = "#c0caf5"
+var on_error_container_light = "#e0def4"
 
-var background_light = "#16161e"
+var background_light = "#13111e"
 
-var on_background_light = "#c0caf5"
+var on_background_light = "#e0def4"
 
-var surface_light = "#16161e"
+var surface_light = "#13111e"
 
-var on_surface_light = "#c0caf5"
+var on_surface_light = "#e0def4"
 
-var surface_variant_light = "#2f3549"
+var surface_variant_light = "#2d2b38"
 
-var on_surface_variant_light = "#a9b1d6"
+var on_surface_variant_light = "#e0def4"
 
-var surface_dim_light = "#24283b"
+var surface_dim_light = "#191724"
 
-var surface_bright_light = "#2f3549"
+var surface_bright_light = "#2d2b38"
 
-var surface_tint_light = "#7aa2f7"
+var surface_tint_light = "#8bbec7"
 
-var inverse_surface_light = "#4b526d"
+var inverse_surface_light = "#3f3d4a"
 
-var inverse_on_surface_light = "#24283b"
+var inverse_on_surface_light = "#191724"
 
-var outline_light = "#bac2e8"
+var outline_light = "#908caa"
 
-var outline_variant_light = "#565f89"
+var outline_variant_light = "#474552"
 
 var scrim_light = "#000000"
 
 var shadow_light = "#000000"
 
-var source_light = "#7aa2f7"
+var source_light = "#8bbec7"
 
-var surface_container_lowest_light = "#24283b"
+var surface_container_lowest_light = "#191724"
 
-var surface_container_low_light = "#1e2233"
+var surface_container_low_light = "#201e2b"
 
-var surface_container_light = "#292e42"
+var surface_container_light = "#262431"
 
-var surface_container_high_light = "#2f3549"
+var surface_container_high_light = "#2d2b38"
 
-var surface_container_highest_light = "#3d4157"
+var surface_container_highest_light = "#353340"
 
 /* Custom widget colors */
-var prayer = "#e0af68"
+var prayer = "#f6c177"
 
-var prayer_light = "#e0af68"
+var prayer_light = "#f6c177"
 
 /* Widget colors: yt-x, clipboard, notification, launcher. These follow
    matugen by default; scheme_fzf.sh pins them via wallpaper_apply.sh. */
-var ytx_card = "#d3869b"
+var ytx_card = "#ff83a6"
 
-var ytx_card_light = "#d3869b"
+var ytx_card_light = "#ff83a6"
 
-var widget_card = "#d3869b"
+var widget_card = "#ff83a6"
 
-var widget_card_light = "#d3869b"
+var widget_card_light = "#ff83a6"
 
-var launcher_card = "#7dcfff"
+var launcher_card = "#a3d6df"
 
-var launcher_card_light = "#7dcfff"
+var launcher_card_light = "#a3d6df"
 
-var whatsapp_card = "#9ece6a"
+var whatsapp_card = "#abe9b3"
 
-var whatsapp_card_light = "#9ece6a"
+var whatsapp_card_light = "#abe9b3"
 
-var panel_bg = "#e0af68"
+var panel_bg = "#f6c177"
 
-var widget_accent = "#7aa2f7"
+var widget_accent = "#8bbec7"
 
-var widget_border = "#565f89"
+var widget_border = "#474552"
 
-var widget_error = "#f7768e"
+var widget_error = "#eb6f92"

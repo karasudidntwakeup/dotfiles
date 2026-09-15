@@ -72,8 +72,8 @@ Item {
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         anchors.right: parent.right
-        anchors.topMargin: 10
-        anchors.bottomMargin: 10
+        anchors.topMargin: 100
+        anchors.bottomMargin: 100
         anchors.rightMargin: 10
         color: center.panelColor
         radius: 22

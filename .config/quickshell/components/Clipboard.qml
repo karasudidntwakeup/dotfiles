@@ -12,7 +12,7 @@ Item {
 
     signal requestClose()
 
-    readonly property int cardWidth: 620
+    readonly property int cardWidth: 400
     readonly property int rowHeight: 46
     readonly property int maxRows: 8
     readonly property int searchHeight: 40
@@ -73,7 +73,7 @@ Item {
         }
     }
 
-    readonly property int bottomMargin: 24
+    readonly property int sideMargin: 100
 
     opacity: clipMgr.animProgress
 
@@ -223,14 +223,19 @@ Item {
         id: card
         z: 1
         width: clipMgr.cardWidth
-        anchors.horizontalCenter: parent.horizontalCenter
-        y: Math.floor(parent.height - card.height - clipMgr.bottomMargin)
         height: contentColumn.implicitHeight + clipMgr.pad * 2
+        anchors.left: parent.left
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.leftMargin: 10
         radius: clipMgr.cornerRadius
         color: clipMgr.cardColor
         border.width: 2
         border.color: clipMgr.cardBorder
         clip: true
+
+        transform: Translate { x: (clipMgr.animProgress - 1.0) * (clipMgr.cardWidth + 48) }
+        scale: 0.98 + 0.02 * clipMgr.animProgress
+        transformOrigin: Item.Left
 
         SurfaceGradient {
             anchors.fill: parent
