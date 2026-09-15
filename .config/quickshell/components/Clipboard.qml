@@ -19,7 +19,7 @@ Item {
     readonly property int pad: 14
     readonly property int cornerRadius: 20
 
-    readonly property string cardTile: "surface"
+    readonly property string cardTile: "surface_container_highest"
     readonly property color cardColor: rootRef
         ? (rootRef.qsLight
             ? rootRef.pillColor(cardTile)
@@ -34,10 +34,9 @@ Item {
         ? clipMgr.contrastColor(clipMgr.cardColor)
         : "#000000"
     readonly property color accent: rootRef
-        ? Qt.color(rootRef.colorOf("tertiary_container"))
-        : "#d57780"
-    readonly property color accentText: clipMgr.contrastColor(clipMgr.accent)
-    readonly property color selectedFg: accentText
+        ? clipMgr.alpha(clipMgr.fg, 0.10)
+        : "#26282b"
+    readonly property color selectedFg: clipMgr.fg
     readonly property color errorColor: rootRef ? Qt.color(rootRef.colorOf("widget_error")) : "#e30000"
 
     function alpha(c: color, a: double): color {
@@ -68,8 +67,8 @@ Item {
     property real animProgress: clipMgr.active ? 1.0 : 0.0
     Behavior on animProgress {
         NumberAnimation {
-            duration: clipMgr.active ? 320 : 220
-            easing.type: Easing.OutCubic
+            duration: clipMgr.active ? 140 : 160
+            easing.type: clipMgr.active ? Easing.OutQuad : Easing.InQuad
         }
     }
 
@@ -224,25 +223,13 @@ Item {
         z: 1
         width: clipMgr.cardWidth
         height: contentColumn.implicitHeight + clipMgr.pad * 2
-        anchors.left: parent.left
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.leftMargin: 10
+        anchors.centerIn: parent
         radius: clipMgr.cornerRadius
         color: clipMgr.cardColor
-        border.width: 2
+        border.width: 1
         border.color: clipMgr.cardBorder
         clip: true
 
-        transform: Translate { x: (clipMgr.animProgress - 1.0) * (clipMgr.cardWidth + 48) }
-        scale: 0.98 + 0.02 * clipMgr.animProgress
-        transformOrigin: Item.Left
-
-        SurfaceGradient {
-            anchors.fill: parent
-            inset: 1
-            color: clipMgr.cardColor
-            radius: clipMgr.cornerRadius
-        }
 
         Column {
             id: contentColumn
@@ -256,7 +243,7 @@ Item {
                 spacing: 6
 
                 Text {
-                    text: "󰆓"
+                    text: "󰅌"
                     color: clipMgr.fg
                     font.family: clipMgr.iconFont
                     font.pixelSize: clipMgr.fontSize + 2
@@ -265,11 +252,12 @@ Item {
                 }
 
                 Text {
-                    text: "Clipboard"
+                    text: "Clipboard".toUpperCase()
                     color: clipMgr.fg
                     font.family: clipMgr.fontFamily
                     font.pixelSize: clipMgr.fontSize + 1
                     font.weight: Font.Black
+                    font.letterSpacing: 3
                     verticalAlignment: Text.AlignVCenter
                 }
 
@@ -278,6 +266,7 @@ Item {
                     color: clipMgr.alpha(clipMgr.fg, 0.5)
                     font.family: clipMgr.uiFont
                     font.pixelSize: clipMgr.fontSize - 2
+                    font.letterSpacing: 1.5
                     verticalAlignment: Text.AlignVCenter
                 }
 
@@ -285,22 +274,27 @@ Item {
 
                 Rectangle {
                     id: wipeBtn
-                    Layout.preferredWidth: wipeText.implicitWidth + 20
+                    Layout.preferredWidth: wipeText.implicitWidth + 22
                     Layout.preferredHeight: 24
                     radius: 7
                     color: clipMgr.wipeArmed
-                        ? (wipeHover.containsMouse ? clipMgr.alpha(clipMgr.errorColor, 0.7) : clipMgr.errorColor)
-                        : (wipeHover.containsMouse ? clipMgr.alpha(clipMgr.fg, 0.25) : clipMgr.alpha(clipMgr.fg, 0.1))
+                        ? (wipeHover.containsMouse ? clipMgr.alpha(clipMgr.errorColor, 0.8) : clipMgr.errorColor)
+                        : (wipeHover.containsMouse ? clipMgr.alpha(clipMgr.fg, 0.08) : Qt.rgba(clipMgr.fg.r, clipMgr.fg.g, clipMgr.fg.b, 0.02))
+                    border.width: 1
+                    border.color: clipMgr.wipeArmed
+                        ? "transparent"
+                        : (wipeHover.containsMouse ? clipMgr.alpha(clipMgr.fg, 0.35) : clipMgr.alpha(clipMgr.fg, 0.16))
                     Behavior on color { ColorAnimation { duration: 120 } }
 
                     Text {
                         id: wipeText
                         anchors.centerIn: parent
-                        text: clipMgr.wipeArmed ? "Confirm clear" : "󰇘 Clear all"
+                        text: clipMgr.wipeArmed ? "CONFIRM CLEAR" : "󰇘 CLEAR ALL"
                         color: clipMgr.wipeArmed ? "#ffffff" : clipMgr.fg
                         font.family: clipMgr.uiFont
-                        font.pixelSize: clipMgr.fontSize - 1
-                        font.weight: Font.Medium
+                        font.pixelSize: clipMgr.fontSize - 2
+                        font.weight: Font.DemiBold
+                        font.letterSpacing: 1.5
                     }
 
                     MouseArea {
@@ -351,11 +345,11 @@ Item {
                 width: parent.width
                 height: clipMgr.searchHeight
                 radius: clipMgr.searchHeight / 2
-                color: clipMgr.alpha(clipMgr.fg, 0.08)
+                color: clipMgr.alpha(clipMgr.fg, 0.06)
                 border.width: 1
                 border.color: searchField.activeFocus
-                    ? clipMgr.alpha(clipMgr.fg, 0.4)
-                    : clipMgr.alpha(clipMgr.fg, 0.12)
+                    ? clipMgr.alpha(clipMgr.fg, 0.5)
+                    : clipMgr.alpha(clipMgr.fg, 0.16)
                 Behavior on border.color { ColorAnimation { duration: 150 } }
 
                 RowLayout {
@@ -365,7 +359,7 @@ Item {
                     spacing: 8
 
                     Text {
-                        text: "󰀂"
+                        text: "󰍉"
                         color: clipMgr.alpha(clipMgr.fg, 0.55)
                         font.family: clipMgr.iconFont
                         font.pixelSize: clipMgr.fontSize + 1
@@ -450,13 +444,14 @@ Item {
                 height: listModel.count === 0
                     ? 96
                     : Math.min(clipMgr.maxRows, listModel.count) * clipMgr.rowHeight
+                        + Math.max(0, Math.min(clipMgr.maxRows, listModel.count) - 1) * 8
                 clip: true
 
                 ListView {
                     id: listView
                     anchors.fill: parent
                     model: listModel
-                    spacing: 4
+                    spacing: 8
                     currentIndex: 0
                     boundsBehavior: Flickable.StopAtBounds
                     clip: true
@@ -469,7 +464,7 @@ Item {
                         width: listView.width
                         height: clipMgr.rowHeight
                         radius: 9
-                        color: clipMgr.accent
+                        color: clipMgr.alpha(clipMgr.fg, 0.09)
 
                         readonly property real targetY: (listView.currentIndex >= 0 && listView.currentItem !== null)
                             ? listView.currentItem.y : 0
@@ -520,8 +515,8 @@ Item {
                                     anchors.fill: parent
                                     radius: 8
                                     color: isSelected
-                                        ? clipMgr.alpha(clipMgr.accent, 0.30)
-                                        : clipMgr.alpha(clipMgr.fg, 0.10)
+                                        ? clipMgr.alpha(clipMgr.fg, 0.16)
+                                        : clipMgr.alpha(clipMgr.fg, 0.08)
                                     Behavior on color { ColorAnimation { duration: 150 } }
                                 }
 
@@ -556,7 +551,7 @@ Item {
                                 Text {
                                     anchors.centerIn: parent
                                     visible: !isImage
-                                    text: "󰆓"
+                                    text: "󰅌"
                                     color: isSelected ? clipMgr.selectedFg : clipMgr.fg
                                     font.family: clipMgr.iconFont
                                     font.pixelSize: clipMgr.fontSize
@@ -595,16 +590,6 @@ Item {
                                         ? clipMgr.alpha(clipMgr.selectedFg, 0.75)
                                         : clipMgr.alpha(clipMgr.fg, 0.55)
                                 }
-                            }
-
-                            Text {
-                                visible: !isSelected && !rowHover.containsMouse && !deleteHover.containsMouse
-                                Layout.preferredWidth: 16
-                                Layout.alignment: Qt.AlignVCenter
-                                text: "󰄴"
-                                color: clipMgr.alpha(clipMgr.fg, 0.35)
-                                font.family: clipMgr.iconFont
-                                font.pixelSize: clipMgr.fontSize
                             }
 
                             Rectangle {
@@ -666,14 +651,6 @@ Item {
 
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: "󰆓"
-                            color: clipMgr.alpha(clipMgr.fg, 0.35)
-                            font.family: clipMgr.iconFont
-                            font.pixelSize: clipMgr.fontSize + 14
-                        }
-
-                        Text {
-                            anchors.horizontalCenter: parent.horizontalCenter
                             text: searchField.text.length > 0
                                 ? "No matches"
                                 : "Clipboard is empty"
@@ -683,22 +660,6 @@ Item {
                         }
                     }
                 }
-            }
-
-            RowLayout {
-                width: parent.width
-                spacing: 6
-
-                Item { Layout.fillWidth: true }
-
-                Text {
-                    text: "Enter  copy      Del  remove      Esc  close"
-                    color: clipMgr.alpha(clipMgr.fg, 0.45)
-                    font.family: clipMgr.uiFont
-                    font.pixelSize: Math.max(9, clipMgr.fontSize - 2)
-                }
-
-                Item { Layout.fillWidth: true }
             }
         }
     }

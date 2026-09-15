@@ -254,7 +254,7 @@ Item {
 
     Rectangle {
         id: passBox
-        width: 80; height: 25; radius: 3
+        width: 110; height: 25; radius: 6
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 24
@@ -283,6 +283,7 @@ Item {
                 Layout.fillWidth: true; Layout.fillHeight: true
                 verticalAlignment: Text.AlignVCenter
                 horizontalAlignment: Text.AlignHCenter
+                elide: Text.ElideRight
             }
             Rectangle {
                 id: caret; width: 1; height: 14; color: lockRoot.fg
@@ -305,7 +306,7 @@ Item {
         }
     }
 
-    property string passDots: "•".repeat(Math.min(passInput.text.length, 24))
+    property string passDots: "•".repeat(Math.min(passInput.text.length, 14))
 
     Text {
         id: statusLine

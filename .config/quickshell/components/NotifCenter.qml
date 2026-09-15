@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Effects
 import Quickshell
 
 Item {
@@ -11,7 +12,7 @@ Item {
 
     focus: svc ? svc.centerOpen : false
 
-    readonly property int panelWidth: 400
+    readonly property int panelWidth: 440
     readonly property int pad: 12
     readonly property color panelColor: rootRef
         ? (rootRef.qsLight ? rootRef.pillColor("surface") : rootRef.colorOf("surface"))
@@ -20,6 +21,7 @@ Item {
     readonly property color fg: rootRef ? center.contrastColor(center.panelColor) : "#ffffff"
     readonly property color muteFg: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.55)
     readonly property color accent: rootRef ? Qt.color(rootRef.colorOf("widget_accent")) : "#ff8fb2"
+    readonly property color signalAccent: "#FF3030"
     readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
     readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Inter"
     readonly property string fontFamily: rootRef && rootRef.fontFamily ? rootRef.fontFamily : "Ndot 57"
@@ -78,16 +80,10 @@ Item {
         anchors.rightMargin: 10
         color: center.panelColor
         radius: 22
-        border.width: 2
+        border.width: 1
         border.color: center.panelBorder
         clip: true
 
-        SurfaceGradient {
-            anchors.fill: parent
-            inset: 1
-            color: center.panelColor
-            radius: 22
-        }
 
         transform: Translate {
             x: (1.0 - center.animProgress) * (center.panelWidth + 48)
@@ -110,7 +106,7 @@ Item {
                 spacing: 8
 
                 Text {
-                    text: ""
+                    text: "󰆂"
                     color: center.fg
                     font.family: center.iconFont
                     font.pixelSize: center.fontSize + 3
@@ -162,6 +158,252 @@ Item {
                 }
             }
 
+            Rectangle {
+                id: mediaCard
+                Layout.fillWidth: true
+                Layout.preferredHeight: 224
+                visible: rootRef && rootRef.mediaStatus !== "none"
+                radius: 22
+                clip: true
+                border.width: 1
+                border.color: Qt.rgba(1, 1, 1, 0.16)
+                color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.045)
+
+                readonly property color mediaAccent: center.signalAccent
+                property string mediaTitle: rootRef ? (rootRef.mediaTitle || "") : ""
+                property string mediaArtist: rootRef ? (rootRef.mediaArtist || "") : ""
+                property bool hasArt: rootRef && !!rootRef.mediaArt
+                property real progress: rootRef && rootRef.mediaLenMs > 0
+                    ? Math.max(0, Math.min(1, rootRef.mediaPosMs / rootRef.mediaLenMs))
+                    : 0
+
+                Rectangle {
+                    id: mediaArtMask
+                    anchors.fill: parent
+                    radius: mediaCard.radius
+                    visible: false
+                    layer.enabled: true
+                }
+
+                Image {
+                    anchors.fill: parent
+                    source: mediaCard.hasArt ? (rootRef.mediaArt || "") : ""
+                    fillMode: Image.PreserveAspectCrop
+                    asynchronous: true
+                    layer.enabled: true
+                    layer.effect: MultiEffect { maskEnabled: true; maskSource: mediaArtMask }
+                    visible: source !== ""
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    anchors.margins: 0
+                    radius: mediaCard.radius - 2
+                    color: mediaCard.hasArt
+                        ? Qt.rgba(0.04, 0.05, 0.06, 0.62)
+                        : Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.05)
+                }
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "󰽴"
+                    color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.35)
+                    font.family: center.iconFont
+                    font.pixelSize: 34
+                    visible: !mediaCard.hasArt
+                }
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: 14
+                    spacing: 10
+
+                    Text {
+                        Layout.alignment: Qt.AlignHCenter
+                        text: "NOW PLAYING"
+                        color: Qt.rgba(mediaCard.mediaAccent.r, mediaCard.mediaAccent.g, mediaCard.mediaAccent.b, 0.9)
+                        font.family: center.uiFont
+                        font.pixelSize: 10
+                        font.letterSpacing: 3
+                        font.weight: Font.DemiBold
+                    }
+
+                    Item { Layout.fillHeight: true }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 3
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: mediaCard.mediaTitle
+                            color: "#ffffff"
+                            font.family: center.fontFamily
+                            font.pixelSize: center.fontSize + 1
+                            font.weight: Font.Bold
+                            elide: Text.ElideRight
+                            maximumLineCount: 2
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: mediaCard.mediaArtist.toUpperCase()
+                            color: Qt.rgba(1, 1, 1, 0.7)
+                            font.family: center.uiFont
+                            font.pixelSize: 10
+                            font.letterSpacing: 2
+                            elide: Text.ElideRight
+                            maximumLineCount: 1
+                        }
+                    }
+
+                    Item {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 16
+
+                            Canvas {
+                                id: waveCanvas
+                                anchors.fill: parent
+                                antialiasing: true
+
+                                readonly property real waveLength: 64
+                                readonly property real amplitude: 3.5
+                                readonly property real thickness: 2
+                                property real phase: 0
+                                property bool playing: rootRef && rootRef.mediaStatus === "Playing"
+                                property bool hovered: seekArea.containsMouse || seekArea.dragging
+
+                                onPlayingChanged: {
+                                    if (waveCanvas.playing) waveTimer.start()
+                                    else waveTimer.stop()
+                                    waveCanvas.requestPaint()
+                                }
+                                onHoveredChanged: waveCanvas.requestPaint()
+                                onWidthChanged: waveCanvas.requestPaint()
+                                onHeightChanged: waveCanvas.requestPaint()
+
+                                function ampFactor(x, edge, taper) {
+                                    var d = edge - x
+                                    if (d >= taper) return 1
+                                    if (d <= 0) return 0
+                                    var k = d / taper
+                                    return k * k * (3 - 2 * k)
+                                }
+
+                                onPaint: () => {
+                                    var ctx = waveCanvas.getContext("2d")
+                                    var w = waveCanvas.width
+                                    var h = waveCanvas.height
+                                    ctx.clearRect(0, 0, w, h)
+                                    if (w <= 0 || h <= 0) return
+
+                                    var edge = Math.max(0, Math.min(w, mediaCard.progress * w))
+                                    var midY = h / 2
+                                    var taper = Math.max(30, Math.min(90, w * 0.12))
+                                    var freq = 2 * Math.PI / waveCanvas.waveLength
+
+                                    ctx.lineWidth = waveCanvas.thickness
+                                    ctx.lineCap = "round"
+                                    ctx.lineJoin = "round"
+
+                                    if (edge < w) {
+                                        ctx.strokeStyle = Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.22)
+                                        ctx.beginPath()
+                                        ctx.moveTo(edge, midY)
+                                        ctx.lineTo(w, midY)
+                                        ctx.stroke()
+                                    }
+
+                                    ctx.strokeStyle = mediaCard.mediaAccent
+                                    ctx.beginPath()
+                                    for (var i = 0; i <= w; i += 2) {
+                                        var amp = waveCanvas.amplitude * waveCanvas.ampFactor(i, edge, taper)
+                                        var y = midY + Math.sin(i * freq + waveCanvas.phase) * amp
+                                        if (i === 0) ctx.moveTo(i, y)
+                                        else ctx.lineTo(i, y)
+                                    }
+                                    ctx.stroke()
+
+                                    var thumbR = waveCanvas.hovered ? 5 : 3.5
+                                        ctx.fillStyle = mediaCard.mediaAccent
+                                        ctx.beginPath()
+                                        ctx.arc(edge, midY, thumbR, 0, 2 * Math.PI)
+                                        ctx.fill()
+                                        ctx.fillStyle = center.fg
+                                        ctx.beginPath()
+                                        ctx.arc(edge, midY, 2.5, 0, 2 * Math.PI)
+                                        ctx.fill()
+                                }
+                            }
+
+                            Timer {
+                                id: waveTimer
+                                interval: 50
+                                repeat: true
+                                running: waveCanvas.playing
+                                onTriggered: () => {
+                                    waveCanvas.phase += 0.14
+                                    waveCanvas.requestPaint()
+                                }
+                            }
+
+                            MouseArea {
+                                id: seekArea
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                property bool dragging: false
+
+                                function seekTo(posX) {
+                                    if (!rootRef || rootRef.mediaLenMs <= 0) return
+                                    var ratio = Math.max(0, Math.min(1, posX / seekArea.width))
+                                    var targetMs = Math.round(ratio * rootRef.mediaLenMs)
+                                    Quickshell.execDetached(["playerctl", "position", String(targetMs / 1000)])
+                                    rootRef.mediaPosMs = targetMs
+                                }
+
+                                onPressed: (mouse) => {
+                                    dragging = true
+                                    seekTo(mouse.x)
+                                }
+                                onPositionChanged: (mouse) => {
+                                    if (dragging) seekTo(mouse.x)
+                                }
+                                onReleased: (mouse) => {
+                                    dragging = false
+                                }
+}
+                    }
+
+                    RowLayout {
+                        spacing: 16
+                        Layout.alignment: Qt.AlignVCenter
+
+                        Item { Layout.fillWidth: true; Layout.preferredHeight: 1 }
+
+                        MediaBtn {
+                            btnSize: 30
+                            glyph: "󰼨"
+                            onTapped: rootRef ? Quickshell.execDetached(["playerctl", "previous"]) : {}
+                        }
+
+                        MediaBtn {
+                            btnSize: 44
+                            glyph: rootRef && rootRef.mediaStatus === "Playing" ? "󰏤" : "󰐊"
+                            accent: true
+                            onTapped: rootRef ? Quickshell.execDetached(["playerctl", "play-pause"]) : {}
+                        }
+
+                        MediaBtn {
+                            btnSize: 30
+                            glyph: "󰼧"
+                            onTapped: rootRef ? Quickshell.execDetached(["playerctl", "next"]) : {}
+                        }
+
+                        Item { Layout.fillWidth: true; Layout.preferredHeight: 1 }
+                    }
+                }
+            }
             ListView {
                 id: centerList
                 Layout.fillWidth: true
@@ -210,15 +452,6 @@ Item {
 
                 Text {
                     anchors.centerIn: parent
-                    anchors.verticalCenterOffset: -24
-                    text: ""
-                    color: center.muteFg
-                    font.family: center.iconFont
-                    font.pixelSize: 34
-                }
-                Text {
-                    anchors.centerIn: parent
-                    anchors.verticalCenterOffset: 22
                     text: "No notifications"
                     color: center.muteFg
                     font.family: center.uiFont
@@ -226,221 +459,44 @@ Item {
                 }
             }
 
-            Rectangle {
-                id: mediaCard
-                Layout.fillWidth: true
-                Layout.preferredHeight: 96
-                visible: rootRef && rootRef.mediaStatus !== "none"
-                radius: 16
-                color: Qt.rgba(center.accent.r, center.accent.g, center.accent.b, 0.08)
-                border.width: 1
-                border.color: Qt.rgba(center.accent.r, center.accent.g, center.accent.b, 0.15)
+        }
 
-                property string mediaTitle: {
-                    if (!rootRef || !rootRef.mediaInfo) return ""
-                    var parts = rootRef.mediaInfo.split("|")
-                    return parts[0] || ""
-                }
-                property string mediaArtist: {
-                    if (!rootRef || !rootRef.mediaInfo) return ""
-                    var parts = rootRef.mediaInfo.split("|")
-                    return parts.length > 1 ? parts[1] : ""
-                }
-                property real progress: rootRef && rootRef.mediaLenMs > 0
-                    ? Math.max(0, Math.min(1, rootRef.mediaPosMs / rootRef.mediaLenMs))
-                    : 0
+    component MediaBtn: Item {
+        id: btn
+        property string glyph: ""
+        property bool accent: false
+        property int btnSize: 30
+        signal tapped()
 
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.margins: 10
-spacing: 15
+        Layout.preferredWidth: btn.btnSize
+        Layout.preferredHeight: btn.btnSize
 
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: 3
+        Rectangle {
+            anchors.centerIn: parent
+            width: btn.btnSize
+            height: btn.btnSize
+            radius: btn.btnSize / 2
+            color: btn.accent
+                ? Qt.color(center.signalAccent)
+                : (hoverArea.containsMouse ? Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.1) : "transparent")
 
-                        Text {
-                            Layout.fillWidth: true
-                            text: mediaCard.mediaTitle
-                            color: center.fg
-                            font.family: center.fontFamily
-                            font.pixelSize: center.fontSize
-                            font.weight: Font.Bold
-                            elide: Text.ElideRight
-                            maximumLineCount: 1
-                        }
+            Text {
+                anchors.centerIn: parent
+                text: btn.glyph
+                color: btn.accent ? "#15161a" : center.fg
+                font.family: center.iconFont
+                font.pixelSize: center.fontSize + (btn.accent ? 6 : 2)
+            }
 
-                        Text {
-                            Layout.fillWidth: true
-                            text: mediaCard.mediaArtist
-                            color: center.muteFg
-                            font.family: center.uiFont
-                            font.pixelSize: center.fontSize - 2
-                            elide: Text.ElideRight
-                            maximumLineCount: 1
-                        }
-
-                        Item {
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 18
-
-                            Rectangle {
-                                id: seekTrack
-                                anchors.left: parent.left
-                                anchors.right: parent.right
-                                anchors.verticalCenter: parent.verticalCenter
-                                height: 3
-                                radius: 1.5
-                                color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.1)
-                            }
-
-                            Rectangle {
-                                id: seekFill
-                                anchors.left: seekTrack.left
-                                anchors.verticalCenter: parent.verticalCenter
-                                width: mediaCard.progress * seekTrack.width
-                                height: 3
-                                radius: 1.5
-                                color: center.accent
-                            }
-
-                            Rectangle {
-                                id: seekKnob
-                                anchors.verticalCenter: parent.verticalCenter
-                                x: seekTrack.x + mediaCard.progress * seekTrack.width - width / 2
-                                width: 6
-                                height: 6
-                                radius: 3
-                                color: center.accent
-                                visible: seekArea.containsMouse || seekArea.dragging
-                            }
-
-                            MouseArea {
-                                id: seekArea
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                property bool dragging: false
-
-                                function seekTo(posX) {
-                                    if (!rootRef || rootRef.mediaLenMs <= 0) return
-                                    var ratio = Math.max(0, Math.min(1, posX / seekArea.width))
-                                    var targetMs = Math.round(ratio * rootRef.mediaLenMs)
-                                    Quickshell.execDetached(["playerctl", "position", String(targetMs / 1000)])
-                                    rootRef.mediaPosMs = targetMs
-                                }
-
-                                onPressed: (mouse) => {
-                                    dragging = true
-                                    seekTo(mouse.x)
-                                }
-                                onPositionChanged: (mouse) => {
-                                    if (dragging) seekTo(mouse.x)
-                                }
-                                onReleased: (mouse) => {
-                                    dragging = false
-                                }
-                            }
-                        }
-                    }
-
-                    RowLayout {
-                        spacing: 4
-                        Layout.alignment: Qt.AlignVCenter
-
-                        Item {
-                            Layout.preferredWidth: 28
-                            Layout.preferredHeight: 28
-
-                            Rectangle {
-                                anchors.centerIn: parent
-                                width: 28
-                                height: 28
-                                radius: 14
-                                color: mediaPrevArea.containsMouse
-                                    ? Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.1)
-                                    : "transparent"
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: ""
-                                    color: center.fg
-                                    font.family: center.iconFont
-                                    font.pixelSize: center.fontSize + 2
-                                }
-
-                                MouseArea {
-                                    id: mediaPrevArea
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: rootRef ? Quickshell.execDetached(["playerctl", "previous"]) : {}
-                                }
-                            }
-                        }
-
-                        Item {
-                            Layout.preferredWidth: 32
-                            Layout.preferredHeight: 32
-
-                            Rectangle {
-                                anchors.centerIn: parent
-                                width: 32
-                                height: 32
-                                radius: 16
-                                color: center.accent
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: rootRef && rootRef.mediaStatus === "Playing" ? "󰏤" : "󰐊"
-                                    color: "#15161a"
-                                    font.family: center.iconFont
-                                    font.pixelSize: center.fontSize + 4
-                                }
-
-                                MouseArea {
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: rootRef ? Quickshell.execDetached(["playerctl", "play-pause"]) : {}
-                                }
-                            }
-                        }
-
-                        Item {
-                            Layout.preferredWidth: 28
-                            Layout.preferredHeight: 28
-
-                            Rectangle {
-                                anchors.centerIn: parent
-                                width: 28
-                                height: 28
-                                radius: 14
-                                color: mediaNextArea.containsMouse
-                                    ? Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.1)
-                                    : "transparent"
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: ""
-                                    color: center.fg
-                                    font.family: center.iconFont
-                                    font.pixelSize: center.fontSize + 2
-                                }
-
-                                MouseArea {
-                                    id: mediaNextArea
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: rootRef ? Quickshell.execDetached(["playerctl", "next"]) : {}
-                                }
-                            }
-                        }
-                    }
-                }
+            MouseArea {
+                id: hoverArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: btn.tapped()
             }
         }
+    }
 
     component HeaderBtn: Item {
         id: btn
@@ -480,7 +536,6 @@ spacing: 15
             onClicked: btn.tapped()
         }
     }
-
 
 
 }

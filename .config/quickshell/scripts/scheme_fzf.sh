@@ -32,6 +32,7 @@ SCHEMES=(
   "fruit_salad|Auto · Fruit Salad"
   "smart|Auto · Smart"
   # Fixed palettes.
+  "nothing|Nothing OS 5.0 (Monochrome)"
   "serpantinum|Serpantinum (Catppuccin Mocha)"
   "catppuccin_frappe|Catppuccin Frappe"
   "catppuccin_macchiato|Catppuccin Macchiato"

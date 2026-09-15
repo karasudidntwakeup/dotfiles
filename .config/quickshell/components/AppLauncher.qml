@@ -282,16 +282,10 @@ Item {
         height: contentColumn.implicitHeight + launcher.pad * 2
         radius: launcher.cornerRadius
         color: launcher.cardColor
-        border.width: 2
+        border.width: 1
         border.color: launcher.cardBorder
         clip: true
 
-        SurfaceGradient {
-            anchors.fill: parent
-            inset: 1
-            color: launcher.cardColor
-            radius: launcher.cornerRadius
-        }
 
         transform: Translate {
             y: (1.0 - launcher.animProgress) * 30
@@ -325,7 +319,7 @@ Item {
                     spacing: 8
 
                     Text {
-                        text: "󰀂"
+                        text: "󰍉"
                         color: launcher.alpha(launcher.fg, 0.55)
                         font.family: launcher.iconFont
                         font.pixelSize: launcher.fontSize + 1
@@ -403,13 +397,14 @@ Item {
                 id: listContainer
                 width: parent.width
                 height: Math.min(listModel.count, launcher.maxRows) * launcher.rowHeight
+                    + Math.max(0, Math.min(listModel.count, launcher.maxRows) - 1) * 8
                 clip: true
 
                 ListView {
                     id: appList
                     anchors.fill: parent
                     model: listModel
-                    spacing: 4
+                    spacing: 8
                     currentIndex: 0
                     boundsBehavior: Flickable.StopAtBounds
                     clip: true

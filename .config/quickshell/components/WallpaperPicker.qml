@@ -22,11 +22,11 @@ Item {
     property bool visible_: false
     property string currentPath: ""
 
-    property color surfaceColor: "#1f1f24"
-    property color borderColor: "#3a3a42"
+    property color surfaceColor: "#101013"
+    property color borderColor: "#2b2b30"
     property color fgColor: "#ffffff"
-    property color accentColor: "#96c8f6"
-    property string uiFont: "Inter"
+    property color accentColor: "#FF3030"
+    property string uiFont: "Geist"
     property string iconFont: "Symbols Nerd Font"
 
     function withAlpha(c, a) { return Qt.rgba(c.r, c.g, c.b, a) }
@@ -380,12 +380,6 @@ Item {
         color: window.baseColor
         border.width: 0
 
-        SurfaceGradient {
-            anchors.fill: parent
-            inset: 1
-            color: window.baseColor
-            radius: window.cornerRadius
-        }
 
         Row {
             id: filterRow
@@ -481,12 +475,6 @@ Item {
         Behavior on anchors.bottomMargin { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
         Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
 
-        SurfaceGradient {
-            anchors.fill: parent
-            inset: 1
-            color: window.baseColor
-            radius: window.cornerRadius
-        }
 
         Column {
             id: panelCol

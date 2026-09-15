@@ -29,12 +29,12 @@ Item {
 
     readonly property bool isLight: rootRef ? rootRef.qsLight : false
     readonly property color cardColor: rootRef
-        ? (isLight ? rootRef.pillColor("inverse_primary") : rootRef.colorOf("inverse_primary"))
+        ? rootRef.pillColor("surface_container_highest")
         : "#f3dfd1"
     readonly property color borderColor: rootRef
-        ? rootRef.withAlpha(rootRef.colorOf("widget_border"), isLight ? 0.5 : 0.35)
+        ? rootRef.withAlpha(rootRef.colorOf("widget_border"), isLight ? 0.7 : 0.6)
         : "#00000000"
-    readonly property color errorColor: rootRef ? Qt.color(rootRef.colorOf("inverse_primary")) : "#dc4446"
+    readonly property color errorColor: rootRef ? Qt.color(rootRef.colorOf("widget_error")) : "#dc4446"
     readonly property color fg: rootRef
         ? card.contrastColor(card.cardColor)
         : "#000000"
@@ -173,11 +173,11 @@ Item {
     function actionGlyph(actionId, actionText) {
         var i = (actionId || "").toLowerCase()
         var t = (actionText || "").toLowerCase()
-        if (i.indexOf("reply") !== -1 || t.indexOf("reply") !== -1) return "󱉁"
-        if (i.indexOf("open") !== -1 || t.indexOf("open") !== -1) return "󰨞"
+        if (i.indexOf("reply") !== -1 || t.indexOf("reply") !== -1) return "󰑚"
+        if (i.indexOf("open") !== -1 || t.indexOf("open") !== -1) return "󰏌"
         if (i.indexOf("close") !== -1 || t.indexOf("close") !== -1 ||
             i.indexOf("dismiss") !== -1 || t.indexOf("dismiss") !== -1) return "󰅖"
-        if (i.indexOf("default") !== -1) return "󰏚"
+        if (i.indexOf("default") !== -1) return "󰗡"
         if (i.indexOf("accept") !== -1 || t.indexOf("accept") !== -1 ||
             i.indexOf("join") !== -1 || t.indexOf("join") !== -1) return "󰄬"
         if (i.indexOf("decline") !== -1 || t.indexOf("decline") !== -1) return "󰅖"
@@ -218,41 +218,23 @@ Item {
         NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
     }
 
-    MultiEffect {
-        id: cardBodyShadow
-        visible: card.isPopup
-        anchors.fill: cardBody
-        source: cardBody
+    Item {
+        id: dragLayer
+        anchors.fill: parent
         transform: Translate { x: card.dragX }
         opacity: Math.max(0.0, 1.0 - Math.abs(card.dragX) / Math.max(1, card.width * 0.7))
-        shadowEnabled: true
-        shadowBlur: 0.0
-        blurMax: 20
-        shadowHorizontalOffset: 0
-        shadowVerticalOffset: 6
-        shadowColor: Qt.rgba(0, 0, 0, 0.6)
-        shadowOpacity: 0.4
-    }
 
-    Rectangle {
-        id: cardBody
-        width: parent.width
-        height: cardContent.implicitHeight + card.pad * 2 + (card.imageOk ? card.imageBoxHeight + card.pad : 0)
-        radius: 20
-        color: card.cardColor
-        border.width: card.urgency === 2 ? 1.5 : 1
-        border.color: card.urgency === 2 ? card.errorColor : card.borderColor
-        clip: true
-
-        SurfaceGradient {
-            anchors.fill: parent
-            inset: card.urgency === 2 ? 1.5 : 1
-            color: card.cardColor
+        Rectangle {
+            id: cardBody
+            anchors.left: parent.left
+            anchors.right: parent.right
+            height: cardContent.implicitHeight + card.pad * 2 + (card.imageOk ? card.imageBoxHeight + card.pad : 0)
             radius: 20
-        }
+            color: card.cardColor
+            border.width: card.urgency === 2 ? 1.5 : 1
+            border.color: card.urgency === 2 ? card.errorColor : card.borderColor
+            clip: true
 
-        transform: Translate { x: card.dragX }
-        opacity: Math.max(0.0, 1.0 - Math.abs(card.dragX) / Math.max(1, card.width * 0.7))
 
         Rectangle {
             anchors.fill: parent
@@ -306,7 +288,7 @@ Item {
 
             RowLayout {
                 Layout.fillWidth: true
-                Layout.rightMargin: 22
+                Layout.rightMargin: 30
                 spacing: 10
 
                 Rectangle {
@@ -332,7 +314,7 @@ Item {
                     Text {
                         anchors.centerIn: parent
                         visible: card.iconSrc.length === 0 || card.iconFailed
-                        text: "󰁦"
+                        text: "󰂜"
                         color: card.fg
                         font.family: card.iconFont
                         font.pixelSize: card.fontSize + 3
@@ -350,11 +332,12 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
-                            text: card.name
+                            text: card.name.toUpperCase()
                             color: card.mute
                             font.family: card.uiFont
                             font.pixelSize: card.fontSize - 2
                             font.weight: Font.DemiBold
+                            font.letterSpacing: 2
                             elide: Text.ElideRight
                         }
                     }
@@ -399,11 +382,15 @@ Item {
                     delegate: Rectangle {
                         required property var modelData
                         Layout.preferredHeight: 26
-                        implicitWidth: actionLabel.implicitWidth + 18
+                        implicitWidth: actionLabel.implicitWidth + 20
                         radius: 7
                         color: actHover.containsMouse || actHover.pressed
-                            ? rootRef.withAlpha(card.fg, 0.22)
-                            : rootRef.withAlpha(card.fg, 0.1)
+                            ? rootRef.withAlpha(card.fg, 0.1)
+                            : Qt.rgba(card.fg.r, card.fg.g, card.fg.b, 0.02)
+                        border.width: 1
+                        border.color: actHover.containsMouse || actHover.pressed
+                            ? rootRef.withAlpha(card.fg, 0.28)
+                            : rootRef.withAlpha(card.fg, 0.16)
                         Behavior on color { ColorAnimation { duration: 120 } }
 
                         Row {
@@ -421,11 +408,12 @@ Item {
 
                             Text {
                                 id: actionLabel
-                                text: modelData.text
+                                text: modelData.text.toUpperCase()
                                 color: card.fg
                                 font.family: card.uiFont
-                                font.pixelSize: card.fontSize - 1
+                                font.pixelSize: card.fontSize - 2
                                 font.weight: Font.DemiBold
+                                font.letterSpacing: 1.5
                             }
                         }
 
@@ -444,6 +432,7 @@ Item {
                 }
             }
         }
+    }
     }
 
     readonly property int imageBoxHeight: card.isPopup ? 150 : 180
@@ -517,7 +506,7 @@ Item {
 
         Text {
             anchors.centerIn: parent
-            text: "󰰩"
+            text: "󰅖"
             color: card.fg
             font.family: card.iconFont
             font.pixelSize: card.fontSize - 2

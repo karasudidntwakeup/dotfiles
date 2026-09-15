@@ -14,7 +14,7 @@ Item {
 
     readonly property int cardWidth: 940
     readonly property int leftWidth: 300
-    readonly property int chatRowHeight: 58
+    readonly property int chatRowHeight: 46
     readonly property int maxChatRows: 8
     readonly property int headerHeight: 40
     readonly property int sendHeight: 40
@@ -41,8 +41,8 @@ Item {
         ? wa.contrastColor(wa.cardColor)
         : "#000000"
     readonly property color accent: rootRef
-        ? Qt.color(rootRef.colorOf("secondary_fixed_dim"))
-        : "#a3be8c"
+        ? Qt.color(rootRef.colorOf("widget_accent"))
+        : "#73737a"
     readonly property color accentText: wa.contrastColor(wa.accent)
     readonly property color selectedFg: accentText
     readonly property color errorColor: rootRef ? Qt.color(rootRef.colorOf("widget_error")) : "#e30000"
@@ -389,7 +389,7 @@ Item {
 
     function bodyHeight(): int {
         var rows = Math.min(wa.maxChatRows, Math.max(1, chatModel.count))
-        return wa.chatRowHeight * rows + 2 * (rows - 1) + 20
+        return wa.chatRowHeight * rows + 6 * (rows - 1) + 20
     }
 
     Rectangle {
@@ -411,16 +411,10 @@ Item {
         height: contentColumn.implicitHeight + wa.pad * 2
         radius: wa.cornerRadius
         color: wa.cardColor
-        border.width: 2
+        border.width: 1
         border.color: wa.cardBorder
         clip: true
 
-        SurfaceGradient {
-            anchors.fill: parent
-            inset: 1
-            color: wa.cardColor
-            radius: wa.cornerRadius
-        }
 
         transform: Translate {
             y: (1.0 - wa.animProgress) * 30
@@ -626,7 +620,7 @@ Item {
                         Rectangle {
                             anchors.fill: parent
                             radius: 12
-                            color: wa.activeTab === "chats" ? wa.accentText : "transparent"
+                            color: wa.activeTab === "chats" ? wa.accent : "transparent"
                             Behavior on color {
                                 ColorAnimation {
                                     duration: 140
@@ -639,7 +633,7 @@ Item {
                             Text {
                                 text: "Chats"
                                 color: wa.activeTab === "chats"
-                                    ? wa.accent
+                                    ? wa.accentText
                                     : wa.alpha(wa.fg, 0.6)
                                 font.family: wa.uiFont
                                 font.pixelSize: wa.fontSize
@@ -663,7 +657,7 @@ Item {
                         Rectangle {
                             anchors.fill: parent
                             radius: 12
-                            color: wa.activeTab === "groups" ? wa.accentText : "transparent"
+                            color: wa.activeTab === "groups" ? wa.accent : "transparent"
                             Behavior on color {
                                 ColorAnimation {
                                     duration: 140
@@ -676,7 +670,7 @@ Item {
                             Text {
                                 text: "Groups"
                                 color: wa.activeTab === "groups"
-                                    ? wa.accent
+                                    ? wa.accentText
                                     : wa.alpha(wa.fg, 0.6)
                                 font.family: wa.uiFont
                                 font.pixelSize: wa.fontSize
@@ -716,7 +710,7 @@ Item {
                             anchors.fill: parent
                             anchors.margins: 4
                             model: chatModel
-                            spacing: 2
+                            spacing: 6
                             currentIndex: 0
                             boundsBehavior: Flickable.StopAtBounds
                             clip: true
@@ -825,12 +819,6 @@ Item {
                                         radius: 10
                                         visible: unread && unreadCount === 0
                                         color: isSelected ? wa.accentText : wa.accent
-                                        Text {
-                                            anchors.centerIn: parent
-                                            text: "●"
-                                            font.pixelSize: 8
-                                            color: isSelected ? wa.accent : wa.accentText
-                                        }
                                     }
 
                                     Text {
@@ -1044,9 +1032,7 @@ Item {
                                                     anchors.bottom: parent.bottom
                                                     anchors.margins: 6
                                                     text: msgItem.time
-                                                    color: "#ffffff"
-                                                    style: Text.Outline
-                                                    styleColor: "#000000aa"
+                                                    color: "#dddddd"
                                                     font.family: wa.uiFont
                                                     font.pixelSize: Math.max(8, wa.fontSize - 3)
                                                 }
@@ -1086,17 +1072,6 @@ Item {
                                                             color: wa.accentText
                                                             font.pixelSize: Math.max(9, wa.fontSize - 1)
                                                         }
-                                                    }
-                                                    Text {
-                                                        anchors.left: playBtn.right
-                                                        anchors.leftMargin: 8
-                                                        anchors.verticalCenter: parent.verticalCenter
-                                                        text: "Voice note"
-                                                        color: wa.accentText
-                                                        font.family: wa.uiFont
-                                                        font.pixelSize: wa.fontSize
-                                                        elide: Text.ElideRight
-                                                        width: parent.width - 26 - 8 - timeText.implicitWidth - 10
                                                     }
                                                     Text {
                                                         id: audioTimeText
@@ -1310,15 +1285,6 @@ Item {
                         }
                     }
                 }
-            }
-
-            Text {
-                width: parent.width
-                horizontalAlignment: Text.AlignHCenter
-                text: "Type to filter chats  ·  Enter: open chat  ·  Tab: message box  ·  Enter: send  ·  Esc: close"
-                font.family: wa.uiFont
-                font.pixelSize: Math.max(10, wa.fontSize - 2)
-                color: wa.alpha(wa.fg, 0.4)
             }
         }
     }

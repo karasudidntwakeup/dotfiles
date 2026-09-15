@@ -74,7 +74,7 @@ ShellRoot {
     readonly property color outlineVariant: colorOf("outline_variant")
 
     readonly property string fontFamily: "Ndot 57"
-    readonly property string uiFont: "Inter"
+    readonly property string uiFont: "Geist"
     readonly property string iconFont: "Symbols Nerd Font"
     readonly property int fontSize: 13
 
@@ -400,7 +400,11 @@ ShellRoot {
     property string mediaStatus: "none"
     property real mediaPosMs: 0
     property real mediaLenMs: 0
+    property string mediaTitle: ""
+    property string mediaArtist: ""
+    property string mediaArt: ""
     property string mediaInfo: ""
+    property string mediaSig: ""
 
     Process {
         id: mediaProc
@@ -414,9 +418,28 @@ ShellRoot {
                 var n = fields.length
                 var pos = (parseFloat(fields[n - 3]) || 0) / 1000
                 var len = parseFloat(fields[n - 2]) / 1000
-                var info = fields.slice(1, n - 3).join("|").trim()
-                var trackChanged = info && info !== root.mediaInfo
-                if (trackChanged) root.mediaInfo = info
+                var art = fields[n - 1] || ""
+                var info = fields.slice(1, n - 3).join("|")
+
+                var title = ""
+                var artist = ""
+                var sep = info.indexOf("\u001E")
+                if (sep >= 0) {
+                    artist = info.substring(0, sep).trim()
+                    title = info.substring(sep + 1).trim()
+                } else {
+                    title = info.trim()
+                }
+
+                var sig = info + "\u001E" + art
+                var trackChanged = sig !== root.mediaSig
+                if (trackChanged) {
+                    root.mediaSig = sig
+                    root.mediaTitle = title
+                    root.mediaArtist = artist
+                    root.mediaInfo = title + "|" + artist
+                    root.mediaArt = art
+                }
 
                 root.mediaLenMs =
                     (isFinite(len) && len > 0) ? len
@@ -2291,12 +2314,6 @@ iconSize: root.fontSize + 3
                     border.color: root.withAlpha(root.outlineVariant, 0.35)
                     clip: true
 
-                    SurfaceGradient {
-                        anchors.fill: parent
-                        inset: 1
-                        radius: 25
-                        color: clockPill.tint
-                    }
                     opacity: calPopup.animProgress
                     scale: 0.92 + (0.08 * calPopup.animProgress)
                     transformOrigin: Item.Top
@@ -2610,14 +2627,6 @@ iconSize: root.fontSize + 3
                                 }
 
                                 Item { Layout.fillWidth: true }
-
-                                Text {
-                                    text: "Enter to save"
-                                    color: calPopup.popupFg
-                                    font.family: root.fontFamily
-                                    font.pixelSize: root.fontSize - 2
-                                    verticalAlignment: Text.AlignVCenter
-                                }
                             }
 
                             Flickable {
@@ -2819,12 +2828,6 @@ iconSize: root.fontSize + 3
                         border.color: root.withAlpha(root.outlineVariant, 0.35)
                         opacity: 0
 
-                        SurfaceGradient {
-                            anchors.fill: parent
-                            inset: 1
-                            radius: 25
-                            color: clockPill.tint
-                        }
 
                         ColumnLayout {
                             anchors.fill: parent

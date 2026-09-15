@@ -13,7 +13,7 @@ Item {
     property bool searchFailed: false
     property string activeQuery: ""
     readonly property int cornerRadius: 20
-    readonly property int pad: 16
+    readonly property int pad: 14
     readonly property int cardWidth: 820
     readonly property int searchHeight: 40
     readonly property int maxItems: 48
@@ -281,6 +281,16 @@ Item {
             pendingTimeout.restart();
     }
 
+    function refreshFeed(mode) {
+        var m = mode || "feed";
+        Quickshell.execDetached(["bash", Quickshell.shellDir + "/scripts/ytx-home.sh", m]);
+    }
+
+    function refreshBackground() {
+        ytx.refreshFeed("feed");
+        ytx.refreshFeed("music");
+    }
+
     function onHomeResults(obj) {
         if (ytx.searching || ytx.activeQuery.length > 0 || !ytx.active)
             return ;
@@ -335,6 +345,7 @@ Item {
             searchField.text = "";
             ytx.loadRecent();
             ytx.ensureHome();
+            ytx.refreshFeed("feed");
             ytx.filter("");
             focusRequest.restart();
         }
@@ -436,6 +447,15 @@ Item {
         onTriggered: ytx.pendingHome = false
     }
 
+    Timer {
+        id: feedTicker
+
+        interval: 3600000
+        repeat: true
+        running: true
+        onTriggered: ytx.refreshBackground()
+    }
+
     Rectangle {
         id: card
 
@@ -445,16 +465,10 @@ Item {
         height: contentColumn.implicitHeight + ytx.pad * 2
         radius: ytx.cornerRadius
         color: ytx.cardColor
-        border.width: 2
+        border.width: 1
         border.color: ytx.cardBorder
         clip: true
 
-        SurfaceGradient {
-            anchors.fill: parent
-            inset: 1
-            color: ytx.cardColor
-            radius: ytx.cornerRadius
-        }
 
         transform: Translate {
             y: (1.0 - ytx.animProgress) * 30
@@ -502,7 +516,7 @@ Item {
                         font.family: ytx.uiFont
                         font.pixelSize: ytx.fontSize + 1
                         font.weight: Font.Medium
-                        placeholderText: "Search — Enter searches YouTube"
+                        placeholderText: "Search YouTube"
                         placeholderTextColor: ytx.alpha(ytx.fg, 0.4)
                         selectByMouse: true
                         verticalAlignment: Text.AlignVCenter
@@ -651,7 +665,7 @@ Item {
                     anchors.leftMargin: ytx.searching || ytx.pendingHome ? 22 : 2
                     width: parent.width - (chipRow.visible ? chipRow.width + 8 : 4)
                     elide: Text.ElideRight
-                    text: ytx.searching ? "Searching for \u201C" + ytx.activeQuery + "\u201D\u2026" : ytx.pendingHome ? "Loading " + (ytx.feedMode === "music" ? "music mixes\u2026" : "recommendations\u2026") : ytx.searchFailed ? "No results for \u201C" + ytx.activeQuery + "\u201D" : ytx.activeQuery.length > 0 ? ytx.videos.length + " results for \u201C" + ytx.activeQuery + "\u201D" : ytx.homeFailed ? "Couldn\u2019t load " + (ytx.feedMode === "music" ? "music mixes" : "home recommendations") : ytx.homeLoaded ? ytx.videos.length + (ytx.feedMode === "music" ? " music mixes" : " recommended videos") : ""
+                    text: ytx.searching ? "Searching\u2026" : ytx.pendingHome ? "Loading\u2026" : ytx.searchFailed ? "No results" : ytx.activeQuery.length > 0 ? ytx.videos.length + " results" : ytx.homeFailed ? "Couldn\u2019t load" : ytx.homeLoaded ? ytx.videos.length + (ytx.feedMode === "music" ? " music mixes" : " recommended") : ""
                     font.family: ytx.uiFont
                     font.pixelSize: Math.max(10, ytx.fontSize - 1)
                     color: ytx.searchFailed || ytx.homeFailed ? Qt.rgba(1, 0.45, 0.4, 1) : ytx.alpha(ytx.fg, 0.6)
@@ -666,39 +680,6 @@ Item {
                     visible: !ytx.searching && (ytx.activeQuery.length > 0 || ytx.homeLoaded || ytx.homeFailed || ytx.pendingHome)
 
                     Rectangle {
-                        id: refreshChip
-
-                        visible: ytx.activeQuery.length === 0 && (ytx.homeLoaded || ytx.homeFailed || ytx.pendingHome)
-                        width: 24
-                        height: 22
-                        radius: 11
-                        color: refreshHover.containsMouse ? ytx.alpha(ytx.fg, 0.2) : ytx.alpha(ytx.fg, 0.08)
-
-                        Text {
-                            id: refreshChipLabel
-
-                            anchors.centerIn: parent
-                            text: "󰑐"
-                            color: refreshHover.containsMouse ? ytx.accent : ytx.fg
-                            font.family: ytx.iconFont
-                            font.pixelSize: Math.max(10, ytx.fontSize - 2)
-                        }
-
-                        MouseArea {
-                            id: refreshHover
-
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                ytx.ensureHome(true, ytx.feedMode);
-                                searchField.forceActiveFocus();
-                            }
-                        }
-
-                    }
-
-                    Rectangle {
                         id: homeChip
 
                         visible: ytx.activeQuery.length === 0 && (ytx.homeLoaded || ytx.homeFailed || ytx.pendingHome)
@@ -711,7 +692,7 @@ Item {
                             id: homeChipLabel
 
                             anchors.centerIn: parent
-                            text: "󰅨 Home"
+                            text: "󰋜 Home"
                             color: ytx.fg
                             font.family: ytx.iconFont
                             font.pixelSize: Math.max(10, ytx.fontSize - 2)
@@ -893,15 +874,6 @@ Item {
                                     anchors.fill: parent
                                     radius: 8
                                     color: isSelected ? ytx.alpha(ytx.accent, 0.25) : ytx.alpha(ytx.fg, 0.08)
-
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: "▶"
-                                        color: ytx.alpha(ytx.fg, 0.7)
-                                        font.family: ytx.fontFamily
-                                        font.pixelSize: ytx.fontSize + 8
-                                    }
-
                                 }
 
                             }
@@ -954,23 +926,6 @@ Item {
 
                     }
 
-                }
-
-            }
-
-            Item {
-                id: hintRow
-
-                width: parent.width
-                height: 16
-
-                Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: (ytx.feedMode === "music" ? "Enter: audio  ·  Alt+Enter: video" : "Enter: video  ·  Alt+Enter: audio")
-                                  + "  ·  P: playlist  ·  Alt+1: home  ·  Alt+2: music  ·  Esc: close"
-                    font.family: ytx.uiFont
-                    font.pixelSize: Math.max(10, ytx.fontSize - 2)
-                    color: ytx.alpha(ytx.fg, 0.4)
                 }
 
             }

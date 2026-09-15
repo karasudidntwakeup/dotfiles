@@ -13,7 +13,7 @@ Item {
     signal requestClose()
 
     readonly property int cardWidth: 620
-    readonly property int rowHeight: 48
+    readonly property int rowHeight: 46
     readonly property int maxRows: 8
     readonly property int searchHeight: 40
     readonly property int pad: 14
@@ -270,16 +270,10 @@ Item {
         height: contentColumn.implicitHeight + notes.pad * 2
         radius: notes.cornerRadius
         color: notes.cardColor
-        border.width: 2
+        border.width: 1
         border.color: notes.cardBorder
         clip: true
 
-        SurfaceGradient {
-            anchors.fill: parent
-            inset: 1
-            color: notes.cardColor
-            radius: notes.cornerRadius
-        }
 
         transform: Translate {
             y: (1.0 - notes.animProgress) * 30
@@ -497,7 +491,7 @@ Item {
                     spacing: 8
 
                     Text {
-                        text: "󰀂"
+                        text: "󰍉"
                         color: notes.alpha(notes.fg, 0.55)
                         font.family: notes.iconFont
                         font.pixelSize: notes.fontSize + 1
@@ -582,13 +576,14 @@ Item {
                 height: listModel.count === 0
                     ? 120
                     : Math.min(notes.maxRows, listModel.count) * notes.rowHeight
+                        + Math.max(0, Math.min(notes.maxRows, listModel.count) - 1) * 8
                 clip: true
 
                 ListView {
                     id: listView
                     anchors.fill: parent
                     model: listModel
-                    spacing: 4
+                    spacing: 8
                     currentIndex: 0
                     boundsBehavior: Flickable.StopAtBounds
                     clip: true
@@ -790,14 +785,6 @@ Item {
 
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: "󰎚"
-                            color: notes.alpha(notes.fg, 0.35)
-                            font.family: notes.iconFont
-                            font.pixelSize: notes.fontSize + 14
-                        }
-
-                        Text {
-                            anchors.horizontalCenter: parent.horizontalCenter
                             text: searchField.text.length > 0
                                 ? "No matching notes"
                                 : "No notes yet — type one above"
@@ -805,25 +792,9 @@ Item {
                             font.family: notes.uiFont
                             font.pixelSize: notes.fontSize
                         }
-                    }
-                }
-            }
-
-            RowLayout {
-                width: parent.width
-                spacing: 6
-
-                Item { Layout.fillWidth: true }
-
-                Text {
-                    text: "Enter  copy      Del  remove      Esc  close"
-                    color: notes.alpha(notes.fg, 0.45)
-                    font.family: notes.uiFont
-                    font.pixelSize: Math.max(9, notes.fontSize - 2)
-                }
-
-                Item { Layout.fillWidth: true }
+}
             }
         }
     }
+}
 }

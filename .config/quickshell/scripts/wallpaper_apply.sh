@@ -501,6 +501,7 @@ case "$SCHEME" in
   ayu)                               PRESET="ayu" ;;
   horizon)                           PRESET="horizon" ;;
   nightowl|night_owl)                PRESET="nightowl" ;;
+  nothing)                           PRESET="nothing" ;;
   material)                          PRESET="material" ;;
   monokai)                           PRESET="monokai" ;;
   palenight)                         PRESET="palenight" ;;
