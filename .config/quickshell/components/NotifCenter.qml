@@ -167,6 +167,7 @@ Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 model: svc ? svc.history : []
+                spacing: 10
                 boundsBehavior: Flickable.StopAtBounds
 
                 ScrollBar.vertical: ScrollBar {
@@ -252,7 +253,7 @@ Item {
                 RowLayout {
                     anchors.fill: parent
                     anchors.margins: 10
-                    spacing: 10
+spacing: 15
 
                     ColumnLayout {
                         Layout.fillWidth: true

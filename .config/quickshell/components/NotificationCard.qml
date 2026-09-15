@@ -226,7 +226,7 @@ Item {
         transform: Translate { x: card.dragX }
         opacity: Math.max(0.0, 1.0 - Math.abs(card.dragX) / Math.max(1, card.width * 0.7))
         shadowEnabled: true
-        shadowBlur: 0.75
+        shadowBlur: 0.0
         blurMax: 20
         shadowHorizontalOffset: 0
         shadowVerticalOffset: 6
