@@ -431,10 +431,6 @@ ShellRoot {
         }
     }
 
-    Process {
-        id: mediaCmd
-    }
-
     Timer {
         id: mediaSync
         interval: 2000
@@ -746,7 +742,6 @@ ShellRoot {
         property string icon: ""
         property Component iconSource: null
         property int padX: 14
-        property bool showControls: false
         property color tint: root.primary
         property alias clickArea: pillArea
         property alias wheelArea: pillArea
@@ -758,16 +753,6 @@ ShellRoot {
         radius: 10
         color: tint
         border.width: 0
-
-        scale: (pillArea.pressed ? 0.96 : (pillArea.containsMouse ? 1.03 : 1.0)) * pill.popScale
-        Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
-
-        property real popScale: 1.0
-        SequentialAnimation {
-            id: pillPopAnim
-            NumberAnimation { target: pill; property: "popScale"; to: 1.06; duration: 100; easing.type: Easing.OutQuad }
-            NumberAnimation { target: pill; property: "popScale"; to: 1.0; duration: 300; easing.type: Easing.OutQuint }
-        }
 
         Row {
             id: pillRow
@@ -785,108 +770,29 @@ ShellRoot {
                 visible: pill.icon.length > 0
                 text: pill.icon
                 color: pill.pillTextColor
+                anchors.verticalCenter: parent.verticalCenter
                 font.family: root.iconFont
                 font.pixelSize: root.fontSize + 2
                 font.weight: Font.Normal
-                verticalAlignment: Text.AlignVCenter
             }
 
             Text {
                 id: pillText
                 text: pill.label
                 color: pill.pillTextColor
+                anchors.verticalCenter: parent.verticalCenter
                 font.family: root.fontFamily
                 font.pixelSize: root.fontSize
-                font.weight: Font.Black
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-            }
-
-            Item {
-                id: pillCtrls
-                visible: pill.showControls
-                readonly property real seekPadX: 4
-                implicitWidth: 140
-                implicitHeight: pill.height
-
-                property real progress: root.mediaLenMs > 0
-                    ? Math.max(0, Math.min(1, root.mediaPosMs / root.mediaLenMs))
-                    : 0
-                readonly property color vizLit: pill.pillTextColor
-                readonly property color vizDim: Qt.rgba(pill.pillTextColor.r, pill.pillTextColor.g, pill.pillTextColor.b, 0.25)
-
-                Rectangle {
-                    id: seekTrack
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.leftMargin: pillCtrls.seekPadX
-                    anchors.rightMargin: pillCtrls.seekPadX
-                    anchors.verticalCenter: parent.verticalCenter
-                    height: 8
-                    radius: height / 2
-                    color: pillCtrls.vizDim
-                }
-
-                Rectangle {
-                    id: seekFill
-                    anchors.left: seekTrack.left
-                    anchors.top: seekTrack.top
-                    anchors.bottom: seekTrack.bottom
-                    width: pillCtrls.progress * seekTrack.width
-                    radius: seekTrack.radius
-                    color: pillCtrls.vizLit
-                }
-
-                Rectangle {
-                    id: timelineKnob
-                    anchors.verticalCenter: parent.verticalCenter
-                    x: pillCtrls.seekPadX + pillCtrls.progress * (pillCtrls.width - pillCtrls.seekPadX * 2) - width * 0.5
-                    width: 3
-                    height: pillCtrls.height - 8
-                    radius: 1.5
-                    color: pill.pillTextColor
-                    visible: timelineArea.hovered || timelineArea.dragging
-                    opacity: timelineArea.dragging ? 1.0 : 0.85
-                }
-
-                MouseArea {
-                    id: timelineArea
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    property bool dragging: false
-
-                    function seekTo(posX) {
-                        if (root.mediaLenMs <= 0) return
-                        var ratio = Math.max(0, Math.min(1, posX / timelineArea.width))
-                        var targetMs = Math.round(ratio * root.mediaLenMs)
-                        mediaCmd.command = ["playerctl", "position", String(targetMs / 1000)]
-                        mediaCmd.running = true
-                        root.mediaPosMs = targetMs
-                    }
-
-                    onPressed: (mouse) => {
-                        dragging = true
-                        seekTo(mouse.x)
-                    }
-                    onPositionChanged: (mouse) => {
-                        if (dragging) seekTo(mouse.x)
-                    }
-                    onReleased: (mouse) => {
-                        dragging = false
-                    }
-                }
+                font.weight: Font.Normal
             }
         }
 
         MouseArea {
             id: pillArea
             anchors.fill: parent
-            enabled: !pill.showControls
             acceptedButtons: Qt.LeftButton | Qt.RightButton
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onClicked: pillPopAnim.start()
         }
     }
 
@@ -1068,11 +974,10 @@ ShellRoot {
             Text {
                 text: root.batteryPercent + "%"
                 color: bat.fg
+                anchors.verticalCenter: parent.verticalCenter
                 font.family: root.fontFamily
                 font.pixelSize: root.fontSize
-                font.weight: Font.Black
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
+                font.weight: Font.Normal
             }
         }
     }
@@ -1398,9 +1303,12 @@ ShellRoot {
             anchors.centerIn: parent
             spacing: 4
 
-            WifiIcon {
-                tint: net.pillTextColor
+            Text {
+                text: "\uF1EB"
+                color: net.pillTextColor
                 anchors.verticalCenter: parent.verticalCenter
+                font.family: root.iconFont
+                font.pixelSize: root.fontSize + 2
             }
 
             Text {
@@ -1408,11 +1316,10 @@ ShellRoot {
                     ? (root.networkIp + "  ↓  " + root.formatSpeed(root.networkDown) || root.networkText)
                     : "No net"
                 color: net.pillTextColor
+                anchors.verticalCenter: parent.verticalCenter
                 font.family: root.fontFamily
                 font.pixelSize: root.fontSize
-                font.weight: Font.Black
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
+                font.weight: Font.Normal
             }
         }
     }
@@ -1995,14 +1902,6 @@ ShellRoot {
                     }
 
                     Module {
-                        id: mediaPill
-                        tint: root.pillColor("error")
-                        visible: root.mediaStatus !== "none"
-                        padX: 10
-                        showControls: true
-                    }
-
-                    Module {
                         id: volPill
                         iconSource: volIconSource
                         label: root.muted ? "MUTE" : root.volumePercent + "%"
@@ -2478,7 +2377,7 @@ ShellRoot {
                                 color: calPopup.popupFg
                                 font.family: root.fontFamily
                                 font.pixelSize: root.fontSize + 2
-                                font.weight: Font.Black
+                                font.weight: Font.Normal
                             }
                         }
 
@@ -2549,7 +2448,7 @@ ShellRoot {
                                             color: isSelected ? root.onTextColor : calPopup.popupFg
                                             font.family: root.fontFamily
                                             font.pixelSize: root.fontSize
-                                            font.weight: isSelected || isToday ? Font.Black : Font.Normal
+                                            font.weight: Font.Normal
                                         }
 
                                         Rectangle {
@@ -2603,7 +2502,7 @@ ShellRoot {
                                     color: calPopup.popupFg
                                     font.family: root.fontFamily
                                     font.pixelSize: root.fontSize
-                                    font.weight: Font.Black
+                                    font.weight: Font.Normal
                                     Layout.fillWidth: true
                                     verticalAlignment: Text.AlignVCenter
                                 }
@@ -2662,7 +2561,7 @@ ShellRoot {
                                         color: calPopup.popupFg
                                         font.family: root.fontFamily
                                         font.pixelSize: root.fontSize + 2
-                                        font.weight: Font.Black
+                                        font.weight: Font.Normal
                                     }
 
                                     MouseArea {
@@ -2690,7 +2589,7 @@ ShellRoot {
                                         color: calPopup.selectedEntryId >= 0 ? root.error : root.withAlpha(calPopup.popupFg, 0.3)
                                         font.family: root.fontFamily
                                         font.pixelSize: root.fontSize + 2
-                                        font.weight: Font.Black
+                                        font.weight: Font.Normal
                                     }
 
                                     MouseArea {
@@ -2945,7 +2844,7 @@ ShellRoot {
                                     color: root.timerRemainingMs <= 0 ? root.error : calPopup.popupFg
                                     font.family: root.fontFamily
                                     font.pixelSize: root.fontSize + 8
-                                    font.weight: Font.Black
+                                    font.weight: Font.Normal
                                     Layout.fillWidth: true
                                     verticalAlignment: Text.AlignVCenter
                                 }
@@ -2966,7 +2865,7 @@ ShellRoot {
                                         color: calPopup.popupFg
                                         font.family: root.fontFamily
                                         font.pixelSize: root.fontSize + 2
-                                        font.weight: Font.Black
+                                        font.weight: Font.Normal
                                     }
 
                                     MouseArea {
@@ -2994,7 +2893,7 @@ ShellRoot {
                                         color: calPopup.popupFg
                                         font.family: root.fontFamily
                                         font.pixelSize: root.fontSize + 2
-                                        font.weight: Font.Black
+                                        font.weight: Font.Normal
                                     }
 
                                     MouseArea {

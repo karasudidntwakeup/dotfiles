@@ -213,6 +213,11 @@ Item {
 
     implicitHeight: cardBody.height
 
+    scale: card.isPopup ? (card.hovering || card.dragging ? 1.01 : 1.0) : 1.0
+    Behavior on scale {
+        NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
+    }
+
     MultiEffect {
         id: cardBodyShadow
         visible: card.isPopup

@@ -57,8 +57,9 @@ PanelWindow {
         add: Transition {
             ParallelAnimation {
                 NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 200; easing.type: Easing.OutCubic }
+                NumberAnimation { property: "scale"; from: 0.92; to: 1.0; duration: 300; easing.type: Easing.OutCubic }
                 NumberAnimation { property: "x"; from: popupList.width * 0.4; to: 0; duration: 280; easing.type: Easing.OutCubic }
-                NumberAnimation { property: "y"; from: -12; to: 0; duration: 280; easing.type: Easing.OutCubic }
+                NumberAnimation { property: "y"; from: -14; to: 0; duration: 280; easing.type: Easing.OutCubic }
             }
         }
 

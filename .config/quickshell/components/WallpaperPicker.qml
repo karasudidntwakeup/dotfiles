@@ -406,8 +406,8 @@ Item {
                         color: window.currentFilter === modelData.name ? window.surface2
                              : (tabMouse.containsMouse ? window.surface1 : window.surface0)
                         border.width: 0
-                        scale: window.currentFilter === modelData.name ? 1.05 : (tabMouse.containsMouse ? 1.03 : 1.0)
-                        Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
+                        scale: window.currentFilter === modelData.name ? 1.03 : (tabMouse.containsMouse ? 1.02 : 1.0)
+                        Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
                         Behavior on color { ColorAnimation { duration: 200 } }
 
                         Column {
@@ -446,8 +446,8 @@ Item {
                         radius: window.cornerRadius
                         color: modelData.hex
                         border.width: 0
-                        scale: window.currentFilter === modelData.name ? 1.05 : (swatchMouse.containsMouse ? 1.03 : 1.0)
-                        Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
+                        scale: window.currentFilter === modelData.name ? 1.03 : (swatchMouse.containsMouse ? 1.02 : 1.0)
+                        Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
                         Behavior on color { ColorAnimation { duration: 200 } }
 
                         MouseArea {
@@ -519,8 +519,8 @@ Item {
                         color: modelData
                         border.width: window.applyColor === modelData ? 3 : 1
                         border.color: window.applyColor === modelData ? window.blue : window.borderColor
-                        scale: swabHover.containsMouse ? 1.12 : 1.0
-                        Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+                        scale: swabHover.containsMouse ? 1.05 : 1.0
+                        Behavior on scale { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
                         MouseArea {
                             id: swabHover
                             anchors.fill: parent
@@ -555,8 +555,8 @@ Item {
                              : (modeHover.containsMouse ? window.surface1 : window.surface0)
                         border.color: window.applyMode === modelData.key ? window.textColor : window.borderColor
                         border.width: window.applyMode === modelData.key ? (window.u === 1 ? 1.5 : 1) : 1
-                        scale: window.applyMode === modelData.key ? 1.04 : (modeHover.containsMouse ? 1.02 : 1.0)
-                        Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutQuint } }
+                        scale: window.applyMode === modelData.key ? 1.02 : (modeHover.containsMouse ? 1.02 : 1.0)
+                        Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
                         Behavior on color { ColorAnimation { duration: 200 } }
                         Text {
                             id: modeLabel
@@ -614,8 +614,8 @@ Item {
                                          : (schHover.containsMouse ? window.surface1 : window.surface0)
                                     border.color: window.applyScheme === modelData.key ? window.textColor : window.borderColor
                                     border.width: window.applyScheme === modelData.key ? (window.u === 1 ? 1.5 : 1) : 1
-                                    scale: window.applyScheme === modelData.key ? 1.04 : (schHover.containsMouse ? 1.02 : 1.0)
-                                    Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutQuint } }
+                                    scale: window.applyScheme === modelData.key ? 1.02 : (schHover.containsMouse ? 1.02 : 1.0)
+                                    Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
                                     Behavior on color { ColorAnimation { duration: 200 } }
                                     Row {
                                         anchors.left: parent.left
@@ -685,8 +685,8 @@ Item {
                     height: window.u * 32
                     radius: window.u * 10
                     color: window.blue
-                    scale: applyHov.containsMouse ? 1.04 : 1.0
-                    Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+                    scale: applyHov.containsMouse ? 1.02 : 1.0
+                    Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
                     Text {
                         id: applyLabel
                         anchors.centerIn: parent

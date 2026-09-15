@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import Quickshell
 
 Item {
     id: center
@@ -72,8 +73,8 @@ Item {
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         anchors.right: parent.right
-        anchors.topMargin: 100
-        anchors.bottomMargin: 100
+        anchors.topMargin: 30
+        anchors.bottomMargin: 30
         anchors.rightMargin: 10
         color: center.panelColor
         radius: 22
@@ -88,8 +89,11 @@ Item {
             radius: 22
         }
 
-        transform: Translate { x: (1.0 - center.animProgress) * (center.panelWidth + 48) }
+        transform: Translate {
+            x: (1.0 - center.animProgress) * (center.panelWidth + 48)
+        }
         scale: 0.98 + 0.02 * center.animProgress
+        rotation: (1.0 - center.animProgress) * 1.5
         transformOrigin: Item.Right
 
         ColumnLayout {
@@ -106,7 +110,7 @@ Item {
                 spacing: 8
 
                 Text {
-                    text: "󰁦"
+                    text: ""
                     color: center.fg
                     font.family: center.iconFont
                     font.pixelSize: center.fontSize + 3
@@ -145,7 +149,7 @@ Item {
                 }
 
                 HeaderBtn {
-                    glyph: svc && svc.dnd ? "󰂛" : "󰂚"
+                    glyph: "󰂚"
                     active: svc ? svc.dnd : false
                     onTapped: { if (svc) svc.dnd = !svc.dnd }
                 }
@@ -162,8 +166,6 @@ Item {
                 id: centerList
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                clip: true
-                spacing: 8
                 model: svc ? svc.history : []
                 boundsBehavior: Flickable.StopAtBounds
 
@@ -208,7 +210,7 @@ Item {
                 Text {
                     anchors.centerIn: parent
                     anchors.verticalCenterOffset: -24
-                    text: "󰁦"
+                    text: ""
                     color: center.muteFg
                     font.family: center.iconFont
                     font.pixelSize: 34
@@ -222,8 +224,222 @@ Item {
                     font.pixelSize: center.fontSize - 1
                 }
             }
+
+            Rectangle {
+                id: mediaCard
+                Layout.fillWidth: true
+                Layout.preferredHeight: 96
+                visible: rootRef && rootRef.mediaStatus !== "none"
+                radius: 16
+                color: Qt.rgba(center.accent.r, center.accent.g, center.accent.b, 0.08)
+                border.width: 1
+                border.color: Qt.rgba(center.accent.r, center.accent.g, center.accent.b, 0.15)
+
+                property string mediaTitle: {
+                    if (!rootRef || !rootRef.mediaInfo) return ""
+                    var parts = rootRef.mediaInfo.split("|")
+                    return parts[0] || ""
+                }
+                property string mediaArtist: {
+                    if (!rootRef || !rootRef.mediaInfo) return ""
+                    var parts = rootRef.mediaInfo.split("|")
+                    return parts.length > 1 ? parts[1] : ""
+                }
+                property real progress: rootRef && rootRef.mediaLenMs > 0
+                    ? Math.max(0, Math.min(1, rootRef.mediaPosMs / rootRef.mediaLenMs))
+                    : 0
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.margins: 10
+                    spacing: 10
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 3
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: mediaCard.mediaTitle
+                            color: center.fg
+                            font.family: center.fontFamily
+                            font.pixelSize: center.fontSize
+                            font.weight: Font.Bold
+                            elide: Text.ElideRight
+                            maximumLineCount: 1
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: mediaCard.mediaArtist
+                            color: center.muteFg
+                            font.family: center.uiFont
+                            font.pixelSize: center.fontSize - 2
+                            elide: Text.ElideRight
+                            maximumLineCount: 1
+                        }
+
+                        Item {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 18
+
+                            Rectangle {
+                                id: seekTrack
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                anchors.verticalCenter: parent.verticalCenter
+                                height: 3
+                                radius: 1.5
+                                color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.1)
+                            }
+
+                            Rectangle {
+                                id: seekFill
+                                anchors.left: seekTrack.left
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: mediaCard.progress * seekTrack.width
+                                height: 3
+                                radius: 1.5
+                                color: center.accent
+                            }
+
+                            Rectangle {
+                                id: seekKnob
+                                anchors.verticalCenter: parent.verticalCenter
+                                x: seekTrack.x + mediaCard.progress * seekTrack.width - width / 2
+                                width: 6
+                                height: 6
+                                radius: 3
+                                color: center.accent
+                                visible: seekArea.containsMouse || seekArea.dragging
+                            }
+
+                            MouseArea {
+                                id: seekArea
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                property bool dragging: false
+
+                                function seekTo(posX) {
+                                    if (!rootRef || rootRef.mediaLenMs <= 0) return
+                                    var ratio = Math.max(0, Math.min(1, posX / seekArea.width))
+                                    var targetMs = Math.round(ratio * rootRef.mediaLenMs)
+                                    Quickshell.execDetached(["playerctl", "position", String(targetMs / 1000)])
+                                    rootRef.mediaPosMs = targetMs
+                                }
+
+                                onPressed: (mouse) => {
+                                    dragging = true
+                                    seekTo(mouse.x)
+                                }
+                                onPositionChanged: (mouse) => {
+                                    if (dragging) seekTo(mouse.x)
+                                }
+                                onReleased: (mouse) => {
+                                    dragging = false
+                                }
+                            }
+                        }
+                    }
+
+                    RowLayout {
+                        spacing: 4
+                        Layout.alignment: Qt.AlignVCenter
+
+                        Item {
+                            Layout.preferredWidth: 28
+                            Layout.preferredHeight: 28
+
+                            Rectangle {
+                                anchors.centerIn: parent
+                                width: 28
+                                height: 28
+                                radius: 14
+                                color: mediaPrevArea.containsMouse
+                                    ? Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.1)
+                                    : "transparent"
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: ""
+                                    color: center.fg
+                                    font.family: center.iconFont
+                                    font.pixelSize: center.fontSize + 2
+                                }
+
+                                MouseArea {
+                                    id: mediaPrevArea
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: rootRef ? Quickshell.execDetached(["playerctl", "previous"]) : {}
+                                }
+                            }
+                        }
+
+                        Item {
+                            Layout.preferredWidth: 32
+                            Layout.preferredHeight: 32
+
+                            Rectangle {
+                                anchors.centerIn: parent
+                                width: 32
+                                height: 32
+                                radius: 16
+                                color: center.accent
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: rootRef && rootRef.mediaStatus === "Playing" ? "󰏤" : "󰐊"
+                                    color: "#15161a"
+                                    font.family: center.iconFont
+                                    font.pixelSize: center.fontSize + 4
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: rootRef ? Quickshell.execDetached(["playerctl", "play-pause"]) : {}
+                                }
+                            }
+                        }
+
+                        Item {
+                            Layout.preferredWidth: 28
+                            Layout.preferredHeight: 28
+
+                            Rectangle {
+                                anchors.centerIn: parent
+                                width: 28
+                                height: 28
+                                radius: 14
+                                color: mediaNextArea.containsMouse
+                                    ? Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.1)
+                                    : "transparent"
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: ""
+                                    color: center.fg
+                                    font.family: center.iconFont
+                                    font.pixelSize: center.fontSize + 2
+                                }
+
+                                MouseArea {
+                                    id: mediaNextArea
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: rootRef ? Quickshell.execDetached(["playerctl", "next"]) : {}
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
-    }
 
     component HeaderBtn: Item {
         id: btn
@@ -263,4 +479,8 @@ Item {
             onClicked: btn.tapped()
         }
     }
+
+
+
+}
 }

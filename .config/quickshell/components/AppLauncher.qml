@@ -293,6 +293,12 @@ Item {
             radius: launcher.cornerRadius
         }
 
+        transform: Translate {
+            y: (1.0 - launcher.animProgress) * 30
+        }
+        scale: 0.96 + 0.04 * launcher.animProgress
+        transformOrigin: Item.Bottom
+
         Column {
             id: contentColumn
             x: launcher.pad

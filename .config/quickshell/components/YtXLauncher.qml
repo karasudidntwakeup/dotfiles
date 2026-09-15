@@ -456,6 +456,12 @@ Item {
             radius: ytx.cornerRadius
         }
 
+        transform: Translate {
+            y: (1.0 - ytx.animProgress) * 30
+        }
+        scale: 0.96 + 0.04 * ytx.animProgress
+        transformOrigin: Item.Bottom
+
         Column {
             id: contentColumn
 
