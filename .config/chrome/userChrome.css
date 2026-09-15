@@ -3,18 +3,6 @@
 @import "colors.css";
 
 :root {
-  --lwt-accent-color: var(--surface) !important;
-  --lwt-accent-color-inactive: var(--surface_container_low) !important;
-  --lwt-text-color: var(--on_surface) !important;
-  --toolbar-bgcolor: var(--surface) !important;
-  --toolbar-bgimage: unset !important;
-  --toolbar-color: var(--on_surface) !important;
-  --toolbar-field-background-color: var(--surface_container) !important;
-  --toolbar-field-color: var(--on_surface) !important;
-  --toolbar-field-border-color: transparent !important;
-  --toolbar-field-focus-background-color: var(--surface_container) !important;
-  --toolbar-field-focus-color: var(--on_surface) !important;
-  --toolbar-field-focus-border-color: transparent !important;
   --sidebar-background-color: var(--surface) !important;
   --sidebar-text-color: var(--on_surface) !important;
   --toolbarbutton-border-radius: 8px !important;
@@ -38,18 +26,19 @@
   --tab-inline-padding: 10px !important;
   --tab-border-radius: 15px !important;
   --tab-min-width: 110px !important;
+  --ext-theme-background-transition: none !important;
+  --inactive-window-transition: none !important;
 }
 
-/* Flat surface everywhere, no header line */
+/* Toolbar surfaces follow the active theme / Adaptive Tab Bar Color
+   (which drives --lwt-accent-color & --toolbar-bgcolor per site). */
 #navigator-toolbox,
 #toolbar-menubar,
 #toolbar-menubar-autohide,
 #titlebar,
 #TabsToolbar,
 #nav-bar {
-  background-color: var(--surface) !important;
   background-image: none !important;
-  color: var(--on_surface) !important;
   border: none !important;
   border-bottom: none !important;
   box-shadow: none !important;
@@ -60,12 +49,12 @@
   border-top: none !important;
 }
 
-/* ===== Safari single-row layout (tabs | centered field | empty) =====
+/* ===== Safari single-row layout (field | tabs) =====
    Only active when vertical tabs are turned off. */
 @media not -moz-pref("sidebar.verticalTabs") {
   :root:not([chromehidden~="toolbar"]) #navigator-toolbox {
     display: grid;
-    grid-template-columns: 1fr minmax(340px, 520px) 1fr;
+    grid-template-columns: minmax(320px, 520px) 1fr;
   }
 
   #toolbar-menubar,
@@ -73,23 +62,51 @@
   .global-notificationbox,
   #notifications-toolbar,
   #tab-notification-deck {
-    grid-column: 1/4;
+    grid-column: 1/3;
   }
 
-  #TabsToolbar {
+  #nav-bar {
     grid-column: 1;
     grid-row: 2/3;
   }
 
-  #nav-bar {
+  #TabsToolbar {
     grid-column: 2;
     grid-row: 2/3;
   }
 }
 
-/* Safari has no navigation buttons in the top bar */
+/* Safari has no navigation buttons in the top bar (except the menu) */
 #nav-bar toolbarbutton {
   display: none !important;
+}
+
+/* Hamburger menu pinned to the top-right corner */
+#navigator-toolbox {
+  position: relative;
+}
+
+#nav-bar #PanelUI-button {
+  display: flex !important;
+  position: absolute !important;
+  top: 5px;
+  inset-inline-end: 10px !important;
+  z-index: 100 !important;
+  height: 30px !important;
+  min-width: 32px !important;
+  border-radius: 15px !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+#nav-bar #PanelUI-button:hover,
+#nav-bar #PanelUI-button[open="true"] {
+  background-color: color-mix(in srgb, #ffffff 10%, transparent) !important;
+}
+
+:root:has(#toolbar-menubar:not([autohide="true"])) #nav-bar #PanelUI-button {
+  top: 32px;
 }
 
 /* ===== Safari pill tabs ===== */
@@ -166,7 +183,7 @@
 }
 
 #urlbar-background {
-  background-color: color-mix(in srgb, #ffffff 10%, var(--surface)) !important;
+  background-color: color-mix(in srgb, var(--surface_container) 62%, transparent) !important;
   border: 1px solid color-mix(in srgb, #ffffff 7%, transparent) !important;
   border-radius: 15px !important;
   box-shadow: none !important;
@@ -220,4 +237,11 @@ panel {
 menupopup > menuitem,
 menupopup > menu {
   border-radius: 6px !important;
+}
+
+/* ===== Adaptive Tab Bar Color compatibility ===== */
+
+#tabbrowser-tabbox,
+.browserContainer {
+  box-shadow: none !important;
 }
