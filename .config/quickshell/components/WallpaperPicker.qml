@@ -179,6 +179,7 @@ Item {
         { key: "fidelity",   label: "Fidelity",        group: "Auto",    hint: "#94d3b8" },
         { key: "neutral",    label: "Neutral",         group: "Auto",    hint: "#b0b0bc" },
         { key: "monochrome", label: "Monochrome",      group: "Auto",    hint: "#c8c8c8" },
+        { key: "bw",         label: "Black & White",   group: "Auto",    hint: "#000000" },
 
         { key: "wallpaper_color",   label: "Wallpaper Color",   group: "Custom", hint: "#96c8f6" }
     ]

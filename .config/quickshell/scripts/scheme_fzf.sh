@@ -27,6 +27,7 @@ SCHEMES=(
   "vibrant|Auto · Vibrant"
   "neutral|Auto · Neutral"
   "monochrome|Auto · Monochrome"
+  "bw|Auto · Black & White"
   "rainbow|Auto · Rainbow"
   "fruit_salad|Auto · Fruit Salad"
   "smart|Auto · Smart"

@@ -9,6 +9,7 @@
 # scheme: tonal_spot|content|fidelity|vibrant|neutral|monochrome|rainbow
 #         (fixed presets) serpantinum|catppuccin_frappe|catppuccin_macchiato|catppuccin_latte|
 #         nord|tokyo|dracula|gruvbox|rosepine|kanagawa
+#         bw|blackwhite|black_white        (pure black & white monochrome)
 #         wallpaper_color                            (from a chosen hex)
 #   wallpaper_color requires a 4th arg: the RGB hex to generate from.
 
@@ -54,6 +55,15 @@ p = {
     "blue": "#89b4fa", "sapphire": "#74c7ec", "peach": "#fab387",
     "green": "#a6e3a1", "red": "#f38ba8", "mauve": "#cba6f7",
     "pink": "#f5c2e7", "yellow": "#f9e2af", "maroon": "#eba0ac",
+  },
+  "bw": {
+    "base": "#000000", "mantle": "#000000", "crust": "#000000",
+    "surface0": "#000000", "surface1": "#ffffff", "surface2": "#ffffff",
+    "overlay0": "#000000", "overlay1": "#ffffff", "overlay2": "#ffffff",
+    "text": "#ffffff", "subtext0": "#ffffff", "subtext1": "#ffffff",
+    "blue": "#ffffff", "sapphire": "#ffffff", "peach": "#ffffff",
+    "green": "#ffffff", "red": "#ffffff", "mauve": "#ffffff",
+    "pink": "#ffffff", "yellow": "#ffffff", "maroon": "#ffffff",
   },
   "frappe": {
     "base": "#303446", "mantle": "#292c3c", "crust": "#232634",
@@ -512,6 +522,7 @@ case "$SCHEME" in
   gruvbox_light)                     PRESET="gruvbox_light" ;;
   tokyoday)                          PRESET="tokyoday" ;;
   everforest_light)                  PRESET="everforest_light" ;;
+  bw|blackwhite|black_white)         PRESET="bw" ;;
   # NvChad base46 themes (nvim), stored in nvim_themes.json
   nv_*)                              PRESET="${SCHEME#nv_}"
         if ! python3 - "$PRESET" "$EXTRA_PALETTES" <<'PY'
