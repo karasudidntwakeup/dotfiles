@@ -24,7 +24,7 @@ Item {
     readonly property color fg: rootRef ? center.contrastColor(center.panelColor) : "#ffffff"
     readonly property color muteFg: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.55)
     readonly property color accent: rootRef ? Qt.color(rootRef.colorOf("widget_accent")) : "#ff8fb2"
-    readonly property color signalAccent: "#FF3030"
+    readonly property color signalAccent: "#ffffff"
     readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
     readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Inter"
     readonly property string fontFamily: rootRef && rootRef.fontFamily ? rootRef.fontFamily : "Ndot 57"

@@ -11,7 +11,7 @@ Item {
     property var rootRef: null
     property bool locked: false
 
-    readonly property string fontMain: "Ndot 55"
+    readonly property string fontMain: "Ndot 57"
     readonly property string fontAltBold: "Lettera Mono LL"
     readonly property string fontCaps: "Ndot55Caps"
     readonly property string fontJp: "Noto Sans CJK JP"
@@ -141,7 +141,7 @@ Item {
         anchors.top: parent.top
         anchors.topMargin: parent.height * 0.02 + 22
         font.family: lockRoot.fontMain
-        font.pixelSize: Math.max(70, parent.height * 0.09)
+        font.pixelSize: Math.round(lockMediaCard.width * 0.22)
         color: lockRoot.fg
         style: Text.Raised
         styleColor: Qt.rgba(0, 0, 0, 0.35)
@@ -153,7 +153,7 @@ Item {
         anchors.top: clockHour.bottom
         anchors.topMargin: -10
         font.family: lockRoot.fontMain
-        font.pixelSize: Math.max(70, parent.height * 0.09)
+        font.pixelSize: Math.round(lockMediaCard.width * 0.22)
         color: lockRoot.fg
         style: Text.Raised
         styleColor: Qt.rgba(0, 0, 0, 0.35)
@@ -378,14 +378,16 @@ Item {
 
     Rectangle {
         id: lockMediaCard
-        width: Math.min(560, parent.width * 0.56)
-        height: 268
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.verticalCenter: parent.verticalCenter
+        width: Math.min(560, parent.width * 0.62)
+        height: 264
+        anchors.left: clockHour.right
+        anchors.leftMargin: 72
+        anchors.top: parent.top
+        anchors.topMargin: parent.height * 0.02 + 56
         radius: 26
-        color: Qt.rgba(0.03, 0.04, 0.06, 0.52)
+        color: Qt.rgba(0.07, 0.08, 0.10, 0.55)
         border.width: 1
-        border.color: Qt.rgba(1, 1, 1, 0.14)
+        border.color: Qt.rgba(1, 1, 1, 0.12)
         clip: true
         visible: rootRef && rootRef.mediaStatus !== "none"
 
@@ -451,99 +453,82 @@ Item {
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 24
-            spacing: 10
+            anchors.margins: 20
+            spacing: 0
 
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 20
+            Item { Layout.fillHeight: true }
 
-                Rectangle {
-                    id: lockThumb
-                    Layout.preferredWidth: 100
-                    Layout.preferredHeight: 100
-                    radius: 18
-                    clip: true
-                    color: Qt.rgba(1, 1, 1, 0.08)
-
-                    Image {
-                        anchors.fill: parent
-                        source: lockMediaCard.mArt ? (rootRef.mediaArt || "") : ""
-                        fillMode: Image.PreserveAspectCrop
-                        visible: lockMediaCard.mArt
-                    }
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: "󰽴"
-                        color: Qt.rgba(1, 1, 1, 0.4)
-                        font.family: lockRoot.iconFontName
-                        font.pixelSize: 34
-                        visible: !lockMediaCard.mArt
-                    }
-                }
-
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    spacing: 5
-
-                    RowLayout {
-                        spacing: 8
-
-                        Text {
-                            text: "NOW PLAYING"
-                            color: Qt.rgba(lockRoot.acc.r, lockRoot.acc.g, lockRoot.acc.b, 0.95)
-                            font.family: lockRoot.fontAltBold
-                            font.pixelSize: 11
-                            font.letterSpacing: 4
-                            font.weight: Font.DemiBold
-                        }
-
-                        Rectangle {
-                            visible: lockMediaCard.playing
-                            Layout.preferredWidth: 6; Layout.preferredHeight: 6
-                            Layout.alignment: Qt.AlignVCenter
-                            radius: 3
-                            color: lockRoot.acc
-                        }
-                    }
-
-                    Text {
-                        Layout.fillWidth: true
-                        text: lockMediaCard.mTitle
-                        color: "#ffffff"
-                        font.family: lockRoot.fontMain
-                        font.pixelSize: 26
-                        elide: Text.ElideRight
-                        maximumLineCount: 2
-                    }
-
-                    Text {
-                        Layout.fillWidth: true
-                        text: lockMediaCard.mArtist.toUpperCase()
-                        color: Qt.rgba(1, 1, 1, 0.68)
-                        font.family: lockRoot.fontAltBold
-                        font.pixelSize: 11
-                        font.letterSpacing: 2
-                        elide: Text.ElideRight
-                        maximumLineCount: 1
-                    }
-                }
+            Text {
+                Layout.alignment: Qt.AlignHCenter
+                text: "󰝚"
+                visible: !lockMediaCard.mArt
+                color: Qt.rgba(1, 1, 1, 0.28)
+                font.family: lockRoot.iconFontName
+                font.pixelSize: 72
             }
 
             Item { Layout.fillHeight: true }
 
             RowLayout {
+                Layout.alignment: Qt.AlignHCenter
+                spacing: 10
+
+                Rectangle {
+                    Layout.preferredWidth: 6; Layout.preferredHeight: 6
+                    radius: 3
+                    visible: lockMediaCard.playing
+                    color: lockRoot.acc
+                }
+
+                Text {
+                    text: "NOW PLAYING"
+                    color: Qt.rgba(lockRoot.acc.r, lockRoot.acc.g, lockRoot.acc.b, 0.95)
+                    font.family: lockRoot.fontAltBold
+                    font.pixelSize: 10
+                    font.letterSpacing: 3
+                    font.weight: Font.DemiBold
+                }
+            }
+
+            Text {
                 Layout.fillWidth: true
-                spacing: 12
+                Layout.alignment: Qt.AlignHCenter
+                Layout.topMargin: 10
+                text: lockMediaCard.mTitle
+                color: "#ffffff"
+                horizontalAlignment: Text.AlignHCenter
+                font.family: lockRoot.fontMain
+                font.pixelSize: 20
+                elide: Text.ElideRight
+                maximumLineCount: 1
+            }
+
+            Text {
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignHCenter
+                Layout.topMargin: 4
+                text: lockMediaCard.mArtist
+                color: Qt.rgba(1, 1, 1, 0.55)
+                horizontalAlignment: Text.AlignHCenter
+                font.family: lockRoot.fontAltBold
+                font.pixelSize: 11
+                font.letterSpacing: 1
+                elide: Text.ElideRight
+                maximumLineCount: 1
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.topMargin: 14
+                spacing: 10
 
                 Text {
                     Layout.preferredWidth: 42
+                    Layout.alignment: Qt.AlignVCenter
                     text: lockMediaCard.fmtTime(rootRef ? (rootRef.mediaPosMs || 0) : 0)
                     color: Qt.rgba(1, 1, 1, 0.7)
                     font.family: lockRoot.fontAltBold
-                    font.pixelSize: 12
+                    font.pixelSize: 11
                     horizontalAlignment: Text.AlignRight
                 }
 
@@ -661,16 +646,21 @@ Item {
                 }
 
                 Text {
-                    Layout.alignment: Qt.AlignRight
+                    Layout.preferredWidth: 42
+                    Layout.alignment: Qt.AlignVCenter
                     text: lockMediaCard.fmtTime(rootRef ? (rootRef.mediaLenMs || 0) : 0)
                     color: Qt.rgba(1, 1, 1, 0.5)
                     font.family: lockRoot.fontAltBold
-                    font.pixelSize: 12
+                    font.pixelSize: 11
                 }
             }
 
+            Item { Layout.fillHeight: true }
+
             RowLayout {
                 Layout.fillWidth: true
+                Layout.topMargin: 12
+                Layout.alignment: Qt.AlignHCenter
                 spacing: 18
 
                 Item { Layout.fillWidth: true; Layout.preferredHeight: 1 }
@@ -682,7 +672,7 @@ Item {
                 }
 
                 LockMediaBtn {
-                    btnSize: 60
+                    btnSize: 64
                     glyph: lockMediaCard.playing ? "󰏤" : "󰐊"
                     accent: true
                     onTapped: rootRef ? Quickshell.execDetached(["playerctl", "play-pause"]) : {}
@@ -696,6 +686,8 @@ Item {
 
                 Item { Layout.fillWidth: true; Layout.preferredHeight: 1 }
             }
+
+            Item { Layout.preferredHeight: 4 }
         }
     }
 
