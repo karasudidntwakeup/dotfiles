@@ -425,21 +425,42 @@ Item {
                     }
                 }
             }
+            Rectangle {
+                id: listWrap
+                Layout.fillWidth: true
+                Layout.preferredHeight: Math.min(centerList.contentHeight, center.listMaxHeight) + 16
+                visible: centerList.count > 0
+                radius: 16
+                color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.04)
+                border.width: 1
+                border.color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.09)
+                clip: true
+
             ListView {
                 id: centerList
-                Layout.fillWidth: true
-                Layout.preferredHeight: Math.min(centerList.contentHeight, center.listMaxHeight)
+                anchors.fill: parent
+                anchors.margins: 8
+                anchors.rightMargin: 18
                 model: svc ? svc.history : []
                 spacing: 10
                 boundsBehavior: Flickable.StopAtBounds
+                flickableDirection: Flickable.VerticalFlick
+                clip: true
 
                 ScrollBar.vertical: ScrollBar {
-                    width: 3
+                    parent: listWrap
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    anchors.right: parent.right
+                    anchors.rightMargin: 8
+                    anchors.topMargin: 8
+                    anchors.bottomMargin: 8
+                    width: 4
                     policy: ScrollBar.AsNeeded
                     background: Item {}
                     contentItem: Rectangle {
-                        implicitWidth: 3
-                        radius: 1.5
+                        implicitWidth: 4
+                        radius: 2
                         color: Qt.rgba(1, 1, 1, 0.25)
                     }
                 }
@@ -448,6 +469,11 @@ Item {
                     if (centerList.count === 0) centerList.currentIndex = -1
                     else if (centerList.currentIndex >= centerList.count)
                         centerList.currentIndex = centerList.count - 1
+                }
+
+                onCurrentIndexChanged: {
+                    if (centerList.currentIndex >= 0)
+                        centerList.positionViewAtIndex(centerList.currentIndex, ListView.Contain)
                 }
 
                 Component.onCompleted: {
@@ -464,6 +490,7 @@ Item {
                     z: centerList.currentIndex === index ? 2 : 1
                     onCardSelected: centerList.currentIndex = index
                 }
+            }
             }
 
         }

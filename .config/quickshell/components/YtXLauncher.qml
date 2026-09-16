@@ -792,6 +792,36 @@ Item {
 
                     }
 
+                    Rectangle {
+                        id: refreshChip
+
+                        visible: ytx.activeQuery.length === 0 && (ytx.homeLoaded || ytx.homeFailed || ytx.pendingHome)
+                        width: 22
+                        height: 22
+                        radius: 11
+                        color: refreshHover.containsMouse ? ytx.alpha(ytx.fg, 0.2) : ytx.alpha(ytx.fg, 0.08)
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "󰑐"
+                            color: ytx.fg
+                            font.family: ytx.iconFont
+                            font.pixelSize: Math.max(10, ytx.fontSize - 2)
+                        }
+
+                        MouseArea {
+                            id: refreshHover
+
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                ytx.ensureHome(true, ytx.feedMode);
+                            }
+                        }
+
+                    }
+
                 }
 
             }

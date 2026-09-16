@@ -477,6 +477,25 @@ ShellRoot {
         }
     }
 
+    property var calRegistry: ({})
+
+    function registerCalendarAnchor(outputName, anchor, screen, win) {
+        if (!root.calRegistry[outputName]) root.calRegistry[outputName] = {}
+        root.calRegistry[outputName].anchor = anchor
+        root.calRegistry[outputName].screen = screen
+        root.calRegistry[outputName].win = win
+    }
+
+    function openCalendarForOutput(outputName) {
+        var entry = root.calRegistry[outputName]
+        if (!entry) return
+        calPopup.anchorItem = entry.anchor || null
+        calPopup.anchorScreen = entry.screen || null
+        calPopup.anchorWin = entry.win || null
+        if (entry.screen) calPopup.screen = entry.screen
+        calPopup.open()
+    }
+
     readonly property int defaultTimerMs: 25 * 60000
     property real timerRemainingMs: defaultTimerMs
     property bool timerRunning: false
@@ -765,6 +784,8 @@ ShellRoot {
         property string icon: ""
         property Component iconSource: null
         property int padX: 14
+        property int rowSpacing: 4
+        property bool rowClip: false
         property int iconSize: root.fontSize + 2
         property color tint: root.primary
         property alias clickArea: pillArea
@@ -780,14 +801,15 @@ ShellRoot {
 
         Behavior on color { ColorAnimation { duration: 250 } }
 
-        Row {
+        RowLayout {
             id: pillRow
             anchors.centerIn: parent
-            spacing: 4
+            spacing: pill.rowSpacing
+            clip: pill.rowClip
 
             Loader {
                 visible: pill.iconSource != null
-                anchors.verticalCenter: parent.verticalCenter
+                Layout.alignment: Qt.AlignVCenter
                 sourceComponent: pill.iconSource
             }
 
@@ -796,7 +818,7 @@ ShellRoot {
                 visible: pill.icon.length > 0
                 text: pill.icon
                 color: pill.pillTextColor
-                anchors.verticalCenter: parent.verticalCenter
+                Layout.alignment: Qt.AlignVCenter
                 font.family: root.iconFont
                 font.pixelSize: pill.iconSize
                 font.weight: Font.Normal
@@ -806,7 +828,7 @@ ShellRoot {
                 id: pillText
                 text: pill.label
                 color: pill.pillTextColor
-                anchors.verticalCenter: parent.verticalCenter
+                Layout.alignment: Qt.AlignVCenter
                 font.family: root.fontFamily
                 font.pixelSize: root.fontSize
                 font.weight: Font.Normal
@@ -925,17 +947,13 @@ ShellRoot {
                         ctx.stroke()
 
                         if (arcC.charging) {
-                            ctx.fillStyle = arcC.base
-                            var bx = cx
-                            var by = cy + 10.5
+                            var bc = arcC.base
+                            ctx.fillStyle = Qt.rgba(bc.r, bc.g, bc.b, 1)
                             ctx.beginPath()
-                            ctx.moveTo(bx + 2.2, by - 3.2)
-                            ctx.lineTo(bx - 1.6, by + 0.4)
-                            ctx.lineTo(bx + 0.4, by + 0.4)
-                            ctx.lineTo(bx - 2.0, by + 3.2)
-                            ctx.lineTo(bx + 1.8, by - 0.4)
-                            ctx.lineTo(bx - 0.4, by - 0.4)
-                            ctx.closePath()
+                            ctx.arc(cx - 3, cy + 10.5, 1.6, 0, Math.PI * 2)
+                            ctx.fill()
+                            ctx.beginPath()
+                            ctx.arc(cx + 3, cy + 10.5, 1.6, 0, Math.PI * 2)
                             ctx.fill()
                         }
 
@@ -1824,7 +1842,10 @@ delegate: Item {
                 function onWorkspacesUpdated() { bar.refreshWorkspaces() }
             }
 
-            Component.onCompleted: refreshWorkspaces()
+            Component.onCompleted: {
+                refreshWorkspaces()
+                root.registerCalendarAnchor(outputName, clockPill, modelData, bar)
+            }
 
             Item {
                 id: barContent
@@ -1953,997 +1974,25 @@ delegate: Item {
                     Module {
                         id: clockPill
                         icon: "󰥔"
-iconSize: root.fontSize + 3
+                        iconSize: root.fontSize + 3
                         label: root.clockText
-                        tint: root.pillColor("tertiary_container")
+                        // Caelestia-style: pill lights up while its popout is open.
+                        tint: calPopup.visible
+                            ? root.mixColor(root.pillColor("tertiary_container"), "#ffffff", 0.3)
+                            : root.pillColor("tertiary_container")
+                        rowSpacing: 8
+                        rowClip: true
 
-                        clickArea.onClicked: calPopup.open()
+                        clickArea.onClicked: root.openCalendarForOutput(bar.outputName)
                     }
                 }
             }
 
-            PopupWindow {
-            id: calPopup
-            visible: false
-            grabFocus: true
-            implicitWidth: 250
-            color: "transparent"
-
-            mask: Region {
-                Region { item: calPopupBody; radius: 25 }
-                Region { item: timerSection }
             }
-
-                property bool dismissedByOutside: false
-                property bool closingBySelf: false
-                property int shownYear: new Date().getFullYear()
-                property int shownMonth: new Date().getMonth()
-
-                property var notes: ({})
-                property string selectedKey: ""
-
-                property var entries: []
-                property int selectedEntryId: -1
-                property int newEntryId: -1
-                property int entrySeq: 0
-
-                readonly property int editorHeight: 164
-
-                property bool expanded: false
-
-                FileView {
-                    id: notesFile
-                    path: Quickshell.env("HOME") + "/.cache/quickshell/calendar-notes.json"
-                    preload: true
-                    printErrors: false
-
-                    onLoaded: {
-
-                        var raw = notesAdapter.notes || {}
-                        var converted = {}
-                        var maxId = 0
-                        for (var k in raw) {
-                            var v = raw[k]
-                            if (typeof v === "string")
-                                converted[k] = [{ id: ++maxId, text: v, saved: true, done: false }]
-                            else
-                                converted[k] = calPopup.toEntryList(v)
-                        }
-                        for (var d in converted) {
-                            var list = converted[d]
-                            for (var i = 0; i < list.length; i++)
-                                if (list[i].id > maxId) maxId = list[i].id
-                        }
-                        calPopup.entrySeq = maxId
-                        calPopup.notes = converted
-                    }
-
-                    onLoadFailed: error => {
-                        if (error === FileViewError.FileNotFound) notesFile.writeAdapter()
-                    }
-
-                    onAdapterUpdated: notesFile.writeAdapter()
-                    onSaveFailed: error => console.log("[cal] notesFile saveFailed error=" + error)
-
-                    JsonAdapter {
-                        id: notesAdapter
-                        property var notes: ({})
-                    }
-                }
-
-                Component.onCompleted: {
-                    Quickshell.execDetached(["mkdir", "-p", Quickshell.env("HOME") + "/.cache/quickshell"])
-                }
-
-                function open() {
-                    if (calPopup.dismissedByOutside) {
-                        calPopup.dismissedByOutside = false
-                        return
-                    }
-                    if (calPopup.visible) {
-                        calPopup.close()
-                        return
-                    }
-                    calPopup.shownYear = new Date().getFullYear()
-                    calPopup.shownMonth = new Date().getMonth()
-                    calPopup.visible = true
-                }
-
-                function close() {
-                    calPopup.closingBySelf = true
-                    timerSection.playCloseAnim()
-                    calPopup.animProgress = 0
-                }
-
-                function forceClose() {
-                    calPopup.closingBySelf = true
-                    calPopup.visible = false
-                }
-
-                function monthName(m) {
-                    var names = ["January", "February", "March", "April", "May", "June",
-                        "July", "August", "September", "October", "November", "December"]
-                    return names[m]
-                }
-
-                function rebuildModel() {
-                    calDays.clear()
-                    var first = new Date(calPopup.shownYear, calPopup.shownMonth, 1).getDay()
-                    var days = new Date(calPopup.shownYear, calPopup.shownMonth + 1, 0).getDate()
-                    for (var i = 0; i < first; i++) calDays.append({ day: 0 })
-                    for (var d = 1; d <= days; d++) calDays.append({ day: d })
-                }
-
-                function shiftMonth(amount) {
-                    calPopup.shownMonth += amount
-                    if (calPopup.shownMonth < 0) {
-                        calPopup.shownMonth = 11
-                        calPopup.shownYear--
-                    } else if (calPopup.shownMonth > 11) {
-                        calPopup.shownMonth = 0
-                        calPopup.shownYear++
-                    }
-                    calPopup.rebuildModel()
-                }
-
-                function dateKey(y, m, d) {
-                    function pad(n) { return n < 10 ? "0" + n : "" + n }
-                    return y + "-" + pad(m + 1) + "-" + pad(d)
-                }
-
-                function toEntryList(v) {
-                    var out = []
-                    if (v === null || v === undefined) return out
-                    if (typeof v === "string") {
-                        out.push({ id: 0, text: v, saved: true, done: false })
-                        return out
-                    }
-                    var n = typeof v.length === "number" ? v.length : 0
-                    for (var i = 0; i < n; i++) {
-                        var e = v[i]
-                        if (e === null || e === undefined) continue
-                        out.push({
-                            id: typeof e.id === "number" ? e.id : 0,
-                            text: e.text !== undefined && e.text !== null ? String(e.text) : "",
-                            saved: !!e.saved,
-                            done: !!e.done
-                        })
-                    }
-                    return out
-                }
-
-                function selectDay(key) {
-
-                    if (calPopup.selectedKey === key && calPopup.expanded) {
-                        calPopup.expanded = false
-                        return
-                    }
-                    calPopup.selectedKey = key
-                    calPopup.selectedEntryId = -1
-                    calPopup.newEntryId = -1
-                    calPopup.entries = calPopup.toEntryList(calPopup.notes[key])
-                    calPopup.syncNotes()
-                    calPopup.expanded = true
-                }
-
-                function syncNotes() {
-                    var copy = Object.assign({}, calPopup.notes || {})
-                    if ((calPopup.entries || []).length === 0)
-                        delete copy[calPopup.selectedKey]
-                    else
-                        copy[calPopup.selectedKey] = calPopup.entries.slice()
-                    calPopup.notes = copy
-                    notesAdapter.notes = JSON.parse(JSON.stringify(copy))
-                    entriesModel.clear()
-                    var list = calPopup.entries || []
-                    for (var i = 0; i < list.length; i++)
-                        entriesModel.append({ entryId: list[i].id, entryText: list[i].text, saved: list[i].saved, entryDone: list[i].done })
-                }
-
-                function selectEntry(eid) {
-                    if (calPopup.selectedEntryId !== eid) calPopup.selectedEntryId = eid
-                }
-
-                function addEntry() {
-                    if (calPopup.selectedKey.length === 0) return
-                    var entry = { id: ++calPopup.entrySeq, text: "", saved: false, done: false }
-                    calPopup.entries = calPopup.entries.concat([entry])
-                    calPopup.selectedEntryId = entry.id
-                    calPopup.newEntryId = entry.id
-                    calPopup.syncNotes()
-                }
-
-                function saveEntry(eid, text) {
-                    var list = calPopup.entries || []
-                    for (var i = 0; i < list.length; i++) {
-                        if (list[i].id !== eid) continue
-                        var trimmed = (text || "").trim()
-                        if (trimmed.length === 0) return
-                        var updated = list.slice()
-                        updated[i] = { id: eid, text: trimmed, saved: true, done: list[i].done }
-                        calPopup.entries = updated
-                        calPopup.selectedEntryId = eid
-                        calPopup.syncNotes()
-                        return
-                    }
-                }
-
-                function toggleEntryDone(eid) {
-                    var list = calPopup.entries || []
-                    for (var i = 0; i < list.length; i++) {
-                        if (list[i].id !== eid) continue
-                        var updated = list.slice()
-                        updated[i] = { id: eid, text: list[i].text, saved: true, done: !list[i].done }
-                        calPopup.entries = updated
-                        calPopup.syncNotes()
-                        return
-                    }
-                }
-
-                function removeSelectedEntry() {
-                    if (calPopup.selectedEntryId < 0) return
-                    var list = calPopup.entries || []
-                    var out = []
-                    var removed = false
-                    for (var i = 0; i < list.length; i++) {
-                        if (list[i].id === calPopup.selectedEntryId) { removed = true; continue }
-                        out.push(list[i])
-                    }
-                    if (!removed) return
-                    calPopup.selectedEntryId = -1
-                    calPopup.newEntryId = -1
-                    calPopup.entries = out
-                    calPopup.syncNotes()
-                }
-
-                function selectedDateLabel() {
-                    if (calPopup.selectedKey.length === 0) return ""
-                    var parts = calPopup.selectedKey.split("-")
-                    var y = parseInt(parts[0], 10)
-                    var m = parseInt(parts[1], 10) - 1
-                    var d = parseInt(parts[2], 10)
-                    return Qt.formatDate(new Date(y, m, d), "ddd, MMM d")
-                }
-
-                readonly property int collapsedHeight: 312
-                readonly property int timerGap: 8
-                readonly property int timerHeight: 64
-                implicitHeight: collapsedHeight + calPopup.editorHeight + 6
-                    + calPopup.timerGap + calPopup.timerHeight
-
-                readonly property color popupFg: root.luminance(Qt.color(clockPill.tint)) > 0.45 ? "#000000" : "#ffffff"
-
-                property real animProgress: 0
-
-                Behavior on animProgress {
-                    NumberAnimation {
-                        duration: calPopup.visible ? 280 : 220
-                        easing.type: Easing.OutCubic
-                    }
-                }
-
-                onAnimProgressChanged: {
-                    if (animProgress <= 0.01 && calPopup.closingBySelf) {
-                        calPopup.visible = false
-                        calPopup.closingBySelf = false
-                        calPopup.dismissedByOutside = false
-                        calPopup.expanded = false
-                        calPopup.selectedKey = ""
-                        calPopup.selectedEntryId = -1
-                        calPopup.newEntryId = -1
-                        calPopup.entries = []
-                        entriesModel.clear()
-                    }
-                }
-
-                onVisibleChanged: {
-                    if (visible) {
-                        calPopup.rebuildModel()
-                        calPopup.animProgress = 0
-                        Qt.callLater(() => calPopup.animProgress = 1)
-                        timerBody.opacity = 0
-                        timerPopupIn.restart()
-                    } else {
-                        calPopup.dismissedByOutside = !calPopup.closingBySelf
-                        calPopup.closingBySelf = false
-                        calPopup.expanded = false
-                        calPopup.selectedKey = ""
-                        calPopup.selectedEntryId = -1
-                        calPopup.newEntryId = -1
-                        calPopup.entries = []
-                        entriesModel.clear()
-                    }
-                }
-
-                anchor {
-                    item: clockPill
-                    edges: Edges.Top
-                    gravity: Edges.Top
-                    adjustment: PopupAdjustment.All
-                    rect.x: 0
-                    rect.y: -14
-                    rect.w: clockPill.width
-                    rect.h: clockPill.height + 28
-                }
-
-                Rectangle {
-                    id: calPopupBody
-                    anchors.top: parent.top
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    height: calPopup.expanded ? parent.height : calPopup.collapsedHeight
-                    anchors.topMargin: calPopup.animProgress < 1 ? 16 * (1.0 - calPopup.animProgress) : 0
-
-                    Behavior on height {
-                        NumberAnimation { duration: 280; easing.type: Easing.OutCubic }
-                    }
-
-                    radius: 25
-                    color: clockPill.tint
-                    border.width: 1
-                    border.color: root.withAlpha(root.outlineVariant, 0.35)
-                    clip: true
-
-                    opacity: calPopup.animProgress
-                    scale: 0.92 + (0.08 * calPopup.animProgress)
-                    transformOrigin: Item.Top
-
-                    ColumnLayout {
-                        anchors.fill: parent
-                        anchors.margins: 12
-                        spacing: 6
-
-                        RowLayout {
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 26
-                            spacing: 8
-
-                            Text {
-                                text: "󰁍"
-                                    color: calPopup.popupFg
-                                    font.family: root.iconFont
-                                    font.pixelSize: root.fontSize + 1
-                                    Layout.preferredWidth: 24
-                                    Layout.preferredHeight: 26
-                                    horizontalAlignment: Text.AlignHCenter
-                                    verticalAlignment: Text.AlignVCenter
-
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: calPopup.shiftMonth(-1)
-                                    }
-                                }
-
-                                Item { Layout.fillWidth: true }
-
-                                Text {
-                                    text: "󰁔"
-                                    color: calPopup.popupFg
-                                    font.family: root.iconFont
-                                    font.pixelSize: root.fontSize + 1
-                                    Layout.preferredWidth: 24
-                                    Layout.preferredHeight: 26
-                                    horizontalAlignment: Text.AlignHCenter
-                                    verticalAlignment: Text.AlignVCenter
-
-                                    MouseArea {
-                                        anchors.fill: parent
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: calPopup.shiftMonth(1)
-                                }
-                            }
-
-                            Text {
-                                text: "󰅖"
-                                color: calPopup.popupFg
-                                font.family: root.iconFont
-                                font.pixelSize: root.fontSize + 1
-                                Layout.preferredWidth: 24
-                                Layout.preferredHeight: 26
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-
-                                MouseArea {
-                                    anchors.fill: parent
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: calPopup.close()
-                                }
-                            }
-                        }
-
-                        Row {
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 22
-                            Layout.bottomMargin: 16
-                            spacing: 6
-
-                            Text {
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: "󰥔"
-                                color: calPopup.popupFg
-                                font.family: root.iconFont
-                                font.pixelSize: root.fontSize + 3
-                            }
-
-                            Text {
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: Qt.formatDate(new Date(), "dddd, MMMM d, yyyy")
-                                color: calPopup.popupFg
-                                font.family: root.fontFamily
-                                font.pixelSize: root.fontSize + 2
-                                font.weight: Font.Normal
-                            }
-                        }
-
-                        Row {
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 18
-
-                            Repeater {
-                                model: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
-                                delegate: Text {
-                                    width: (calPopupBody.width - 24) / 7
-                                    horizontalAlignment: Text.AlignHCenter
-                                    text: modelData
-                                    color: calPopup.popupFg
-                                    font.family: root.fontFamily
-                                    font.pixelSize: root.fontSize - 2
-                                }
-                            }
-                        }
-
-                        Grid {
-                            id: calGrid
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 190
-                            columns: 7
-                            columnSpacing: 0
-                            rowSpacing: 2
-
-                            Repeater {
-                                model: ListModel { id: calDays }
-
-                                delegate: Item {
-                                    required property int day
-
-                                    readonly property string key: day > 0
-                                        ? calPopup.dateKey(calPopup.shownYear, calPopup.shownMonth, day)
-                                        : ""
-                                    readonly property bool isToday: {
-                                        if (day === 0) return false
-                                        var t = new Date(calPopup.shownYear, calPopup.shownMonth, day)
-                                        var n = new Date()
-                                        return t.getFullYear() === n.getFullYear()
-                                            && t.getMonth() === n.getMonth()
-                                            && t.getDate() === n.getDate()
-                                    }
-                                    readonly property bool isSelected: key.length > 0 && calPopup.selectedKey === key
-                                    readonly property bool hasNote: key.length > 0 && calPopup.notes[key] !== undefined
-
-                                    width: (calPopupBody.width - 24) / 7
-                                    height: 30
-
-                                    Rectangle {
-                                        anchors.fill: parent
-                                        anchors.margins: 2
-                                        radius: 8
-                                        visible: day > 0
-                                        color: isSelected
-                                            ? calPopup.popupFg
-                                            : dayHover.containsMouse
-                                                ? root.withAlpha(calPopup.popupFg, 0.18)
-                                                : isToday ? root.withAlpha(calPopup.popupFg, 0.4) : "transparent"
-
-                                        Text {
-                                            id: dayNum
-                                            anchors.centerIn: parent
-                                            visible: day > 0
-                                            text: day
-                                            color: isSelected ? root.onTextColor : calPopup.popupFg
-                                            font.family: root.fontFamily
-                                            font.pixelSize: root.fontSize
-                                            font.weight: Font.Normal
-                                        }
-
-                                        Rectangle {
-                                            anchors.horizontalCenter: parent.horizontalCenter
-                                            anchors.bottom: parent.bottom
-                                            anchors.bottomMargin: 3
-                                            visible: hasNote
-                                            width: 4
-                                            height: 4
-                                            radius: 2
-                                            color: isSelected ? root.onTextColor : calPopup.popupFg
-                                        }
-
-                                        MouseArea {
-                                            id: dayHover
-                                            anchors.fill: parent
-                                            visible: day > 0
-                                            hoverEnabled: true
-                                            cursorShape: Qt.PointingHandCursor
-                                            onClicked: calPopup.selectDay(key)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: calPopup.editorHeight
-                            visible: calPopup.selectedKey.length > 0
-                            spacing: 6
-
-                            RowLayout {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 22
-                                spacing: 8
-
-                                Text {
-                                    text: "󰃭"
-                                    color: calPopup.popupFg
-                                    font.family: root.iconFont
-                                    font.pixelSize: root.fontSize + 1
-                                    Layout.preferredWidth: 22
-                                    Layout.preferredHeight: 22
-                                    horizontalAlignment: Text.AlignHCenter
-                                    verticalAlignment: Text.AlignVCenter
-                                }
-
-                                Text {
-                                    text: calPopup.selectedDateLabel()
-                                    color: calPopup.popupFg
-                                    font.family: root.fontFamily
-                                    font.pixelSize: root.fontSize
-                                    font.weight: Font.Normal
-                                    Layout.fillWidth: true
-                                    verticalAlignment: Text.AlignVCenter
-                                }
-
-                                Text {
-                                    text: (calPopup.entries || []).length === 0
-                                        ? "0 tasks"
-                                        : (function () {
-                                            var list = calPopup.entries || []
-                                            var done = 0
-                                            for (var i = 0; i < list.length; i++)
-                                                if (list[i].done) done++
-                                            return done + "/" + list.length + " tasks"
-                                        })()
-                                    color: calPopup.popupFg
-                                    font.family: root.fontFamily
-                                    font.pixelSize: root.fontSize - 2
-                                    verticalAlignment: Text.AlignVCenter
-                                }
-
-                                Text {
-                                    text: "󰅖"
-                                    color: calPopup.popupFg
-                                    font.family: root.iconFont
-                                    font.pixelSize: root.fontSize + 1
-                                    Layout.preferredWidth: 20
-                                    Layout.preferredHeight: 22
-                                    horizontalAlignment: Text.AlignHCenter
-                                    verticalAlignment: Text.AlignVCenter
-
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: calPopup.close()
-                                    }
-                                }
-                            }
-
-                            RowLayout {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 24
-                                spacing: 6
-
-                                Rectangle {
-                                    id: addBtn
-                                    Layout.preferredWidth: 26
-                                    Layout.fillHeight: true
-                                    radius: 7
-                                    color: addHover.containsMouse
-                                        ? root.withAlpha(calPopup.popupFg, 0.35)
-                                        : root.withAlpha(calPopup.popupFg, 0.22)
-
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: "+"
-                                        color: calPopup.popupFg
-                                        font.family: root.fontFamily
-                                        font.pixelSize: root.fontSize + 2
-                                        font.weight: Font.Normal
-                                    }
-
-                                    MouseArea {
-                                        id: addHover
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: calPopup.addEntry()
-                                    }
-                                }
-
-                                Rectangle {
-                                    id: minusBtn
-                                    Layout.preferredWidth: 26
-                                    Layout.fillHeight: true
-                                    radius: 7
-                                    color: minusHover.containsMouse && calPopup.selectedEntryId >= 0
-                                        ? root.withAlpha(root.error, 0.35)
-                                        : root.withAlpha(calPopup.popupFg, calPopup.selectedEntryId >= 0 ? 0.12 : 0.05)
-                                    enabled: calPopup.selectedEntryId >= 0
-
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: "-"
-                                        color: calPopup.selectedEntryId >= 0 ? root.error : root.withAlpha(calPopup.popupFg, 0.3)
-                                        font.family: root.fontFamily
-                                        font.pixelSize: root.fontSize + 2
-                                        font.weight: Font.Normal
-                                    }
-
-                                    MouseArea {
-                                        id: minusHover
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: calPopup.removeSelectedEntry()
-                                    }
-                                }
-
-                                Item { Layout.fillWidth: true }
-                            }
-
-                            Flickable {
-                                id: entriesList
-                                Layout.fillWidth: true
-                                Layout.fillHeight: true
-                                Layout.preferredHeight: 100
-                                clip: true
-                                contentWidth: width
-                                contentHeight: entriesCol.height
-                                boundsBehavior: Flickable.StopAtBounds
-
-                                ScrollBar.vertical: ScrollBar {
-                                    width: 3
-                                    policy: ScrollBar.AsNeeded
-                                    background: Item {}
-                                    contentItem: Rectangle {
-                                        implicitWidth: 3
-                                        radius: 2
-                                        color: root.withAlpha(calPopup.popupFg, 0.3)
-                                    }
-                                }
-
-                                Column {
-                                    id: entriesCol
-                                    width: entriesList.width
-                                    spacing: 6
-
-                                    Repeater {
-                                        id: entriesRepeater
-                                        model: ListModel { id: entriesModel }
-
-                                        delegate: Rectangle {
-                                            required property int entryId
-                                            required property string entryText
-                                            required property bool saved
-                                            required property bool entryDone
-
-                                            readonly property bool isSelected: calPopup.selectedEntryId === entryId
-
-                                            width: entriesCol.width
-                                            height: 30
-                                            radius: 8
-                                            color: root.withAlpha(calPopup.popupFg, saved ? 0.05 : 0.08)
-                    border.width: 0
-                                            border.color: isSelected
-                                                ? calPopup.popupFg
-                                                : saved ? "transparent" : root.withAlpha(calPopup.popupFg, 0.15)
-
-                                            RowLayout {
-                                                z: 1
-                                                anchors.fill: parent
-                                                anchors.leftMargin: 8
-                                                anchors.rightMargin: 4
-                                                spacing: 6
-
-                                                Rectangle {
-                                                    visible: saved
-                                                    Layout.preferredWidth: 18
-                                                    Layout.preferredHeight: 18
-                                                    radius: 5
-                                                    color: entryDone
-                                                        ? (todoCheckArea.containsMouse ? root.withAlpha(calPopup.popupFg, 0.8) : calPopup.popupFg)
-                                                        : (todoCheckArea.containsMouse ? root.withAlpha(calPopup.popupFg, 0.08) : "transparent")
-                                                    border.width: 1
-                                                    border.color: entryDone ? calPopup.popupFg : root.withAlpha(calPopup.popupFg, 0.35)
-
-                                                    Behavior on color { ColorAnimation { duration: 120 } }
-
-                                                    Text {
-                                                        visible: entryDone
-                                                        anchors.centerIn: parent
-                                                        text: "󰄲"
-                                                        color: root.onTextColor
-                                                        font.family: root.iconFont
-                                                        font.pixelSize: root.fontSize - 2
-                                                    }
-
-                                                    MouseArea {
-                                                        id: todoCheckArea
-                                                        z: 2
-                                                        anchors.fill: parent
-                                                        hoverEnabled: true
-                                                        cursorShape: Qt.PointingHandCursor
-                                                        onClicked: calPopup.toggleEntryDone(entryId)
-                                                    }
-                                                }
-
-                                                TextField {
-                                                    id: entryInput
-                                                    visible: !saved
-                                                    Layout.fillWidth: true
-                                                    Layout.fillHeight: true
-                                                    text: entryText
-                                                    color: calPopup.popupFg
-                                                    font.family: root.uiFont
-                                                    font.pixelSize: root.fontSize
-                                                    selectByMouse: true
-                                                    background: Item {}
-                                                    onActiveFocusChanged: {
-                                                        if (activeFocus) calPopup.selectEntry(entryId)
-                                                    }
-                                                    onAccepted: calPopup.saveEntry(entryId, entryInput.text)
-                                                }
-
-                                                Text {
-                                                    visible: saved
-                                                    Layout.fillWidth: true
-                                                    Layout.fillHeight: true
-                                                    text: entryText
-                                                    color: calPopup.popupFg
-                                                    font.family: root.uiFont
-                                                    font.pixelSize: root.fontSize
-                                                    font.strikeout: entryDone
-                                                    elide: Text.ElideRight
-                                                    verticalAlignment: Text.AlignVCenter
-                                                }
-
-                                                Rectangle {
-                                                    visible: !saved
-                                                    Layout.preferredWidth: 22
-                                                    Layout.preferredHeight: 22
-                                                    radius: 6
-                                                    color: saveHover.containsMouse ? root.withAlpha(calPopup.popupFg, 0.25) : "transparent"
-
-                                                    Text {
-                                                        anchors.centerIn: parent
-                                                        text: "󰄴"
-                                                        color: calPopup.popupFg
-                                                        font.family: root.iconFont
-                                                        font.pixelSize: root.fontSize
-                                                    }
-
-                                                    MouseArea {
-                                                        id: saveHover
-                                                        anchors.fill: parent
-                                                        hoverEnabled: true
-                                                        cursorShape: Qt.PointingHandCursor
-                                                        onClicked: calPopup.saveEntry(entryId, entryInput.text)
-                                                    }
-                                                }
-                                            }
-
-                                            MouseArea {
-                                                visible: saved
-                                                anchors.fill: parent
-                                                hoverEnabled: true
-                                                cursorShape: Qt.PointingHandCursor
-                                                onClicked: calPopup.selectEntry(entryId)
-                                            }
-
-                                            Component.onCompleted: {
-                                                if (entryId === calPopup.newEntryId && !saved) {
-                                                    Qt.callLater(() => entryInput.forceActiveFocus())
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-                            }
-                        }
-                    }
-                }
-
-                Item {
-                    id: timerSection
-                    anchors.top: calPopupBody.bottom
-                    anchors.topMargin: calPopup.timerGap
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    height: calPopup.timerHeight
-
-                    ParallelAnimation {
-                        id: timerPopupIn
-                        running: false
-                        NumberAnimation { target: timerBody; property: "opacity"; to: 1; duration: 150; easing.type: Easing.OutQuad }
-                    }
-
-                    SequentialAnimation {
-                        id: timerPopupOut
-                        running: false
-                        ParallelAnimation {
-                            NumberAnimation { target: timerBody; property: "opacity"; to: 0; duration: 100; easing.type: Easing.InQuad }
-                        }
-                    }
-
-                    function playCloseAnim() {
-                        timerPopupIn.stop()
-                        timerPopupOut.restart()
-                    }
-
-                    Rectangle {
-                        id: timerBody
-                        anchors.fill: parent
-                        radius: 25
-                        color: clockPill.tint
-                        border.width: 1
-                        border.color: root.withAlpha(root.outlineVariant, 0.35)
-                        opacity: 0
-
-
-                        ColumnLayout {
-                            anchors.fill: parent
-                            anchors.margins: 12
-                            spacing: 6
-
-                            RowLayout {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 40
-                                spacing: 6
-
-                                Text {
-                                    text: "󰄉"
-                                    color: calPopup.popupFg
-                                    font.family: root.iconFont
-                                    font.pixelSize: root.fontSize + 2
-                                    Layout.preferredWidth: 22
-                                    Layout.preferredHeight: 40
-                                    horizontalAlignment: Text.AlignHCenter
-                                    verticalAlignment: Text.AlignVCenter
-                                }
-
-                                Text {
-                                    text: root.fmtTimer(root.timerRemainingMs)
-                                    color: root.timerRemainingMs <= 0 ? root.error : calPopup.popupFg
-                                    font.family: root.fontFamily
-                                    font.pixelSize: root.fontSize + 8
-                                    font.weight: Font.Normal
-                                    Layout.fillWidth: true
-                                    verticalAlignment: Text.AlignVCenter
-                                }
-
-                                Rectangle {
-                                    id: timerMinusBtn
-                                    Layout.preferredWidth: 26
-                                    Layout.preferredHeight: 26
-                                    Layout.alignment: Qt.AlignVCenter
-                                    radius: 7
-                                    color: timerMinusHover.containsMouse
-                                        ? root.withAlpha(calPopup.popupFg, 0.35)
-                                        : root.withAlpha(calPopup.popupFg, 0.18)
-
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: "-"
-                                        color: calPopup.popupFg
-                                        font.family: root.fontFamily
-                                        font.pixelSize: root.fontSize + 2
-                                        font.weight: Font.Normal
-                                    }
-
-                                    MouseArea {
-                                        id: timerMinusHover
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: root.adjustTimerMinutes(-5)
-                                    }
-                                }
-
-                                Rectangle {
-                                    id: timerPlusBtn
-                                    Layout.preferredWidth: 26
-                                    Layout.preferredHeight: 26
-                                    Layout.alignment: Qt.AlignVCenter
-                                    radius: 7
-                                    color: timerPlusHover.containsMouse
-                                        ? root.withAlpha(calPopup.popupFg, 0.35)
-                                        : root.withAlpha(calPopup.popupFg, 0.18)
-
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: "+"
-                                        color: calPopup.popupFg
-                                        font.family: root.fontFamily
-                                        font.pixelSize: root.fontSize + 2
-                                        font.weight: Font.Normal
-                                    }
-
-                                    MouseArea {
-                                        id: timerPlusHover
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: root.adjustTimerMinutes(5)
-                                    }
-                                }
-
-                                Rectangle {
-                                    id: timerToggleBtn
-                                    Layout.preferredWidth: 34
-                                    Layout.preferredHeight: 26
-                                    Layout.alignment: Qt.AlignVCenter
-                                    radius: 7
-                                    color: timerToggleHover.containsMouse
-                                        ? root.withAlpha(calPopup.popupFg, 0.45)
-                                        : root.withAlpha(calPopup.popupFg, 0.28)
-
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: root.timerRunning ? "󰏤" : "󰐊"
-                                        color: calPopup.popupFg
-                                        font.family: root.iconFont
-                                        font.pixelSize: root.fontSize + 2
-                                    }
-
-                                    MouseArea {
-                                        id: timerToggleHover
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: root.toggleTimer()
-                                    }
-                                }
-
-                                Rectangle {
-                                    id: timerResetBtn
-                                    Layout.preferredWidth: 26
-                                    Layout.preferredHeight: 26
-                                    Layout.alignment: Qt.AlignVCenter
-                                    radius: 7
-                                    color: timerResetHover.containsMouse
-                                        ? root.withAlpha(root.error, 0.35)
-                                        : root.withAlpha(calPopup.popupFg, 0.08)
-
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: "󰃢"
-                                        color: root.error
-                                        font.family: root.iconFont
-                                        font.pixelSize: root.fontSize
-                                    }
-
-                                    MouseArea {
-                                        id: timerResetHover
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: root.resetTimer()
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+    }
+
+    Calendar {
+        id: calPopup
+        rootRef: root
     }
 }

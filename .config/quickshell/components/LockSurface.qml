@@ -135,28 +135,32 @@ Item {
         }
     }
 
-    Text {
-        id: clockHour
-        x: 7
-        anchors.top: parent.top
-        anchors.topMargin: parent.height * 0.02 + 22
-        font.family: lockRoot.fontMain
-        font.pixelSize: Math.round(lockMediaCard.width * 0.22)
-        color: lockRoot.fg
-        style: Text.Raised
-        styleColor: Qt.rgba(0, 0, 0, 0.35)
-    }
+    Item {
+        id: clockBlock
+        height: clockHour.implicitHeight + clockMinute.implicitHeight - 10
+        anchors.left: parent.left
+        anchors.leftMargin: 7
+        anchors.verticalCenter: lockMediaCard.verticalCenter
 
-    Text {
-        id: clockMinute
-        x: 7
-        anchors.top: clockHour.bottom
-        anchors.topMargin: -10
-        font.family: lockRoot.fontMain
-        font.pixelSize: Math.round(lockMediaCard.width * 0.22)
-        color: lockRoot.fg
-        style: Text.Raised
-        styleColor: Qt.rgba(0, 0, 0, 0.35)
+        Text {
+            id: clockHour
+            font.family: lockRoot.fontMain
+            font.pixelSize: Math.round(lockMediaCard.width * 0.22)
+            color: lockRoot.fg
+            style: Text.Raised
+            styleColor: Qt.rgba(0, 0, 0, 0.35)
+        }
+
+        Text {
+            id: clockMinute
+            anchors.top: clockHour.bottom
+            anchors.topMargin: -10
+            font.family: lockRoot.fontMain
+            font.pixelSize: Math.round(lockMediaCard.width * 0.22)
+            color: lockRoot.fg
+            style: Text.Raised
+            styleColor: Qt.rgba(0, 0, 0, 0.35)
+        }
     }
 
     Item {
@@ -380,10 +384,9 @@ Item {
         id: lockMediaCard
         width: Math.min(560, parent.width * 0.62)
         height: 264
-        anchors.left: clockHour.right
-        anchors.leftMargin: 72
+        anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
-        anchors.topMargin: parent.height * 0.02 + 56
+        anchors.topMargin: parent.height * 0.02 + 22
         radius: 26
         color: Qt.rgba(0.07, 0.08, 0.10, 0.55)
         border.width: 1
@@ -456,7 +459,7 @@ Item {
             anchors.margins: 20
             spacing: 0
 
-            Item { Layout.fillHeight: true }
+            Item { Layout.preferredHeight: 22 }
 
             Text {
                 Layout.alignment: Qt.AlignHCenter
@@ -467,7 +470,7 @@ Item {
                 font.pixelSize: 72
             }
 
-            Item { Layout.fillHeight: true }
+            Item { Layout.preferredHeight: 10 }
 
             RowLayout {
                 Layout.alignment: Qt.AlignHCenter
