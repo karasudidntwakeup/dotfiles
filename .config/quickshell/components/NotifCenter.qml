@@ -14,7 +14,7 @@ Item {
 
     readonly property int panelWidth: 440
     readonly property int pad: 14
-    readonly property int panelMaxHeight: Math.round(center.height * 0.72)
+    readonly property int panelMaxHeight: Math.max(120, Math.round(center.height - 40))
     readonly property int listMaxHeight: Math.max(64, center.panelMaxHeight - center.pad * 2 - 30 - 40 - (center.mediaOn ? 224 : 0))
     readonly property bool mediaOn: rootRef && rootRef.mediaStatus !== "none"
     readonly property color panelColor: rootRef
