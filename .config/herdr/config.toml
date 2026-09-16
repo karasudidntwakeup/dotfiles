@@ -25,6 +25,55 @@ mouse_capture = true   # default is already true, included for parity with `set 
 
 show_agent_labels_on_pane_borders = true
 status_indicators = "symbols"
+agent_panel_sort = "spaces"
+
+# Nothing OS-style agent icons: NDot dot-matrix glyphs (custom font,
+# mapped in kitty via symbol_map) + monochrome palette. Nothing Red for
+# blocked, white/slate for everything else.
+[ui.sidebar.agents]
+row_gap = 0
+rows = [
+  [{ token = "$hs_group", bold = true, fg = "#FFFFFF" }, { token = "$hs_group_dim", dim = true, fg = "#6E6E70" }],
+  [{ token = "$hs_terminals", dim = true, fg = "#6E6E70" }],
+  [{ token = "$hs_tab", fg = "#E4E4E6" }, { token = "$hs_tab_dim", dim = true, fg = "#6E6E70" }],
+  [
+    { token = "$hs_logo", fg = "#FFFFFF" },
+    { token = "$hs_logo_dim", dim = true, fg = "#6E6E70" },
+    { token = "$hs_working", fg = "#E4E4E6" },
+    { token = "$hs_working_dim", dim = true, fg = "#6E6E70" },
+    { token = "$hs_blocked", fg = "#FF3030" },
+    { token = "$hs_blocked_dim", dim = true, fg = "#6E6E70" },
+    { token = "$hs_done", fg = "#FFFFFF" },
+    { token = "$hs_done_dim", dim = true, fg = "#6E6E70" },
+    { token = "$hs_idle", fg = "#A8A8AC" },
+    { token = "$hs_idle_dim", dim = true, fg = "#6E6E70" },
+    { token = "$hs_unknown", fg = "#A8A8AC" },
+    { token = "$hs_unknown_dim", dim = true, fg = "#6E6E70" },
+  ],
+  [{ token = "$hs_gap" }],
+]
+
+[ui.sidebar.agents.rows_by_agent]
+opencode = [
+  [{ token = "$hs_group", bold = true, fg = "#FFFFFF" }, { token = "$hs_group_dim", dim = true, fg = "#6E6E70" }],
+  [{ token = "$hs_terminals", dim = true, fg = "#6E6E70" }],
+  [{ token = "$hs_tab", fg = "#E4E4E6" }, { token = "$hs_tab_dim", dim = true, fg = "#6E6E70" }],
+  [
+    { token = "$hs_logo", fg = "#FFFFFF" },
+    { token = "$hs_logo_dim", dim = true, fg = "#6E6E70" },
+    { token = "$hs_working", fg = "#E4E4E6" },
+    { token = "$hs_working_dim", dim = true, fg = "#6E6E70" },
+    { token = "$hs_blocked", fg = "#FF3030" },
+    { token = "$hs_blocked_dim", dim = true, fg = "#6E6E70" },
+    { token = "$hs_done", fg = "#FFFFFF" },
+    { token = "$hs_done_dim", dim = true, fg = "#6E6E70" },
+    { token = "$hs_idle", fg = "#A8A8AC" },
+    { token = "$hs_idle_dim", dim = true, fg = "#6E6E70" },
+    { token = "$hs_unknown", fg = "#A8A8AC" },
+    { token = "$hs_unknown_dim", dim = true, fg = "#6E6E70" },
+  ],
+  [{ token = "$hs_gap" }],
+]
 [ui.sound]
 enabled = false
 
