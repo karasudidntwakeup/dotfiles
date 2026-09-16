@@ -19,6 +19,7 @@ Item {
     readonly property color fg: "#ffffff"
     readonly property color failC: "#dd0808"
     readonly property color acc: rootRef ? rootRef.colorOf("primary") : "#96c8f6"
+    readonly property string iconFontName: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
 
     property bool unlockInProgress: false
     property bool failed: false
@@ -332,6 +333,369 @@ Item {
             clockHour.text = (h12 < 10 ? "0" : "") + h12
             clockMinute.text = (d.getMinutes() < 10 ? "0" : "") + d.getMinutes()
             dateLine.text = Qt.formatDateTime(d, "dddd MMMM d")
+        }
+    }
+
+    component LockMediaBtn: Item {
+        id: lockBtn
+        property string glyph: ""
+        property bool accent: false
+        property int btnSize: 36
+        signal tapped()
+
+        Layout.preferredWidth: lockBtn.btnSize
+        Layout.preferredHeight: lockBtn.btnSize
+
+        Rectangle {
+            anchors.centerIn: parent
+            width: lockBtn.btnSize
+            height: lockBtn.btnSize
+            radius: lockBtn.btnSize / 2
+            color: lockBtn.accent
+                ? lockRoot.acc
+                : (lockBtnHover.containsMouse ? Qt.rgba(1, 1, 1, 0.10) : "transparent")
+            border.width: lockBtn.accent ? 0 : 1
+            border.color: lockBtn.accent ? "transparent" : Qt.rgba(1, 1, 1, 0.20)
+            Behavior on color { ColorAnimation { duration: 120 } }
+
+            Text {
+                anchors.centerIn: parent
+                text: lockBtn.glyph
+                color: lockBtn.accent ? "#0c0d10" : "#ffffff"
+                font.family: lockRoot.iconFontName
+                font.pixelSize: Math.round(lockBtn.btnSize * 0.42)
+            }
+
+            MouseArea {
+                id: lockBtnHover
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: lockBtn.tapped()
+            }
+        }
+    }
+
+    Rectangle {
+        id: lockMediaCard
+        width: Math.min(560, parent.width * 0.56)
+        height: 268
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
+        radius: 26
+        color: Qt.rgba(0.03, 0.04, 0.06, 0.52)
+        border.width: 1
+        border.color: Qt.rgba(1, 1, 1, 0.14)
+        clip: true
+        visible: rootRef && rootRef.mediaStatus !== "none"
+
+        property real enter: 0
+        readonly property string mTitle: rootRef ? (rootRef.mediaTitle || "") : ""
+        readonly property string mArtist: rootRef ? (rootRef.mediaArtist || "") : ""
+        readonly property bool mArt: rootRef && !!rootRef.mediaArt
+        readonly property bool playing: rootRef && rootRef.mediaStatus === "Playing"
+        readonly property real progress: rootRef && rootRef.mediaLenMs > 0
+            ? Math.max(0, Math.min(1, rootRef.mediaPosMs / rootRef.mediaLenMs))
+            : 0
+
+        function fmtTime(ms) {
+            if (!isFinite(ms) || ms <= 0) return "0:00"
+            var s = Math.floor(ms / 1000)
+            var m = Math.floor(s / 60)
+            s = s % 60
+            return m + ":" + (s < 10 ? "0" : "") + s
+        }
+
+        NumberAnimation {
+            id: lockMediaAnim
+            target: lockMediaCard
+            property: "enter"
+            from: 0; to: 1
+            duration: 340
+            easing.type: Easing.OutCubic
+        }
+        onVisibleChanged: if (lockMediaCard.visible) lockMediaAnim.restart()
+        Component.onCompleted: if (lockMediaCard.visible) lockMediaAnim.restart()
+
+        opacity: lockMediaCard.enter
+        transform: Translate { id: lockMediaSlide; y: 40 * (1 - lockMediaCard.enter) }
+
+        Rectangle {
+            id: lockArtMask
+            anchors.fill: parent
+            anchors.margins: -6
+            radius: lockMediaCard.radius + 6
+            color: "#ffffff"
+            visible: false
+            layer.enabled: true
+        }
+
+        Image {
+            anchors.fill: parent
+            source: lockMediaCard.mArt ? (rootRef.mediaArt || "") : ""
+            fillMode: Image.PreserveAspectCrop
+            cache: true
+            mipmap: true
+            layer.enabled: true
+            layer.effect: MultiEffect { maskEnabled: true; maskSource: lockArtMask }
+            visible: source !== ""
+        }
+
+        Rectangle {
+            anchors.fill: parent
+            radius: lockMediaCard.radius
+            color: lockMediaCard.mArt
+                ? Qt.rgba(0.02, 0.03, 0.05, 0.62)
+                : Qt.rgba(0, 0, 0, 0.28)
+        }
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 24
+            spacing: 10
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 20
+
+                Rectangle {
+                    id: lockThumb
+                    Layout.preferredWidth: 100
+                    Layout.preferredHeight: 100
+                    radius: 18
+                    clip: true
+                    color: Qt.rgba(1, 1, 1, 0.08)
+
+                    Image {
+                        anchors.fill: parent
+                        source: lockMediaCard.mArt ? (rootRef.mediaArt || "") : ""
+                        fillMode: Image.PreserveAspectCrop
+                        visible: lockMediaCard.mArt
+                    }
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "󰽴"
+                        color: Qt.rgba(1, 1, 1, 0.4)
+                        font.family: lockRoot.iconFontName
+                        font.pixelSize: 34
+                        visible: !lockMediaCard.mArt
+                    }
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    spacing: 5
+
+                    RowLayout {
+                        spacing: 8
+
+                        Text {
+                            text: "NOW PLAYING"
+                            color: Qt.rgba(lockRoot.acc.r, lockRoot.acc.g, lockRoot.acc.b, 0.95)
+                            font.family: lockRoot.fontAltBold
+                            font.pixelSize: 11
+                            font.letterSpacing: 4
+                            font.weight: Font.DemiBold
+                        }
+
+                        Rectangle {
+                            visible: lockMediaCard.playing
+                            Layout.preferredWidth: 6; Layout.preferredHeight: 6
+                            Layout.alignment: Qt.AlignVCenter
+                            radius: 3
+                            color: lockRoot.acc
+                        }
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: lockMediaCard.mTitle
+                        color: "#ffffff"
+                        font.family: lockRoot.fontMain
+                        font.pixelSize: 26
+                        elide: Text.ElideRight
+                        maximumLineCount: 2
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: lockMediaCard.mArtist.toUpperCase()
+                        color: Qt.rgba(1, 1, 1, 0.68)
+                        font.family: lockRoot.fontAltBold
+                        font.pixelSize: 11
+                        font.letterSpacing: 2
+                        elide: Text.ElideRight
+                        maximumLineCount: 1
+                    }
+                }
+            }
+
+            Item { Layout.fillHeight: true }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 12
+
+                Text {
+                    Layout.preferredWidth: 42
+                    text: lockMediaCard.fmtTime(rootRef ? (rootRef.mediaPosMs || 0) : 0)
+                    color: Qt.rgba(1, 1, 1, 0.7)
+                    font.family: lockRoot.fontAltBold
+                    font.pixelSize: 12
+                    horizontalAlignment: Text.AlignRight
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 20
+
+                    Canvas {
+                        id: lockWave
+                        anchors.fill: parent
+                        antialiasing: true
+
+                        readonly property real waveLength: 52
+                        readonly property real amplitude: 4
+                        readonly property real thickness: 2.2
+                        property real phase: 0
+                        property bool playing: lockMediaCard.playing
+                        property bool hovered: seekArea.containsMouse || seekArea.dragging
+
+                        onPlayingChanged: {
+                            if (lockMediaCard.playing) lockWaveTimer.start()
+                            else lockWaveTimer.stop()
+                            lockWave.requestPaint()
+                        }
+                        onHoveredChanged: lockWave.requestPaint()
+                        onWidthChanged: lockWave.requestPaint()
+                        onHeightChanged: lockWave.requestPaint()
+
+                        function ampFactor(x, edge, taper) {
+                            var d = edge - x
+                            if (d >= taper) return 1
+                            if (d <= 0) return 0
+                            var k = d / taper
+                            return k * k * (3 - 2 * k)
+                        }
+
+                        onPaint: () => {
+                            var ctx = lockWave.getContext("2d")
+                            var w = lockWave.width
+                            var h = lockWave.height
+                            ctx.clearRect(0, 0, w, h)
+                            if (w <= 0 || h <= 0) return
+
+                            var edge = Math.max(0, Math.min(w, lockMediaCard.progress * w))
+                            var midY = h / 2
+                            var taper = Math.max(30, Math.min(90, w * 0.1))
+                            var freq = 2 * Math.PI / lockWave.waveLength
+
+                            ctx.lineWidth = lockWave.thickness
+                            ctx.lineCap = "round"
+                            ctx.lineJoin = "round"
+
+                            if (edge < w) {
+                                ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.22)
+                                ctx.beginPath()
+                                ctx.moveTo(edge, midY)
+                                ctx.lineTo(w, midY)
+                                ctx.stroke()
+                            }
+
+                            ctx.strokeStyle = lockRoot.acc
+                            ctx.beginPath()
+                            for (var i = 0; i <= w; i += 2) {
+                                var amp = lockWave.amplitude * lockWave.ampFactor(i, edge, taper)
+                                var y = midY + Math.sin(i * freq + lockWave.phase) * amp
+                                if (i === 0) ctx.moveTo(i, y)
+                                else ctx.lineTo(i, y)
+                            }
+                            ctx.stroke()
+
+                            var thumbR = lockWave.hovered ? 6 : 4
+                            if (lockMediaCard.progress > 0.001) {
+                                ctx.fillStyle = lockRoot.acc
+                                ctx.beginPath()
+                                ctx.arc(edge, midY, thumbR, 0, 2 * Math.PI)
+                                ctx.fill()
+                                ctx.fillStyle = "#ffffff"
+                                ctx.beginPath()
+                                ctx.arc(edge, midY, 2.6, 0, 2 * Math.PI)
+                                ctx.fill()
+                            }
+                        }
+                    }
+
+                    Timer {
+                        id: lockWaveTimer
+                        interval: 50
+                        repeat: true
+                        running: lockMediaCard.playing
+                        onTriggered: () => {
+                            lockWave.phase += 0.15
+                            lockWave.requestPaint()
+                        }
+                    }
+
+                    MouseArea {
+                        id: seekArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        property bool dragging: false
+
+                        function seekTo(posX) {
+                            if (!rootRef || rootRef.mediaLenMs <= 0) return
+                            var ratio = Math.max(0, Math.min(1, posX / seekArea.width))
+                            var targetMs = Math.round(ratio * rootRef.mediaLenMs)
+                            Quickshell.execDetached(["playerctl", "position", String(targetMs / 1000)])
+                            rootRef.mediaPosMs = targetMs
+                        }
+
+                        onPressed: (mouse) => { dragging = true; seekTo(mouse.x) }
+                        onPositionChanged: (mouse) => { if (dragging) seekTo(mouse.x) }
+                        onReleased: (mouse) => { dragging = false }
+                    }
+                }
+
+                Text {
+                    Layout.alignment: Qt.AlignRight
+                    text: lockMediaCard.fmtTime(rootRef ? (rootRef.mediaLenMs || 0) : 0)
+                    color: Qt.rgba(1, 1, 1, 0.5)
+                    font.family: lockRoot.fontAltBold
+                    font.pixelSize: 12
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 18
+
+                Item { Layout.fillWidth: true; Layout.preferredHeight: 1 }
+
+                LockMediaBtn {
+                    btnSize: 42
+                    glyph: "󰼨"
+                    onTapped: rootRef ? Quickshell.execDetached(["playerctl", "previous"]) : {}
+                }
+
+                LockMediaBtn {
+                    btnSize: 60
+                    glyph: lockMediaCard.playing ? "󰏤" : "󰐊"
+                    accent: true
+                    onTapped: rootRef ? Quickshell.execDetached(["playerctl", "play-pause"]) : {}
+                }
+
+                LockMediaBtn {
+                    btnSize: 42
+                    glyph: "󰼧"
+                    onTapped: rootRef ? Quickshell.execDetached(["playerctl", "next"]) : {}
+                }
+
+                Item { Layout.fillWidth: true; Layout.preferredHeight: 1 }
+            }
         }
     }
 
