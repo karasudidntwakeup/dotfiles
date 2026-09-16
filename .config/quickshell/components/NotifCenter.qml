@@ -192,7 +192,7 @@ Item {
                     anchors.fill: parent
                     source: mediaCard.hasArt ? (rootRef.mediaArt || "") : ""
                     fillMode: Image.PreserveAspectCrop
-                    asynchronous: true
+                    cache: true
                     layer.enabled: true
                     layer.effect: MultiEffect { maskEnabled: true; maskSource: mediaArtMask }
                     visible: source !== ""
@@ -201,7 +201,7 @@ Item {
                 Rectangle {
                     anchors.fill: parent
                     anchors.margins: 0
-                    radius: mediaCard.radius - 2
+                    radius: mediaCard.radius
                     color: mediaCard.hasArt
                         ? Qt.rgba(0.04, 0.05, 0.06, 0.62)
                         : Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.05)

@@ -131,7 +131,6 @@ Item {
         }
         if (cmds.length === 0) return
         thumbProc.command = ["bash", "-c", cmds.join("; ")];
-        thumbProc.start();
     }
 
     function isSubsequence(sub, str) {

@@ -778,6 +778,8 @@ ShellRoot {
         color: tint
         border.width: 0
 
+        Behavior on color { ColorAnimation { duration: 250 } }
+
         Row {
             id: pillRow
             anchors.centerIn: parent
@@ -818,11 +820,14 @@ ShellRoot {
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
         }
+
+        scale: pillArea.containsMouse ? 1.05 : 1.0
+        Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
     }
 
     component BoltGlyph: Canvas {
         id: boltG
-        property color tintColor: bat.tint
+        property color tintColor: root.primary
         anchors.centerIn: parent
         width: 14
         height: 18
@@ -846,168 +851,153 @@ ShellRoot {
         }
     }
 
-    component BatteryPill: Rectangle {
-        id: bat
-        property color tint: root.batteryTint(root.batteryPercent)
+    component DynamicPill: Rectangle {
+        id: dc
         property int padX: 14
-        property int icoW: 26
-        property int icoH: 18
+        property int iconSize: root.fontSize + 2
+        readonly property color tint: root.networkConnected ? root.signalTint(root.networkSignal) : root.pillColor("error")
+        readonly property color pillTextColor: root.luminance(dc.tint) > 0.5 ? "#000000" : "#ffffff"
+        readonly property bool hovering: dcArea.containsMouse || dcArea.pressed
 
-        readonly property color fg: root.colorOf("on_primary")
-        readonly property color stroke: root.mixColor(bat.tint, "#000000", 0.5)
-
-        implicitWidth: batRow.implicitWidth + bat.padX
         implicitHeight: root.pillHeight
         radius: 10
-        color: tint
+        color: dc.tint
         border.width: 0
 
+        implicitWidth: dcRow.implicitWidth + dc.padX
+        Behavior on implicitWidth { NumberAnimation { duration: 180; easing.type: Easing.InOutQuad } }
         Behavior on color { ColorAnimation { duration: 250 } }
 
-        property int iconVariant: 0 // 0 = solid bar, 1 = material outline + cap, 2 = segmented level bars
-
-        Component {
-            id: batIconSolid
-            Item {
-                implicitWidth: bat.icoW
-                implicitHeight: bat.icoH
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: parent.height / 2
-                    color: root.mixColor(bat.tint, "#000000", 0.35)
-                }
-
-                Rectangle {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.bottom: parent.bottom
-                    anchors.leftMargin: 1.5
-                    anchors.rightMargin: 1.5
-                    anchors.bottomMargin: 1.5
-                    readonly property real fillRatio: Math.min(1, root.batteryPercent / 100)
-                    height: Math.max(0, (parent.height - 3) * fillRatio)
-                    radius: (parent.width - 3) / 2
-                    color: "#000000"
-                    Behavior on height { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
-                }
-
-                BoltGlyph {
-                    tintColor: bat.tint
-                    visible: root.charging
-                }
-            }
-        }
-
-        Component {
-            id: batIconOutline
-            Item {
-                implicitWidth: 9
-                implicitHeight: 20
-
-                Rectangle {
-                    anchors.bottom: parent.top
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    width: 4
-                    height: 2
-                    radius: 1
-                    color: bat.stroke
-                }
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 4
-                    border.width: 2
-                    border.color: bat.stroke
-                    color: "transparent"
-                }
-
-                Rectangle {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.bottom: parent.bottom
-                    anchors.leftMargin: 2
-                    anchors.rightMargin: 2
-                    anchors.bottomMargin: 2
-                    readonly property real fillRatio: Math.min(1, root.batteryPercent / 100)
-                    height: Math.max(0, (parent.height - 4) * fillRatio)
-                    radius: 3
-                    color: root.mixColor(bat.tint, "#ffffff", 0.45)
-                    Behavior on height { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
-                }
-
-                BoltGlyph {
-                    tintColor: bat.tint
-                    visible: root.charging
-                }
-            }
-        }
-
-        Component {
-            id: batIconSegmented
-            Rectangle {
-                implicitWidth: 10
-                implicitHeight: 20
-                radius: 2
-                border.width: 1
-                border.color: root.mixColor(bat.tint, "#000000", 0.3)
-                color: "transparent"
-
-                Column {
-                    anchors.centerIn: parent
-                    spacing: 1.6
-
-                    Repeater {
-                        model: 4
-                        delegate: Rectangle {
-                            required property int index
-                            width: 7
-                            height: 3.2
-                            radius: 1.6
-                            readonly property bool lit: {
-                                if (root.charging) return true
-                                return Math.round(root.batteryPercent) > (3 - index) * 25
-                            }
-                            color: lit
-                                ? "#000000"
-                                : root.mixColor(bat.tint, "#000000", 0.18)
-                        }
-                    }
-                }
-
-                BoltGlyph {
-                    tintColor: bat.tint
-                    visible: root.charging
-                }
-            }
-        }
+        scale: dcArea.containsMouse ? 1.05 : 1.0
+        Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
 
         Row {
-            id: batRow
+            id: dcRow
             anchors.centerIn: parent
-            spacing: 5
+            spacing: 8
 
-            Loader {
-                id: batIconLoader
+            Item {
+                id: arcSlot
                 anchors.verticalCenter: parent.verticalCenter
-                sourceComponent: [
-                    batIconSolid,
-                    batIconOutline,
-                    batIconSegmented
-                ][Math.max(0, Math.min(2, bat.iconVariant))]
+                implicitWidth: 40
+                implicitHeight: root.pillHeight
+
+                Canvas {
+                    id: arcC
+                    anchors.centerIn: parent
+                    width: 32
+                    height: 32
+                    antialiasing: true
+                    property int percent: root.batteryPercent
+                    property bool charging: root.charging
+                    property color base: dc.pillTextColor
+
+                    onPercentChanged: requestPaint()
+                    onChargingChanged: requestPaint()
+                    onBaseChanged: requestPaint()
+
+                    onPaint: {
+                        var ctx = arcC.getContext("2d")
+                        ctx.reset()
+                        var w = arcC.width
+                        var h = arcC.height
+                        if (w <= 0 || h <= 0) return
+                        var cx = w / 2
+                        var cy = h / 2
+                        var r = 13.5
+                        var gapRad = Math.PI / 4
+                        var maxSweep = 2 * Math.PI - 2 * gapRad
+                        var capInset = (ctx.lineWidth / 2) / r
+                        var sweepMax = maxSweep - 2 * capInset
+                        var frac = Math.max(0, Math.min(1, arcC.percent / 100))
+                        var start = Math.PI / 2 + gapRad + capInset
+
+                        ctx.lineCap = "round"
+                        ctx.lineWidth = 3
+                        ctx.strokeStyle = Qt.rgba(arcC.base.r, arcC.base.g, arcC.base.b, 0.13)
+                        ctx.beginPath()
+                        ctx.arc(cx, cy, r, start, start + sweepMax)
+                        ctx.stroke()
+
+                        ctx.strokeStyle = arcC.base
+                        ctx.beginPath()
+                        ctx.arc(cx, cy, r, start, start + sweepMax * frac)
+                        ctx.stroke()
+
+                        if (arcC.charging) {
+                            ctx.fillStyle = arcC.base
+                            var bx = cx
+                            var by = cy + 10.5
+                            ctx.beginPath()
+                            ctx.moveTo(bx + 2.2, by - 3.2)
+                            ctx.lineTo(bx - 1.6, by + 0.4)
+                            ctx.lineTo(bx + 0.4, by + 0.4)
+                            ctx.lineTo(bx - 2.0, by + 3.2)
+                            ctx.lineTo(bx + 1.8, by - 0.4)
+                            ctx.lineTo(bx - 0.4, by - 0.4)
+                            ctx.closePath()
+                            ctx.fill()
+                        }
+
+                        var gy = cy + 4
+                        ctx.fillStyle = arcC.base
+                        ctx.strokeStyle = arcC.base
+                        ctx.lineWidth = 2
+                        for (var i = 0; i < 3; i++) {
+                            ctx.beginPath()
+                            ctx.arc(cx, gy, 3 + i * 3.15, Math.PI * 1.25, Math.PI * 1.75)
+                            ctx.stroke()
+                        }
+                        ctx.beginPath()
+                        ctx.arc(cx, gy, 1.8, 0, Math.PI * 2)
+                        ctx.fill()
+                    }
+                }
             }
 
             Text {
-                text: root.batteryPercent + "%"
-                color: bat.fg
+                id: infoText
                 anchors.verticalCenter: parent.verticalCenter
+                text: root.networkConnected ? (root.networkIp + "  ↓  " + root.formatSpeed(root.networkDown) || root.networkText) : "No net"
+                color: dc.pillTextColor
                 font.family: root.fontFamily
                 font.pixelSize: root.fontSize
                 font.weight: Font.Normal
             }
         }
-    }
 
+        Rectangle {
+            id: tip
+            anchors.left: dc.right
+            anchors.leftMargin: 6
+            anchors.verticalCenter: parent.verticalCenter
+            width: tipText.implicitWidth + 14
+            height: 22
+            radius: 11
+            color: "#0b0b0e"
+            border.width: 1
+            border.color: Qt.rgba(1, 1, 1, 0.12)
+            opacity: dc.hovering ? 1 : 0
+            Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
+
+            Text {
+                id: tipText
+                anchors.centerIn: parent
+                text: root.charging ? "CHARGING" : root.batteryPercent + "%"
+                color: !root.charging && root.batteryPercent < 15 ? root.pillColor("error") : "#ffffff"
+                font.family: root.fontFamily
+                font.pixelSize: root.fontSize - 1
+                font.weight: Font.DemiBold
+            }
+        }
+
+        MouseArea {
+            id: dcArea
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+        }
+    }
     component WifiIcon: Canvas {
         id: wifi
         property color tint: "#ffffff"
@@ -1314,43 +1304,6 @@ ShellRoot {
         }
     }
 
-    component NetworkPill: Rectangle {
-        id: net
-        property color tint: root.networkConnected ? root.signalTint(root.networkSignal) : root.pillColor("error")
-        readonly property color pillTextColor: root.luminance(tint) > 0.5 ? "#000000" : "#ffffff"
-        property int iconSize: root.fontSize + 2
-
-        implicitWidth: netRow.implicitWidth + 14
-        implicitHeight: root.pillHeight
-        radius: 10
-        color: tint
-
-        Row {
-            id: netRow
-            anchors.centerIn: parent
-            spacing: 4
-
-            Text {
-                text: "\uF1EB"
-                color: net.pillTextColor
-                anchors.verticalCenter: parent.verticalCenter
-                font.family: root.iconFont
-                font.pixelSize: net.iconSize
-            }
-
-            Text {
-                text: root.networkConnected
-                    ? (root.networkIp + "  ↓  " + root.formatSpeed(root.networkDown) || root.networkText)
-                    : "No net"
-                color: net.pillTextColor
-                anchors.verticalCenter: parent.verticalCenter
-                font.family: root.fontFamily
-                font.pixelSize: root.fontSize
-                font.weight: Font.Normal
-            }
-        }
-    }
-
     component Workspaces: Rectangle {
         id: wsWidget
         property var workspaces: []
@@ -1362,12 +1315,13 @@ ShellRoot {
                 if (workspaces[j].active) return j
             return -1
         })()
-        readonly property real dotW: 13
-        readonly property real activeW: 24
-        readonly property real dotH: 13
-        readonly property real dotSpacing: 6
-        readonly property real pillPad: 10
-        readonly property real dotRadius: 7
+        readonly property real dotW: 11
+        readonly property real activeW: 22
+        readonly property real dotH: 10
+        readonly property real dotSpacing: 4
+        readonly property real pillPad: 6
+        readonly property real dotRadius: 5
+        readonly property color accent: root.colorOf("widget_accent")
 
         function contentWidth() {
             return (count - 1) * dotW + activeW + dotSpacing * (count - 1)
@@ -1387,33 +1341,56 @@ ShellRoot {
 
             Repeater {
                 model: wsWidget.workspaces
-                delegate: Item {
-                    readonly property int idx: index
-                    readonly property bool focused: wsWidget.activeIndex === idx
-                    readonly property bool occupied: !!modelData.occupied
+delegate: Item {
+                            readonly property int idx: index
+                            readonly property bool focused: wsWidget.activeIndex === idx
+                            readonly property bool occupied: !!modelData.occupied
+                            property bool hovered: false
 
-                    width: focused ? wsWidget.activeW : wsWidget.dotW
-                    height: wsWidget.dotH
-                    anchors.verticalCenter: parent.verticalCenter
-                    Behavior on width { NumberAnimation { duration: 400; easing.type: Easing.OutQuint } }
+                            width: focused ? wsWidget.activeW : wsWidget.dotW
+                            height: wsWidget.dotH
+                            anchors.verticalCenter: parent.verticalCenter
+                            scale: hovered ? 1.1 : 1.0
+                            Behavior on width { NumberAnimation { duration: 400; easing.type: Easing.OutQuint } }
+                            Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
 
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: wsWidget.dotRadius
-                        color: root.qsLight ? "#ffffff" : root.colorOf("on_primary_container")
-                        opacity: focused ? 0.7 : (occupied ? 0.45 : 0.18)
-                        Behavior on color { ColorAnimation { duration: 250 } }
-                    }
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: wsWidget.dotRadius
+                                color: focused ? wsWidget.accent : root.colorOf("on_primary_container")
+                                opacity: focused ? 1.0 : (occupied ? 0.5 : 0.18)
+                                Behavior on color { ColorAnimation { duration: 250 } }
+                            }
 
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            if (modelData) niriIpc.focusWorkspace(modelData.idx)
+                            MouseArea {
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onEntered: parent.hovered = true
+                                onExited: parent.hovered = false
+                                onClicked: {
+                                    if (modelData) niriIpc.focusWorkspace(modelData.idx)
+                                }
+                            }
                         }
-                    }
-                }
+            }
+        }
+
+        function switchDelta(delta) {
+            if (wsWidget.count === 0) return
+            var i = wsWidget.activeIndex
+            if (i < 0) i = 0
+            var next = (i + delta + wsWidget.count) % wsWidget.count
+            var ws = wsWidget.workspaces[next]
+            if (ws && niriIpc) niriIpc.focusWorkspace(ws.idx)
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            acceptedButtons: Qt.NoButton
+            onWheel: event => {
+                wsWidget.switchDelta(event.angleDelta.y > 0 ? -1 : 1)
+                event.accepted = true
             }
         }
     }
@@ -1969,15 +1946,8 @@ ShellRoot {
                         }
                     }
 
-                    NetworkPill {
-                        id: netPill
-                        iconSize: root.fontSize
-                    }
-
-                    BatteryPill {
-                        id: batPill
-                        icoW: 22
-                        icoH: 15
+                    DynamicPill {
+                        id: netBattPill
                     }
 
                     Module {
