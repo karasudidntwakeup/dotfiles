@@ -45,7 +45,7 @@ Item {
     }
     property real animProgress: svc && svc.centerOpen ? 1.0 : 0.0
     Behavior on animProgress {
-        NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
+        NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
     }
 
     Keys.onEscapePressed: event => {
@@ -77,9 +77,18 @@ Item {
         width: center.panelWidth
         height: Math.min(center.panelMaxHeight, panelColumn.implicitHeight + center.pad * 2)
         anchors.top: parent.top
-        anchors.right: parent.right
-        anchors.topMargin: 30
-        anchors.rightMargin: 10
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.topMargin: rootRef ? rootRef.barHeight - 15 : 21
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowBlur: 0.25
+            blurMax: 24
+            shadowOpacity: 0.2
+            shadowVerticalOffset: 1
+            shadowHorizontalOffset: 0
+        }
+
         color: center.panelColor
         radius: 22
         border.width: 1
@@ -87,12 +96,9 @@ Item {
         clip: true
 
 
-        transform: Translate {
-            x: (1.0 - center.animProgress) * (center.panelWidth + 48)
-        }
-        scale: 0.98 + 0.02 * center.animProgress
-        rotation: (1.0 - center.animProgress) * 1.5
-        transformOrigin: Item.Right
+        opacity: center.animProgress
+        scale: 0.96 + 0.04 * center.animProgress
+        transformOrigin: Item.Top
 
         ColumnLayout {
             id: panelColumn
@@ -168,9 +174,11 @@ Item {
                 visible: rootRef && rootRef.mediaStatus !== "none"
                 radius: 22
                 clip: true
+                antialiasing: true
+                smooth: true
                 border.width: 1
                 border.color: Qt.rgba(1, 1, 1, 0.16)
-                color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.045)
+                color: "transparent"
 
                 readonly property color mediaAccent: center.signalAccent
                 property string mediaTitle: rootRef ? (rootRef.mediaTitle || "") : ""
@@ -183,7 +191,11 @@ Item {
                 Rectangle {
                     id: mediaArtMask
                     anchors.fill: parent
-                    radius: mediaCard.radius
+                    anchors.margins: -5
+                    radius: mediaCard.radius + 5
+                    color: "#ffffff"
+                    antialiasing: true
+                    smooth: true
                     visible: false
                     layer.enabled: true
                 }
@@ -193,7 +205,11 @@ Item {
                     source: mediaCard.hasArt ? (rootRef.mediaArt || "") : ""
                     fillMode: Image.PreserveAspectCrop
                     cache: true
+                    antialiasing: true
+                    smooth: true
+                    mipmap: true
                     layer.enabled: true
+                    layer.smooth: true
                     layer.effect: MultiEffect { maskEnabled: true; maskSource: mediaArtMask }
                     visible: source !== ""
                 }
@@ -202,8 +218,10 @@ Item {
                     anchors.fill: parent
                     anchors.margins: 0
                     radius: mediaCard.radius
+                    antialiasing: true
+                    smooth: true
                     color: mediaCard.hasArt
-                        ? Qt.rgba(0.04, 0.05, 0.06, 0.62)
+                        ? Qt.rgba(0.03, 0.04, 0.05, 0.55)
                         : Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.05)
                 }
 

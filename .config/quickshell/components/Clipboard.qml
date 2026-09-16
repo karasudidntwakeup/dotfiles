@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
 
@@ -67,12 +68,13 @@ Item {
     property real animProgress: clipMgr.active ? 1.0 : 0.0
     Behavior on animProgress {
         NumberAnimation {
-            duration: clipMgr.active ? 140 : 160
-            easing.type: clipMgr.active ? Easing.OutQuad : Easing.InQuad
+            duration: clipMgr.active ? 320 : 220
+            easing.type: Easing.OutCubic
         }
     }
 
-    readonly property int sideMargin: 100
+    readonly property int bottomMargin: 24
+    readonly property int sideMargin: 24
 
     opacity: clipMgr.animProgress
 
@@ -223,12 +225,30 @@ Item {
         z: 1
         width: clipMgr.cardWidth
         height: contentColumn.implicitHeight + clipMgr.pad * 2
-        anchors.centerIn: parent
+        anchors.left: parent.left
+        anchors.leftMargin: clipMgr.sideMargin
+        y: Math.floor(parent.height - card.height - clipMgr.bottomMargin)
         radius: clipMgr.cornerRadius
         color: clipMgr.cardColor
         border.width: 1
         border.color: clipMgr.cardBorder
         clip: true
+
+        transform: Translate {
+            x: -(1.0 - clipMgr.animProgress) * 60
+        }
+        scale: 0.96 + 0.04 * clipMgr.animProgress
+        transformOrigin: Item.Left
+
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowBlur: 0.25
+            blurMax: 24
+            shadowOpacity: 0.15
+            shadowVerticalOffset: 1
+            shadowHorizontalOffset: 0
+        }
 
 
         Column {

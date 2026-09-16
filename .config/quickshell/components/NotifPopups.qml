@@ -18,14 +18,14 @@ PanelWindow {
     readonly property int barThickness: rootRef ? rootRef.barHeight : 48
 
     anchors.top: true
+    anchors.left: true
     anchors.right: true
 
     readonly property real popupMaxH: 1200
     implicitHeight: Math.min(popupMaxH, popupList.contentHeight)
 
     margins {
-        top: barThickness + 20
-        right: 16
+        top: barThickness + 40
     }
 
     readonly property bool hasCritical: {
@@ -45,8 +45,8 @@ PanelWindow {
     ListView {
         id: popupList
         anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.right: parent.right
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: 360
         height: parent.height
         model: svc ? svc.popups : []
         spacing: 10
@@ -58,16 +58,12 @@ PanelWindow {
             ParallelAnimation {
                 NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 200; easing.type: Easing.OutCubic }
                 NumberAnimation { property: "scale"; from: 0.92; to: 1.0; duration: 300; easing.type: Easing.OutCubic }
-                NumberAnimation { property: "x"; from: popupList.width * 0.4; to: 0; duration: 280; easing.type: Easing.OutCubic }
-                NumberAnimation { property: "y"; from: -14; to: 0; duration: 280; easing.type: Easing.OutCubic }
+                NumberAnimation { property: "y"; from: -16; to: 0; duration: 280; easing.type: Easing.OutCubic }
             }
         }
 
         remove: Transition {
-            ParallelAnimation {
-                NumberAnimation { property: "opacity"; to: 0.0; duration: 160; easing.type: Easing.OutCubic }
-                NumberAnimation { property: "x"; to: popupList.width * 0.4; duration: 200; easing.type: Easing.OutCubic }
-            }
+            NumberAnimation { property: "opacity"; to: 0.0; duration: 160; easing.type: Easing.OutCubic }
         }
 
         displaced: Transition {

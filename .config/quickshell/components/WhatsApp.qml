@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
 
@@ -414,6 +415,16 @@ Item {
         border.width: 1
         border.color: wa.cardBorder
         clip: true
+
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowBlur: 0.25
+            blurMax: 24
+            shadowOpacity: 0.2
+            shadowVerticalOffset: 1
+            shadowHorizontalOffset: 0
+        }
 
 
         transform: Translate {
