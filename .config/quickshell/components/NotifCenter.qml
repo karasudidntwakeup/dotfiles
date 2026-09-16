@@ -13,7 +13,10 @@ Item {
     focus: svc ? svc.centerOpen : false
 
     readonly property int panelWidth: 440
-    readonly property int pad: 12
+    readonly property int pad: 14
+    readonly property int panelMaxHeight: Math.round(center.height * 0.72)
+    readonly property int listMaxHeight: Math.max(64, center.panelMaxHeight - center.pad * 2 - 30 - 40 - (center.mediaOn ? 224 : 0))
+    readonly property bool mediaOn: rootRef && rootRef.mediaStatus !== "none"
     readonly property color panelColor: rootRef
         ? (rootRef.qsLight ? rootRef.pillColor("surface") : rootRef.colorOf("surface"))
         : "#15161a"
@@ -72,11 +75,10 @@ Item {
     Rectangle {
         id: panel
         width: center.panelWidth
+        height: Math.min(center.panelMaxHeight, panelColumn.implicitHeight + center.pad * 2)
         anchors.top: parent.top
-        anchors.bottom: parent.bottom
         anchors.right: parent.right
         anchors.topMargin: 30
-        anchors.bottomMargin: 30
         anchors.rightMargin: 10
         color: center.panelColor
         radius: 22
@@ -93,6 +95,7 @@ Item {
         transformOrigin: Item.Right
 
         ColumnLayout {
+            id: panelColumn
             anchors.fill: parent
             anchors.leftMargin: center.pad
             anchors.rightMargin: center.pad
@@ -407,7 +410,7 @@ Item {
             ListView {
                 id: centerList
                 Layout.fillWidth: true
-                Layout.fillHeight: true
+                Layout.preferredHeight: Math.min(centerList.contentHeight, center.listMaxHeight)
                 model: svc ? svc.history : []
                 spacing: 10
                 boundsBehavior: Flickable.StopAtBounds
@@ -442,20 +445,6 @@ Item {
                     selected: centerList.currentIndex === index
                     z: centerList.currentIndex === index ? 2 : 1
                     onCardSelected: centerList.currentIndex = index
-                }
-            }
-
-            Item {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                visible: svc && svc.history.count === 0
-
-                Text {
-                    anchors.centerIn: parent
-                    text: "No notifications"
-                    color: center.muteFg
-                    font.family: center.uiFont
-                    font.pixelSize: center.fontSize - 1
                 }
             }
 
