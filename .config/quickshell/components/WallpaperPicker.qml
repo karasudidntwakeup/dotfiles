@@ -47,7 +47,7 @@ Item {
     readonly property real borderWidth: 3 * u
     readonly property real spacing: 10 * u
     readonly property real skewFactor: -0.35
-    readonly property real cornerRadius: 18 * u
+    readonly property real cornerRadius: 12 * u
     readonly property real selectedCenterOffset: (window.skewFactor * window.itemHeight) / 2
 
     readonly property var filterData: [
@@ -167,7 +167,8 @@ Item {
 
     property bool showPanel: false
     property var selectedItem: null
-    property string applyMode: "dark"
+    property string currentMode: "dark"
+    property string applyMode: currentMode
     property string applyScheme: "tonal_spot"
     property string applyColor: ""
 
@@ -200,7 +201,7 @@ Item {
         if (index < 0 || index >= window.displayModel.length) return
         var item = window.displayModel[index]
         window.selectedItem = item
-        window.applyMode = "dark"
+        window.applyMode = window.currentMode
         window.applyScheme = "tonal_spot"
         window.applyColor = (item.colors && item.colors.length > 0) ? item.colors[0] : ""
         window.showPanel = true
@@ -210,7 +211,7 @@ Item {
     function confirmApply() {
         if (!window.selectedItem || window.isApplying) return
         window.isApplying = true
-        var args = ["sh", window.scriptDir + "/wallpaper_apply.sh",
+        var args = ["bash", window.scriptDir + "/wallpaper_apply.sh",
                     window.selectedItem.filePath, window.applyMode, window.applyScheme]
         if (window.applyScheme === "wallpaper_color" && window.applyColor !== "")
             args.push(window.applyColor.replace("#", ""))
@@ -222,8 +223,12 @@ Item {
         id: applyProc
         running: false
         command: window.applyArgs
-        onExited: {
+        onExited: code => {
             window.isApplying = false
+            if (code !== 0) {
+                console.warn("Wallpaper apply failed with exit code", code)
+                return
+            }
             window.showPanel = false
             window.requestClose()
         }
@@ -286,8 +291,8 @@ Item {
             z: isCurrent ? 100 : Math.max(1, 50 - dist)
             opacity: 1.0
 
-            Behavior on width { enabled: window.isLoaded && !window.isApplying; NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-            Behavior on height { enabled: window.isLoaded && !window.isApplying; NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+            Behavior on width { enabled: window.isLoaded && !window.isApplying; NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+            Behavior on height { enabled: window.isLoaded && !window.isApplying; NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
 
             Item {
                 id: skewedWrapper
@@ -401,8 +406,6 @@ Item {
                         color: window.currentFilter === modelData.name ? window.surface2
                              : (tabMouse.containsMouse ? window.surface1 : window.surface0)
                         border.width: 0
-                        scale: window.currentFilter === modelData.name ? 1.03 : (tabMouse.containsMouse ? 1.02 : 1.0)
-                        Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
                         Behavior on color { ColorAnimation { duration: 200 } }
 
                         Column {
@@ -441,8 +444,6 @@ Item {
                         radius: window.cornerRadius
                         color: modelData.hex
                         border.width: 0
-                        scale: window.currentFilter === modelData.name ? 1.03 : (swatchMouse.containsMouse ? 1.02 : 1.0)
-                        Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
                         Behavior on color { ColorAnimation { duration: 200 } }
 
                         MouseArea {
@@ -508,8 +509,6 @@ Item {
                         color: modelData
                         border.width: window.applyColor === modelData ? 3 : 1
                         border.color: window.applyColor === modelData ? window.blue : window.borderColor
-                        scale: swabHover.containsMouse ? 1.05 : 1.0
-                        Behavior on scale { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
                         MouseArea {
                             id: swabHover
                             anchors.fill: parent
@@ -544,8 +543,6 @@ Item {
                              : (modeHover.containsMouse ? window.surface1 : window.surface0)
                         border.color: window.applyMode === modelData.key ? window.textColor : window.borderColor
                         border.width: window.applyMode === modelData.key ? (window.u === 1 ? 1.5 : 1) : 1
-                        scale: window.applyMode === modelData.key ? 1.02 : (modeHover.containsMouse ? 1.02 : 1.0)
-                        Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
                         Behavior on color { ColorAnimation { duration: 200 } }
                         Text {
                             id: modeLabel
@@ -603,8 +600,6 @@ Item {
                                          : (schHover.containsMouse ? window.surface1 : window.surface0)
                                     border.color: window.applyScheme === modelData.key ? window.textColor : window.borderColor
                                     border.width: window.applyScheme === modelData.key ? (window.u === 1 ? 1.5 : 1) : 1
-                                    scale: window.applyScheme === modelData.key ? 1.02 : (schHover.containsMouse ? 1.02 : 1.0)
-                                    Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
                                     Behavior on color { ColorAnimation { duration: 200 } }
                                     Row {
                                         anchors.left: parent.left
@@ -674,8 +669,6 @@ Item {
                     height: window.u * 32
                     radius: window.u * 10
                     color: window.blue
-                    scale: applyHov.containsMouse ? 1.02 : 1.0
-                    Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
                     Text {
                         id: applyLabel
                         anchors.centerIn: parent

@@ -11,9 +11,7 @@ Item {
     property var rootRef: null
     property bool locked: false
 
-    readonly property string fontMain: "Ndot 57"
-    readonly property string fontAltBold: "Lettera Mono LL"
-    readonly property string fontCaps: "Ndot55Caps"
+    readonly property string uiFont: rootRef && rootRef.fontFamily ? rootRef.fontFamily : "Ndot 57"
     readonly property string fontJp: "Noto Sans CJK JP"
     readonly property string assetDir: "/home/karasu/.config/hypr/assets/"
     readonly property color fg: "#ffffff"
@@ -26,27 +24,25 @@ Item {
     property string statusText: ""
     property int attempts: 0
     property real blurAmount: 1.0
-    property real foldScale: 1.0
-    transform: Scale { origin.x: width / 2; origin.y: height / 2; xScale: lockRoot.foldScale; yScale: lockRoot.foldScale }
 
     ParallelAnimation {
         id: openAnim
-        NumberAnimation { target: lockRoot; property: "blurAmount"; from: 1.0; to: 0; duration: 900; easing.type: Easing.OutQuint }
-        NumberAnimation { target: lockRoot; property: "opacity"; from: 0; to: 1; duration: 900; easing.type: Easing.OutQuint }
-        NumberAnimation { target: lockRoot; property: "foldScale"; from: 0.95; to: 1; duration: 900; easing.type: Easing.OutCubic }
+        NumberAnimation { target: lockRoot; property: "blurAmount"; from: 1.0; to: 0; duration: 380; easing.type: Easing.OutCubic }
+        NumberAnimation { target: lockRoot; property: "opacity"; from: 0; to: 1; duration: 280; easing.type: Easing.OutCubic }
+        NumberAnimation { target: lockRoot; property: "scale"; from: 1.025; to: 1; duration: 380; easing.type: Easing.OutCubic }
     }
     property bool closing: false
     ParallelAnimation {
         id: closeAnim
-        NumberAnimation { target: lockRoot; property: "opacity"; from: 1; to: 0; duration: 400; easing.type: Easing.InOutCubic }
-        NumberAnimation { target: lockRoot; property: "blurAmount"; from: 0; to: 1.0; duration: 400; easing.type: Easing.InCubic }
-        onRunningChanged: {
-            if (!running && lockRoot.closing) {
-                lockRoot.closing = false
-                unlockInProgress = false
-                statusText = ""
-                lockRoot.unlocked()
-            }
+        NumberAnimation { target: lockRoot; property: "opacity"; to: 0; duration: 240; easing.type: Easing.InOutCubic }
+        NumberAnimation { target: lockRoot; property: "blurAmount"; to: 1.0; duration: 240; easing.type: Easing.InOutCubic }
+        NumberAnimation { target: lockRoot; property: "scale"; to: 1.015; duration: 240; easing.type: Easing.InOutCubic }
+        onFinished: {
+            if (!lockRoot.closing) return
+            lockRoot.closing = false
+            lockRoot.unlockInProgress = false
+            lockRoot.statusText = ""
+            lockRoot.unlocked()
         }
     }
 
@@ -65,6 +61,7 @@ Item {
         onPamMessage: { if (responseRequired) respond(passInput.text) }
         onCompleted: result => {
             if (result === PamResult.Success) {
+                openAnim.stop()
                 closing = true
                 closeAnim.start()
             } else {
@@ -110,7 +107,7 @@ Item {
         autoPaddingEnabled: false
         blurEnabled: true
         blurMax: 48
-        blur: 0.6 + lockRoot.blurAmount
+        blur: 0.6 + 0.4 * lockRoot.blurAmount
         brightness: -0.18
         contrast: -0.11
         saturation: 0.17
@@ -144,22 +141,22 @@ Item {
 
         Text {
             id: clockHour
-            font.family: lockRoot.fontMain
+            font.family: lockRoot.uiFont
             font.pixelSize: Math.round(lockMediaCard.width * 0.22)
+            font.weight: Font.Normal
             color: lockRoot.fg
-            style: Text.Raised
-            styleColor: Qt.rgba(0, 0, 0, 0.35)
+            style: Text.Normal
         }
 
         Text {
             id: clockMinute
             anchors.top: clockHour.bottom
             anchors.topMargin: -10
-            font.family: lockRoot.fontMain
+            font.family: lockRoot.uiFont
             font.pixelSize: Math.round(lockMediaCard.width * 0.22)
+            font.weight: Font.Normal
             color: lockRoot.fg
-            style: Text.Raised
-            styleColor: Qt.rgba(0, 0, 0, 0.35)
+            style: Text.Normal
         }
     }
 
@@ -177,15 +174,14 @@ Item {
             height: dateWrap.width
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
-            font.family: lockRoot.fontMain
-            font.pixelSize: dateWrap.width + 4
+            font.family: lockRoot.uiFont
+            font.pixelSize: Math.max(14, dateWrap.width * 0.6)
             color: lockRoot.fg
             transform: Rotation { angle: 90; origin.x: width / 2; origin.y: height / 2 }
             opacity: 0
             SequentialAnimation {
                 running: true
-                PauseAnimation { duration: 200 }
-                NumberAnimation { target: dateLine; property: "opacity"; to: 1; duration: 500; easing.type: Easing.OutCubic }
+                NumberAnimation { target: dateLine; property: "opacity"; to: 1; duration: 180; easing.type: Easing.OutCubic }
             }
         }
     }
@@ -195,7 +191,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 58
-        font.family: lockRoot.fontAltBold
+        font.family: lockRoot.uiFont
         font.pixelSize: 11
         font.bold: true
         color: lockRoot.fg
@@ -207,7 +203,7 @@ Item {
         anchors.rightMargin: 35
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 25
-        font.family: lockRoot.fontAltBold
+        font.family: lockRoot.uiFont
         font.pixelSize: 9
         font.bold: true
         color: lockRoot.fg
@@ -230,7 +226,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 130
-        font.family: lockRoot.fontCaps
+        font.family: lockRoot.uiFont
         font.pixelSize: 8
         color: lockRoot.fg
     }
@@ -241,7 +237,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 115
-        font.family: lockRoot.fontCaps
+        font.family: lockRoot.uiFont
         font.pixelSize: 8
         color: lockRoot.fg
     }
@@ -259,7 +255,7 @@ Item {
 
     Rectangle {
         id: passBox
-        width: 110; height: 25; radius: 6
+        width: 110; height: 25; radius: 8
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 24
@@ -280,7 +276,7 @@ Item {
             Text {
                 id: passPrompt
                 text: passInput.text.length === 0 ? "PASSCODE" : lockRoot.passDots
-                font.family: lockRoot.fontAltBold
+                font.family: lockRoot.uiFont
                 font.pixelSize: 10
                 font.weight: Font.Bold
                 font.letterSpacing: 1
@@ -319,7 +315,7 @@ Item {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 54
         text: lockRoot.statusText
-        font.family: lockRoot.fontAltBold; font.pixelSize: 9
+        font.family: lockRoot.uiFont; font.pixelSize: 9
         font.weight: Font.Bold; font.letterSpacing: 1
         visible: lockRoot.statusText.length > 0
         color: lockRoot.failed ? lockRoot.failC : lockRoot.acc
@@ -354,7 +350,7 @@ Item {
             anchors.centerIn: parent
             width: lockBtn.btnSize
             height: lockBtn.btnSize
-            radius: lockBtn.btnSize / 2
+            radius: 8
             color: lockBtn.accent
                 ? lockRoot.acc
                 : (lockBtnHover.containsMouse ? Qt.rgba(1, 1, 1, 0.10) : "transparent")
@@ -383,11 +379,11 @@ Item {
     Rectangle {
         id: lockMediaCard
         width: Math.min(560, parent.width * 0.62)
-        height: 264
+        height: Math.max(264, mediaContent.implicitHeight + 40)
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
         anchors.topMargin: parent.height * 0.02 + 22
-        radius: 26
+        radius: 12
         color: Qt.rgba(0.07, 0.08, 0.10, 0.55)
         border.width: 1
         border.color: Qt.rgba(1, 1, 1, 0.12)
@@ -416,14 +412,14 @@ Item {
             target: lockMediaCard
             property: "enter"
             from: 0; to: 1
-            duration: 340
+            duration: 180
             easing.type: Easing.OutCubic
         }
         onVisibleChanged: if (lockMediaCard.visible) lockMediaAnim.restart()
         Component.onCompleted: if (lockMediaCard.visible) lockMediaAnim.restart()
 
         opacity: lockMediaCard.enter
-        transform: Translate { id: lockMediaSlide; y: 40 * (1 - lockMediaCard.enter) }
+        transform: Translate { id: lockMediaSlide; y: 8 * (1 - lockMediaCard.enter) }
 
         Rectangle {
             id: lockArtMask
@@ -455,11 +451,12 @@ Item {
         }
 
         ColumnLayout {
-            anchors.fill: parent
+            id: mediaContent
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
             anchors.margins: 20
             spacing: 0
-
-            Item { Layout.preferredHeight: 22 }
 
             Text {
                 Layout.alignment: Qt.AlignHCenter
@@ -486,9 +483,9 @@ Item {
                 Text {
                     text: "NOW PLAYING"
                     color: Qt.rgba(lockRoot.acc.r, lockRoot.acc.g, lockRoot.acc.b, 0.95)
-                    font.family: lockRoot.fontAltBold
+                    font.family: lockRoot.uiFont
                     font.pixelSize: 10
-                    font.letterSpacing: 3
+                    font.letterSpacing: 0.5
                     font.weight: Font.DemiBold
                 }
             }
@@ -500,7 +497,7 @@ Item {
                 text: lockMediaCard.mTitle
                 color: "#ffffff"
                 horizontalAlignment: Text.AlignHCenter
-                font.family: lockRoot.fontMain
+                font.family: lockRoot.uiFont
                 font.pixelSize: 20
                 elide: Text.ElideRight
                 maximumLineCount: 1
@@ -513,7 +510,7 @@ Item {
                 text: lockMediaCard.mArtist
                 color: Qt.rgba(1, 1, 1, 0.55)
                 horizontalAlignment: Text.AlignHCenter
-                font.family: lockRoot.fontAltBold
+                font.family: lockRoot.uiFont
                 font.pixelSize: 11
                 font.letterSpacing: 1
                 elide: Text.ElideRight
@@ -530,7 +527,7 @@ Item {
                     Layout.alignment: Qt.AlignVCenter
                     text: lockMediaCard.fmtTime(rootRef ? (rootRef.mediaPosMs || 0) : 0)
                     color: Qt.rgba(1, 1, 1, 0.7)
-                    font.family: lockRoot.fontAltBold
+                    font.family: lockRoot.uiFont
                     font.pixelSize: 11
                     horizontalAlignment: Text.AlignRight
                 }
@@ -653,12 +650,10 @@ Item {
                     Layout.alignment: Qt.AlignVCenter
                     text: lockMediaCard.fmtTime(rootRef ? (rootRef.mediaLenMs || 0) : 0)
                     color: Qt.rgba(1, 1, 1, 0.5)
-                    font.family: lockRoot.fontAltBold
+                    font.family: lockRoot.uiFont
                     font.pixelSize: 11
                 }
             }
-
-            Item { Layout.fillHeight: true }
 
             RowLayout {
                 Layout.fillWidth: true

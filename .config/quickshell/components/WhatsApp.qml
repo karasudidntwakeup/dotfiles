@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
 
@@ -21,7 +20,7 @@ Item {
     readonly property int sendHeight: 40
     readonly property int searchHeight: 40
     readonly property int pad: 14
-    readonly property int cornerRadius: 20
+    readonly property int cornerRadius: 12
     readonly property int msgPad: 12
     readonly property real bubbleMaxW: 380
     readonly property int imgMaxW: 300
@@ -48,8 +47,8 @@ Item {
     readonly property color selectedFg: accentText
     readonly property color errorColor: rootRef ? Qt.color(rootRef.colorOf("widget_error")) : "#e30000"
     readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
-    readonly property string fontFamily: rootRef && rootRef.fontFamily ? rootRef.fontFamily : "Ndot 57"
-    readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Inter"
+    readonly property string fontFamily: uiFont
+    readonly property string uiFont: "Geist"
     readonly property string arabicFont: "SF Arabic"
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
     readonly property string homeDir: Quickshell.env("HOME")
@@ -79,7 +78,7 @@ Item {
     property real animProgress: wa.active ? 1.0 : 0.0
     Behavior on animProgress {
         NumberAnimation {
-            duration: wa.active ? 320 : 220
+            duration: wa.active ? 180 : 140
             easing.type: Easing.OutCubic
         }
     }
@@ -260,7 +259,7 @@ Item {
     function toggleAudio(src: string) {
         if (src.length === 0) return
         if (wa.playingAudioSrc === src) {
-            audioPlayer.terminate()
+            audioPlayer.running = false
             wa.playingAudioSrc = ""
             return
         }
@@ -416,22 +415,11 @@ Item {
         border.color: wa.cardBorder
         clip: true
 
-        layer.enabled: true
-        layer.effect: MultiEffect {
-            shadowEnabled: true
-            shadowBlur: 0.25
-            blurMax: 24
-            shadowOpacity: 0.2
-            shadowVerticalOffset: 1
-            shadowHorizontalOffset: 0
-        }
 
 
         transform: Translate {
-            y: (1.0 - wa.animProgress) * 30
+            y: (1.0 - wa.animProgress) * 8
         }
-        scale: 0.96 + 0.04 * wa.animProgress
-        transformOrigin: Item.Bottom
 
         Column {
             id: contentColumn
@@ -458,7 +446,7 @@ Item {
                     color: wa.fg
                     font.family: wa.fontFamily
                     font.pixelSize: wa.fontSize + 1
-                    font.weight: Font.Black
+                    font.weight: Font.DemiBold
                     verticalAlignment: Text.AlignVCenter
                 }
 
@@ -523,7 +511,7 @@ Item {
                 id: searchBox
                 width: parent.width
                 height: wa.searchHeight
-                radius: wa.searchHeight / 2
+                radius: 8
                 color: wa.alpha(wa.fg, 0.08)
                 border.width: 1
                 border.color: searchField.activeFocus ? wa.alpha(wa.fg, 0.4) : wa.alpha(wa.fg, 0.12)
@@ -807,8 +795,8 @@ Item {
                                             elide: Text.ElideRight
                                             color: isSelected ? wa.selectedFg : wa.fg
                                             font.family: wa.arabicFont
-                                            font.pixelSize: wa.fontSize + (isSelected ? 1 : 0)
-                                            font.weight: isSelected ? Font.Black : Font.Medium
+                                            font.pixelSize: wa.fontSize
+                                            font.weight: Font.Medium
                                             maximumLineCount: 1
                                         }
 
@@ -928,7 +916,7 @@ Item {
                                         color: wa.currentJid ? wa.fg : wa.alpha(wa.fg, 0.4)
                                         font.family: wa.arabicFont
                                         font.pixelSize: wa.fontSize
-                                        font.weight: Font.Black
+                                        font.weight: Font.DemiBold
                                         Layout.fillWidth: true
                                     }
 

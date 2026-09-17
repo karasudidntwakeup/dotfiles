@@ -20,15 +20,21 @@ Item {
     property alias history: historyModel
     property alias popups: popupsModel
 
-    property real lastNotifTime: 0
+    property real lastSoundTime: 0
     property bool _loadingDnd: true
 
     function nextUid() {
         var id
         do {
             id = Math.floor(Math.random() * 0x7fffffff)
-        } while (svc.liveNotifs[id] !== undefined)
+        } while (svc.liveNotifs[id] !== undefined || svc.historyContains(id))
         return id
+    }
+
+    function historyContains(uid) {
+        for (var i = 0; i < historyModel.count; i++)
+            if (historyModel.get(i).uid === uid) return true
+        return false
     }
 
     function resolveIcon(appName, desktopEntry, appIcon, image) {
@@ -167,27 +173,32 @@ Item {
 
     function hidePopup(uid) {
         svc.removeFromModel(popupsModel, uid)
-        delete svc.liveNotifs[uid]
-        svc.markRead(uid)
+    }
+
+    function releaseNotif(uid) {
+        var remaining = Object.assign({}, svc.liveNotifs)
+        delete remaining[uid]
+        svc.liveNotifs = remaining
     }
 
     function dismissNotif(uid) {
         var n = svc.liveNotifs[uid]
-        if (n && typeof n.dismiss === "function") n.dismiss()
+        svc.releaseNotif(uid)
         svc.removeFromModel(popupsModel, uid)
         svc.removeFromModel(historyModel, uid)
-        delete svc.liveNotifs[uid]
+        if (n && typeof n.dismiss === "function") n.dismiss()
         svc.recountUnread()
     }
 
     function clearAll() {
-        for (var key in svc.liveNotifs) {
-            var n = svc.liveNotifs[key]
-            if (n && typeof n.dismiss === "function") n.dismiss()
-        }
+        var notifications = svc.liveNotifs
         svc.liveNotifs = {}
         historyModel.clear()
         popupsModel.clear()
+        for (var key in notifications) {
+            var n = notifications[key]
+            if (n && typeof n.dismiss === "function") n.dismiss()
+        }
         svc.recountUnread()
     }
 
@@ -199,6 +210,9 @@ Item {
     function openCenter() {
         svc.hideAllPopups()
         svc.centerOpen = true
+        for (var i = 0; i < historyModel.count; i++)
+            historyModel.setProperty(i, "read", true)
+        svc.recountUnread()
     }
 
     function closeCenter() { svc.centerOpen = false }
@@ -238,6 +252,12 @@ Item {
     }
 
     onDndChanged: {
+        if (svc.dnd) {
+            for (var i = popupsModel.count - 1; i >= 0; i--) {
+                if (popupsModel.get(i).urgency !== NotificationUrgency.Critical)
+                    svc.hidePopup(popupsModel.get(i).uid)
+            }
+        }
         if (!svc._loadingDnd) cfgAdapter.dnd = svc.dnd
     }
 
@@ -252,10 +272,6 @@ Item {
             var n = notification
             var now = Date.now()
 
-            if (n.urgency !== NotificationUrgency.Critical && now - svc.lastNotifTime < 100)
-                return
-            svc.lastNotifTime = now
-
             n.tracked = true
 
             var acts = []
@@ -263,27 +279,25 @@ Item {
                 for (var i = 0; i < n.actions.length; i++) {
                     acts.push({
                         id: n.actions[i].identifier || "",
-                        text: n.actions[i].text || n.actions[i].name || "Action"
+                        text: n.actions[i].text || "Action"
                     })
                 }
             }
 
             var uid = svc.nextUid()
-            svc.liveNotifs[uid] = n
+            var notifications = Object.assign({}, svc.liveNotifs)
+            notifications[uid] = n
+            svc.liveNotifs = notifications
 
             var imageVal = ""
             if (n.image) {
                 var imgS = n.image.toString()
                 if (imgS.length > 0 && imgS.indexOf("image://icon/") !== 0) imageVal = imgS
             }
-            if (!imageVal && n.imagePath) {
-                var imgP = n.imagePath.toString()
-                if (imgP.length > 0 && imgP.indexOf("image://icon/") !== 0) imageVal = imgP
-            }
             var appLabel = (n.appName && n.appName !== "") ? n.appName : "System"
             var summaryText = (n.summary && n.summary !== "") ? n.summary : "Notification"
             var bodyText = (n.body || "").replace(/<\s*img\b[^>]*>/gi, "")
-            var iconName = svc.iconPathFor(svc.resolveIcon(n.appName, n.desktopEntry, n.appIcon, n.image))
+            var iconName = svc.resolveIcon(n.appName, n.desktopEntry, n.appIcon, n.image)
 
             var entry = {
                 uid: uid,
@@ -296,24 +310,29 @@ Item {
                 body: bodyText,
                 actionsJson: JSON.stringify(acts),
                 hasActions: acts.length > 0,
-                notif: n,
                 timestamp: now,
                 urgency: n.urgency,
-                read: false
+                read: svc.centerOpen
             }
 
             historyModel.insert(0, entry)
 
             n.closed.connect(() => {
-                if (svc.liveNotifs[uid] !== undefined) {
-                    delete svc.liveNotifs[uid]
-                    svc.removeFromModel(popupsModel, uid)
-                    svc.markRead(uid)
+                svc.releaseNotif(uid)
+                svc.removeFromModel(popupsModel, uid)
+                for (var i = 0; i < historyModel.count; i++) {
+                    if (historyModel.get(i).uid !== uid) continue
+                    historyModel.setProperty(i, "actionsJson", "[]")
+                    historyModel.setProperty(i, "hasActions", false)
+                    break
                 }
             })
 
             if (!svc.dnd || n.urgency === NotificationUrgency.Critical) {
-                Quickshell.execDetached(["paplay", Quickshell.env("HOME") + "/.local/share/sounds/bell.oga"])
+                if (now - svc.lastSoundTime >= 100) {
+                    svc.lastSoundTime = now
+                    Quickshell.execDetached(["paplay", Quickshell.env("HOME") + "/.local/share/sounds/bell.oga"])
+                }
 
                 if (!svc.centerOpen) {
                     popupsModel.insert(0, {
@@ -327,8 +346,7 @@ Item {
                         body: bodyText,
                         actionsJson: entry.actionsJson,
                         hasActions: acts.length > 0,
-                        notif: n,
-                        timestamp: now,
+                         timestamp: now,
                         urgency: n.urgency
                     })
                 }

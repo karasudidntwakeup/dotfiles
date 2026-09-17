@@ -16,7 +16,7 @@ Item {
     readonly property int maxRows: 6
     readonly property int searchHeight: 40
     readonly property int pad: 14
-    readonly property int cornerRadius: 20
+    readonly property int cornerRadius: 12
 
     readonly property string cardTile: "surface"
     readonly property color cardColor: rootRef
@@ -39,8 +39,8 @@ Item {
     readonly property color selectedFg: accentText
 
     readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
-    readonly property string fontFamily: rootRef && rootRef.fontFamily ? rootRef.fontFamily : "Ndot 57"
-    readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Inter"
+    readonly property string fontFamily: uiFont
+    readonly property string uiFont: "Geist"
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
     readonly property string terminalCommand: rootRef && rootRef.terminalCommand ? rootRef.terminalCommand : "foot"
 
@@ -67,7 +67,7 @@ Item {
     property real animProgress: launcher.active ? 1.0 : 0.0
     Behavior on animProgress {
         NumberAnimation {
-            duration: launcher.active ? 320 : 220
+            duration: launcher.active ? 180 : 140
             easing.type: Easing.OutCubic
         }
     }
@@ -288,10 +288,8 @@ Item {
 
 
         transform: Translate {
-            y: (1.0 - launcher.animProgress) * 30
+            y: (1.0 - launcher.animProgress) * 8
         }
-        scale: 0.96 + 0.04 * launcher.animProgress
-        transformOrigin: Item.Bottom
 
         Column {
             id: contentColumn
@@ -304,7 +302,7 @@ Item {
                 id: searchBox
                 width: parent.width
                 height: launcher.searchHeight
-                radius: launcher.searchHeight / 2
+                radius: 8
                 color: launcher.alpha(launcher.fg, 0.08)
                 border.width: 1
                 border.color: searchField.activeFocus
@@ -501,7 +499,7 @@ Item {
                                     color: isSelected ? launcher.selectedFg : launcher.fg
                                     font.family: launcher.fontFamily
                                     font.pixelSize: launcher.fontSize + 3
-                                    font.weight: Font.Black
+                                    font.weight: Font.DemiBold
                                 }
                             }
 
@@ -515,8 +513,8 @@ Item {
                                     text: name
                                     elide: Text.ElideRight
                                     font.family: launcher.fontFamily
-                                    font.pixelSize: launcher.fontSize + (isSelected ? 1 : 0)
-                                    font.weight: isSelected ? Font.Black : Font.Medium
+                                    font.pixelSize: launcher.fontSize
+                                    font.weight: Font.Medium
                                     color: isSelected ? launcher.selectedFg : launcher.fg
                                     Behavior on color { ColorAnimation { duration: 150 } }
                                 }

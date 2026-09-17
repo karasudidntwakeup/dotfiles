@@ -6,7 +6,7 @@ Canvas {
     property color color: "#00000000"
     property real radius: 8
     property real inset: 0
-    property real darkFactor: 0.82
+    property real darkFactor: 1.0
 
     anchors.fill: parent
     anchors.margins: inset

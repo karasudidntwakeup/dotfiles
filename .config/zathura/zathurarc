@@ -3,36 +3,36 @@
 " -----------------------------------------------------------------------------
 
 " Colors
-set default-bg              "rgba(0, 52, 79, 1)"
-set default-fg              "#96ccf8"
+set default-bg              "#2a303c"
+set default-fg              "#e5e9f0"
 
-set statusbar-bg            "#00344f"
-set statusbar-fg            "#96ccf8"
+set statusbar-bg            "#373d49"
+set statusbar-fg            "#e5e9f0"
 
-set inputbar-bg             "#00344f"
-set inputbar-fg             "#96ccf8"
+set inputbar-bg             "#333945"
+set inputbar-fg             "#e5e9f0"
 
-set notification-error-bg   "#690005"
-set notification-error-fg   "#ffb4ab"
+set notification-error-bg   "#b48ead"
+set notification-error-fg   "#2a303c"
 
-set notification-warning-bg "#cae6ff"
-set notification-warning-fg "#93000a"
+set notification-warning-bg "#d57780"
+set notification-warning-fg "#2a303c"
 
-set highlight-color         "#cae6ff"
-set highlight-active-color  "#96ccf8"
+set highlight-color         "#9aafe6"
+set highlight-active-color  "#9aafe6"
 
-set completion-highlight-fg "#00344f"
-set completion-highlight-bg #96ccf8""
+set completion-highlight-fg "#2a303c"
+set completion-highlight-bg "#7797b7"
 
-set completion-bg           "#00344f"
-set completion-fg           "#96ccf8"
+set completion-bg           "#373d49"
+set completion-fg           "#e5e9f0"
 
-set notification-bg         "#00344f"
-set notification-fg         "#96ccf8"
+set notification-bg         "#9aafe6"
+set notification-fg         "#2a303c"
 
 set recolor                 "true"
-set recolor-lightcolor      "rgba(0, 52, 79, 1)"
-set recolor-darkcolor       "#96ccf8"
+set recolor-lightcolor      "#2a303c"
+set recolor-darkcolor       "#e5e9f0"
 set recolor-reverse-video   "true"
 set recolor-keephue         "true"
 
@@ -90,6 +90,4 @@ map [fullscreen] W adjust_window width
 
 map [normal]     i set recolor
 map [fullscreen] i set recolor
-set default-bg              "rgba(0, 52, 79, 1)"
-set recolor-lightcolor      "rgba(0, 52, 79, 1)"
 set recolor false

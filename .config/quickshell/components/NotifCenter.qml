@@ -26,8 +26,7 @@ Item {
     readonly property color accent: rootRef ? Qt.color(rootRef.colorOf("widget_accent")) : "#ff8fb2"
     readonly property color signalAccent: "#ffffff"
     readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
-    readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Inter"
-    readonly property string fontFamily: rootRef && rootRef.fontFamily ? rootRef.fontFamily : "Ndot 57"
+    readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Geist"
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
 
     function _lin(v: double): double {
@@ -45,7 +44,7 @@ Item {
     }
     property real animProgress: svc && svc.centerOpen ? 1.0 : 0.0
     Behavior on animProgress {
-        NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
+        NumberAnimation { duration: center.svc && center.svc.centerOpen ? 180 : 140; easing.type: Easing.OutCubic }
     }
 
     Keys.onEscapePressed: event => {
@@ -79,26 +78,18 @@ Item {
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.topMargin: rootRef ? rootRef.barHeight - 15 : 21
-        layer.enabled: true
-        layer.effect: MultiEffect {
-            shadowEnabled: true
-            shadowBlur: 0.25
-            blurMax: 24
-            shadowOpacity: 0.2
-            shadowVerticalOffset: 1
-            shadowHorizontalOffset: 0
-        }
 
         color: center.panelColor
-        radius: 22
+        radius: 12
         border.width: 1
         border.color: center.panelBorder
         clip: true
 
 
         opacity: center.animProgress
-        scale: 0.96 + 0.04 * center.animProgress
-        transformOrigin: Item.Top
+        transform: Translate { y: (1 - center.animProgress) * 8 }
+
+        MouseArea { anchors.fill: parent }
 
         ColumnLayout {
             id: panelColumn
@@ -128,9 +119,9 @@ Item {
                 Text {
                     text: "Notifications"
                     color: center.fg
-                    font.family: center.fontFamily
+                    font.family: center.uiFont
                     font.pixelSize: center.fontSize + 2
-                    font.weight: Font.Black
+                    font.weight: Font.DemiBold
                     Layout.fillWidth: true
                     verticalAlignment: Text.AlignVCenter
                 }
@@ -139,7 +130,7 @@ Item {
                     visible: svc && svc.unreadCount > 0
                     Layout.preferredHeight: 20
                     implicitWidth: unreadLabel.implicitWidth + 12
-                    radius: 10
+                    radius: 8
                     color: center.accent
 
                     Text {
@@ -147,9 +138,9 @@ Item {
                         anchors.centerIn: parent
                         text: svc ? String(svc.unreadCount) : ""
                         color: "#15161a"
-                        font.family: center.fontFamily
+                        font.family: center.uiFont
                         font.pixelSize: center.fontSize - 2
-                        font.weight: Font.Black
+                        font.weight: Font.DemiBold
                     }
                 }
 
@@ -172,7 +163,7 @@ Item {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 224
                 visible: rootRef && rootRef.mediaStatus !== "none"
-                radius: 22
+                radius: 12
                 clip: true
                 antialiasing: true
                 smooth: true
@@ -180,7 +171,7 @@ Item {
                 border.color: Qt.rgba(1, 1, 1, 0.16)
                 color: "transparent"
 
-                readonly property color mediaAccent: center.signalAccent
+                 readonly property color mediaAccent: mediaCard.hasArt ? center.signalAccent : center.fg
                 property string mediaTitle: rootRef ? (rootRef.mediaTitle || "") : ""
                 property string mediaArtist: rootRef ? (rootRef.mediaArtist || "") : ""
                 property bool hasArt: rootRef && !!rootRef.mediaArt
@@ -245,7 +236,7 @@ Item {
                         color: Qt.rgba(mediaCard.mediaAccent.r, mediaCard.mediaAccent.g, mediaCard.mediaAccent.b, 0.9)
                         font.family: center.uiFont
                         font.pixelSize: 10
-                        font.letterSpacing: 3
+                        font.letterSpacing: 0.5
                         font.weight: Font.DemiBold
                     }
 
@@ -258,8 +249,8 @@ Item {
                         Text {
                             Layout.fillWidth: true
                             text: mediaCard.mediaTitle
-                            color: "#ffffff"
-                            font.family: center.fontFamily
+                             color: mediaCard.hasArt ? "#ffffff" : center.fg
+                             font.family: center.uiFont
                             font.pixelSize: center.fontSize + 1
                             font.weight: Font.Bold
                             elide: Text.ElideRight
@@ -268,11 +259,11 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
-                            text: mediaCard.mediaArtist.toUpperCase()
-                            color: Qt.rgba(1, 1, 1, 0.7)
-                            font.family: center.uiFont
+                            text: mediaCard.mediaArtist
+                             color: mediaCard.hasArt ? Qt.rgba(1, 1, 1, 0.7) : center.muteFg
+                             font.family: center.uiFont
                             font.pixelSize: 10
-                            font.letterSpacing: 2
+                            font.letterSpacing: 0
                             elide: Text.ElideRight
                             maximumLineCount: 1
                         }
@@ -294,11 +285,7 @@ Item {
                                 property bool playing: rootRef && rootRef.mediaStatus === "Playing"
                                 property bool hovered: seekArea.containsMouse || seekArea.dragging
 
-                                onPlayingChanged: {
-                                    if (waveCanvas.playing) waveTimer.start()
-                                    else waveTimer.stop()
-                                    waveCanvas.requestPaint()
-                                }
+                                onPlayingChanged: waveCanvas.requestPaint()
                                 onHoveredChanged: waveCanvas.requestPaint()
                                 onWidthChanged: waveCanvas.requestPaint()
                                 onHeightChanged: waveCanvas.requestPaint()
@@ -361,7 +348,8 @@ Item {
                                 id: waveTimer
                                 interval: 50
                                 repeat: true
-                                running: waveCanvas.playing
+                                running: waveCanvas.playing && waveCanvas.visible && center.visible
+                                    && center.svc !== null && center.svc.centerOpen
                                 onTriggered: () => {
                                     waveCanvas.phase += 0.14
                                     waveCanvas.requestPaint()
@@ -430,7 +418,7 @@ Item {
                 Layout.fillWidth: true
                 Layout.preferredHeight: Math.min(centerList.contentHeight, center.listMaxHeight) + 16
                 visible: centerList.count > 0
-                radius: 16
+                radius: 12
                 color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.04)
                 border.width: 1
                 border.color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.09)
@@ -461,7 +449,7 @@ Item {
                     contentItem: Rectangle {
                         implicitWidth: 4
                         radius: 2
-                        color: Qt.rgba(1, 1, 1, 0.25)
+                         color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.25)
                     }
                 }
 
@@ -509,7 +497,7 @@ Item {
             anchors.centerIn: parent
             width: btn.btnSize
             height: btn.btnSize
-            radius: btn.btnSize / 2
+            radius: 8
             color: btn.accent
                 ? Qt.color(center.signalAccent)
                 : (hoverArea.containsMouse ? Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.1) : "transparent")

@@ -31,8 +31,8 @@ mkdir -p "$CACHE"
 
 # matugen prefer
 case "$MODE" in
-  light|Light) PREFER="lightness"; QUICK='{"mode": "dark"}';  ;;
-  *)           PREFER="darkness";  QUICK='{"mode": "light"}'; ;;
+  light|Light) MODE="light"; PREFER="lightness"; QUICK='{"mode": "light"}'; ;;
+  *)           MODE="dark"; PREFER="darkness"; QUICK='{"mode": "dark"}'; ;;
 esac
 
 # Build a full Material-3 palette from a serpantinum/(Catppuccin) preset and
@@ -589,7 +589,7 @@ PY
 )"
 fi
 
-matugen "${MATUGEN[@]}"
+matugen "${MATUGEN[@]}" --mode "$MODE"
 
 # Accent green/mauve into colors.js: preset runs already carry native theme
 # green/mauve roles; image runs get them by hue-rotating the source color so

@@ -3,6 +3,8 @@ import json
 import os
 import sys
 import time
+import tempfile
+import subprocess
 
 DATA_HOME = os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share"))
 STORE = os.path.join(DATA_HOME, "quickshell", "notes.json")
@@ -12,17 +14,34 @@ def load():
     try:
         with open(STORE, "r", encoding="utf-8") as f:
             data = json.load(f)
-            if isinstance(data, list):
-                return data
-    except Exception:
-        pass
-    return []
+    except FileNotFoundError:
+        return []
+    if not isinstance(data, list) or any(
+        not isinstance(n, dict)
+        or not isinstance(n.get("id"), str)
+        or not isinstance(n.get("text"), str)
+        for n in data
+    ):
+        raise ValueError("invalid notes store: " + STORE)
+    return data
 
 
 def save(notes):
     os.makedirs(os.path.dirname(STORE), exist_ok=True)
-    with open(STORE, "w", encoding="utf-8") as f:
-        json.dump(notes, f, ensure_ascii=False, indent=2)
+    tmp = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=os.path.dirname(STORE),
+            prefix=".notes-", delete=False
+        ) as f:
+            tmp = f.name
+            json.dump(notes, f, ensure_ascii=False, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, STORE)
+    finally:
+        if tmp is not None and os.path.exists(tmp):
+            os.unlink(tmp)
 
 
 def print_error(msg):
@@ -64,8 +83,7 @@ def main():
         nid = sys.argv[2] if len(sys.argv) > 2 else ""
         for n in load():
             if n.get("id") == nid:
-                import subprocess
-                subprocess.run(["wl-copy"], input=n.get("text", "").encode("utf-8"))
+                subprocess.run(["wl-copy"], input=n.get("text", "").encode("utf-8"), check=True)
                 return 0
         return 1
 
@@ -78,4 +96,8 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except (OSError, ValueError, subprocess.CalledProcessError) as e:
+        print_error(str(e))
+        sys.exit(1)

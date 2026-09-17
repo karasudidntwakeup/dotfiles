@@ -64,6 +64,20 @@ ShellRoot {
         return v === undefined ? root.qsPillFallbackBg : v
     }
 
+    function tonalPillColor(accent) {
+        var color = Qt.color(accent)
+        var lightness = root.qsLight
+            ? Math.min(color.hslLightness, 0.24)
+            : Math.max(color.hslLightness, 0.76)
+        return Qt.hsla(Math.max(0, color.hslHue), color.hslSaturation, lightness, 1)
+    }
+
+    function pillForeground(background) {
+        var linear = value => value <= 0.04045 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4)
+        var light = 0.2126 * linear(background.r) + 0.7152 * linear(background.g) + 0.0722 * linear(background.b)
+        return light > 0.179 ? "#000000" : "#ffffff"
+    }
+
     function popupSurface(name) {
         var v = colorFile.paletteMap[name + "_light"]
         return v === undefined ? colorOf(name) : v
@@ -240,7 +254,7 @@ ShellRoot {
             Quickshell.execDetached(["sh", "-c",
                 "paplay ~/.local/share/sounds/bell.oga &\n" +
                 "notify-send -u critical -i appointment-soon -t 15000 '" + root.prayerName + "' 'It is time for " + root.prayerName + " 󰦕'"])
-            root.prayerProc.running = true
+            prayerProc.running = true
         }
     }
 
@@ -791,12 +805,12 @@ ShellRoot {
         property alias clickArea: pillArea
         property alias wheelArea: pillArea
 
-        readonly property color pillTextColor: root.luminance(tint) > 0.5 ? "#000000" : "#ffffff"
+        readonly property color pillTextColor: root.pillForeground(pill.color)
 
         implicitWidth: pillRow.implicitWidth + pill.padX
         implicitHeight: root.pillHeight
-        radius: 10
-        color: tint
+        radius: 15
+        color: root.tonalPillColor(tint)
         border.width: 0
 
         Behavior on color { ColorAnimation { duration: 250 } }
@@ -878,12 +892,12 @@ ShellRoot {
         property int padX: 14
         property int iconSize: root.fontSize + 2
         readonly property color tint: root.networkConnected ? root.signalTint(root.networkSignal) : root.pillColor("error")
-        readonly property color pillTextColor: root.luminance(dc.tint) > 0.5 ? "#000000" : "#ffffff"
+        readonly property color pillTextColor: root.pillForeground(dc.color)
         readonly property bool hovering: dcArea.containsMouse || dcArea.pressed
 
         implicitHeight: root.pillHeight
-        radius: 10
-        color: dc.tint
+        radius: 15
+        color: root.tonalPillColor(dc.tint)
         border.width: 0
 
         implicitWidth: dcRow.implicitWidth + dc.padX
@@ -1339,7 +1353,7 @@ ShellRoot {
         readonly property real dotSpacing: 4
         readonly property real pillPad: 6
         readonly property real dotRadius: 5
-        readonly property color accent: root.colorOf("widget_accent")
+        readonly property color accent: root.pillColor("primary")
 
         function contentWidth() {
             return (count - 1) * dotW + activeW + dotSpacing * (count - 1)
@@ -1347,8 +1361,8 @@ ShellRoot {
 
         width: contentWidth() + pillPad * 2
         height: root.pillHeight
-        radius: 10
-        color: root.pillColor("primary_container")
+        radius: 15
+        color: root.tonalPillColor(root.pillColor("primary_container"))
         border.width: 0
 
         Row {
@@ -1375,7 +1389,7 @@ delegate: Item {
                             Rectangle {
                                 anchors.fill: parent
                                 radius: wsWidget.dotRadius
-                                color: focused ? wsWidget.accent : root.colorOf("on_primary_container")
+                                color: focused ? wsWidget.accent : root.pillForeground(wsWidget.color)
                                 opacity: focused ? 1.0 : (occupied ? 0.5 : 0.18)
                                 Behavior on color { ColorAnimation { duration: 250 } }
                             }
@@ -1430,9 +1444,6 @@ delegate: Item {
     WlSessionLock {
         id: wLock
         locked: lockActive
-        onLockedChanged: {
-            if (locked) passSurface.forceActiveFocus()
-        }
 
         WlSessionLockSurface {
             color: "#000000"
@@ -1453,14 +1464,19 @@ delegate: Item {
         }
     }
 
-    function openWallpaperPicker() {
-        if (wallPicker.visible || openAnim.running) return
+    function closeOverlays() {
         notifSvc.closeCenter()
         root.launcherActive = false
         root.ytxActive = false
         root.clipboardActive = false
         root.whatsappActive = false
         root.notesActive = false
+        root.closeWallpaperPicker()
+    }
+
+    function openWallpaperPicker() {
+        if (wallPicker.visible || openAnim.running) return
+        root.closeOverlays()
         pickerContent.opacity = 0
         pickerContent.anchors.topMargin = -24
         pickerContent.anchors.bottomMargin = 24
@@ -1485,9 +1501,12 @@ delegate: Item {
 
     property bool launcherActive: false
 
-    function openAppLauncher() { root.launcherActive = true; notifSvc.closeCenter(); root.closeYtx(); root.closeClipboard(); root.closeWhatsApp(); root.closeNotes() }
+    function openAppLauncher() { root.closeOverlays(); root.launcherActive = true }
     function closeAppLauncher() { root.launcherActive = false }
-    function toggleAppLauncher() { root.launcherActive = !root.launcherActive }
+    function toggleAppLauncher() {
+        if (root.launcherActive) root.closeAppLauncher()
+        else root.openAppLauncher()
+    }
 
     IpcHandler {
         target: "launcher"
@@ -1519,9 +1538,12 @@ delegate: Item {
 
     property bool ytxActive: false
 
-    function openYtx() { root.ytxActive = true; notifSvc.closeCenter(); root.closeAppLauncher(); root.closeClipboard(); root.closeWhatsApp(); root.closeNotes() }
+    function openYtx() { root.closeOverlays(); root.ytxActive = true }
     function closeYtx() { root.ytxActive = false }
-    function toggleYtx() { root.ytxActive = !root.ytxActive }
+    function toggleYtx() {
+        if (root.ytxActive) root.closeYtx()
+        else root.openYtx()
+    }
 
     IpcHandler {
         target: "ytx"
@@ -1553,9 +1575,12 @@ delegate: Item {
 
     property bool whatsappActive: false
 
-    function openWhatsApp() { root.whatsappActive = true; notifSvc.closeCenter(); root.closeAppLauncher(); root.closeYtx(); root.closeClipboard(); root.closeNotes() }
+    function openWhatsApp() { root.closeOverlays(); root.whatsappActive = true }
     function closeWhatsApp() { root.whatsappActive = false }
-    function toggleWhatsApp() { root.whatsappActive = !root.whatsappActive }
+    function toggleWhatsApp() {
+        if (root.whatsappActive) root.closeWhatsApp()
+        else root.openWhatsApp()
+    }
 
     IpcHandler {
         target: "whatsapp"
@@ -1587,9 +1612,12 @@ delegate: Item {
 
     property bool clipboardActive: false
 
-    function openClipboard() { root.clipboardActive = true; notifSvc.closeCenter(); root.closeAppLauncher(); root.closeYtx(); root.closeWhatsApp(); root.closeNotes() }
+    function openClipboard() { root.closeOverlays(); root.clipboardActive = true }
     function closeClipboard() { root.clipboardActive = false }
-    function toggleClipboard() { root.clipboardActive = !root.clipboardActive }
+    function toggleClipboard() {
+        if (root.clipboardActive) root.closeClipboard()
+        else root.openClipboard()
+    }
 
     IpcHandler {
         target: "clipboard"
@@ -1621,9 +1649,12 @@ delegate: Item {
 
     property bool notesActive: false
 
-    function openNotes() { root.notesActive = true; notifSvc.closeCenter(); root.closeAppLauncher(); root.closeYtx(); root.closeClipboard(); root.closeWhatsApp() }
+    function openNotes() { root.closeOverlays(); root.notesActive = true }
     function closeNotes() { root.notesActive = false }
-    function toggleNotes() { root.notesActive = !root.notesActive }
+    function toggleNotes() {
+        if (root.notesActive) root.closeNotes()
+        else root.openNotes()
+    }
 
     IpcHandler {
         target: "notes"
@@ -1668,6 +1699,7 @@ delegate: Item {
         WallpaperPicker {
             id: pickerContent
             anchors.fill: parent
+            currentMode: root.qsLight ? "light" : "dark"
 
             surfaceColor: "#17181c"
             borderColor: Qt.color(root.colorOf("outline_variant"))
@@ -1764,14 +1796,12 @@ delegate: Item {
     }
 
     function toggleNotifCenter() {
-        if (!notifSvc.centerOpen) {
-            root.launcherActive = false
-            root.ytxActive = false
-            root.clipboardActive = false
-            root.whatsappActive = false
-            root.closeWallpaperPicker()
+        if (notifSvc.centerOpen) {
+            notifSvc.closeCenter()
+        } else {
+            root.closeOverlays()
+            notifSvc.openCenter()
         }
-        notifSvc.toggleCenter()
     }
 
     IpcHandler {

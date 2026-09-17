@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
 
@@ -13,7 +12,7 @@ Item {
     property bool searching: false
     property bool searchFailed: false
     property string activeQuery: ""
-    readonly property int cornerRadius: 20
+    readonly property int cornerRadius: 12
     readonly property int pad: 14
     readonly property int cardWidth: 820
     readonly property int searchHeight: 40
@@ -56,8 +55,8 @@ Item {
         return white >= black ? "#ffffff" : "#000000"
     }
     readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
-    readonly property string fontFamily: rootRef && rootRef.fontFamily ? rootRef.fontFamily : "Ndot 57"
-    readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Inter"
+    readonly property string fontFamily: uiFont
+    readonly property string uiFont: "Geist"
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
     property real animProgress: ytx.active ? 1 : 0
     readonly property int bottomMargin: 24
@@ -459,15 +458,6 @@ Item {
     Rectangle {
         id: card
 
-        layer.enabled: true
-        layer.effect: MultiEffect {
-            shadowEnabled: true
-            shadowBlur: 0.25
-            blurMax: 24
-            shadowOpacity: 0.2
-            shadowVerticalOffset: 1
-            shadowHorizontalOffset: 0
-        }
 
         width: ytx.cardWidth
         anchors.horizontalCenter: parent.horizontalCenter
@@ -481,10 +471,8 @@ Item {
 
 
         transform: Translate {
-            y: (1.0 - ytx.animProgress) * 30
+            y: (1.0 - ytx.animProgress) * 8
         }
-        scale: 0.96 + 0.04 * ytx.animProgress
-        transformOrigin: Item.Bottom
 
         Column {
             id: contentColumn
@@ -499,7 +487,7 @@ Item {
 
                 width: parent.width
                 height: ytx.searchHeight
-                radius: ytx.searchHeight / 2
+                radius: 8
                 color: ytx.alpha(ytx.fg, 0.08)
                 border.width: 1
                 border.color: searchField.activeFocus ? ytx.alpha(ytx.fg, 0.4) : ytx.alpha(ytx.fg, 0.12)
@@ -537,11 +525,11 @@ Item {
                                 ytx.filter(searchField.text);
                         }
                         Keys.onDownPressed: (event) => {
-                            grid.incrementCurrentIndex();
+                            grid.moveCurrentIndexDown();
                             event.accepted = true;
                         }
                         Keys.onUpPressed: (event) => {
-                            grid.decrementCurrentIndex();
+                            grid.moveCurrentIndexUp();
                             event.accepted = true;
                         }
                         Keys.onRightPressed: (event) => {
@@ -933,7 +921,7 @@ Item {
                                     maximumLineCount: 2
                                     font.family: ytx.uiFont
                                     font.pixelSize: ytx.fontSize - 1
-                                    font.weight: isSelected ? Font.Black : Font.Medium
+                                    font.weight: Font.Medium
                                     color: isSelected ? ytx.selectedFg : ytx.fg
                                     lineHeight: 1.2
                                 }
@@ -976,7 +964,7 @@ Item {
 
     Behavior on animProgress {
         NumberAnimation {
-            duration: ytx.active ? 320 : 220
+            duration: ytx.active ? 180 : 140
             easing.type: Easing.OutCubic
         }
 

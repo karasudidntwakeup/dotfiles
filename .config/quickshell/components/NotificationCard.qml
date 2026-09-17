@@ -18,7 +18,7 @@ Item {
     property var realNotif: (function() {
         if (svc && svc.liveNotifs && card.uid >= 0 && svc.liveNotifs[card.uid])
             return svc.liveNotifs[card.uid]
-        return nData ? nData.notif : null
+        return null
     })()
     property var actionArray: (function() {
         try {
@@ -40,8 +40,7 @@ Item {
         : "#000000"
     readonly property color mute: rootRef ? rootRef.withAlpha(card.fg, 0.58) : "#666666"
     readonly property string iconFont: rootRef ? rootRef.iconFont : "Symbols Nerd Font"
-    readonly property string uiFont: rootRef ? rootRef.uiFont : "Inter"
-    readonly property string fontFamily: rootRef ? rootRef.fontFamily : "Ndot 57"
+    readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Geist"
     readonly property int fontSize: rootRef ? rootRef.fontSize : 13
 
     readonly property bool isPopup: context === "popup"
@@ -66,7 +65,7 @@ Item {
         function onIconPathsUpdated() { card.iconTick++ }
     }
 
-    readonly property int ts: nData && nData.timestamp !== undefined ? nData.timestamp : Date.now()
+    readonly property real ts: nData && nData.timestamp !== undefined ? nData.timestamp : Date.now()
     property string timeText: ""
     function fmtTime(t) {
         if (!t) return ""
@@ -123,7 +122,9 @@ Item {
         }
         return 6000
     })()
-    property bool hovering: false
+    readonly property bool hovering: cardHover.hovered || cardArea.pressed
+
+    HoverHandler { id: cardHover }
 
     Timer {
         id: popTimer
@@ -189,7 +190,8 @@ Item {
 
     function dismissFlyOut() {
         flyOut.from = card.dragX
-        flyOut.duration = 200
+        flyOut.to = (card.dragX < 0 ? -1 : 1) * card.width
+        flyOut.duration = 140
         flyOut.start()
     }
 
@@ -207,16 +209,11 @@ Item {
         target: card
         property: "dragX"
         to: 0
-        duration: 200
+        duration: 180
         easing.type: Easing.OutCubic
     }
 
     implicitHeight: cardBody.height
-
-    scale: card.isPopup ? (card.hovering || card.dragging ? 1.01 : 1.0) : 1.0
-    Behavior on scale {
-        NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
-    }
 
     Item {
         id: dragLayer
@@ -229,7 +226,7 @@ Item {
             anchors.left: parent.left
             anchors.right: parent.right
             height: cardContent.implicitHeight + card.pad * 2 + (card.imageOk ? card.imageBoxHeight + card.pad : 0)
-            radius: 20
+            radius: 12
             color: card.cardColor
             border.width: card.urgency === 2 ? 1.5 : 1
             border.color: card.urgency === 2 ? card.errorColor : card.borderColor
@@ -238,26 +235,11 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            radius: card.urgency === 2 ? 18.5 : 19
+            radius: cardBody.radius
             visible: cardArea.containsMouse && !cardArea.pressed && !card.dragging
             color: {
                 if (!rootRef) return "transparent"
                 return rootRef.withAlpha(card.fg, 0.045)
-            }
-        }
-
-        Rectangle {
-            anchors.top: parent.top
-            anchors.topMargin: -1
-            anchors.left: parent.left
-            anchors.right: parent.right
-            height: parent.height * 0.5
-            radius: card.urgency === 2 ? 18.5 : 0
-            visible: card.urgency === 2
-            color: "transparent"
-            gradient: Gradient {
-                GradientStop { position: 0.0; color: Qt.rgba(card.errorColor.r, card.errorColor.g, card.errorColor.b, 0.12) }
-                GradientStop { position: 1.0; color: "transparent" }
             }
         }
 
@@ -332,12 +314,12 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
-                            text: card.name.toUpperCase()
+                            text: card.name
                             color: card.mute
                             font.family: card.uiFont
                             font.pixelSize: card.fontSize - 2
                             font.weight: Font.DemiBold
-                            font.letterSpacing: 2
+                            font.letterSpacing: 0
                             elide: Text.ElideRight
                         }
                     }
@@ -346,7 +328,7 @@ Item {
                         Layout.fillWidth: true
                         text: nData ? (nData.summary || "") : ""
                         color: card.fg
-                        font.family: card.fontFamily
+                        font.family: card.uiFont
                         font.pixelSize: card.fontSize + (card.isPopup ? 1 : 0)
                         font.weight: Font.Bold
                         wrapMode: Text.Wrap
@@ -382,8 +364,8 @@ Item {
                     delegate: Rectangle {
                         required property var modelData
                         Layout.preferredHeight: 26
-                        implicitWidth: actionLabel.implicitWidth + 20
-                        radius: 7
+                        implicitWidth: actionRow.implicitWidth + 20
+                        radius: 8
                         color: actHover.containsMouse || actHover.pressed
                             ? rootRef.withAlpha(card.fg, 0.1)
                             : Qt.rgba(card.fg.r, card.fg.g, card.fg.b, 0.02)
@@ -394,6 +376,7 @@ Item {
                         Behavior on color { ColorAnimation { duration: 120 } }
 
                         Row {
+                            id: actionRow
                             anchors.centerIn: parent
                             spacing: 5
 
@@ -440,7 +423,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: 20
+        radius: 12
         visible: card.selected
         color: "transparent"
         border.width: 2
@@ -450,6 +433,7 @@ Item {
     MouseArea {
         id: cardArea
         anchors.fill: parent
+        z: -1
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
 
@@ -485,8 +469,6 @@ Item {
             card.dragging = false
             dragReset.start()
         }
-        onContainsMouseChanged: card.hovering = containsMouse
-        onPressedChanged: card.hovering = containsMouse || pressed
     }
 
     Rectangle {

@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
 
@@ -18,7 +17,7 @@ Item {
     readonly property int maxRows: 8
     readonly property int searchHeight: 40
     readonly property int pad: 14
-    readonly property int cornerRadius: 20
+    readonly property int cornerRadius: 12
 
     readonly property string cardTile: "surface"
     readonly property color cardColor: rootRef
@@ -61,15 +60,15 @@ Item {
         return white >= black ? "#ffffff" : "#000000"
     }
     readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
-    readonly property string fontFamily: rootRef && rootRef.fontFamily ? rootRef.fontFamily : "Ndot 57"
-    readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Inter"
+    readonly property string fontFamily: uiFont
+    readonly property string uiFont: "Geist"
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
     readonly property string notesScript: Quickshell.shellDir + "/scripts/notes.py"
 
     property real animProgress: notes.active ? 1.0 : 0.0
     Behavior on animProgress {
         NumberAnimation {
-            duration: notes.active ? 320 : 220
+            duration: notes.active ? 180 : 140
             easing.type: Easing.OutCubic
         }
     }
@@ -146,14 +145,14 @@ Item {
         for (var i = 0; i < src.length; i++) {
             var e = src[i]
             if (q.length > 0 && e.text.toLowerCase().indexOf(q) < 0) continue
-            listModel.append({ id: e.id, ts: e.ts, note: e.text })
+            listModel.append({ noteId: e.id, ts: e.ts, note: e.text })
         }
         listView.currentIndex = 0
     }
 
     function saveNote() {
         var raw = notesField.text
-        if (!raw || raw.trim().length === 0) return
+        if (addProc.running || !raw || raw.trim().length === 0) return
         addProc.command = ["python3", notes.notesScript, "add", raw.trim()]
         addProc.running = true
     }
@@ -161,8 +160,10 @@ Item {
     Process {
         id: addProc
         onExited: code => {
-            notesField.text = ""
-            notes.reload()
+            if (code === 0) {
+                notesField.text = ""
+                notes.reload()
+            }
             addFocus.restart()
         }
     }
@@ -205,7 +206,7 @@ Item {
         if (listModel.count === 0) return
         var idx = listView.currentIndex
         if (idx < 0 || idx >= listModel.count) return
-        notes.delNoteId = listModel.get(idx).id
+        notes.delNoteId = listModel.get(idx).noteId
         notes.deleteNote(notes.delNoteId)
     }
 
@@ -213,7 +214,7 @@ Item {
         if (listModel.count === 0) return
         var idx = listView.currentIndex
         if (idx < 0 || idx >= listModel.count) return
-        notes.copyNote(listModel.get(idx).id)
+        notes.copyNote(listModel.get(idx).noteId)
     }
 
     function wipeAll() {
@@ -264,15 +265,6 @@ Item {
     Rectangle {
         id: card
 
-        layer.enabled: true
-        layer.effect: MultiEffect {
-            shadowEnabled: true
-            shadowBlur: 0.25
-            blurMax: 24
-            shadowOpacity: 0.2
-            shadowVerticalOffset: 1
-            shadowHorizontalOffset: 0
-        }
 
         z: 1
         width: notes.cardWidth
@@ -287,11 +279,8 @@ Item {
 
 
         transform: Translate {
-            y: (1.0 - notes.animProgress) * 30
+            y: (1.0 - notes.animProgress) * 8
         }
-
-        scale: 0.96 + 0.04 * notes.animProgress
-        transformOrigin: Item.Bottom
 
         Column {
             id: contentColumn
@@ -318,7 +307,7 @@ Item {
                     color: notes.fg
                     font.family: notes.fontFamily
                     font.pixelSize: notes.fontSize + 1
-                    font.weight: Font.Black
+                    font.weight: Font.DemiBold
                     verticalAlignment: Text.AlignVCenter
                 }
 
@@ -399,7 +388,7 @@ Item {
                 id: addBox
                 width: parent.width
                 height: notes.searchHeight
-                radius: notes.searchHeight / 2
+                radius: 8
                 color: notes.alpha(notes.accent, 0.18)
                 border.width: 1
                 border.color: notesField.activeFocus
@@ -487,7 +476,7 @@ Item {
                 id: searchBox
                 width: parent.width
                 height: notes.searchHeight
-                radius: notes.searchHeight / 2
+                radius: 8
                 color: notes.alpha(notes.fg, 0.08)
                 border.width: 1
                 border.color: searchField.activeFocus
@@ -623,7 +612,7 @@ Item {
 
                     delegate: Item {
                         required property int index
-                        required property string id
+                        required property string noteId
                         required property string ts
                         required property string note
 
@@ -681,8 +670,8 @@ Item {
                                     text: note.length === 0 ? "(empty)" : note
                                     color: isSelected ? notes.selectedFg : notes.fg
                                     font.family: notes.fontFamily
-                                    font.pixelSize: notes.fontSize + (isSelected ? 1 : 0)
-                                    font.weight: isSelected ? Font.Black : Font.Medium
+                                    font.pixelSize: notes.fontSize
+                                    font.weight: Font.Medium
                                     maximumLineCount: 2
                                     clip: true
                                     wrapMode: Text.WordWrap
@@ -731,7 +720,7 @@ Item {
                                     cursorShape: Qt.PointingHandCursor
                                     onClicked: {
                                         listView.currentIndex = index
-                                        notes.copyNote(id)
+                                        notes.copyNote(noteId)
                                     }
                                 }
                             }
@@ -761,8 +750,8 @@ Item {
                                     cursorShape: Qt.PointingHandCursor
                                     onClicked: {
                                         listView.currentIndex = index
-                                        notes.delNoteId = id
-                                        notes.deleteNote(id)
+                                        notes.delNoteId = noteId
+                                        notes.deleteNote(noteId)
                                     }
                                 }
                             }
@@ -771,6 +760,7 @@ Item {
                         MouseArea {
                             id: rowHover
                             anchors.fill: parent
+                            anchors.rightMargin: 76
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
@@ -803,7 +793,7 @@ Item {
                             font.family: notes.uiFont
                             font.pixelSize: notes.fontSize
                         }
-}
+                    }
             }
         }
     }

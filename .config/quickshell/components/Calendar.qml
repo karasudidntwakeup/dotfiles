@@ -3,7 +3,6 @@ import Quickshell.Wayland
 import Quickshell.Io
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Effects
 import QtQuick.Layouts
 
 PanelWindow {
@@ -52,15 +51,12 @@ PanelWindow {
 
     readonly property int editorHeight: 164
 
-    // Caelestia-style pop: single progress drives grow-from-pill + fade together.
-    // 0 = collapsed into the pill, 1 = resting under the clock pill.
     property real popProgress: 0
     property real baseTop: 0
 
-    // Date editor open/close animation (same 200ms OutCubic feel).
     property real editorProgress: calPopup.selectedKey.length > 0 ? 1 : 0
     Behavior on editorProgress {
-        NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
+        NumberAnimation { duration: calPopup.selectedKey.length > 0 ? 180 : 140; easing.type: Easing.OutCubic }
     }
 
     readonly property int timerHeight: 56
@@ -113,7 +109,7 @@ PanelWindow {
     // Same open/close animation as the notification center.
     Behavior on popProgress {
         NumberAnimation {
-            duration: 200
+            duration: calPopup.closingBySelf ? 140 : 180
             easing.type: Easing.OutCubic
         }
     }
@@ -374,8 +370,9 @@ PanelWindow {
             timerBody.opacity = 0
             positionTimer.attempts = 0
             positionTimer.restart()
+            timerPopupOut.stop()
             Qt.callLater(() => {
-                timerPopupIn.restart()
+                if (calPopup.visible && !calPopup.closingBySelf) timerPopupIn.restart()
             })
             calPopup.popProgress = 1
         } else {
@@ -418,18 +415,17 @@ PanelWindow {
             }
 
         Behavior on height {
-            NumberAnimation { duration: 280; easing.type: Easing.OutCubic }
+            NumberAnimation { duration: calPopup.selectedKey.length > 0 ? 180 : 140; easing.type: Easing.OutCubic }
         }
 
-        radius: 28
+        radius: 12
         color: calPopup.calColor
         border.width: 1
         border.color: Qt.rgba(1, 1, 1, 0.12)
         clip: true
 
         opacity: calPopup.popProgress
-        scale: 0.96 + 0.04 * calPopup.popProgress
-        transformOrigin: Item.Top
+        transform: Translate { y: (1 - calPopup.popProgress) * 8 }
 
         ColumnLayout {
             id: bodyColumn
@@ -445,7 +441,7 @@ PanelWindow {
                 Rectangle {
                     Layout.preferredWidth: 26
                     Layout.preferredHeight: 26
-                    radius: 16
+                    radius: 8
                     color: calPrevHover.containsMouse ? rootRef.withAlpha(calPopup.popupFg, 0.15) : "transparent"
 
                     Text {
@@ -465,12 +461,21 @@ PanelWindow {
                     }
                 }
 
-                Item { Layout.fillWidth: true }
+                Text {
+                    Layout.fillWidth: true
+                    text: calPopup.monthName(calPopup.shownMonth) + " " + calPopup.shownYear
+                    color: calPopup.popupFg
+                    font.family: rootRef.uiFont
+                    font.pixelSize: rootRef.fontSize + 1
+                    font.weight: Font.DemiBold
+                    horizontalAlignment: Text.AlignHCenter
+                    elide: Text.ElideRight
+                }
 
                 Rectangle {
                     Layout.preferredWidth: 26
                     Layout.preferredHeight: 26
-                    radius: 16
+                    radius: 8
                     color: calNextHover.containsMouse ? rootRef.withAlpha(calPopup.popupFg, 0.15) : "transparent"
 
                     Text {
@@ -493,7 +498,7 @@ PanelWindow {
                 Rectangle {
                     Layout.preferredWidth: 26
                     Layout.preferredHeight: 26
-                    radius: 16
+                    radius: 8
                     color: calCloseHover.containsMouse ? rootRef.withAlpha(rootRef.error, 0.25) : "transparent"
 
                     Text {
@@ -532,9 +537,9 @@ PanelWindow {
                     anchors.verticalCenter: parent.verticalCenter
                     text: Qt.formatDate(new Date(), "dddd, MMMM d, yyyy")
                     color: calPopup.popupFg
-                    font.family: rootRef.fontFamily
-                    font.pixelSize: rootRef.fontSize + 3
-                    font.weight: Font.Bold
+                    font.family: rootRef.uiFont
+                    font.pixelSize: rootRef.fontSize
+                    font.weight: Font.Medium
                 }
             }
 
@@ -549,7 +554,7 @@ PanelWindow {
                         horizontalAlignment: Text.AlignHCenter
                         text: modelData
                         color: calPopup.popupFg
-                        font.family: rootRef.fontFamily
+                        font.family: rootRef.uiFont
                         font.pixelSize: rootRef.fontSize - 2
                         font.weight: Font.Bold
                         opacity: 0.6
@@ -591,7 +596,7 @@ PanelWindow {
                         Rectangle {
                             anchors.fill: parent
                             anchors.margins: 2
-                            radius: 16
+                            radius: 8
                             visible: day > 0
                             border.width: isToday && !isSelected ? 1 : 0
                             border.color: rootRef ? rootRef.withAlpha(calPopup.accentCol, 0.55) : "transparent"
@@ -607,7 +612,7 @@ PanelWindow {
                                 visible: day > 0
                                 text: day
                                 color: isSelected ? calPopup.accentFg : calPopup.popupFg
-                                font.family: rootRef.fontFamily
+                                font.family: rootRef.uiFont
                                 font.pixelSize: rootRef.fontSize
                                 font.weight: isToday || isSelected ? Font.Bold : Font.Normal
                             }
@@ -663,7 +668,7 @@ PanelWindow {
                     Text {
                         text: calPopup.selectedDateLabel()
                         color: calPopup.popupFg
-                        font.family: rootRef.fontFamily
+                        font.family: rootRef.uiFont
                         font.pixelSize: rootRef.fontSize + 1
                         font.weight: Font.Bold
                         Layout.fillWidth: true
@@ -681,7 +686,7 @@ PanelWindow {
                                 return done + "/" + list.length + " tasks"
                             })()
                         color: calPopup.popupFg
-                        font.family: rootRef.fontFamily
+                        font.family: rootRef.uiFont
                         font.pixelSize: rootRef.fontSize - 2
                         verticalAlignment: Text.AlignVCenter
                     }
@@ -713,7 +718,7 @@ PanelWindow {
                         id: addBtn
                         Layout.preferredWidth: 26
                         Layout.fillHeight: true
-                        radius: 16
+                        radius: 8
                         color: addHover.containsMouse
                             ? rootRef.withAlpha(calPopup.popupFg, 0.35)
                             : rootRef.withAlpha(calPopup.popupFg, 0.22)
@@ -722,7 +727,7 @@ PanelWindow {
                             anchors.centerIn: parent
                             text: "+"
                             color: calPopup.popupFg
-                            font.family: rootRef.fontFamily
+                            font.family: rootRef.uiFont
                             font.pixelSize: rootRef.fontSize + 2
                             font.weight: Font.Normal
                         }
@@ -740,7 +745,7 @@ PanelWindow {
                         id: minusBtn
                         Layout.preferredWidth: 26
                         Layout.fillHeight: true
-                        radius: 16
+                        radius: 8
                         color: minusHover.containsMouse && calPopup.selectedEntryId >= 0
                             ? rootRef.withAlpha(rootRef.error, 0.35)
                             : rootRef.withAlpha(calPopup.popupFg, calPopup.selectedEntryId >= 0 ? 0.12 : 0.05)
@@ -750,7 +755,7 @@ PanelWindow {
                             anchors.centerIn: parent
                             text: "-"
                             color: calPopup.selectedEntryId >= 0 ? rootRef.error : rootRef.withAlpha(calPopup.popupFg, 0.3)
-                            font.family: rootRef.fontFamily
+                            font.family: rootRef.uiFont
                             font.pixelSize: rootRef.fontSize + 2
                             font.weight: Font.Normal
                         }
@@ -807,7 +812,7 @@ PanelWindow {
 
                                 width: entriesCol.width
                                 height: 30
-                                radius: 16
+                                radius: 8
                                 color: rootRef.withAlpha(calPopup.popupFg, saved ? 0.05 : 0.08)
                                 border.width: 1
                                 border.color: isSelected
@@ -887,7 +892,7 @@ PanelWindow {
                                         visible: !saved
                                         Layout.preferredWidth: 22
                                         Layout.preferredHeight: 22
-                                        radius: 16
+                                        radius: 8
                                         color: saveHover.containsMouse ? rootRef.withAlpha(calPopup.popupFg, 0.25) : "transparent"
 
                                         Text {
@@ -948,14 +953,14 @@ PanelWindow {
                 ParallelAnimation {
                     id: timerPopupIn
                     running: false
-                    NumberAnimation { target: timerBody; property: "opacity"; to: 1; duration: 150; easing.type: Easing.OutQuad }
+                    NumberAnimation { target: timerBody; property: "opacity"; to: 1; duration: 180; easing.type: Easing.OutCubic }
                 }
 
                 SequentialAnimation {
                     id: timerPopupOut
                     running: false
                     ParallelAnimation {
-                        NumberAnimation { target: timerBody; property: "opacity"; to: 0; duration: 100; easing.type: Easing.InQuad }
+                        NumberAnimation { target: timerBody; property: "opacity"; to: 0; duration: 140; easing.type: Easing.OutCubic }
                     }
                 }
 
@@ -987,7 +992,7 @@ PanelWindow {
                         Text {
                             text: rootRef.fmtTimer(rootRef.timerRemainingMs)
                             color: rootRef.timerRemainingMs <= 0 ? rootRef.error : calPopup.popupFg
-                            font.family: rootRef.fontFamily
+                            font.family: rootRef.uiFont
                             font.pixelSize: rootRef.fontSize + 8
                             font.weight: Font.Normal
                             Layout.fillWidth: true
@@ -999,7 +1004,7 @@ PanelWindow {
                             Layout.preferredWidth: 26
                             Layout.preferredHeight: 26
                             Layout.alignment: Qt.AlignVCenter
-                            radius: 16
+                            radius: 8
                             color: timerMinusHover.containsMouse
                                 ? rootRef.withAlpha(calPopup.popupFg, 0.35)
                                 : rootRef.withAlpha(calPopup.popupFg, 0.18)
@@ -1008,7 +1013,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 text: "-"
                                 color: calPopup.popupFg
-                                font.family: rootRef.fontFamily
+                                font.family: rootRef.uiFont
                                 font.pixelSize: rootRef.fontSize + 2
                                 font.weight: Font.Normal
                             }
@@ -1027,7 +1032,7 @@ PanelWindow {
                             Layout.preferredWidth: 26
                             Layout.preferredHeight: 26
                             Layout.alignment: Qt.AlignVCenter
-                            radius: 16
+                            radius: 8
                             color: timerPlusHover.containsMouse
                                 ? rootRef.withAlpha(calPopup.popupFg, 0.35)
                                 : rootRef.withAlpha(calPopup.popupFg, 0.18)
@@ -1036,7 +1041,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 text: "+"
                                 color: calPopup.popupFg
-                                font.family: rootRef.fontFamily
+                                font.family: rootRef.uiFont
                                 font.pixelSize: rootRef.fontSize + 2
                                 font.weight: Font.Normal
                             }
@@ -1055,7 +1060,7 @@ PanelWindow {
                             Layout.preferredWidth: 34
                             Layout.preferredHeight: 26
                             Layout.alignment: Qt.AlignVCenter
-                            radius: 16
+                            radius: 8
                             color: rootRef.timerRunning
                                 ? (timerToggleHover.containsMouse ? rootRef.withAlpha(calPopup.accentCol, 0.85) : calPopup.accentCol)
                                 : (timerToggleHover.containsMouse ? rootRef.withAlpha(calPopup.popupFg, 0.45) : rootRef.withAlpha(calPopup.popupFg, 0.28))
@@ -1082,7 +1087,7 @@ PanelWindow {
                             Layout.preferredWidth: 26
                             Layout.preferredHeight: 26
                             Layout.alignment: Qt.AlignVCenter
-                            radius: 16
+                            radius: 8
                             color: timerResetHover.containsMouse
                                 ? rootRef.withAlpha(rootRef.error, 0.35)
                                 : rootRef.withAlpha(calPopup.popupFg, 0.08)

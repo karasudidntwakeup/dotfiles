@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
 
@@ -18,7 +17,7 @@ Item {
     readonly property int maxRows: 8
     readonly property int searchHeight: 40
     readonly property int pad: 14
-    readonly property int cornerRadius: 20
+    readonly property int cornerRadius: 12
 
     readonly property string cardTile: "surface_container_highest"
     readonly property color cardColor: rootRef
@@ -60,15 +59,15 @@ Item {
         return white >= black ? "#ffffff" : "#000000"
     }
     readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
-    readonly property string fontFamily: rootRef && rootRef.fontFamily ? rootRef.fontFamily : "Ndot 57"
-    readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Inter"
+    readonly property string fontFamily: uiFont
+    readonly property string uiFont: "Geist"
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
     readonly property string thumbDir: "/tmp/quickshell-cliphist"
 
     property real animProgress: clipMgr.active ? 1.0 : 0.0
     Behavior on animProgress {
         NumberAnimation {
-            duration: clipMgr.active ? 320 : 220
+            duration: clipMgr.active ? 180 : 140
             easing.type: Easing.OutCubic
         }
     }
@@ -235,20 +234,9 @@ Item {
         clip: true
 
         transform: Translate {
-            x: -(1.0 - clipMgr.animProgress) * 60
+            x: -(1.0 - clipMgr.animProgress) * 8
         }
-        scale: 0.96 + 0.04 * clipMgr.animProgress
-        transformOrigin: Item.Left
 
-        layer.enabled: true
-        layer.effect: MultiEffect {
-            shadowEnabled: true
-            shadowBlur: 0.25
-            blurMax: 24
-            shadowOpacity: 0.15
-            shadowVerticalOffset: 1
-            shadowHorizontalOffset: 0
-        }
 
 
         Column {
@@ -272,11 +260,11 @@ Item {
                 }
 
                 Text {
-                    text: "Clipboard".toUpperCase()
+                    text: "Clipboard"
                     color: clipMgr.fg
                     font.family: clipMgr.fontFamily
                     font.pixelSize: clipMgr.fontSize + 1
-                    font.weight: Font.Black
+                    font.weight: Font.DemiBold
                     font.letterSpacing: 3
                     verticalAlignment: Text.AlignVCenter
                 }
@@ -364,7 +352,7 @@ Item {
                 id: searchBox
                 width: parent.width
                 height: clipMgr.searchHeight
-                radius: clipMgr.searchHeight / 2
+                radius: 8
                 color: clipMgr.alpha(clipMgr.fg, 0.06)
                 border.width: 1
                 border.color: searchField.activeFocus
@@ -589,8 +577,8 @@ Item {
                                         : (preview.length === 0 ? "(empty)" : preview)
                                     color: isSelected ? clipMgr.selectedFg : clipMgr.fg
                                     font.family: isImage ? clipMgr.uiFont : clipMgr.fontFamily
-                                    font.pixelSize: clipMgr.fontSize + (isSelected ? 1 : 0)
-                                    font.weight: isSelected ? Font.Black : Font.Medium
+                                    font.pixelSize: clipMgr.fontSize
+                                    font.weight: Font.Medium
                                     maximumLineCount: preview.length === 0 ? 1 : 2
                                     clip: true
                                     wrapMode: Text.WordWrap
@@ -646,6 +634,7 @@ Item {
                         MouseArea {
                             id: rowHover
                             anchors.fill: parent
+                            anchors.rightMargin: 40
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {

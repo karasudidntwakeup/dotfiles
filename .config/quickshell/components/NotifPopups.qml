@@ -21,7 +21,7 @@ PanelWindow {
     anchors.left: true
     anchors.right: true
 
-    readonly property real popupMaxH: 1200
+    readonly property real popupMaxH: Math.max(0, (screen ? screen.height : 1200) - margins.top - 24)
     implicitHeight: Math.min(popupMaxH, popupList.contentHeight)
 
     margins {
@@ -51,26 +51,22 @@ PanelWindow {
         model: svc ? svc.popups : []
         spacing: 10
         interactive: true
-        clip: false
+        clip: true
         boundsBehavior: Flickable.StopAtBounds
 
         add: Transition {
-            ParallelAnimation {
-                NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 200; easing.type: Easing.OutCubic }
-                NumberAnimation { property: "scale"; from: 0.92; to: 1.0; duration: 300; easing.type: Easing.OutCubic }
-                NumberAnimation { property: "y"; from: -16; to: 0; duration: 280; easing.type: Easing.OutCubic }
-            }
+            NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 180; easing.type: Easing.OutCubic }
         }
 
         remove: Transition {
-            NumberAnimation { property: "opacity"; to: 0.0; duration: 160; easing.type: Easing.OutCubic }
+            NumberAnimation { property: "opacity"; to: 0.0; duration: 140; easing.type: Easing.OutCubic }
         }
 
         displaced: Transition {
-            NumberAnimation { property: "y"; duration: 220; easing.type: Easing.OutCubic }
+            NumberAnimation { property: "y"; duration: 180; easing.type: Easing.OutCubic }
         }
         removeDisplaced: Transition {
-            NumberAnimation { property: "y"; duration: 220; easing.type: Easing.OutCubic }
+            NumberAnimation { property: "y"; duration: 180; easing.type: Easing.OutCubic }
         }
 
         delegate: NotificationCard {
