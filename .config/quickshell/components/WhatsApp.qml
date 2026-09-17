@@ -753,11 +753,12 @@ Item {
                     anchors.rightMargin: 6
                     spacing: 8
 
-                    Text {
-                        text: "󰭎"
-                        color: wa.alpha(wa.fg, 0.55)
-                        font.family: wa.iconFont
-                        font.pixelSize: wa.fontSize + 1
+                    Image {
+                        Layout.preferredWidth: 18
+                        Layout.preferredHeight: 18
+                        source: "data:image/svg+xml;utf8," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='" + wa.fg.toString() + "' stroke-width='2' stroke-linecap='round'><circle cx='10.5' cy='10.5' r='6.5'/><path d='m16 16 5 5'/></svg>")
+                        opacity: 0.55
+                        smooth: true
                     }
 
                     TextField {
@@ -1183,13 +1184,6 @@ Item {
                                     anchors.fill: parent
                                     anchors.leftMargin: 12
                                     anchors.rightMargin: 12
-
-                                    Text {
-                                        text: "󰈯"
-                                        color: wa.alpha(wa.fg, 0.6)
-                                        font.family: wa.iconFont
-                                        font.pixelSize: wa.fontSize
-                                    }
 
                                     Text {
                                         textFormat: Text.PlainText
