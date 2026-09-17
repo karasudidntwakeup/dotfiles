@@ -7,27 +7,6 @@ fi
 # confirmations, etc.) must go above this block; everything else may go below.
 # ── Prompt (plain zsh) ───────────────────────
 source ~/github/powerlevel10k/powerlevel10k.zsh-theme
-zmodload zsh/datetime
-autoload -Uz vcs_info
-zstyle ':vcs_info:*' enable git
-zstyle ':vcs_info:git:*' formats '(%F{green}%b%f)'
-zstyle ':vcs_info:git:*' actionformats '(%F{yellow}%b%f|%a)'
-typeset -gi __cmd_start=$EPOCHSECONDS
-#function __prompt_start() { __cmd_start=$EPOCHSECONDS }
-#function __prompt_precmd() {
-#  local ret=$?
-#  vcs_info
-#  PS1=$'\n%F{red}❯ %F{yellow}❯ %F{green}❯%f %F{cyan}%~%f'
-#  [[ -n $vcs_info_msg_0_ ]] && PS1+=" $vcs_info_msg_0_"
-#  if (( ret )); then PS1+=$' %F{red}❯%f '; else PS1+=$' %F{green}❯%f '; fi
-#  RPROMPT=''
-#  (( ret )) && RPROMPT+="%F{red}✘ $ret %f"
-#  local d=$(( EPOCHSECONDS - __cmd_start ))
-#  (( d > 3 )) && RPROMPT+="%F{yellow}${d}s%f "
-#  [[ -n $jobstates ]] && RPROMPT+="%F{cyan}%j jobs%f"
-#}
-preexec_functions+=(__prompt_start)
-precmd_functions+=(__prompt_precmd)
 export NO_AT_BRIDGE=1
 setopt extended_glob
 # Enable colors and change prompt:
@@ -78,17 +57,16 @@ setopt interactive_comments
 HISTSIZE=10000000
 SAVEHIST=10000000
 HISTFILE=~/.zsh_history
-HISTDUP=erase
-#encoding
-set encoding=utf-8
-LANG=en_US.UTF-8 
+setopt HIST_IGNORE_ALL_DUPS HIST_REDUCE_BLANKS HIST_IGNORE_SPACE SHARE_HISTORY
+
 #PATH
 #export CHAFA_FORMAT=sixel
 #export TERM=foot
 export EDITOR=nvim
+typeset -U path PATH
 export PATH="$PATH:$HOME/.npm-global/bin"
-export PATH="$PATH:/sbin:/usr/sbin:usr/local/sbin"
-export PATH="${PATH}:${HOME}/.local/bin/"
+export PATH="$PATH:/sbin:/usr/sbin:/usr/local/sbin"
+export PATH="${PATH}:${HOME}/.local/bin"
 export PATH="${PATH}:${HOME}/.cargo/bin"
 export PATH="${PATH}:${HOME}/go/bin"
 export OLLAMA_NOPRUNE=true
@@ -99,9 +77,9 @@ export QT_QPA_PLATFORM=wayland
 #alias
 alias backup-keys='sudo rsync -rv --delete --exclude="S.gpg-agent*" --exclude="S.keyboxd*" ~/.gnupg ~/.password-store /mnt/'
 alias nightmode='gammastep -m wayland -P -O 4500'
-alias cp='rsync -acv --progress'
-alias mv='rsync -acv --progress --remove-source-files'
-alias sync='rsync -acv --progress --delete'
+alias cp='\rsync -av --progress'
+alias mv='\rsync -av --progress --remove-source-files'
+alias sync='\rsync -av --progress --delete'
 alias cat='bat'
 alias z='zathura'
 alias sudo='doas'
@@ -136,7 +114,7 @@ alias mount='/usr/bin/grc --colour=auto mount'
 alias blkid='/usr/bin/grc --colour=auto blkid'
 alias env='/usr/bin/grc --colour=auto env'
 alias grep='grep -i --color=auto'
-alias rsync='rsync -abrv --suffix='date +%F_%H-%M-%S''    
+alias rsync='rsync -av --progress'    
 # run a command in a focused tab of the persistent herdr session
 # falls back to running it directly when already inside herdr or when herdr isn't running
 open-in-herdr() {
@@ -165,26 +143,25 @@ alias fzf='fzf --preview "bat --color=always   {}"'
 # --- ripgrep sane defaults ---
 alias rg='rg --pretty --smart-case'
 
-# --- git colors ---
-git config --global color.ui auto
-
-# --- diff with color (colordiff or delta) ---
-command -v delta >/dev/null && git config --global core.pager "delta"
 command -v colordiff >/dev/null && alias diff='colordiff'
 
 # --- fd (better find) ---
 command -v fdfind >/dev/null && alias fd='fdfind'
 
 #eval
-eval "$(zoxide init --cmd cd zsh)"
-eval "$(tv init zsh)"
+if (( $+commands[zoxide] )); then
+  eval "$(zoxide init --cmd cd zsh)"
+fi
+if (( $+commands[tv] )); then
+  eval "$(tv init zsh)"
+fi
 #variables
 unsetopt BEEP
-source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh 
-source ~/github/somewhere/fzf-tab.plugin.zsh
-source $HOME/.config/television/shell/integration.zsh
-source ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-. "$HOME/.local/bin/env"
+[[ -r ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh ]] && \
+  source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
+[[ -r ~/github/somewhere/fzf-tab.plugin.zsh ]] && \
+  source ~/github/somewhere/fzf-tab.plugin.zsh
+[[ -r $HOME/.local/bin/env ]] && . "$HOME/.local/bin/env"
 ## [Completion]
 ## Completion scripts setup. Remove the following line to uninstall
 ## [/Completion]
@@ -213,15 +190,8 @@ function y() {
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-export PNPM_HOME="/home/karasu/.local/share/pnpm"
-export PATH="$PNPM_HOME:$PATH"
-# pnpm
-export PNPM_HOME="/home/karasu/.local/share/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME/bin:"*) ;;
-  *) export PATH="$PNPM_HOME/bin:$PATH" ;;
-esac
-# pnpm end
+export PNPM_HOME="$HOME/.local/share/pnpm"
+path=("$PNPM_HOME/bin" "$PNPM_HOME" "${path[@]}")
 
 # opencode
 export PATH=/home/karasu/.opencode/bin:$PATH
@@ -247,4 +217,8 @@ bindkey '\e[6^'   __nop    # ctrl+pagedown (rxvt)
 
 # convert a single video to best-quality a www live wallpaper
 alias mp4towall='~/.local/bin/mp4towall'
+
+if [[ -r ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]; then
+  source ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+fi
 

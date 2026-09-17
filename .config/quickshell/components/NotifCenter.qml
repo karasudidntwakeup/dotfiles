@@ -44,7 +44,10 @@ Item {
     }
     property real animProgress: svc && svc.centerOpen ? 1.0 : 0.0
     Behavior on animProgress {
-        NumberAnimation { duration: center.svc && center.svc.centerOpen ? 180 : 140; easing.type: Easing.OutCubic }
+        NumberAnimation {
+            duration: center.svc && center.svc.centerOpen ? 380 : 220
+            easing.type: center.svc && center.svc.centerOpen ? Easing.OutQuint : Easing.InCubic
+        }
     }
 
     Keys.onEscapePressed: event => {
@@ -76,7 +79,8 @@ Item {
         width: center.panelWidth
         height: Math.min(center.panelMaxHeight, panelColumn.implicitHeight + center.pad * 2)
         anchors.top: parent.top
-        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.right: parent.right
+        anchors.rightMargin: 12
         anchors.topMargin: rootRef ? rootRef.barHeight - 15 : 21
 
         color: center.panelColor
@@ -86,8 +90,8 @@ Item {
         clip: true
 
 
-        opacity: center.animProgress
-        transform: Translate { y: (1 - center.animProgress) * 8 }
+        opacity: Math.min(1, center.animProgress * 3)
+        transform: Translate { x: (1 - center.animProgress) * (panel.width + panel.anchors.rightMargin) }
 
         MouseArea { anchors.fill: parent }
 

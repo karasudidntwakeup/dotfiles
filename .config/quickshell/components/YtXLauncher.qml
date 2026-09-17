@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -13,16 +15,16 @@ Item {
     property bool searchFailed: false
     property string activeQuery: ""
     readonly property int cornerRadius: 12
-    readonly property int pad: 14
-    readonly property int cardWidth: 820
+    readonly property int pad: 20
+    readonly property int cardWidth: Math.min(820, Math.max(0, ytx.width - 32))
     readonly property int searchHeight: 40
     readonly property int maxItems: 48
     readonly property int visibleRows: 3
-    readonly property int columns: 4
+    readonly property int columns: Math.max(1, Math.min(4, Math.floor((cardWidth - pad * 2 + gridSpacing) / 180)))
     readonly property int gridSpacing: 12
-    readonly property int cellWidth: Math.floor((cardWidth - pad * 2 - gridSpacing * (columns - 1)) / columns)
+    readonly property real cellWidth: (cardWidth - pad * 2 + gridSpacing) / columns - gridSpacing
     readonly property int cellInset: 5
-    readonly property int thumbWidth: cellWidth - cellInset * 2
+    readonly property real thumbWidth: cellWidth - cellInset * 2
     readonly property int thumbHeight: Math.round(thumbWidth * 9 / 16)
     readonly property int titleHeight: Math.round((fontSize - 1) * 1.2) * 2
     readonly property int channelHeight: Math.max(10, fontSize - 3)
@@ -65,10 +67,12 @@ Item {
     readonly property string thumbCache: homeDir + "/.cache/rofi-youtube"
     property real thumbTicks: 0
     property var videos: []
+    property bool initialized: false
     property bool homeLoaded: false
     property bool homeFailed: false
     property bool pendingHome: false
-    property string feedMode: "home"
+    property bool showingRecent: false
+    readonly property bool showingHome: !ytx.showingRecent && !ytx.searching && ytx.activeQuery.length === 0
     property var prefetched: ({
     })
 
@@ -76,6 +80,18 @@ Item {
         id: thumbProc
         onExited: () => {
             ytx.thumbTicks++
+        }
+    }
+
+    Process {
+        id: homeProc
+
+        onExited: (exitCode, exitStatus) => {
+            ytx.pendingHome = false;
+            if (exitCode === 0 && exitStatus === 0)
+                homeFile.reload();
+            else if (ytx.showingHome)
+                ytx.homeFailed = true;
         }
     }
 
@@ -91,7 +107,7 @@ Item {
     }
 
     function onRecentData(obj) {
-        if (!obj || !obj.entries || !ytx.active)
+        if (!obj || !obj.entries || !ytx.active || !ytx.showingRecent)
             return ;
 
         var arr = [];
@@ -108,9 +124,6 @@ Item {
                 "thumb": ytx.thumbCache + "/" + e.id + ".jpg"
             });
         }
-        if (ytx.pendingHome || ytx.homeLoaded)
-            return ;
-
         ytx.videos = arr;
         if (ytx.active)
             ytx.filter(searchField.text);
@@ -163,7 +176,8 @@ Item {
                 "thumb": v.thumb
             });
         }
-        grid.currentIndex = 0;
+        grid.currentIndex = listModel.count > 0 ? 0 : -1;
+        grid.positionViewAtBeginning();
     }
 
     function play(args) {
@@ -214,6 +228,8 @@ Item {
             return ;
 
         ytx.pendingHome = false;
+        ytx.showingRecent = false;
+        ytx.homeFailed = false;
 
         ytx.activeQuery = query;
         ytx.searchFailed = false;
@@ -255,46 +271,51 @@ Item {
     }
 
     function showRecent() {
+        searchField.text = "";
+        ytx.videos = [];
+        ytx.filter("");
         ytx.activeQuery = "";
         ytx.searching = false;
         ytx.searchFailed = false;
         ytx.homeLoaded = false;
         ytx.homeFailed = false;
         ytx.pendingHome = false;
+        ytx.showingRecent = true;
         ytx.loadRecent();
         ytx.filter(searchField.text);
     }
 
-    function ensureHome(force, mode) {
-        ytx.feedMode = mode || "home";
+    function ensureHome(force) {
+        var switching = !ytx.showingHome;
+        searchField.text = "";
         ytx.activeQuery = "";
         ytx.searching = false;
         ytx.searchFailed = false;
-        if (!force) {
-            homeFile.reload();
-            return ;
+        ytx.showingRecent = false;
+        if (switching) {
+            ytx.videos = [];
+            ytx.homeLoaded = false;
         }
+        ytx.filter("");
+        homeFile.reload();
+        ytx.refreshFeed(force);
+    }
 
+    function refreshFeed(force) {
+        if (homeProc.running)
+            return ;
+
+        ytx.homeFailed = false;
         ytx.pendingHome = true;
-            Quickshell.execDetached(["bash", Quickshell.shellDir + "/scripts/ytx-home.sh", ytx.feedMode, "force"]);
-            pendingTimeout.restart();
-    }
-
-    function refreshFeed(mode) {
-        var m = mode || "feed";
-        Quickshell.execDetached(["bash", Quickshell.shellDir + "/scripts/ytx-home.sh", m]);
-    }
-
-    function refreshBackground() {
-        ytx.refreshFeed("feed");
-        ytx.refreshFeed("music");
+        homeProc.command = ["bash", Quickshell.shellDir + "/scripts/ytx-home.sh", "feed", force ? "force" : ""];
+        homeProc.running = true;
     }
 
     function onHomeResults(obj) {
-        if (ytx.searching || ytx.activeQuery.length > 0 || !ytx.active)
+        if (!ytx.showingHome || !ytx.active)
             return ;
 
-        ytx.pendingHome = false;
+        ytx.pendingHome = homeProc.running;
         if (!obj || !obj.results || obj.results.length === 0) {
             ytx.homeFailed = true;
             return ;
@@ -305,26 +326,25 @@ Item {
             if (!r || !r.id || !r.url)
                 continue;
 
-            var tid = r.id.replace(/^RD/, "");
-            var isMix = tid !== r.id;
-
             arr.push({
                 "title": r.title || "",
-                "vid": tid,
-                "url": isMix ? ("https://www.youtube.com/watch?v=" + tid + "&list=" + r.id) : r.url,
+                "vid": r.id,
+                "url": r.url,
                 "channel": r.channel || "",
-                "thumb": ytx.thumbCache + "/" + tid + ".jpg"
+                "thumb": ytx.thumbCache + "/" + r.id + ".jpg"
             });
         }
         if (arr.length === 0) {
             ytx.homeFailed = true;
             return ;
         }
-        ytx.videos = arr;
         ytx.homeLoaded = true;
         ytx.homeFailed = false;
-        ytx.filter(searchField.text);
-        ytx.prefetchThumbs(arr);
+        if (JSON.stringify(ytx.videos) !== JSON.stringify(arr)) {
+            ytx.videos = arr;
+            ytx.filter(searchField.text);
+            ytx.prefetchThumbs(arr);
+        }
     }
 
     function gridHeight() {
@@ -338,15 +358,16 @@ Item {
     opacity: ytx.animProgress
     onActiveChanged: {
         if (ytx.active) {
-            ytx.activeQuery = "";
-            ytx.searching = false;
-            ytx.searchFailed = false;
-            searchField.text = "";
-            ytx.loadRecent();
-            ytx.ensureHome();
-            ytx.refreshFeed("feed");
-            ytx.filter("");
+            if (!ytx.initialized) {
+                ytx.initialized = true;
+                ytx.ensureHome(false);
+            } else if (ytx.showingHome) {
+                homeFile.reload();
+                ytx.refreshFeed(false);
+            }
             focusRequest.restart();
+        } else {
+            focusRequest.stop();
         }
     }
 
@@ -385,25 +406,29 @@ Item {
     FileView {
         id: homeFile
 
-        path: ytx.feedMode === "music" ? (ytx.homeDir + "/.cache/quickshell/ytx-music.json") : (ytx.homeDir + "/.cache/quickshell/ytx-home.json")
+        path: ytx.homeDir + "/.cache/quickshell/ytx-home.json"
         watchChanges: true
         blockLoading: false
         onFileChanged: homeFile.reload()
         onLoaded: {
-            if (!ytx.searching && ytx.activeQuery.length === 0) {
-                try {
-                    var obj = JSON.parse(String(homeFile.text()));
-                    ytx.onHomeResults(obj);
-                } catch (err) {
-                    console.log("[ytx] home parse error:", err);
-                    ytx.pendingHome = false;
-                    ytx.homeFailed = true;
-                }
+            if (!ytx.showingHome)
+                return ;
+
+            try {
+                var obj = JSON.parse(String(homeFile.text()));
+                ytx.onHomeResults(obj);
+            } catch (err) {
+                console.log("[ytx] home parse error:", err);
+                ytx.pendingHome = homeProc.running;
+                ytx.homeFailed = true;
             }
         }
         onLoadFailed: (error) => {
+            if (!ytx.showingHome)
+                return ;
+
             console.log("[ytx] home results load failed:", error);
-            ytx.pendingHome = false;
+            ytx.pendingHome = homeProc.running;
             ytx.homeFailed = true;
         }
     }
@@ -415,7 +440,7 @@ Item {
         watchChanges: false
         blockLoading: true
         onLoaded: {
-            if (ytx.searching || ytx.activeQuery.length > 0)
+            if (!ytx.showingRecent)
                 return ;
 
             try {
@@ -439,20 +464,12 @@ Item {
     }
 
     Timer {
-        id: pendingTimeout
-
-        interval: 20000
-        repeat: false
-        onTriggered: ytx.pendingHome = false
-    }
-
-    Timer {
         id: feedTicker
 
-        interval: 3600000
+        interval: 300000
         repeat: true
-        running: true
-        onTriggered: ytx.refreshBackground()
+        running: ytx.active && ytx.showingHome
+        onTriggered: ytx.refreshFeed(false)
     }
 
     Rectangle {
@@ -494,8 +511,8 @@ Item {
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 16
-                    anchors.rightMargin: 6
+                    anchors.leftMargin: 12
+                    anchors.rightMargin: 12
                     spacing: 8
 
                     Text {
@@ -546,8 +563,7 @@ Item {
                         }
                         Keys.onReturnPressed: (event) => {
                             var q = searchField.text.trim();
-                            var alt = event.modifiers & Qt.AltModifier;
-                            var asAudio = (ytx.feedMode === "music") ? !alt : alt;
+                            var asAudio = event.modifiers & Qt.AltModifier;
                             if (q.length > 0 && q !== ytx.activeQuery && !ytx.searching)
                                 ytx.runSearch(q);
                             else
@@ -557,14 +573,6 @@ Item {
                         Keys.onPressed: (event) => {
                             if (event.key === Qt.Key_1 && (event.modifiers & Qt.AltModifier)) {
                                 ytx.ensureHome(false);
-                                searchField.text = "";
-                                searchField.forceActiveFocus();
-                                ytx.filter("");
-                                event.accepted = true;
-                                return ;
-                            }
-                            if (event.key === Qt.Key_2 && (event.modifiers & Qt.AltModifier)) {
-                                ytx.ensureHome(false, "music");
                                 searchField.text = "";
                                 searchField.forceActiveFocus();
                                 ytx.filter("");
@@ -646,7 +654,7 @@ Item {
 
                 width: parent.width
                 height: 22
-                visible: ytx.searching || ytx.activeQuery.length > 0 || ytx.homeLoaded || ytx.homeFailed || ytx.pendingHome
+                visible: true
 
                 BusyIndicator {
                     anchors.left: parent.left
@@ -661,9 +669,10 @@ Item {
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.leftMargin: ytx.searching || ytx.pendingHome ? 22 : 2
-                    width: parent.width - (chipRow.visible ? chipRow.width + 8 : 4)
+                    anchors.right: chipRow.visible ? chipRow.left : parent.right
+                    anchors.rightMargin: chipRow.visible ? 12 : 2
                     elide: Text.ElideRight
-                    text: ytx.searching ? "Searching\u2026" : ytx.pendingHome ? "Loading\u2026" : ytx.searchFailed ? "No results" : ytx.activeQuery.length > 0 ? ytx.videos.length + " results" : ytx.homeFailed ? "Couldn\u2019t load" : ytx.homeLoaded ? ytx.videos.length + (ytx.feedMode === "music" ? " music mixes" : " recommended") : ""
+                    text: ytx.searching ? "Searching\u2026" : ytx.pendingHome ? "Loading\u2026" : ytx.searchFailed ? "No results" : ytx.activeQuery.length > 0 ? ytx.videos.length + " results" : ytx.homeFailed ? "Couldn\u2019t load" : ytx.homeLoaded ? ytx.videos.length + " recommended" : ""
                     font.family: ytx.uiFont
                     font.pixelSize: Math.max(10, ytx.fontSize - 1)
                     color: ytx.searchFailed || ytx.homeFailed ? Qt.rgba(1, 0.45, 0.4, 1) : ytx.alpha(ytx.fg, 0.6)
@@ -675,12 +684,11 @@ Item {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 8
-                    visible: !ytx.searching && (ytx.activeQuery.length > 0 || ytx.homeLoaded || ytx.homeFailed || ytx.pendingHome)
+                    visible: true
 
                     Rectangle {
                         id: homeChip
 
-                        visible: ytx.activeQuery.length === 0 && (ytx.homeLoaded || ytx.homeFailed || ytx.pendingHome)
                         width: homeChipLabel.implicitWidth + 20
                         height: 22
                         radius: 11
@@ -704,41 +712,6 @@ Item {
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 ytx.ensureHome(false);
-                                searchField.text = "";
-                                searchField.forceActiveFocus();
-                                ytx.filter("");
-                            }
-                        }
-
-                    }
-
-                    Rectangle {
-                        id: musicChip
-
-                        visible: ytx.activeQuery.length === 0 && (ytx.homeLoaded || ytx.homeFailed || ytx.pendingHome)
-                        width: musicChipLabel.implicitWidth + 20
-                        height: 22
-                        radius: 11
-                        color: musicHover.containsMouse ? ytx.alpha(ytx.fg, 0.2) : ytx.alpha(ytx.fg, 0.08)
-
-                        Text {
-                            id: musicChipLabel
-
-                            anchors.centerIn: parent
-                            text: "󰝚 Music"
-                            color: ytx.fg
-                            font.family: ytx.iconFont
-                            font.pixelSize: Math.max(10, ytx.fontSize - 2)
-                        }
-
-                        MouseArea {
-                            id: musicHover
-
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                ytx.ensureHome(false, "music");
                                 searchField.text = "";
                                 searchField.forceActiveFocus();
                                 ytx.filter("");
@@ -783,7 +756,8 @@ Item {
                     Rectangle {
                         id: refreshChip
 
-                        visible: ytx.activeQuery.length === 0 && (ytx.homeLoaded || ytx.homeFailed || ytx.pendingHome)
+                        visible: ytx.showingHome
+                        enabled: !homeProc.running
                         width: 22
                         height: 22
                         radius: 11
@@ -804,7 +778,7 @@ Item {
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
-                                ytx.ensureHome(true, ytx.feedMode);
+                                ytx.ensureHome(true);
                             }
                         }
 
@@ -823,9 +797,12 @@ Item {
                 GridView {
                     id: grid
 
-                    anchors.fill: parent
+                    anchors.left: parent.left
+                    anchors.top: parent.top
+                    width: parent.width + ytx.gridSpacing
+                    height: parent.height
                     model: listModel
-                    cellWidth: ytx.cellWidth + ytx.gridSpacing
+                    cellWidth: width / ytx.columns
                     cellHeight: ytx.cellHeight + ytx.gridSpacing
                     boundsBehavior: Flickable.StopAtBounds
                     clip: true
@@ -948,7 +925,7 @@ Item {
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 grid.currentIndex = index;
-                                ytx.activate(ytx.feedMode === "music");
+                                ytx.activate(false);
                             }
                         }
 

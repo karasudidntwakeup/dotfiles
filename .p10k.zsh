@@ -62,7 +62,26 @@
     # time                    # current time
     # =========================[ Line #2 ]=========================
     newline                   # \n
+    status
+    background_jobs
   )
+
+  typeset -g POWERLEVEL9K_STATUS_EXTENDED_STATES=true
+  typeset -g POWERLEVEL9K_STATUS_OK=false
+  typeset -g POWERLEVEL9K_STATUS_OK_PIPE=true
+  typeset -g POWERLEVEL9K_STATUS_ERROR=true
+  typeset -g POWERLEVEL9K_STATUS_ERROR_SIGNAL=true
+  typeset -g POWERLEVEL9K_STATUS_ERROR_PIPE=true
+  typeset -g POWERLEVEL9K_STATUS_VERBOSE_SIGNAME=false
+  typeset -g POWERLEVEL9K_STATUS_ERROR_FOREGROUND=$red
+  typeset -g POWERLEVEL9K_BACKGROUND_JOBS_VERBOSE=true
+  typeset -g POWERLEVEL9K_BACKGROUND_JOBS_FOREGROUND=$cyan
+  typeset -g POWERLEVEL9K_SHORTEN_STRATEGY=truncate_to_unique
+  typeset -g POWERLEVEL9K_SHORTEN_DELIMITER=
+  typeset -g POWERLEVEL9K_SHORTEN_DIR_LENGTH=1
+  typeset -g POWERLEVEL9K_DIR_MAX_LENGTH=80
+  typeset -g POWERLEVEL9K_DIR_MIN_COMMAND_COLUMNS=40
+  typeset -g POWERLEVEL9K_DIR_MIN_COMMAND_COLUMNS_PCT=50
 
   # Basic style options that define the overall prompt look.
   typeset -g POWERLEVEL9K_BACKGROUND=                            # transparent background

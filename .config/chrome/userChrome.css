@@ -245,3 +245,22 @@ menupopup > menu {
 .browserContainer {
   box-shadow: none !important;
 }
+
+/* ===== Keyboard focus rings (preserves the visual style) ===== */
+#urlbar-input:focus,
+#urlbar-input-container:focus-within {
+  outline: none !important;
+}
+
+.findbar-container findbar-find-next,
+#appMenu-popup panelview,
+.toolbaritem-combined-buttons > toolbarbutton:focus-visible,
+toolbarbutton:focus-visible,
+.tabbrowser-tab:focus-visible > .tab-stack > .tab-content {
+  outline: 2px solid var(--primary) !important;
+  outline-offset: -2px !important;
+}
+
+.tabbrowser-tab:focus-visible > .tab-stack > .tab-content {
+  border-radius: var(--tab-border-radius) !important;
+}

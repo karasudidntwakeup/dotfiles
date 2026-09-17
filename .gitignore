@@ -2,3 +2,6 @@
 .config/herdr/session.json
 .config/herdr/.plugins.lock
 .config/herdr/plugins/
+
+__pycache__/
+*.py[cod]
