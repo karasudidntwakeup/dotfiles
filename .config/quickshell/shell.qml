@@ -87,13 +87,14 @@ ShellRoot {
     readonly property color error: colorOf("error")
     readonly property color outlineVariant: colorOf("outline_variant")
 
-    readonly property string fontFamily: "Ndot 57"
+    readonly property string fontFamily: "Geist"
     readonly property string uiFont: "Geist"
     readonly property string iconFont: "Symbols Nerd Font"
     readonly property int fontSize: 13
 
-    readonly property int barHeight: 36
-    readonly property int pillHeight: 32
+    readonly property int barHeight: 35
+    readonly property int pillHeight: 35
+    readonly property int pillRadius: 10
     readonly property int groupSpacing: 8
 
     readonly property color textColor: root.qsLight ? root.qsPillFg : "#000000"
@@ -797,10 +798,10 @@ ShellRoot {
         property string label: ""
         property string icon: ""
         property Component iconSource: null
-        property int padX: 14
+        property int padX: 20
         property int rowSpacing: 4
         property bool rowClip: false
-        property int iconSize: root.fontSize + 2
+        property int iconSize: root.fontSize + 5
         property color tint: root.primary
         property alias clickArea: pillArea
         property alias wheelArea: pillArea
@@ -809,7 +810,7 @@ ShellRoot {
 
         implicitWidth: pillRow.implicitWidth + pill.padX
         implicitHeight: root.pillHeight
-        radius: 15
+        radius: root.pillRadius
         color: root.tonalPillColor(tint)
         border.width: 0
 
@@ -896,7 +897,7 @@ ShellRoot {
         readonly property bool hovering: dcArea.containsMouse || dcArea.pressed
 
         implicitHeight: root.pillHeight
-        radius: 15
+        radius: root.pillRadius
         color: root.tonalPillColor(dc.tint)
         border.width: 0
 
@@ -1361,7 +1362,7 @@ ShellRoot {
 
         width: contentWidth() + pillPad * 2
         height: root.pillHeight
-        radius: 15
+        radius: root.pillRadius
         color: root.tonalPillColor(root.pillColor("primary_container"))
         border.width: 0
 

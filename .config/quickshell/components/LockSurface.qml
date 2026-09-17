@@ -141,7 +141,7 @@ Item {
 
         Text {
             id: clockHour
-            font.family: lockRoot.uiFont
+            font.family: "Ndot 57"
             font.pixelSize: Math.round(lockMediaCard.width * 0.22)
             font.weight: Font.Normal
             color: lockRoot.fg
@@ -152,7 +152,7 @@ Item {
             id: clockMinute
             anchors.top: clockHour.bottom
             anchors.topMargin: -10
-            font.family: lockRoot.uiFont
+            font.family: "Ndot 57"
             font.pixelSize: Math.round(lockMediaCard.width * 0.22)
             font.weight: Font.Normal
             color: lockRoot.fg

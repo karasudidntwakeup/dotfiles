@@ -1,5 +1,6 @@
-@-moz-document domain("youtube.com") {
-    :root, [dark], [light] {
+@-moz-document domain("youtube.com"), domain("youtube-nocookie.com") {
+    :root, [dark], [light], ytd-app, ytm-app, ytmusic-app, ytcp-app,
+    yt-live-chat-app, yt-live-chat-renderer {
         --yt-spec-base-background: var(--background) !important;
         --yt-spec-raised-background: var(--surface_container) !important;
         --yt-spec-general-background-a: var(--background) !important;
@@ -20,6 +21,67 @@
         --yt-spec-badge-chip-background: var(--surface_container_high) !important;
         --yt-spec-button-chip-background-hover: var(--surface_bright) !important;
         --yt-saturated-raised-background: var(--surface_container) !important;
+        --yt-spec-brand-background-primary: var(--background) !important;
+        --yt-spec-brand-background-secondary: var(--surface_container_low) !important;
+        --yt-spec-text-disabled: var(--outline) !important;
+        --yt-spec-text-primary-inverse: var(--inverse_on_surface) !important;
+        --yt-spec-call-to-action-inverse: var(--inverse_primary) !important;
+        --yt-spec-outline: var(--outline_variant) !important;
+        --yt-spec-selected-nav-text: var(--primary) !important;
+        --yt-spec-suggested-action: var(--secondary_container) !important;
+        --yt-spec-suggested-action-inverse: var(--on_secondary_container) !important;
+        --yt-spec-error-indicator: var(--error) !important;
+        --yt-spec-themed-blue: var(--primary) !important;
+        --yt-spec-themed-green: var(--tertiary) !important;
+        --yt-spec-inverted-background: var(--inverse_surface) !important;
+        --yt-spec-touch-response: var(--on_surface) !important;
+        --yt-spec-wordmark-text: var(--on_surface) !important;
+        --yt-spec-outline-inverse: var(--inverse_on_surface) !important;
+        --yt-spec-icon-disabled: var(--outline) !important;
+        --yt-spec-static-overlay-background-solid: var(--scrim) !important;
+        --yt-spec-static-overlay-text-primary: #fff !important;
+        --yt-spec-static-overlay-text-secondary: rgb(255 255 255 / 80%) !important;
+        --yt-primary-color: var(--on_surface) !important;
+        --yt-secondary-color: var(--on_surface_variant) !important;
+        --yt-primary-text-color: var(--on_surface) !important;
+        --yt-secondary-text-color: var(--on_surface_variant) !important;
+        --yt-disabled-text-color: var(--outline) !important;
+        --yt-link-text-color: var(--primary) !important;
+        --yt-main-app-background: var(--background) !important;
+        --yt-main-app-background-tmp: var(--background) !important;
+        --yt-dialog-background: var(--surface_container) !important;
+        --yt-searchbox-background: var(--surface_container_low) !important;
+        --yt-searchbox-text-color: var(--on_surface) !important;
+        --yt-searchbox-border-color: var(--outline_variant) !important;
+        --yt-searchbox-legacy-border-color: var(--outline_variant) !important;
+        --yt-searchbox-legacy-button-color: var(--surface_container_high) !important;
+        --yt-searchbox-legacy-button-hover-color: var(--surface_container_highest) !important;
+        --yt-searchbox-legacy-button-border-color: var(--outline_variant) !important;
+        --yt-searchbox-legacy-button-focus-color: var(--primary) !important;
+        --yt-searchbox-legacy-button-icon-color: var(--on_surface) !important;
+        --paper-dialog-background-color: var(--surface_container) !important;
+        --paper-listbox-background-color: var(--surface_container) !important;
+        --paper-listbox-color: var(--on_surface) !important;
+        --paper-menu-background-color: var(--surface_container) !important;
+        --paper-menu-color: var(--on_surface) !important;
+        --paper-input-container-color: var(--outline) !important;
+        --paper-input-container-focus-color: var(--primary) !important;
+        --paper-input-container-input-color: var(--on_surface) !important;
+        --paper-checkbox-checked-color: var(--primary) !important;
+        --paper-checkbox-checkmark-color: var(--on_primary) !important;
+        --paper-checkbox-unchecked-color: var(--outline) !important;
+        --paper-radio-button-checked-color: var(--primary) !important;
+        --paper-radio-button-unchecked-color: var(--outline) !important;
+    }
+    html, body, ytd-app, ytm-app, ytmusic-app, ytcp-app {
+        background-color: var(--background) !important;
+        color: var(--on_surface) !important;
+        scrollbar-color: var(--outline) var(--background);
+        accent-color: var(--primary);
+    }
+    ::selection {
+        background-color: var(--primary) !important;
+        color: var(--on_primary) !important;
     }
     #guide-content.ytd-app, ytd-guide-renderer, #contentContainer.app-drawer {
         background-color: var(--background) !important;
@@ -53,7 +115,7 @@
     }
     .ytSearchboxComponentInputBox {
         background-color: var(--surface_container) !important;
-        color: var(--on_surface_container) !important;
+        color: var(--on_surface) !important;
     }
     .ytSearchboxComponentInputBox.ytSearchboxComponentInputBoxHasFocus {
         border-color: var(--primary) !important;
@@ -84,6 +146,85 @@
     ytd-post-renderer {
         background-color: var(--surface_container) !important;
         border: 1px solid var(--outline_variant) !important;
-        color: var(--on_surface_container) !important;
+        color: var(--on_surface) !important;
+    }
+    ytd-menu-renderer, ytd-popup-container tp-yt-paper-dialog,
+    ytd-popup-container tp-yt-iron-dropdown, .ytd-popup-container tp-yt-paper-listbox {
+        background-color: var(--surface_container) !important;
+        color: var(--on_surface) !important;
+    }
+    tp-yt-paper-item.ytd-menu-service-item-renderer:hover,
+    tp-yt-paper-item td:hover {
+        background-color: var(--surface_container_high) !important;
+    }
+    ytd-watch-metadata, ytd-comments, ytd-comment-thread, ytd-comment-view-model,
+    ytd-rich-item-renderer, ytd-video-renderer, ytd-grid-video-renderer,
+    ytd-compact-video-renderer, ytd-playlist-panel-renderer, ytd-engagement-panel {
+        background-color: inherit !important;
+        color: var(--on_surface) !important;
+    }
+    ytd-comments-header-renderer, ytd-commentbox, ytd-comment-renderer {
+        background-color: transparent !important;
+        color: var(--on_surface) !important;
+    }
+    ytd-transcript-segment-renderer:hover {
+        background-color: var(--surface_container_high) !important;
+    }
+    ytd-miniplayer, ytd-miniplayer[rounded] .player-container {
+        background-color: var(--background) !important;
+    }
+    .ytp-chrome-bottom, .ytp-chrome-top, .ytp-panel, .ytp-panel-menu,
+    .ytp-popup, .ytp-settings-menu, .ytp-menuitem {
+        background-color: var(--scrim) !important;
+        color: #fff !important;
+    }
+    .ytp-menuitem[aria-checked="true"], .ytp-menuitem:hover {
+        background-color: rgb(255 255 255 / 10%) !important;
+    }
+    .ytp-settings-button:hover, .ytp-chrome-controls svg, .ytp-button svg {
+        fill: #fff !important;
+    }
+    .ytp-time-display, .ytp-menuitem-label, .ytp-menuitem-content {
+        color: #fff !important;
+    }
+    ytd-reel-video-renderer[is-child], ytd-reel-video-renderer {
+        background-color: #000 !important;
+        color: #fff !important;
+    }
+    ytd-reel-player-overlay-renderer, ytd-reel-player-header-renderer {
+        color: #fff !important;
+    }
+    yt-live-chat-app, yt-live-chat-renderer, yt-live-chat-item-list-renderer,
+    yt-live-chat-header-renderer, yt-live-chat-message-input-renderer {
+        background-color: var(--surface) !important;
+        color: var(--on_surface) !important;
+    }
+    yt-live-chat-text-message-renderer, yt-live-chat-membership-item-renderer {
+        background-color: var(--surface) !important;
+        color: var(--on_surface) !important;
+    }
+    yt-live-chat-text-message-renderer:hover {
+        background-color: var(--surface_container_high) !important;
+    }
+    yt-live-chat-author-chip #author-name {
+        color: var(--primary) !important;
+    }
+    #input.yt-live-chat-message-input-renderer {
+        background-color: var(--surface_container) !important;
+        color: var(--on_surface) !important;
+    }
+    ytmusic-app #content, ytmusic-app ytmusic-nav-bar,
+    ytmusic-app ytmusic-player-page, ytmusic-app ytmusic-player-bar {
+        background-color: var(--background) !important;
+        color: var(--on_surface) !important;
+    }
+    ytmusic-app .yt-spec-button-shape-next--filled,
+    ytmusic-app ytmusic-toggle-button-renderer {
+        background-color: var(--primary) !important;
+        color: var(--on_primary) !important;
+    }
+    ytcp-app, ytcp-app ytcp-header, ytcp-app .layout {
+        background-color: var(--background) !important;
+        color: var(--on_surface) !important;
     }
 }
