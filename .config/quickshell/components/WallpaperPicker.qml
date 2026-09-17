@@ -153,13 +153,13 @@ Item {
     }
 
     function stepToNextValidIndex(direction) {
-        if (window.displayModel.length === 0) return
+        if (window.isApplying || window.showPanel || window.displayModel.length === 0) return
         var next = view.currentIndex + direction
         if (next >= 0 && next < window.displayModel.length) view.currentIndex = next
     }
 
     function setFilter(name) {
-        if (window.isApplying || window.currentFilter === name) return
+        if (window.isApplying || window.showPanel || window.currentFilter === name) return
         window.currentFilter = name
         window.applyFilters()
         view.forceActiveFocus()
@@ -169,53 +169,23 @@ Item {
     property var selectedItem: null
     property string currentMode: "dark"
     property string applyMode: currentMode
-    property string applyScheme: "tonal_spot"
-    property string applyColor: ""
-
-    readonly property var schemeData: [
-
-        { key: "tonal_spot", label: "Tonal Spot",      group: "Auto",    hint: "#9ccfd8" },
-        { key: "content",    label: "Content",         group: "Auto",    hint: "#c9a7e8" },
-        { key: "vibrant",    label: "Vibrant",         group: "Auto",    hint: "#f0a6d0" },
-        { key: "fidelity",   label: "Fidelity",        group: "Auto",    hint: "#94d3b8" },
-        { key: "neutral",    label: "Neutral",         group: "Auto",    hint: "#b0b0bc" },
-        { key: "monochrome", label: "Monochrome",      group: "Auto",    hint: "#c8c8c8" },
-        { key: "bw",         label: "Black & White",   group: "Auto",    hint: "#000000" },
-
-        { key: "wallpaper_color",   label: "Wallpaper Color",   group: "Custom", hint: "#96c8f6" }
-    ]
-
-    readonly property var schemeGroups: [
-        { title: "From wallpaper", name: "Auto" },
-        { title: "Custom color", name: "Custom" }
-    ]
-
-    function schemesOf(groupName) {
-        var out = []
-        for (var i = 0; i < window.schemeData.length; i++)
-            if (window.schemeData[i].group === groupName) out.push(window.schemeData[i])
-        return out
-    }
+    property string applyError: ""
 
     function openPanel(index) {
-        if (index < 0 || index >= window.displayModel.length) return
-        var item = window.displayModel[index]
-        window.selectedItem = item
+        if (window.isApplying || window.showPanel || index < 0 || index >= window.displayModel.length) return
+        window.selectedItem = window.displayModel[index]
         window.applyMode = window.currentMode
-        window.applyScheme = "tonal_spot"
-        window.applyColor = (item.colors && item.colors.length > 0) ? item.colors[0] : ""
+        window.applyError = ""
         window.showPanel = true
     }
 
     property var applyArgs: []
     function confirmApply() {
         if (!window.selectedItem || window.isApplying) return
+        window.applyError = ""
         window.isApplying = true
-        var args = ["bash", window.scriptDir + "/wallpaper_apply.sh",
-                    window.selectedItem.filePath, window.applyMode, window.applyScheme]
-        if (window.applyScheme === "wallpaper_color" && window.applyColor !== "")
-            args.push(window.applyColor.replace("#", ""))
-        window.applyArgs = args
+        window.applyArgs = ["bash", window.scriptDir + "/wallpaper_apply.sh",
+                            window.selectedItem.filePath, window.applyMode]
         applyProc.running = true
     }
 
@@ -226,9 +196,11 @@ Item {
         onExited: code => {
             window.isApplying = false
             if (code !== 0) {
+                window.applyError = "Could not apply wallpaper. Please try again."
                 console.warn("Wallpaper apply failed with exit code", code)
                 return
             }
+            window.currentPath = window.selectedItem.filePath
             window.showPanel = false
             window.requestClose()
         }
@@ -247,9 +219,15 @@ Item {
     }
 
     onVisible_Changed: {
+        if (!window.isApplying) {
+            window.showPanel = false
+            window.selectedItem = null
+            window.applyError = ""
+        }
         if (window.visible_) {
             currentReader.running = false
             currentReader.running = true
+            view.forceActiveFocus()
         }
     }
 
@@ -260,7 +238,8 @@ Item {
         focus: true
         orientation: ListView.Horizontal
         spacing: 0
-        interactive: !window.isApplying
+        interactive: !window.isApplying && !window.showPanel
+        keyNavigationEnabled: !window.isApplying && !window.showPanel
 
         highlightRangeMode: ListView.StrictlyEnforceRange
         preferredHighlightBegin: (width / 2) - ((window.itemWidth * 1.5 + window.spacing) / 2) + window.selectedCenterOffset
@@ -307,7 +286,7 @@ Item {
 
                 MouseArea {
                     anchors.fill: parent
-                    enabled: !window.isApplying
+                    enabled: !window.isApplying && !window.showPanel
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
                         view.currentIndex = index
@@ -432,7 +411,7 @@ Item {
                             id: tabMouse
                             anchors.fill: parent
                             hoverEnabled: true
-                            enabled: !window.isApplying
+                            enabled: !window.isApplying && !window.showPanel
                             cursorShape: Qt.PointingHandCursor
                             onClicked: window.setFilter(modelData.name)
                         }
@@ -450,7 +429,7 @@ Item {
                             id: swatchMouse
                             anchors.fill: parent
                             hoverEnabled: true
-                            enabled: !window.isApplying
+                            enabled: !window.isApplying && !window.showPanel
                             cursorShape: Qt.PointingHandCursor
                             onClicked: window.setFilter(modelData.name)
                         }
@@ -462,7 +441,7 @@ Item {
 
     Rectangle {
         id: applyPanel
-        visible: window.showPanel && !window.isApplying
+        visible: window.showPanel
         anchors.bottom: parent.bottom
         anchors.bottomMargin: visible ? window.u * 32 : -height
         anchors.horizontalCenter: parent.horizontalCenter
@@ -471,14 +450,20 @@ Item {
         radius: window.cornerRadius
         color: window.baseColor
         border.width: 0
-        z: 200
+        z: 300
         opacity: visible ? 1.0 : 0.0
         Behavior on anchors.bottomMargin { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
         Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
 
+        MouseArea {
+            anchors.fill: parent
+            acceptedButtons: Qt.AllButtons
+            onWheel: wheel => wheel.accepted = true
+        }
 
         Column {
             id: panelCol
+            enabled: !window.isApplying
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.top: parent.top
@@ -493,31 +478,6 @@ Item {
                 font.pixelSize: window.u * 13
                 font.bold: true
                 elide: Text.ElideMiddle
-            }
-
-            Row {
-                spacing: window.u * 6
-                visible: window.applyScheme === "wallpaper_color"
-                         && window.selectedItem && window.selectedItem.colors
-                         && window.selectedItem.colors.length > 0
-                Repeater {
-                    model: window.selectedItem && window.selectedItem.colors ? window.selectedItem.colors : []
-                    delegate: Rectangle {
-                        required property string modelData
-                        width: window.u * 28; height: window.u * 28
-                        radius: window.u * 8
-                        color: modelData
-                        border.width: window.applyColor === modelData ? 3 : 1
-                        border.color: window.applyColor === modelData ? window.blue : window.borderColor
-                        MouseArea {
-                            id: swabHover
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: window.applyColor = modelData
-                        }
-                    }
-                }
             }
 
             Row {
@@ -564,78 +524,14 @@ Item {
                 }
             }
 
-            Column {
+            Text {
+                visible: window.applyError !== ""
+                text: window.applyError
                 width: parent.width
-                spacing: window.u * 8
-                Text {
-                    text: "Color scheme"
-                    color: window.subtextColor
-                    font.family: window.uiFont
-                    font.pixelSize: window.u * 11
-                }
-                Repeater {
-                    model: window.schemeGroups
-                    delegate: Column {
-                        required property var modelData
-                        width: parent.width
-                        spacing: window.u * 6
-                        Text {
-                            text: modelData.title
-                            color: window.subtextColor
-                            font.family: window.uiFont
-                            font.pixelSize: window.u * 9
-                            opacity: 0.7
-                        }
-                        Flow {
-                            width: parent.width
-                            spacing: window.u * 6
-                            Repeater {
-                                model: window.schemesOf(modelData.name)
-                                delegate: Rectangle {
-                                    required property var modelData
-                                    width: schemeLabel.implicitWidth + window.u * 30
-                                    height: window.u * 28
-                                    radius: window.u * 8
-                                    color: window.applyScheme === modelData.key ? window.surface2
-                                         : (schHover.containsMouse ? window.surface1 : window.surface0)
-                                    border.color: window.applyScheme === modelData.key ? window.textColor : window.borderColor
-                                    border.width: window.applyScheme === modelData.key ? (window.u === 1 ? 1.5 : 1) : 1
-                                    Behavior on color { ColorAnimation { duration: 200 } }
-                                    Row {
-                                        anchors.left: parent.left
-                                        anchors.leftMargin: window.u * 6
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        spacing: window.u * 6
-                                        Rectangle {
-                                            width: window.u * 12; height: window.u * 12
-                                            radius: window.u * 4
-                                            anchors.verticalCenter: parent.verticalCenter
-                                            color: modelData.hint
-                                            border.width: 1
-                                            border.color: window.borderColor
-                                        }
-                                        Text {
-                                            id: schemeLabel
-                                            anchors.verticalCenter: parent.verticalCenter
-                                            text: modelData.label
-                                            color: window.applyScheme === modelData.key ? window.textColor : window.subtextColor
-                                            font.family: window.uiFont
-                                            font.pixelSize: window.u * 11
-                                            font.weight: window.applyScheme === modelData.key ? Font.Bold : Font.Normal
-                                        }
-                                    }
-                                    MouseArea {
-                                        id: schHover
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: window.applyScheme = modelData.key
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                color: window.blue
+                font.family: window.uiFont
+                font.pixelSize: window.u * 11
+                wrapMode: Text.WordWrap
             }
 
             Row {
@@ -672,7 +568,7 @@ Item {
                     Text {
                         id: applyLabel
                         anchors.centerIn: parent
-                        text: "Apply"
+                        text: window.isApplying ? "Applying..." : "Apply"
                         color: "#000000"
                         font.family: window.uiFont
                         font.pixelSize: window.u * 12
@@ -692,10 +588,13 @@ Item {
 
     MouseArea {
         anchors.fill: parent
-        visible: window.showPanel && !window.isApplying
-        z: 150
-        acceptedButtons: Qt.LeftButton
-        onClicked: window.showPanel = false
+        visible: window.showPanel
+        z: 250
+        acceptedButtons: Qt.AllButtons
+        onWheel: wheel => wheel.accepted = true
+        onClicked: mouse => {
+            if (!window.isApplying && mouse.button === Qt.LeftButton) window.showPanel = false
+        }
     }
 
     Shortcut {

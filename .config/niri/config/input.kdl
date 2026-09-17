@@ -14,10 +14,10 @@ input {
     }
 
     touchpad {
-       // natural-scroll
-       accel-speed 0.25
-       click-method "clickfinger"
-       tap
+        // natural-scroll
+        accel-speed 0.25
+        click-method "clickfinger"
+        tap
     }
     mouse {
     }

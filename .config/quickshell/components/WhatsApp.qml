@@ -54,7 +54,6 @@ Item {
     })
     property string sendStatus: ""
     property bool sendFailed: false
-    property bool localComposing: false
     property bool restoreScroll: false
     property var pendingScroll: null
     readonly property int stableBodyHeight: wa.chatRowHeight * wa.maxChatRows + 6 * (wa.maxChatRows - 1) + 20
@@ -128,8 +127,6 @@ Item {
 
     function clearChat() {
         wa.saveChatState();
-        wa.localComposing = false;
-        composingIdle.stop();
         wa.currentChat = null;
         wa.currentJid = "";
         wa.pendingScroll = null;
@@ -229,8 +226,9 @@ Item {
             if (!c || !c.jid)
                 continue;
 
-            var kind = c.kind || "dm";
-            if (tab === "groups" ? kind !== "group" : kind === "group")
+            var kind = c.kind === "community" ? "group" : (c.kind || "dm");
+            var expectedKind = tab === "groups" ? "group" : tab === "channels" ? "newsletter" : "dm";
+            if (kind !== expectedKind)
                 continue;
 
             var n = wa.shortName(c).toLowerCase();
@@ -270,8 +268,6 @@ Item {
             return ;
         }
         wa.saveChatState();
-        wa.localComposing = false;
-        composingIdle.stop();
         audioPlayer.running = false;
         wa.currentChat = wa.copyChat(chat);
         wa.currentJid = String(chat.jid);
@@ -348,8 +344,6 @@ Item {
         wa.sendStatus = "";
         wa.sendFailed = false;
         sendField.text = "";
-        composingIdle.stop();
-        wa.localComposing = false;
         sendProc.command = ["timeout", "--kill-after=5s", "90s", "bash", Quickshell.shellDir + "/scripts/wa-send.sh", jid, text];
         sendProc.running = true;
     }
@@ -411,8 +405,6 @@ Item {
             focusRequest.restart();
         } else {
             wa.saveChatState();
-            wa.localComposing = false;
-            composingIdle.stop();
             audioPlayer.running = false;
         }
     }
@@ -588,14 +580,6 @@ Item {
                 wa.loadMessages();
 
         }
-    }
-
-    Timer {
-        id: composingIdle
-
-        interval: 3000
-        repeat: false
-        onTriggered: wa.localComposing = false
     }
 
     Timer {
@@ -851,9 +835,9 @@ Item {
             }
 
             Rectangle {
-                width: 216
+                width: Math.min(330, parent.width)
                 height: 30
-                Layout.alignment: Qt.AlignHCenter
+                anchors.horizontalCenter: parent.horizontalCenter
                 radius: 15
                 color: wa.alpha(wa.fg, 0.06)
 
@@ -863,6 +847,8 @@ Item {
                     spacing: 4
 
                     Item {
+                        Layout.preferredWidth: 1
+                        Layout.minimumWidth: 0
                         Layout.fillWidth: true
                         Layout.fillHeight: true
 
@@ -907,6 +893,8 @@ Item {
                     }
 
                     Item {
+                        Layout.preferredWidth: 1
+                        Layout.minimumWidth: 0
                         Layout.fillWidth: true
                         Layout.fillHeight: true
 
@@ -948,6 +936,39 @@ Item {
                             }
                         }
 
+                    }
+
+                    Repeater {
+                        model: [{key: "channels", label: "Channels"}]
+
+                        delegate: Rectangle {
+                            required property var modelData
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            Layout.preferredWidth: 1
+                            Layout.minimumWidth: 0
+                            radius: 12
+                            color: wa.activeTab === modelData.key ? wa.accent : "transparent"
+
+                            Text {
+                                id: tabLabel
+                                anchors.centerIn: parent
+                                text: modelData.label
+                                color: wa.activeTab === modelData.key ? wa.accentText : wa.alpha(wa.fg, 0.6)
+                                font.family: wa.uiFont
+                                font.pixelSize: wa.fontSize
+                                font.weight: Font.Bold
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    wa.activeTab = modelData.key;
+                                    wa.applyChatFilter(searchField.text);
+                                }
+                            }
+                        }
                     }
 
                 }
@@ -1537,93 +1558,6 @@ Item {
                                     font.pixelSize: wa.fontSize - 1
                                 }
 
-                                Row {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    anchors.bottom: parent.bottom
-                                    anchors.bottomMargin: 6
-                                    visible: wa.currentJid.length > 0 && wa.localComposing && !wa.msgsLoading
-                                    spacing: 4
-
-                                    Rectangle {
-                                        width: 5
-                                        height: 5
-                                        radius: 2.5
-                                        y: 5
-                                        color: wa.alpha(wa.fg, 0.45)
-
-                                        SequentialAnimation on opacity {
-                                            loops: Animation.Infinite
-
-                                            NumberAnimation {
-                                                from: 0.25
-                                                to: 1
-                                                duration: 500
-                                            }
-
-                                            NumberAnimation {
-                                                from: 1
-                                                to: 0.25
-                                                duration: 500
-                                            }
-
-                                        }
-
-                                    }
-
-                                    Rectangle {
-                                        width: 5
-                                        height: 5
-                                        radius: 2.5
-                                        y: 5
-                                        color: wa.alpha(wa.fg, 0.45)
-
-                                        SequentialAnimation on opacity {
-                                            loops: Animation.Infinite
-
-                                            NumberAnimation {
-                                                from: 0.25
-                                                to: 1
-                                                duration: 500
-                                            }
-
-                                            NumberAnimation {
-                                                from: 1
-                                                to: 0.25
-                                                duration: 500
-                                            }
-
-                                        }
-
-                                    }
-
-                                    Rectangle {
-                                        width: 5
-                                        height: 5
-                                        radius: 2.5
-                                        y: 5
-                                        color: wa.alpha(wa.fg, 0.45)
-
-                                        SequentialAnimation on opacity {
-                                            loops: Animation.Infinite
-
-                                            NumberAnimation {
-                                                from: 0.25
-                                                to: 1
-                                                duration: 500
-                                            }
-
-                                            NumberAnimation {
-                                                from: 1
-                                                to: 0.25
-                                                duration: 500
-                                            }
-
-                                        }
-
-                                    }
-
-                                }
-
                             }
 
                             Rectangle {
@@ -1657,15 +1591,6 @@ Item {
                                         readOnly: wa.currentJid.length === 0
                                         enabled: wa.currentJid.length > 0
                                         onAccepted: wa.sendMessage()
-                                        onTextChanged: {
-                                            if (!wa.currentJid)
-                                                return ;
-
-                                            wa.localComposing = text.length > 0;
-                                            if (text.length > 0)
-                                                composingIdle.restart();
-
-                                        }
                                         Keys.onEscapePressed: (event) => {
                                             searchField.forceActiveFocus();
                                             event.accepted = true;

@@ -17,8 +17,8 @@ set -e
 
 IMG="$1"
 MODE="${2:-dark}"
-SCHEME="${3:-tonal_spot}"
-HEX="$4"
+SCHEME="${3:-}"
+HEX="${4:-}"
 PIN_WIDGETS="${5:-0}"
 
 QUICK_THEME_FILE="$HOME/.config/quickshell/qs-theme.json"
@@ -28,6 +28,13 @@ EXTRA_PALETTES="$SCRIPT_DIR/nvim_themes.json"
 mkdir -p "$CACHE"
 
 [ -f "$IMG" ] || { echo "wallpaper_apply: not found: $IMG" >&2; exit 1; }
+
+if [ -z "$SCHEME" ] && [ -f "$CACHE/scheme.txt" ]; then
+  mapfile -t SAVED_SCHEME < "$CACHE/scheme.txt"
+  SCHEME="${SAVED_SCHEME[0]:-}"
+  HEX="${SAVED_SCHEME[1]:-}"
+fi
+SCHEME="${SCHEME:-tonal_spot}"
 
 # matugen prefer
 case "$MODE" in
@@ -674,5 +681,7 @@ printf '%s\n' "$QUICK" > "$QUICK_THEME_FILE"
 
 # Remember the last applied wallpaper so the picker can preselect it.
 printf '%s\n' "$IMG" > "$CACHE/current.txt"
+printf '%s\n%s\n' "$SCHEME" "$HEX" > "$CACHE/scheme.txt.tmp"
+mv -f "$CACHE/scheme.txt.tmp" "$CACHE/scheme.txt"
 
 exit 0

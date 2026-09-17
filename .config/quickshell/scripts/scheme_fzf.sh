@@ -80,12 +80,10 @@ if [ -z "$IMG" ] || [ ! -f "$IMG" ]; then
            -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' | head -1 || true)"
 fi
 
-# qs-theme.json stores the QuickShell pill mode, which is the opposite of the
-# matugen --prefer we tell wallpaper_apply to use.
 MODE="dark"
 if [ -f "$QS_THEME" ]; then
   QM="$(sed -n 's/.*"mode"[[:space:]]*:[[:space:]]*"\([a-z]*\)".*/\1/p' "$QS_THEME")"
-  [ "$QM" = "dark" ] && MODE="light" || MODE="dark"
+  [ "$QM" = "light" ] && MODE="light" || MODE="dark"
 fi
 
 PREVIEW_PY="$SCRIPT_DIR/scheme_preview.py"

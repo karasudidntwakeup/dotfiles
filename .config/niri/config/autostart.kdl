@@ -1,3 +1,4 @@
+spawn-at-startup "wl-paste" "--watch" "cliphist" "store"
 spawn-at-startup "pipewire"
 spawn-at-startup "pipewire-pulse"
 spawn-at-startup "wireplumber"

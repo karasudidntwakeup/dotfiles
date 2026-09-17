@@ -15,7 +15,6 @@ trap 'rm -f -- "$TMP"' EXIT
 
 chmod 600 "$OUT" 2>/dev/null
 
-wacli --json chats list --limit 150 2>/dev/null \
+wacli --read-only --json chats list --limit 150 2>/dev/null \
     | jq -ce '{chats: (.data // [])}' >"$TMP" \
-    && chmod 600 "$TMP" \
     && mv "$TMP" "$OUT"
