@@ -1,17 +1,17 @@
 overview {
-    backdrop-color "#0f141a"
+    backdrop-color "#181926"
 }
 
 layout {
     border {
-        active-color "#2b2f00"
-        inactive-color "#000000"
-        urgent-color "#600004"
+        active-color "#8aadf4"
+        inactive-color "#a5adcb"
+        urgent-color "#ed8796"
     }
     focus-ring {
-        active-color "#2b2f00"
-        inactive-color "#000000"
-        urgent-color "#600004"
+        active-color "#8aadf4"
+        inactive-color "#a5adcb"
+        urgent-color "#ed8796"
     }
     shadow {
         color "#000000"
@@ -20,7 +20,7 @@ layout {
 
 recent-windows {
     highlight {
-        active-color "#2b2f00"
-        urgent-color "#600004"
+        active-color "#8aadf4"
+        urgent-color "#ed8796"
     }
 }
