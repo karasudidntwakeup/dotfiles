@@ -222,3 +222,28 @@ if [[ -r ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]; then
   source ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
 
+# Auto-heal stale DBUS_SESSION_BUS_ADDRESS (e.g. shells inherited from
+# herdr/long-lived parents across niri restarts via dbus-run-session).
+# If the socket in the current address is gone, re-derive it from niri.
+if [[ -n "$DBUS_SESSION_BUS_ADDRESS" ]]; then
+  _dbus_sock="${DBUS_SESSION_BUS_ADDRESS#*path=}"
+  _dbus_sock="${_dbus_sock%%,*}"
+  if [[ "$_dbus_sock" == unix:* || ! -S "$_dbus_sock" ]]; then
+    for _niri_pid in ${(f)"$(pgrep -x niri 2>/dev/null)"}; do
+      if [[ -r "/proc/$_niri_pid/environ" ]]; then
+        _fresh_addr="$(tr '\0' '\n' < "/proc/$_niri_pid/environ" 2>/dev/null | sed -n 's/^DBUS_SESSION_BUS_ADDRESS=//p')"
+        if [[ -n "$_fresh_addr" ]]; then
+          _fresh_sock="${_fresh_addr#*path=}"
+          _fresh_sock="${_fresh_sock%%,*}"
+          if [[ -S "$_fresh_sock" ]]; then
+            export DBUS_SESSION_BUS_ADDRESS="$_fresh_addr"
+            break
+          fi
+        fi
+      fi
+    done
+    unset _niri_pid _fresh_addr _fresh_sock
+  fi
+  unset _dbus_sock
+fi
+
