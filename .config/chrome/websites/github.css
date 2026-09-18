@@ -35,6 +35,34 @@
         --button-star-iconColor: var(--primary) !important;
         --control-bgColor-active: var(--surface_container_highest) !important;
         --overlay-bgColor: var(--surface_container) !important;
+        --canvas-default: var(--background) !important;
+        --canvas-subtle: var(--surface_container_low) !important;
+        --canvas-inset: var(--surface_container_lowest) !important;
+        --header-bgColor: var(--surface_container_low) !important;
+        --header-fgColor: var(--on_surface) !important;
+        --fgColor-success: var(--secondary) !important;
+        --fgColor-attention: var(--tertiary) !important;
+        --bgColor-success-emphasis: var(--secondary) !important;
+        --bgColor-success-muted: var(--secondary_container) !important;
+        --accent-fgColor: var(--primary) !important;
+        --accent-bgColor: var(--primary_container) !important;
+        --focus-outlineColor: var(--primary) !important;
+        --actionListItem-default-hover-bgColor: var(--surface_container_high) !important;
+        --control-bgColor-rest: var(--surface_container_high) !important;
+        --control-borderColor-rest: var(--outline_variant) !important;
+        --fgColor-done: var(--lavender) !important;
+        --fgColor-sponsors: var(--tertiary_container) !important;
+        --bgColor-done-emphasis: var(--lavender) !important;
+        --borderColor-done-emphasis: var(--lavender) !important;
+        --bgColor-done-muted: var(--primary_container) !important;
+        --diff-blob-addition-num-bgColor: color-mix(in srgb, var(--secondary) 15%, transparent) !important;
+        --diff-blob-addition-line-bgColor: color-mix(in srgb, var(--secondary) 10%, transparent) !important;
+        --diff-blob-deletion-num-bgColor: color-mix(in srgb, var(--error) 15%, transparent) !important;
+        --diff-blob-deletion-line-bgColor: color-mix(in srgb, var(--error) 10%, transparent) !important;
+        --codeMirror-bgColor: var(--surface_container_lowest) !important;
+        --codeMirror-gutterMarker-fgColor-default: var(--on_surface) !important;
+        --topicTag-borderColor: var(--primary_container) !important;
+        --counter-bgColor-emphasis: var(--surface_container_highest) !important;
     }
 }
 

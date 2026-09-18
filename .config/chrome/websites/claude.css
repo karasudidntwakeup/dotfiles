@@ -1,156 +1,174 @@
 @-moz-document domain("claude.ai") {
     :root, html, .cds-root, .darkTheme, [data-theme="dark"] {
-        /* ---------- Claude Design System (CDS) tokens ---------- */
+        /* ---------- Claude Design System (CDS) tokens ----------
+           Same palette as before, now referencing theme vars.
+           Color-only: no layout / shape changes. */
 
         /* Surfaces */
-        --cds-surface-0: #2a303c !important;
-        --cds-surface-1: #252b37 !important;
-        --cds-surface-2: #343a46 !important;
-        --cds-surface-3: #3e4450 !important;
+        --cds-surface-0: var(--surface_container_lowest) !important;
+        --cds-surface-1: var(--background) !important;
+        --cds-surface-2: var(--surface_container) !important;
+        --cds-surface-3: var(--surface_container_high) !important;
 
         /* Text */
-        --cds-text-primary: #bfc5d0 !important;
-        --cds-text-secondary: #c7cdd8 !important;
-        --cds-text-muted: #566074 !important;
-        --cds-text-disabled: #566074 !important;
+        --cds-text-primary: var(--on_surface) !important;
+        --cds-text-secondary: var(--on_surface_variant) !important;
+        --cds-text-muted: var(--outline) !important;
+        --cds-text-disabled: var(--outline) !important;
 
         /* Borders */
-        --cds-border: #566074 !important;
-        --cds-border-strong: #566074 !important;
-        --cds-border-stronger: #566074 !important;
+        --cds-border: var(--outline) !important;
+        --cds-border-strong: var(--outline) !important;
+        --cds-border-stronger: var(--outline) !important;
 
         /* Accent (primary) */
-        --cds-bg-accent: #7797b7 !important;
-        --cds-bg-accent-chip: #9aafe6 !important;
-        --cds-text-accent: #7797b7 !important;
-        --cds-border-accent: #7797b7 !important;
+        --cds-bg-accent: var(--primary) !important;
+        --cds-bg-accent-chip: var(--primary_container) !important;
+        --cds-text-accent: var(--primary) !important;
+        --cds-border-accent: var(--primary) !important;
 
         /* Brand */
-        --cds-clay: #7797b7 !important;
-        --cds-clay-emphasized: #7797b7 !important;
+        --cds-clay: var(--primary) !important;
+        --cds-clay-emphasized: var(--primary) !important;
 
         /* Neutral buttons / chips */
-        --cds-bg-neutral: #3e4450 !important;
-        --cds-bg-neutral-hover: #484e5a !important;
-        --cds-bg-neutral-chip: #3e4450 !important;
-        --cds-bg-neutral-chip-hover: #484e5a !important;
+        --cds-bg-neutral: var(--surface_container_high) !important;
+        --cds-bg-neutral-hover: var(--surface_container_highest) !important;
+        --cds-bg-neutral-chip: var(--surface_container_high) !important;
+        --cds-bg-neutral-chip-hover: var(--surface_container_highest) !important;
 
         /* Danger */
-        --cds-bg-danger: #d57780 !important;
-        --cds-bg-danger-chip: #d57780 !important;
-        --cds-text-danger: #d57780 !important;
-        --cds-border-danger: #d57780 !important;
+        --cds-bg-danger: var(--error_container) !important;
+        --cds-bg-danger-chip: var(--error_container) !important;
+        --cds-text-danger: var(--error) !important;
+        --cds-border-danger: var(--error) !important;
 
         /* Legacy mode-adaptive neutrals (used by bg-300/bg-400 levels) */
-        --cds-neutral-30: #333945 !important;
-        --cds-neutral-50: #343a46 !important;
-        --cds-neutral-600: #566074 !important;
-        --cds-neutral-700: #c7cdd8 !important;
-        --cds-neutral-900: #bfc5d0 !important;
+        --cds-neutral-30: var(--surface_container_low) !important;
+        --cds-neutral-50: var(--surface_container) !important;
+        --cds-neutral-600: var(--outline) !important;
+        --cds-neutral-700: var(--on_surface_variant) !important;
+        --cds-neutral-900: var(--on_surface) !important;
 
         /* ---------- Legacy HSL tokens (sidebar, composer) ---------- */
 
         /* Backgrounds */
-        --bg-000: 220 17% 20% !important;
-        --bg-100: 220 17% 20% !important;
-        --bg-200: 220 15% 23% !important;
-        --bg-300: 220 19% 18% !important;
-        --bg-400: 220 14% 23% !important;
-        --bg-500: 219 12% 27% !important;
+        --bg-000: 231 23% 18% !important;
+        --bg-100: 231 23% 18% !important;
+        --bg-200: 233 23% 15% !important;
+        --bg-300: 235 22% 12% !important;
+        --bg-400: 230 18% 26% !important;
+        --bg-500: 231 15% 33% !important;
 
         /* Text */
-        --text-000: 218 15% 78% !important;
-        --text-100: 218 15% 78% !important;
-        --text-200: 218 17% 81% !important;
-        --text-300: 218 17% 81% !important;
-        --text-400: 220 14% 39% !important;
-        --text-500: 220 14% 39% !important;
+        --text-000: 227 68% 87% !important;
+        --text-100: 227 68% 87% !important;
+        --text-200: 227 26% 72% !important;
+        --text-300: 227 26% 72% !important;
+        --text-400: 228 39% 80% !important;
+        --text-500: 228 39% 80% !important;
 
         /* Brand accent */
-        --accent-brand: 209 30% 59% !important;
+        --accent-brand: 220 82% 74% !important;
 
         /* Primary accent scale */
-        --accent-main-000: 220 19% 18% !important;
-        --accent-main-100: 220 15% 23% !important;
-        --accent-main-200: 220 14% 23% !important;
-        --accent-main-300: 219 12% 27% !important;
-        --accent-main-400: 223 60% 75% !important;
-        --accent-main-500: 223 60% 75% !important;
-        --accent-main-600: 209 30% 59% !important;
-        --accent-main-700: 209 30% 59% !important;
-        --accent-main-800: 218 15% 78% !important;
-        --accent-main-900: 218 15% 78% !important;
+        --accent-main-000: 235 22% 12% !important;
+        --accent-main-100: 233 23% 15% !important;
+        --accent-main-200: 230 18% 26% !important;
+        --accent-main-300: 231 15% 33% !important;
+        --accent-main-400: 198 65% 69% !important;
+        --accent-main-500: 198 65% 69% !important;
+        --accent-main-600: 220 82% 74% !important;
+        --accent-main-700: 220 82% 74% !important;
+        --accent-main-800: 227 68% 87% !important;
+        --accent-main-900: 227 68% 87% !important;
 
         /* Secondary accent scale */
-        --accent-secondary-000: 220 19% 18% !important;
-        --accent-secondary-100: 220 15% 23% !important;
-        --accent-secondary-200: 220 14% 23% !important;
-        --accent-secondary-300: 219 12% 27% !important;
-        --accent-secondary-400: 40 70% 73% !important;
-        --accent-secondary-500: 40 70% 73% !important;
-        --accent-secondary-600: 92 27% 64% !important;
-        --accent-secondary-700: 92 27% 64% !important;
-        --accent-secondary-800: 218 15% 78% !important;
-        --accent-secondary-900: 218 15% 78% !important;
+        --accent-secondary-000: 235 22% 12% !important;
+        --accent-secondary-100: 233 23% 15% !important;
+        --accent-secondary-200: 230 18% 26% !important;
+        --accent-secondary-300: 231 15% 33% !important;
+        --accent-secondary-400: 40 69% 77% !important;
+        --accent-secondary-500: 40 69% 77% !important;
+        --accent-secondary-600: 105 48% 71% !important;
+        --accent-secondary-700: 105 48% 71% !important;
+        --accent-secondary-800: 227 68% 87% !important;
+        --accent-secondary-900: 227 68% 87% !important;
 
         /* Pro accent scale */
-        --accent-pro-000: 220 19% 18% !important;
-        --accent-pro-100: 220 15% 23% !important;
-        --accent-pro-200: 220 14% 23% !important;
-        --accent-pro-300: 219 12% 27% !important;
-        --accent-pro-400: 354 54% 68% !important;
-        --accent-pro-500: 354 54% 68% !important;
-        --accent-pro-600: 14 63% 70% !important;
-        --accent-pro-700: 14 63% 70% !important;
-        --accent-pro-800: 218 15% 78% !important;
-        --accent-pro-900: 218 15% 78% !important;
+        --accent-pro-000: 235 22% 12% !important;
+        --accent-pro-100: 233 23% 15% !important;
+        --accent-pro-200: 230 18% 26% !important;
+        --accent-pro-300: 231 15% 33% !important;
+        --accent-pro-400: 316 75% 84% !important;
+        --accent-pro-500: 316 75% 84% !important;
+        --accent-pro-600: 21 85% 72% !important;
+        --accent-pro-700: 21 85% 72% !important;
+        --accent-pro-800: 227 68% 87% !important;
+        --accent-pro-900: 227 68% 87% !important;
 
         /* Borders */
-        --border-100: 220 14% 39% !important;
-        --border-200: 220 14% 39% !important;
-        --border-300: 220 14% 39% !important;
-        --border-400: 220 14% 39% !important;
+        --border-100: 228 39% 80% !important;
+        --border-200: 228 39% 80% !important;
+        --border-300: 228 39% 80% !important;
+        --border-400: 228 39% 80% !important;
 
         /* Text on colored backgrounds */
-        --oncolor-100: 220 19% 18% !important;
-        --oncolor-200: 220 19% 18% !important;
-        --oncolor-300: 220 19% 18% !important;
+        --oncolor-100: 235 22% 12% !important;
+        --oncolor-200: 235 22% 12% !important;
+        --oncolor-300: 235 22% 12% !important;
 
         /* Icons */
-        --pictogram-100: 218 15% 78% !important;
-        --pictogram-200: 218 17% 81% !important;
-        --pictogram-300: 220 14% 39% !important;
-        --pictogram-400: 220 14% 39% !important;
+        --pictogram-100: 227 68% 87% !important;
+        --pictogram-200: 227 26% 72% !important;
+        --pictogram-300: 228 39% 80% !important;
+        --pictogram-400: 228 39% 80% !important;
 
         /* ---------- Legacy hex variables (window chrome / body) ---------- */
-        --claude-accent-clay: #7797b7 !important;
-        --claude-foreground-color: #bfc5d0 !important;
-        --claude-background-color: #252b37 !important;
-        --claude-secondary-color: #c7cdd8 !important;
-        --claude-border: #566074 !important;
-        --claude-border-300: #566074 !important;
-        --claude-border-300-more: #566074 !important;
-        --claude-text-100: #bfc5d0 !important;
-        --claude-text-200: #c7cdd8 !important;
-        --claude-text-400: #566074 !important;
-        --claude-text-500: #566074 !important;
-        --claude-description-text: #c7cdd8 !important;
+        --claude-accent-clay: var(--primary) !important;
+        --claude-foreground-color: var(--on_surface) !important;
+        --claude-background-color: var(--background) !important;
+        --claude-secondary-color: var(--on_surface_variant) !important;
+        --claude-border: var(--outline) !important;
+        --claude-border-300: var(--outline) !important;
+        --claude-border-300-more: var(--outline) !important;
+        --claude-text-100: var(--on_surface) !important;
+        --claude-text-200: var(--on_surface_variant) !important;
+        --claude-text-400: var(--outline) !important;
+        --claude-text-500: var(--outline) !important;
+        --claude-description-text: var(--on_surface_variant) !important;
 
         /* ---------- More colors: success / warning / info / code ---------- */
-        --cds-bg-success: #a3be8c !important;
-        --cds-bg-success-chip: #ebcb8b !important;
-        --cds-text-success: #a3be8c !important;
-        --cds-text-success-chip: #252b37 !important;
-        --cds-bg-warning: #e39a83 !important;
-        --cds-text-warning: #e39a83 !important;
-        --cds-bg-info: #9aafe6 !important;
-        --cds-text-info: #7797b7 !important;
-        --cds-bg-code: #484e5a !important;
-        --cds-text-code: #e39a83 !important;
-        --cds-selection-bg: #ebcb8b !important;
-        --cds-selection-fg: #252b37 !important;
-        --accent-success-400: 92 27 64 !important;
-        --accent-warning-400: 14 63 70 !important;
-        --accent-danger-400: 354 52 65 !important;
+        --cds-bg-success: var(--secondary) !important;
+        --cds-bg-success-chip: var(--secondary_container) !important;
+        --cds-text-success: var(--secondary) !important;
+        --cds-text-success-chip: var(--on_secondary_container) !important;
+        --cds-bg-warning: var(--tertiary) !important;
+        --cds-text-warning: var(--tertiary) !important;
+        --cds-bg-info: var(--primary_container) !important;
+        --cds-text-info: var(--primary) !important;
+        --cds-bg-code: var(--surface_container_highest) !important;
+        --cds-text-code: var(--tertiary) !important;
+        --cds-selection-bg: var(--secondary_container) !important;
+        --cds-selection-fg: var(--on_secondary_container) !important;
+        --accent-success-400: 105 48 71 !important;
+        --accent-warning-400: 21 85 72 !important;
+        --accent-danger-400: 351 73 72 !important;
+    }
+    /* Base page: color only, same palette, covers spots vars miss */
+    html, body {
+        background-color: var(--background) !important;
+        color: var(--on_surface) !important;
+        scrollbar-color: var(--outline) var(--background);
+        accent-color: var(--primary);
+    }
+    ::selection {
+        background-color: var(--secondary_container) !important;
+        color: var(--on_secondary_container) !important;
+    }
+    pre, code, .code-block, [class*="code"] {
+        background-color: var(--surface_container_highest) !important;
+        color: var(--tertiary) !important;
+        border-color: var(--outline_variant) !important;
     }
 }

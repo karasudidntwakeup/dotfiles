@@ -1,12 +1,63 @@
 @-moz-document domain("duckduckgo.com") {
-  body, .site-wrapper {
-    background-color: #252b37 !important;
-    color: #bfc5d0 !important;
+  /* Color-only theming: same palette as before, now via theme vars.
+     No layout / shape changes. */
+  body, .site-wrapper, .content-wrap, #duckbar {
+    background-color: var(--background) !important;
+    color: var(--on_surface) !important;
   }
-  .header-wrap {
-    background-color: #343a46 !important;
+  .header-wrap, .header--aside, .modal__box {
+    background-color: var(--surface_container) !important;
+    color: var(--on_surface) !important;
   }
-  a, .result__title a {
-    color: #7797b7 !important;
+  a, .result__title a, .result__a {
+    color: var(--primary) !important;
+  }
+  .result__snippet, .result__extras, .result__body, .module__text {
+    color: var(--on_surface_variant) !important;
+  }
+  .result__url, .result__domain {
+    color: var(--secondary) !important;
+  }
+  input, .search__input, .js-search-input, select, textarea {
+    background-color: var(--surface_container_low) !important;
+    color: var(--on_surface) !important;
+    border-color: var(--outline_variant) !important;
+  }
+  .search__button, .btn--primary {
+    background-color: var(--surface_container_high) !important;
+    color: var(--on_surface) !important;
+  }
+  .search__button:hover, .btn--primary:hover {
+    background-color: var(--surface_container_highest) !important;
+  }
+  .zci, .module, .result, .results--sidebar .result {
+    background-color: var(--surface_container_low) !important;
+    color: var(--on_surface) !important;
+    border-color: var(--outline_variant) !important;
+  }
+  /* Autocomplete, dropdowns, footer: color only */
+  .acp-wrap, .search__autocomplete, .autocomplete, .dropdown__content,
+  .modal__box, .popover {
+    background-color: var(--surface_container) !important;
+    color: var(--on_surface) !important;
+    border-color: var(--outline_variant) !important;
+  }
+  .acp-wrap .acp, .search__autocomplete .acp {
+    color: var(--on_surface) !important;
+  }
+  .acp-wrap .acp:hover, .search__autocomplete .acp:hover,
+  .dropdown__content a:hover {
+    background-color: var(--surface_container_high) !important;
+  }
+  .footer, .foot, .footer__nav, .badge, .header__button {
+    background-color: transparent !important;
+    color: var(--on_surface_variant) !important;
+  }
+  .footer a, .foot a {
+    color: var(--primary) !important;
+  }
+  ::selection {
+    background-color: var(--primary) !important;
+    color: var(--on_primary) !important;
   }
 }
