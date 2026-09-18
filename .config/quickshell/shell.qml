@@ -194,6 +194,8 @@ ShellRoot {
     property string diskFreeText: ""
     property string diskTotalText: ""
 
+    property var mountedDisks: []
+
     Process {
         id: weatherProc
         command: ["sh", "-c", "~/.config/waybar/scripts/weather.sh"]
@@ -296,6 +298,32 @@ ShellRoot {
         }
     }
 
+    Process {
+        id: mountedDisksProc
+        command: ["sh", "-c", Quickshell.shellDir + "/scripts/mounted_disks.sh"]
+        stdout: SplitParser {
+            onRead: data => {
+                if (!data) return
+                var lines = data.trim().split("\n")
+                var disks = []
+                for (var i = 0; i < lines.length; i++) {
+                    var line = lines[i].trim()
+                    if (!line) continue
+                    var parts = line.split("|")
+                    if (parts.length >= 4) {
+                        disks.push({
+                            mount: parts[0],
+                            pct: parseInt(parts[1] || "0", 10) || 0,
+                            free: parts[2] || "0",
+                            total: parts[3] || "0"
+                        })
+                    }
+                }
+                root.mountedDisks = disks
+            }
+        }
+    }
+
     Timer {
         interval: 600000
         running: true
@@ -345,6 +373,13 @@ ShellRoot {
         running: true
         repeat: true
         onTriggered: diskProc.running = true
+    }
+
+    Timer {
+        interval: 300000
+        running: true
+        repeat: true
+        onTriggered: mountedDisksProc.running = true
     }
 
     property int volumePercent: 0
@@ -658,6 +693,7 @@ ShellRoot {
         prayerProc.running = true
         memProc.running = true
         diskProc.running = true
+        mountedDisksProc.running = true
         netProc.running = true
         btProc.running = true
         mediaProc.running = true

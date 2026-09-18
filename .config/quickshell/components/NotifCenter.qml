@@ -214,6 +214,22 @@ Item {
                 }
             }
 
+            // Mounted disks widgets
+            Repeater {
+                model: rootRef && rootRef.mountedDisks ? rootRef.mountedDisks : []
+                delegate: InfoWidget {
+                    Layout.fillWidth: true
+                    visible: true
+                    tintName: "tertiary_container"
+                    title: modelData.pct + "%"
+                    subtitle: modelData.free + "G free of " + modelData.total + "G"
+                    caption: modelData.mount
+                    glyph: ""
+                    isY2kMoon: false
+                    progress: Math.max(0, Math.min(1, (modelData.pct || 0) / 100))
+                }
+            }
+
             Rectangle {
                 id: mediaCard
                 Layout.fillWidth: true
