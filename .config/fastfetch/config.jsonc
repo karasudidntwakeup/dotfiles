@@ -14,7 +14,7 @@
   "modules": [
     {
       "type": "custom",
-      "format": "   󰄛  コンピューター"
+      "format": "  󰄛  コンピューター"
     },
     {
       "type": "chassis",

@@ -83,3 +83,11 @@ output_path = "~/.config/qt6ct/qss/matugen-style.qss"
 [templates.yazi]
   input_path = '~/.config/matugen/templates/yazi.toml'
   output_path = '~/.config/yazi/theme.toml'
+
+[templates.joplin-userchrome]
+  input_path = '~/.config/matugen/templates/joplin-userchrome.css'
+  output_path = '~/.config/joplin-desktop/userchrome.css'
+
+[templates.joplin-userstyle]
+  input_path = '~/.config/matugen/templates/joplin-userstyle.css'
+  output_path = '~/.config/joplin-desktop/userstyle.css'
