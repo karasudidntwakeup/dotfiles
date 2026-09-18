@@ -31,9 +31,11 @@ Item {
     readonly property int channelHeight: Math.max(10, fontSize - 3)
     readonly property int cellHeight: cellInset * 2 + thumbHeight + 7 + titleHeight + 3 + channelHeight
     readonly property string cardTile: "ytx_card"
-    // Darker take on the periwinkle token — text/borders follow via contrastColor.
+    // Muted take on the periwinkle token — text/borders follow via contrastColor.
     readonly property color cardColor: {
         var base = rootRef ? (rootRef.qsLight ? (rootRef.pillColor(cardTile)) : rootRef.colorOf(cardTile)) : "#f3dfd1"
+        if (rootRef && rootRef.mixColor && rootRef.colorOf)
+            base = rootRef.mixColor(base, rootRef.colorOf("surface_container_highest"), 0.75)
         return Qt.darker(base, 1.2)
     }
     readonly property color cardBorder: rootRef ? rootRef.withAlpha(rootRef.colorOf("widget_border"), rootRef.qsLight ? 0.7 : 0.5) : "#00000000"

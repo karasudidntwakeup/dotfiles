@@ -28,6 +28,8 @@ Item {
                 ? rootRef.pillColor(cardTile)
                 : rootRef.colorOf(cardTile))
             : "#f3dfd1"
+        if (rootRef && rootRef.mixColor && rootRef.colorOf)
+            base = rootRef.mixColor(base, rootRef.colorOf("surface_container_highest"), 0.75)
         return Qt.darker(base, 1.2)
     }
     readonly property color cardBorder: rootRef
