@@ -47,6 +47,11 @@ Item {
     readonly property int pad: 14
     readonly property int badgeSize: isPopup ? 40 : 42
     readonly property string name: nData ? (nData.appName || "System") : ""
+    // OpenCode / herdr notifications get a Y2K star badge instead of the generic app icon.
+    readonly property bool isOpenCode: {
+        var n = card.name.toLowerCase()
+        return n.indexOf("opencode") !== -1 || n.indexOf("herdr") !== -1
+    }
 
     readonly property string imgSrc: nData ? (nData.image || "") : ""
     readonly property string iconSrc: (function() {
@@ -296,7 +301,9 @@ Item {
                     QIcon {
                         anchors.centerIn: parent
                         visible: card.iconSrc.length === 0 || card.iconFailed
-                        source: Qt.resolvedUrl("../assets/icons/app.svg")
+                        source: card.isOpenCode
+                            ? Qt.resolvedUrl("../assets/icons/y2k-star-4.svg")
+                            : Qt.resolvedUrl("../assets/icons/app.svg")
                         color: card.fg
                         iconSize: card.fontSize + 5
                     }

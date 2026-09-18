@@ -164,6 +164,11 @@ ShellRoot {
         }
     }
 
+    // Y2K moon-star replaces the plain clear-night moon glyph.
+    function weatherIsY2kMoon() {
+        return !weatherIsDay && weatherKey === "sun"
+    }
+
     property string prayerText: ""
     property string prayerName: ""
     property date prayerTarget: new Date(0)
@@ -1955,11 +1960,21 @@ delegate: Item {
                     Module {
                         id: weatherPill
                         enterOrder: 0
-                        icon: root.weatherGlyph()
+                        icon: root.weatherIsY2kMoon() ? "" : root.weatherGlyph()
+                        iconSource: root.weatherIsY2kMoon() ? y2kMoonSource : null
                         iconSize: root.fontSize + 11
                         label: root.weatherText
                         tint: root.pillColor("primary_fixed_dim")
                         visible: root.weatherText.length > 0
+
+                        Component {
+                            id: y2kMoonSource
+                            QIcon {
+                                source: Qt.resolvedUrl("./assets/icons/y2k-moon-star.svg")
+                                color: weatherPill.pillTextColor
+                                iconSize: weatherPill.iconSize
+                            }
+                        }
                     }
 
                     Module {
