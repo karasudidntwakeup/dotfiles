@@ -17,9 +17,12 @@ Item {
     readonly property int panelMaxHeight: Math.max(120, Math.round(center.height - 40))
     readonly property int listMaxHeight: Math.max(64, center.panelMaxHeight - center.pad * 2 - 30 - 40 - (center.mediaOn ? 224 : 0))
     readonly property bool mediaOn: rootRef && rootRef.mediaStatus !== "none"
-    readonly property color panelColor: rootRef
-        ? (rootRef.qsLight ? rootRef.pillColor("surface") : rootRef.colorOf("surface"))
-        : "#15161a"
+    readonly property color panelColor: {
+        var base = rootRef
+            ? (rootRef.qsLight ? rootRef.pillColor("surface") : rootRef.colorOf("surface"))
+            : "#15161a"
+        return Qt.darker(base, 1.2)
+    }
     readonly property color panelBorder: rootRef ? rootRef.withAlpha(Qt.color(rootRef.colorOf("widget_border")), rootRef.qsLight ? 0.7 : 0.5) : "#ffffff33"
     readonly property color fg: rootRef ? rootRef.contrastColor(center.panelColor) : "#ffffff"
     readonly property color muteFg: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.72)
@@ -32,10 +35,7 @@ Item {
     // Text helper lives on root (contrastColor).
     property real animProgress: svc && svc.centerOpen ? 1.0 : 0.0
     Behavior on animProgress {
-        NumberAnimation {
-            duration: center.svc && center.svc.centerOpen ? 380 : 220
-            easing.type: center.svc && center.svc.centerOpen ? Easing.OutQuint : Easing.InCubic
-        }
+        Anim { type: Anim.Bouncy }
     }
 
     Keys.onEscapePressed: event => {
@@ -429,11 +429,11 @@ Item {
                 boundsBehavior: Flickable.StopAtBounds
 
                 add: Transition {
-                    NumberAnimation { property: "opacity"; from: 0; to: 1; duration: 180; easing.type: Easing.OutCubic }
-                    NumberAnimation { property: "x"; from: 28; to: 0; duration: 300; easing.type: Easing.OutExpo }
+                    Anim { property: "opacity"; from: 0; to: 1; type: Anim.DefaultEffects }
+                    Anim { property: "x"; from: 28; to: 0; type: Anim.DefaultSpatial }
                 }
                 displaced: Transition {
-                    NumberAnimation { property: "y"; duration: 300; easing.type: Easing.OutCubic }
+                    Anim { property: "y"; type: Anim.BouncyFast }
                 }
                 flickableDirection: Flickable.VerticalFlick
                 clip: true
@@ -540,7 +540,7 @@ Item {
                 : btn.active
                     ? Qt.rgba(center.accent.r, center.accent.g, center.accent.b, 0.35)
                     : (hoverArea.containsMouse ? Qt.rgba(1, 1, 1, 0.16) : Qt.rgba(1, 1, 1, 0.08))
-            Behavior on color { ColorAnimation { duration: 120 } }
+            Behavior on color { CAnim { type: CAnim.FastEffects } }
         }
 
         QIcon {

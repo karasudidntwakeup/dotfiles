@@ -270,8 +270,8 @@ Item {
             z: isCurrent ? 100 : Math.max(1, 50 - dist)
             opacity: 1.0
 
-            Behavior on width { enabled: window.isLoaded && !window.isApplying; NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
-            Behavior on height { enabled: window.isLoaded && !window.isApplying; NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+            Behavior on width { enabled: window.isLoaded && !window.isApplying; Anim { type: Anim.BouncyFast } }
+            Behavior on height { enabled: window.isLoaded && !window.isApplying; Anim { type: Anim.BouncyFast } }
 
             Item {
                 id: skewedWrapper
@@ -338,10 +338,10 @@ Item {
                         color: "transparent"
                         border.width: isCurrent ? window.borderWidth : 0
                         border.color: isCurrent ? window.blue : "transparent"
-                        Behavior on border.width { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-                        Behavior on border.color { ColorAnimation { duration: 200 } }
+                        Behavior on border.width { Anim { type: Anim.BouncyFast } }
+                        Behavior on border.color { CAnim { } }
                         opacity: isCurrent ? 1.0 : 0.0
-                        Behavior on opacity { NumberAnimation { duration: 200 } }
+                        Behavior on opacity { Anim { type: Anim.DefaultEffects } }
                     }
                 }
             }
@@ -385,7 +385,7 @@ Item {
                         color: window.currentFilter === modelData.name ? window.surface2
                              : (tabMouse.containsMouse ? window.surface1 : window.surface0)
                         border.width: 0
-                        Behavior on color { ColorAnimation { duration: 200 } }
+                        Behavior on color { CAnim { } }
 
                         Column {
                             anchors.centerIn: parent
@@ -423,7 +423,7 @@ Item {
                         radius: window.cornerRadius
                         color: modelData.hex
                         border.width: 0
-                        Behavior on color { ColorAnimation { duration: 200 } }
+                        Behavior on color { CAnim { } }
 
                         MouseArea {
                             id: swatchMouse
@@ -452,8 +452,8 @@ Item {
         border.width: 0
         z: 300
         opacity: visible ? 1.0 : 0.0
-        Behavior on anchors.bottomMargin { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
-        Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+        Behavior on anchors.bottomMargin { Anim { type: Anim.Bouncy } }
+        Behavior on opacity { Anim { type: Anim.DefaultEffects } }
 
         MouseArea {
             anchors.fill: parent
@@ -503,7 +503,7 @@ Item {
                              : (modeHover.containsMouse ? window.surface1 : window.surface0)
                         border.color: window.applyMode === modelData.key ? window.textColor : window.borderColor
                         border.width: window.applyMode === modelData.key ? (window.u === 1 ? 1.5 : 1) : 1
-                        Behavior on color { ColorAnimation { duration: 200 } }
+                        Behavior on color { CAnim { } }
                         Text {
                             id: modeLabel
                             anchors.centerIn: parent

@@ -10,9 +10,9 @@ layout {
     }
     shadow {
         on
-        softness 20
-        spread 0
-        offset x=0 y=4
+        softness 33
+        spread 4
+        offset x=4 y=8
         draw-behind-window true
     }
 }

@@ -21,11 +21,14 @@ Item {
     readonly property int cornerRadius: 12
 
     readonly property string cardTile: "widget_card"
-    readonly property color cardColor: rootRef
-        ? (rootRef.qsLight
-            ? rootRef.pillColor(cardTile)
-            : rootRef.colorOf(cardTile))
-        : "#f3dfd1"
+    readonly property color cardColor: {
+        var base = rootRef
+            ? (rootRef.qsLight
+                ? rootRef.pillColor(cardTile)
+                : rootRef.colorOf(cardTile))
+            : "#f3dfd1"
+        return Qt.darker(base, 1.2)
+    }
     readonly property color cardBorder: rootRef
         ? rootRef.withAlpha(rootRef.colorOf("widget_border"),
             rootRef.qsLight ? 0.7 : 0.5)
@@ -49,10 +52,7 @@ Item {
 
     property real animProgress: clipMgr.active ? 1.0 : 0.0
     Behavior on animProgress {
-        NumberAnimation {
-            duration: clipMgr.active ? 180 : 140
-            easing.type: Easing.OutExpo
-        }
+        Anim { type: Anim.Bouncy }
     }
 
     readonly property int bottomMargin: 24
@@ -282,7 +282,7 @@ Item {
                     border.color: clipMgr.wipeArmed
                         ? "transparent"
                         : (wipeHover.containsMouse ? rootRef.withAlpha(clipMgr.fg, 0.35) : rootRef.withAlpha(clipMgr.fg, 0.16))
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on color { CAnim { type: CAnim.FastEffects } }
 
                     Row {
                         id: wipeText
@@ -330,7 +330,7 @@ Item {
                     color: closeHover.containsMouse
                         ? rootRef.withAlpha(clipMgr.fg, 0.2)
                         : "transparent"
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on color { CAnim { type: CAnim.FastEffects } }
 
                     QIcon {
                         anchors.centerIn: parent
@@ -359,7 +359,7 @@ Item {
                 border.color: searchField.activeFocus
                     ? rootRef.withAlpha(clipMgr.fg, 0.5)
                     : rootRef.withAlpha(clipMgr.fg, 0.16)
-                Behavior on border.color { ColorAnimation { duration: 150 } }
+                Behavior on border.color { CAnim { type: CAnim.FastEffects } }
 
                 RowLayout {
                     anchors.fill: parent
@@ -422,7 +422,7 @@ Item {
                         color: clearHover.containsMouse
                             ? rootRef.withAlpha(clipMgr.fg, 0.25)
                             : "transparent"
-                        Behavior on color { ColorAnimation { duration: 120 } }
+                        Behavior on color { CAnim { type: CAnim.FastEffects } }
 
                         QIcon {
                             anchors.centerIn: parent
@@ -464,6 +464,21 @@ Item {
                     boundsBehavior: Flickable.StopAtBounds
                     clip: true
 
+                    // Springy list motion while filtering/adding.
+                    move: Transition {
+                        Anim { property: "y"; type: Anim.BouncyFast }
+                        Anim { property: "opacity"; to: 1; type: Anim.DefaultEffects }
+                    }
+                    displaced: Transition {
+                        Anim { property: "y"; type: Anim.BouncyFast }
+                    }
+                    add: Transition {
+                        Anim { property: "opacity"; from: 0; to: 1; type: Anim.DefaultEffects }
+                    }
+                    remove: Transition {
+                        Anim { property: "opacity"; from: 1; to: 0; type: Anim.FastEffects }
+                    }
+
                     Rectangle {
                         id: morphHighlight
                         parent: listView.contentItem
@@ -479,10 +494,7 @@ Item {
                         y: targetY
 
                         Behavior on y {
-                            NumberAnimation {
-                                duration: 240
-                                easing.type: Easing.OutQuint
-                            }
+                            Anim { type: Anim.BouncyFast }
                         }
                     }
 
@@ -505,7 +517,7 @@ Item {
                             color: rowHover.containsMouse && !isSelected
                                 ? rootRef.withAlpha(clipMgr.fg, 0.08)
                                 : "transparent"
-                            Behavior on color { ColorAnimation { duration: 120 } }
+                            Behavior on color { CAnim { type: CAnim.FastEffects } }
                         }
 
                         RowLayout {
@@ -525,7 +537,7 @@ Item {
                                     color: isSelected
                                         ? rootRef.withAlpha(clipMgr.fg, 0.16)
                                         : rootRef.withAlpha(clipMgr.fg, 0.08)
-                                    Behavior on color { ColorAnimation { duration: 150 } }
+                                    Behavior on color { CAnim { type: CAnim.FastEffects } }
                                 }
 
                                 Image {
@@ -583,7 +595,7 @@ Item {
                                     wrapMode: Text.WordWrap
                                     elide: Text.ElideRight
                                     verticalAlignment: Text.AlignVCenter
-                                    Behavior on color { ColorAnimation { duration: 150 } }
+                                    Behavior on color { CAnim { type: CAnim.FastEffects } }
                                 }
 
                                 Text {

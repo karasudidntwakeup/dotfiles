@@ -183,22 +183,21 @@ Item {
         flyOut.start()
     }
 
-    NumberAnimation {
+    Anim {
         id: flyOut
         target: card
         property: "dragX"
-        easing.type: Easing.OutQuad
+        type: Anim.BouncyFast
         onFinished: {
             if (card.svc && card.uid >= 0) card.svc.dismissNotif(card.uid)
         }
     }
-    NumberAnimation {
+    Anim {
         id: dragReset
         target: card
         property: "dragX"
         to: 0
-        duration: 180
-        easing.type: Easing.OutCubic
+        type: Anim.BouncyFast
     }
 
     implicitHeight: cardBody.height
@@ -373,7 +372,7 @@ Item {
                         border.color: actHover.containsMouse || actHover.pressed
                             ? rootRef.withAlpha(card.fg, 0.28)
                             : rootRef.withAlpha(card.fg, 0.16)
-                        Behavior on color { ColorAnimation { duration: 120 } }
+                        Behavior on color { CAnim { type: CAnim.FastEffects } }
 
                         Row {
                             id: actionRow
@@ -484,7 +483,7 @@ Item {
         color: closeHover.containsMouse
             ? rootRef.withAlpha(card.fg, 0.22)
             : rootRef.withAlpha(card.fg, 0.06)
-        Behavior on color { ColorAnimation { duration: 120 } }
+        Behavior on color { CAnim { type: CAnim.FastEffects } }
 
         QIcon {
             anchors.centerIn: parent

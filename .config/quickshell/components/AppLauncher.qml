@@ -12,19 +12,24 @@ Item {
 
     signal requestClose()
 
-    readonly property int cardWidth: 560
-    readonly property int rowHeight: 46
-    readonly property int maxRows: 6
-    readonly property int searchHeight: 40
-    readonly property int pad: 14
-    readonly property int cornerRadius: 12
+    // Compact bottom drawer, large rounding.
+    readonly property int cardWidth: 440
+    readonly property int rowHeight: 44
+    readonly property int maxRows: 5
+    readonly property int searchHeight: 42
+    readonly property int pad: 12
+    readonly property int cornerRadius: 18
+    readonly property int listSpacing: 4
 
     readonly property string cardTile: "launcher_card"
-    readonly property color cardColor: rootRef
-        ? (rootRef.qsLight
-            ? rootRef.pillColor(cardTile)
-            : rootRef.colorOf(cardTile))
-        : "#f3dfd1"
+    readonly property color cardColor: {
+        var base = rootRef
+            ? (rootRef.qsLight
+                ? rootRef.pillColor(cardTile)
+                : rootRef.colorOf(cardTile))
+            : "#f3dfd1"
+        return Qt.darker(base, 1.2)
+    }
     readonly property color cardBorder: rootRef
         ? rootRef.withAlpha(rootRef.colorOf("widget_border"),
             rootRef.qsLight ? 0.7 : 0.5)
@@ -33,15 +38,10 @@ Item {
     readonly property color fg: rootRef
         ? rootRef.contrastColor(launcher.cardColor)
         : "#000000"
-    readonly property color accent: rootRef
-        ? Qt.color(rootRef.colorOf("primary_fixed"))
-        : "#9aafe6"
-    // Selection background must stand apart from the card: the raw accent
-    // can equal launcher_card (both sapphire), which made the highlight
-    // invisible (1.0:1). Darken it so selected rows always read clearly.
-    readonly property color selBg: Qt.darker(launcher.accent, 1.55)
-    readonly property color accentText: rootRef ? rootRef.contrastColor(launcher.selBg) : "#000000"
-    readonly property color selectedFg: accentText
+    // Caelestia selection is a subtle on-surface overlay, not an accent block.
+    readonly property color highlight: rootRef ? rootRef.withAlpha(launcher.fg, 0.08) : "#00000014"
+    readonly property color hoverFill: rootRef ? rootRef.withAlpha(launcher.fg, 0.05) : "#0000000d"
+    readonly property color descColor: rootRef ? rootRef.withAlpha(launcher.fg, 0.6) : "#888888"
 
     readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
     readonly property string fontFamily: uiFont
@@ -49,15 +49,9 @@ Item {
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
     readonly property string terminalCommand: rootRef ? rootRef.terminalCommand : "kitty"
 
-    // Text/alpha helpers live on root (contrastColor/withAlpha) — do not
-    // reintroduce local copies here.
-
     property real animProgress: launcher.active ? 1.0 : 0.0
     Behavior on animProgress {
-        NumberAnimation {
-            duration: launcher.active ? 180 : 140
-            easing.type: Easing.OutExpo
-        }
+        Anim { type: Anim.Bouncy }
     }
 
     readonly property int bottomMargin: 24
@@ -107,8 +101,7 @@ Item {
                     isCommand: false,
                     isCalc: false,
                     cmd: "",
-                    calcResult: "",
-                    isEmpty: false
+                    calcResult: ""
                 })
             }
         }
@@ -171,35 +164,46 @@ Item {
 
         if (raw.startsWith(">")) {
             var cmd = raw.substring(1).trim()
-            listModel.append({
-                name: cmd.length > 0 ? "> " + cmd : "> ...",
-                desc: cmd.length > 0 ? "Run in terminal" : "Type a command to execute",
-                icon: "",
-                desktopId: "",
-                isCommand: cmd.length > 0,
-                isCalc: false,
-                cmd: cmd,
-                calcResult: "",
-                isEmpty: false
-            })
-        }
+            // Caelestia action-prefix mode: only the command row.
+            if (raw.toLowerCase().startsWith(">calc ")) {
+                var mathRes = launcher.evaluateMath(raw.substring(6))
+                listModel.append({
+                    name: mathRes !== null ? raw.substring(6).trim() + " = " + mathRes : "Type an expression to calculate",
+                    desc: mathRes !== null ? "Copy result to clipboard" : ">calc <expression>",
+                    icon: "",
+                    desktopId: "",
+                    isCommand: false,
+                    isCalc: mathRes !== null,
+                    cmd: "",
+                    calcResult: mathRes !== null ? mathRes : ""
+                })
+            } else {
+                listModel.append({
+                    name: cmd.length > 0 ? "> " + cmd : "> ...",
+                    desc: cmd.length > 0 ? "Run in terminal" : "Type a command to execute",
+                    icon: "",
+                    desktopId: "",
+                    isCommand: cmd.length > 0,
+                    isCalc: false,
+                    cmd: cmd,
+                    calcResult: ""
+                })
+            }
+        } else {
+            var mathRes2 = launcher.evaluateMath(raw)
+            if (mathRes2 !== null) {
+                listModel.append({
+                    name: raw + " = " + mathRes2,
+                    desc: "Copy result to clipboard",
+                    icon: "",
+                    desktopId: "",
+                    isCommand: false,
+                    isCalc: true,
+                    cmd: "",
+                    calcResult: mathRes2
+                })
+            }
 
-        var mathRes = launcher.evaluateMath(raw)
-        if (mathRes !== null) {
-            listModel.append({
-                name: raw + " = " + mathRes,
-                desc: "Copy result to clipboard",
-                icon: "",
-                desktopId: "",
-                isCommand: false,
-                isCalc: true,
-                cmd: "",
-                calcResult: mathRes,
-                isEmpty: false
-            })
-        }
-
-        if (!raw.startsWith(">")) {
             for (var i = 0; i < launcher.apps.length; i++) {
                 var app = launcher.apps[i]
                 var nameLower = app.name.toLowerCase()
@@ -216,34 +220,18 @@ Item {
                     isCommand: false,
                     isCalc: false,
                     cmd: "",
-                    calcResult: "",
-                    isEmpty: false
+                    calcResult: ""
                 })
             }
         }
 
-        if (listModel.count === 0) {
-            listModel.append({
-                name: "No results",
-                desc: raw.startsWith(">") ? "Command mode" : "Try a different search",
-                icon: "",
-                desktopId: "",
-                isCommand: false,
-                isCalc: false,
-                cmd: "",
-                calcResult: "",
-                isEmpty: true
-            })
-        }
-
-        appList.currentIndex = 0
+        appList.currentIndex = listModel.count > 0 ? 0 : -1
     }
 
     function activate() {
         var idx = appList.currentIndex
         if (idx < 0 || idx >= listModel.count) return
         var it = listModel.get(idx)
-        if (it.isEmpty) return
 
         if (it.isCommand && it.cmd.length > 0) {
             Quickshell.execDetached([launcher.terminalCommand, "bash", "-c", it.cmd])
@@ -268,6 +256,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         y: Math.floor(parent.height - card.height - launcher.bottomMargin)
         height: contentColumn.implicitHeight + launcher.pad * 2
+        Behavior on height { Anim { type: Anim.BouncyFast } }
         radius: launcher.cornerRadius
         color: launcher.cardColor
         border.width: 1
@@ -284,9 +273,12 @@ Item {
             shadowOpacity: 0.95
         }
 
-
+        // Caelestia drawer motion: rise + scale up + fade (bouncy driver
+        // overshoots, so the card pops past 1.0 for a frame).
+        scale: 0.82 + 0.18 * launcher.animProgress
+        transformOrigin: Item.Bottom
         transform: Translate {
-            y: (1.0 - launcher.animProgress) * 8
+            y: (1.0 - launcher.animProgress) * 24
         }
 
         Column {
@@ -294,19 +286,256 @@ Item {
             x: launcher.pad
             y: launcher.pad
             width: launcher.cardWidth - launcher.pad * 2
-            spacing: 8
+            spacing: 12
+
+            // Caelestia order: results on top, search bar anchored at bottom.
+            Item {
+                id: listContainer
+                width: parent.width
+                height: appList.count > 0
+                    ? Math.min(appList.count, launcher.maxRows) * launcher.rowHeight
+                        + Math.max(0, Math.min(appList.count, launcher.maxRows) - 1) * launcher.listSpacing
+                    : emptyState.implicitHeight
+                clip: true
+
+                ListView {
+                    id: appList
+                    anchors.fill: parent
+                    visible: count > 0
+                    model: listModel
+                    spacing: launcher.listSpacing
+                    currentIndex: 0
+                    boundsBehavior: Flickable.StopAtBounds
+                    clip: true
+                    highlightFollowsCurrentItem: false
+                    preferredHighlightBegin: 0
+                    preferredHighlightEnd: height
+                    highlightRangeMode: ListView.ApplyRange
+
+                    // Caelestia sliding highlight.
+                    Rectangle {
+                        id: morphHighlight
+                        parent: appList.contentItem
+                        z: 0
+                        visible: appList.count > 0 && appList.currentIndex >= 0 && appList.currentItem !== null
+                        width: appList.width
+                        height: launcher.rowHeight
+                        radius: 12
+                        color: launcher.highlight
+                        y: appList.currentItem ? appList.currentItem.y : 0
+                        Behavior on y {
+                            Anim { type: Anim.BouncyFast }
+                        }
+                    }
+
+                    delegate: Item {
+                        required property int index
+                        required property string name
+                        required property string desc
+                        required property string icon
+                        required property string desktopId
+                        required property bool isCommand
+                        required property bool isCalc
+                        required property string cmd
+                        required property string calcResult
+
+                        width: appList.width
+                        height: launcher.rowHeight
+                        z: 1
+
+                        // Hover layer under content.
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: 12
+                            color: rowHover.containsMouse ? launcher.hoverFill : "transparent"
+                            Behavior on color { CAnim { type: CAnim.FastEffects } }
+                        }
+
+                        Item {
+                            id: rowBody
+                            anchors.fill: parent
+                            anchors.leftMargin: 10
+                            anchors.rightMargin: 10
+                            anchors.topMargin: 5
+                            anchors.bottomMargin: 5
+                            opacity: 0
+                            // Press squish on top of the entrance grow.
+                            scale: rowHover.pressed ? 0.95 : 1.0
+                            Behavior on scale { Anim { type: Anim.BouncyFast } }
+                            transform: [
+                                Translate { id: rowSlide; x: 18 },
+                                Scale { id: rowGrow; xScale: 0.94; yScale: 0.94 }
+                            ]
+                            transformOrigin: Item.Center
+                            Component.onCompleted: staggerIn.start()
+
+                            Image {
+                                id: appIcon
+                                anchors.verticalCenter: parent.verticalCenter
+                                x: 0
+                                width: parent.height * 0.8
+                                height: parent.height * 0.8
+                                visible: !isCommand && !isCalc && icon.length > 0 && status === Image.Ready
+                                source: icon.length > 0 ? "image://icon/" + icon : ""
+                                sourceSize: Qt.size(64, 64)
+                                fillMode: Image.PreserveAspectFit
+                                asynchronous: true
+                                mipmap: true
+                            }
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                x: 0
+                                width: parent.height * 0.8
+                                horizontalAlignment: Text.AlignHCenter
+                                visible: !appIcon.visible
+                                text: isCommand ? ">" : isCalc ? "=" : name.charAt(0).toUpperCase()
+                                color: launcher.descColor
+                                font.family: launcher.fontFamily
+                                font.pixelSize: launcher.fontSize + 6
+                                font.weight: Font.Medium
+                            }
+
+                            Item {
+                                anchors.left: parent.left
+                                anchors.leftMargin: parent.height * 0.8 + 12
+                                anchors.right: parent.right
+                                anchors.verticalCenter: parent.verticalCenter
+                                height: nameText.implicitHeight + descText.implicitHeight
+
+                                Text {
+                                    id: nameText
+                                    width: parent.width
+                                    text: name
+                                    elide: Text.ElideRight
+                                    font.family: launcher.fontFamily
+                                    font.pixelSize: launcher.fontSize
+                                    font.weight: Font.Medium
+                                    color: launcher.fg
+                                }
+
+                                Text {
+                                    id: descText
+                                    width: parent.width
+                                    visible: desc.length > 0
+                                    text: desc
+                                    elide: Text.ElideRight
+                                    font.family: launcher.uiFont
+                                    font.pixelSize: Math.max(9, launcher.fontSize - 2)
+                                    color: launcher.descColor
+                                    anchors.top: nameText.bottom
+                                }
+                            }
+
+                            // Staggered entrance: rows cascade in as results
+                            // change while typing.
+                            SequentialAnimation {
+                                id: staggerIn
+                                PauseAnimation { duration: Math.max(0, Math.min(index, 8)) * 22 }
+                                ParallelAnimation {
+                                    Anim { target: rowBody; property: "opacity"; to: 1; type: Anim.FastEffects }
+                                    Anim { target: rowSlide; property: "x"; to: 0; type: Anim.BouncyFast }
+                                    Anim { target: rowGrow; property: "xScale"; to: 1; type: Anim.BouncyFast }
+                                    Anim { target: rowGrow; property: "yScale"; to: 1; type: Anim.BouncyFast }
+                                }
+                            }
+                        }
+
+                        MouseArea {
+                            id: rowHover
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                appList.currentIndex = index
+                                launcher.activate()
+                            }
+                        }
+                    }
+
+                    // Caelestia list transitions.
+                    add: Transition {
+                        Anim { property: "opacity"; from: 0; to: 1; type: Anim.DefaultEffects }
+                    }
+                    remove: Transition {
+                        Anim { property: "opacity"; from: 1; to: 0; type: Anim.FastEffects }
+                    }
+                    move: Transition {
+                        Anim { property: "y"; type: Anim.BouncyFast }
+                        Anim { property: "opacity"; to: 1; type: Anim.DefaultEffects }
+                    }
+                    displaced: Transition {
+                        Anim { property: "y"; type: Anim.BouncyFast }
+                    }
+                }
+
+                // Caelestia empty state.
+                Row {
+                    id: emptyState
+                    visible: appList.count === 0
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 12
+                    padding: 12
+                    transform: Scale { id: emptyPop; xScale: 1; yScale: 1 }
+                    transformOrigin: Item.Center
+                    onVisibleChanged: {
+                        if (visible) {
+                            emptyPop.xScale = 0.7
+                            emptyPop.yScale = 0.7
+                            emptyPopGo.start()
+                        }
+                    }
+
+                    ParallelAnimation {
+                        id: emptyPopGo
+                        Anim { target: emptyPop; property: "xScale"; to: 1; type: Anim.Bouncy }
+                        Anim { target: emptyPop; property: "yScale"; to: 1; type: Anim.Bouncy }
+                    }
+
+                    QIcon {
+                        anchors.verticalCenter: parent.verticalCenter
+                        source: Qt.resolvedUrl("../assets/icons/search.svg")
+                        color: launcher.descColor
+                        iconSize: launcher.fontSize + 14
+                    }
+
+                    Column {
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        Text {
+                            text: "No results"
+                            font.family: launcher.fontFamily
+                            font.pixelSize: launcher.fontSize
+                            font.weight: Font.Medium
+                            color: launcher.descColor
+                        }
+
+                        Text {
+                            text: "Try searching for something else"
+                            font.family: launcher.uiFont
+                            font.pixelSize: Math.max(9, launcher.fontSize - 2)
+                            color: launcher.descColor
+                        }
+                    }
+                }
+            }
 
             Rectangle {
                 id: searchBox
                 width: parent.width
                 height: launcher.searchHeight
-                radius: 8
+                radius: 12
+                // Pops a little when focused for typing.
+                scale: searchField.activeFocus ? 1.02 : 1.0
+                Behavior on scale { Anim { type: Anim.BouncyFast } }
+                transformOrigin: Item.Center
                 color: rootRef.withAlpha(launcher.fg, 0.08)
                 border.width: 1
                 border.color: searchField.activeFocus
                     ? rootRef.withAlpha(launcher.fg, 0.4)
                     : rootRef.withAlpha(launcher.fg, 0.12)
-                Behavior on border.color { ColorAnimation { duration: 150 } }
+                Behavior on border.color { CAnim { type: CAnim.FastEffects } }
 
                 RowLayout {
                     anchors.fill: parent
@@ -329,7 +558,7 @@ Item {
                         font.family: launcher.uiFont
                         font.pixelSize: launcher.fontSize + 1
                         font.weight: Font.Medium
-                        placeholderText: "Search apps    >  runs a command"
+                        placeholderText: "Type \">\" for commands"
                         placeholderTextColor: rootRef.withAlpha(launcher.fg, 0.6)
                         selectByMouse: true
                         verticalAlignment: Text.AlignVCenter
@@ -343,6 +572,11 @@ Item {
                         }
                         Keys.onUpPressed: event => {
                             if (appList.currentIndex > 0) appList.currentIndex--
+                            event.accepted = true
+                        }
+                        Keys.onTabPressed: event => {
+                            if (listModel.count > 0)
+                                appList.currentIndex = (appList.currentIndex + 1) % listModel.count
                             event.accepted = true
                         }
                         Keys.onReturnPressed: event => {
@@ -364,7 +598,7 @@ Item {
                         color: clearHover.containsMouse
                             ? rootRef.withAlpha(launcher.fg, 0.25)
                             : "transparent"
-                        Behavior on color { ColorAnimation { duration: 120 } }
+                        Behavior on color { CAnim { type: CAnim.FastEffects } }
 
                         QIcon {
                             anchors.centerIn: parent
@@ -382,163 +616,6 @@ Item {
                                 searchField.text = ""
                                 searchField.forceActiveFocus()
                                 launcher.filterApps("")
-                            }
-                        }
-                    }
-                }
-            }
-
-            Item {
-                id: listContainer
-                width: parent.width
-                height: Math.min(listModel.count, launcher.maxRows) * launcher.rowHeight
-                    + Math.max(0, Math.min(listModel.count, launcher.maxRows) - 1) * 8
-                clip: true
-
-                ListView {
-                    id: appList
-                    anchors.fill: parent
-                    model: listModel
-                    spacing: 8
-                    currentIndex: 0
-                    boundsBehavior: Flickable.StopAtBounds
-                    clip: true
-
-                    Rectangle {
-                        id: morphHighlight
-                        parent: appList.contentItem
-                        z: 0
-                        visible: appList.count > 0 && appList.currentIndex >= 0 && appList.currentItem !== null
-                        width: appList.width
-                        height: launcher.rowHeight
-                        radius: 9
-                        color: launcher.selBg
-
-                        readonly property real targetY: (appList.currentIndex >= 0 && appList.currentItem !== null)
-                            ? appList.currentItem.y : 0
-                        y: targetY
-
-                        Behavior on y {
-                            NumberAnimation {
-                                duration: 240
-                                easing.type: Easing.OutQuint
-                            }
-                        }
-                    }
-
-                    delegate: Item {
-                        required property int index
-                        required property string name
-                        required property string desc
-                        required property string icon
-                        required property string desktopId
-                        required property bool isCommand
-                        required property bool isCalc
-                        required property bool isEmpty
-                        required property string cmd
-                        required property string calcResult
-
-                        readonly property bool isSelected: appList.currentIndex === index
-
-                        width: appList.width
-                        height: launcher.rowHeight
-                        z: 1
-
-                        Rectangle {
-                            anchors.fill: parent
-                            radius: 9
-                            color: rowHover.containsMouse && !isSelected
-                                ? rootRef.withAlpha(launcher.fg, 0.08)
-                                : "transparent"
-                            Behavior on color { ColorAnimation { duration: 120 } }
-                        }
-
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.leftMargin: 8
-                            anchors.rightMargin: 8
-                            spacing: 12
-
-                            Item {
-                                id: iconBox
-                                Layout.preferredWidth: 36
-                                Layout.preferredHeight: 36
-                                Layout.alignment: Qt.AlignVCenter
-
-                                Rectangle {
-                                    anchors.fill: parent
-                                    radius: 8
-                                    color: isSelected
-                                        ? rootRef.withAlpha(launcher.accentText, 0.14)
-                                        : rootRef.withAlpha(launcher.fg, 0.10)
-                                    Behavior on color { ColorAnimation { duration: 150 } }
-                                }
-
-                                Image {
-                                    id: appIcon
-                                    anchors.fill: parent
-                                    anchors.margins: 6
-                                    visible: !isEmpty && !isCommand && !isCalc
-                                        && icon.length > 0 && status === Image.Ready
-                                    source: icon.length > 0 ? "image://icon/" + icon : ""
-                                    sourceSize: Qt.size(64, 64)
-                                    fillMode: Image.PreserveAspectFit
-                                    asynchronous: true
-                                    mipmap: true
-                                }
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    visible: !appIcon.visible
-                                    text: isEmpty ? "" : isCommand ? ">"
-                                        : isCalc ? "="
-                                        : name.charAt(0).toUpperCase()
-                                    color: isSelected ? launcher.selectedFg : launcher.fg
-                                    font.family: launcher.fontFamily
-                                    font.pixelSize: launcher.fontSize + 3
-                                    font.weight: Font.DemiBold
-                                }
-                            }
-
-                            Column {
-                                Layout.fillWidth: true
-                                Layout.alignment: Qt.AlignVCenter
-                                spacing: 1
-
-                                Text {
-                                    width: parent.width
-                                    text: name
-                                    elide: Text.ElideRight
-                                    font.family: launcher.fontFamily
-                                    font.pixelSize: launcher.fontSize
-                                    font.weight: Font.Medium
-                                    color: isSelected ? launcher.selectedFg : launcher.fg
-                                    Behavior on color { ColorAnimation { duration: 150 } }
-                                }
-
-                                Text {
-                                    width: parent.width
-                                    visible: !isEmpty && desc.length > 0
-                                    text: desc
-                                    elide: Text.ElideRight
-                                    font.family: launcher.uiFont
-                                    font.pixelSize: Math.max(9, launcher.fontSize - 2)
-                                    color: isSelected
-                                        ? rootRef.withAlpha(launcher.selectedFg, 0.85)
-                                        : rootRef.withAlpha(launcher.fg, 0.72)
-                                    Behavior on color { ColorAnimation { duration: 150 } }
-                                }
-                            }
-                        }
-
-                        MouseArea {
-                            id: rowHover
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                appList.currentIndex = index
-                                launcher.activate()
                             }
                         }
                     }

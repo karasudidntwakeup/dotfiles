@@ -683,6 +683,10 @@ fi
 awww clear-cache 2>/dev/null || true
 awww img "$IMG" --transition-type random --transition-duration 2.0
 
+# Niri overview backdrop: pre-blurred copy for swaybg (place-within-backdrop).
+BLUR_BG="$HOME/.cache/niri-backdrop-blur.jpg"
+(magick "$IMG"[0] -resize 1920x -blur 0x30 -fill "#11111b" -colorize 30% "$BLUR_BG" 2>/dev/null && pkill -x swaybg 2>/dev/null; setsid -f swaybg -i "$BLUR_BG" -m fill </dev/null >/dev/null 2>&1 &) 2>/dev/null || true
+
 # QuickShell only: write the chosen light/dark mode for the bar to read.
 # Matugen stays dark/light per PREFER but qs-theme only affects QuickShell's
 # pill coloring (the rest of the system follows the matugen run above).

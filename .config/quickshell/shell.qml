@@ -875,8 +875,8 @@ ShellRoot {
             repeat: false
             onTriggered: { pill.opacity = 1; pill.enterShift = 0 }
         }
-        Behavior on opacity { NumberAnimation { duration: 280; easing.type: Easing.OutCubic } }
-        Behavior on enterShift { NumberAnimation { duration: 380; easing.type: Easing.OutExpo } }
+        Behavior on opacity { Anim { type: Anim.DefaultEffects } }
+        Behavior on enterShift { Anim { type: Anim.Bouncy } }
         layer.enabled: true
         layer.effect: MultiEffect {
             shadowEnabled: true
@@ -888,7 +888,7 @@ ShellRoot {
             shadowOpacity: 0.9
         }
 
-        Behavior on color { ColorAnimation { duration: 250 } }
+        Behavior on color { CAnim { } }
 
         RowLayout {
             id: pillRow
@@ -933,7 +933,7 @@ ShellRoot {
         }
 
         scale: pillArea.pressed ? 0.94 : pillArea.containsMouse ? 1.06 : 1.0
-        Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutBack } }
+        Behavior on scale { Anim { type: Anim.BouncyFast } }
     }
 
     component BoltGlyph: Canvas {
@@ -973,7 +973,7 @@ ShellRoot {
         readonly property bool hovering: dcArea.containsMouse || dcArea.pressed
         // Smoothed signal so arcs animate live instead of jumping.
         property real liveSignal: root.networkSignal
-        Behavior on liveSignal { NumberAnimation { duration: 600; easing.type: Easing.OutCubic } }
+        Behavior on liveSignal { Anim { type: Anim.StandardLarge } }
 
         implicitHeight: root.pillHeight
         radius: root.pillRadius
@@ -989,8 +989,8 @@ ShellRoot {
             repeat: false
             onTriggered: { dc.opacity = 1; dc.enterShift = 0 }
         }
-        Behavior on opacity { NumberAnimation { duration: 280; easing.type: Easing.OutCubic } }
-        Behavior on enterShift { NumberAnimation { duration: 380; easing.type: Easing.OutExpo } }
+        Behavior on opacity { Anim { type: Anim.DefaultEffects } }
+        Behavior on enterShift { Anim { type: Anim.Bouncy } }
         layer.enabled: true
         layer.effect: MultiEffect {
             shadowEnabled: true
@@ -1003,11 +1003,11 @@ ShellRoot {
         }
 
         implicitWidth: dcRow.implicitWidth + dc.padX
-        Behavior on implicitWidth { NumberAnimation { duration: 180; easing.type: Easing.InOutQuad } }
-        Behavior on color { ColorAnimation { duration: 250 } }
+        Behavior on implicitWidth { Anim { type: Anim.BouncyFast } }
+        Behavior on color { CAnim { } }
 
         scale: dcArea.pressed ? 0.94 : dcArea.containsMouse ? 1.06 : 1.0
-        Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutBack } }
+        Behavior on scale { Anim { type: Anim.BouncyFast } }
 
         Row {
             id: dcRow
@@ -1125,7 +1125,7 @@ ShellRoot {
             border.width: 1
             border.color: Qt.rgba(1, 1, 1, 0.12)
             opacity: dc.hovering ? 1 : 0
-            Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
+            Behavior on opacity { Anim { type: Anim.DefaultEffects } }
 
             Text {
                 id: tipText
@@ -1410,8 +1410,8 @@ ShellRoot {
             repeat: false
             onTriggered: { wsWidget.opacity = 1; wsWidget.enterShift = 0 }
         }
-        Behavior on opacity { NumberAnimation { duration: 280; easing.type: Easing.OutCubic } }
-        Behavior on enterShift { NumberAnimation { duration: 380; easing.type: Easing.OutExpo } }
+        Behavior on opacity { Anim { type: Anim.DefaultEffects } }
+        Behavior on enterShift { Anim { type: Anim.Bouncy } }
         layer.enabled: true
         layer.effect: MultiEffect {
             shadowEnabled: true
@@ -1441,15 +1441,15 @@ delegate: Item {
                             height: wsWidget.dotH
                             anchors.verticalCenter: parent.verticalCenter
                             scale: hovered ? 1.1 : 1.0
-                            Behavior on width { NumberAnimation { duration: 400; easing.type: Easing.OutQuint } }
-                            Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
+                            Behavior on width { Anim { type: Anim.BouncyFast } }
+                            Behavior on scale { Anim { type: Anim.BouncyFast } }
 
                             Rectangle {
                                 anchors.fill: parent
                                 radius: wsWidget.dotRadius
                                 color: focused ? wsWidget.accent : root.pillForeground(wsWidget.color)
                                 opacity: focused ? 1.0 : (occupied ? 0.5 : 0.18)
-                                Behavior on color { ColorAnimation { duration: 250 } }
+                                Behavior on color { CAnim { } }
                             }
 
                             MouseArea {
@@ -1780,29 +1780,26 @@ delegate: Item {
         id: openAnim
         running: false
         ParallelAnimation {
-            NumberAnimation {
+            Anim {
                 target: pickerContent
                 property: "opacity"
                 from: 0
                 to: 1
-                duration: 240
-                easing.type: Easing.OutCubic
+                type: Anim.DefaultEffects
             }
-            NumberAnimation {
+            Anim {
                 target: pickerContent
                 property: "anchors.topMargin"
                 from: -24
                 to: 0
-                duration: 240
-                easing.type: Easing.OutCubic
+                type: Anim.Bouncy
             }
-            NumberAnimation {
+            Anim {
                 target: pickerContent
                 property: "anchors.bottomMargin"
                 from: 24
                 to: 0
-                duration: 240
-                easing.type: Easing.OutCubic
+                type: Anim.Bouncy
             }
         }
     }
@@ -1811,26 +1808,23 @@ delegate: Item {
         id: closeAnim
         running: false
         ParallelAnimation {
-            NumberAnimation {
+            Anim {
                 target: pickerContent
                 property: "opacity"
                 to: 0
-                duration: 220
-                easing.type: Easing.OutCubic
+                type: Anim.DefaultEffects
             }
-            NumberAnimation {
+            Anim {
                 target: pickerContent
                 property: "anchors.topMargin"
                 to: 24
-                duration: 220
-                easing.type: Easing.OutCubic
+                type: Anim.BouncyFast
             }
-            NumberAnimation {
+            Anim {
                 target: pickerContent
                 property: "anchors.bottomMargin"
                 to: -24
-                duration: 220
-                easing.type: Easing.OutCubic
+                type: Anim.BouncyFast
             }
         }
         ScriptAction {
@@ -2087,8 +2081,8 @@ delegate: Item {
                             repeat: false
                             onTriggered: { clockPill.opacity = 1; clockPill.enterShift = 0 }
                         }
-                        Behavior on opacity { NumberAnimation { duration: 280; easing.type: Easing.OutCubic } }
-                        Behavior on enterShift { NumberAnimation { duration: 380; easing.type: Easing.OutExpo } }
+                        Behavior on opacity { Anim { type: Anim.DefaultEffects } }
+                        Behavior on enterShift { Anim { type: Anim.Bouncy } }
                         layer.enabled: true
                         layer.effect: MultiEffect {
                             shadowEnabled: true
@@ -2099,8 +2093,8 @@ delegate: Item {
                             shadowColor: Qt.rgba(0, 0, 0, 0.9)
                             shadowOpacity: 0.9
                         }
-                        Behavior on color { ColorAnimation { duration: 250 } }
-                        Behavior on implicitWidth { NumberAnimation { duration: 180; easing.type: Easing.InOutQuad } }
+                        Behavior on color { CAnim { } }
+                        Behavior on implicitWidth { Anim { type: Anim.BouncyFast } }
 
                         Row {
                             id: clockRow
@@ -2218,7 +2212,7 @@ delegate: Item {
                         }
 
                         scale: clockArea.pressed ? 0.94 : clockArea.containsMouse ? 1.06 : 1.0
-                        Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutBack } }
+                        Behavior on scale { Anim { type: Anim.BouncyFast } }
                     }
                 }
             }

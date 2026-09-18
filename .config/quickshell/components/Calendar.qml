@@ -24,9 +24,12 @@ PanelWindow {
     property var anchorScreen: null
     property var anchorWin: null
 
-    readonly property color calColor: rootRef
-        ? (rootRef.qsLight ? rootRef.pillColor("error_container") : rootRef.colorOf("error_container"))
-        : Qt.rgba(0.08, 0.08, 0.08, 0.85)
+    readonly property color calColor: {
+        var base = rootRef
+            ? (rootRef.qsLight ? rootRef.pillColor("tertiary_container") : rootRef.colorOf("tertiary_container"))
+            : Qt.rgba(0.08, 0.08, 0.08, 0.85)
+        return Qt.darker(base, 1.2)
+    }
     readonly property color popupFg: rootRef
         ? (rootRef.luminance(Qt.color(calColor)) > 0.45 ? "#000000" : "#ffffff")
         : "#ffffff"
@@ -57,7 +60,7 @@ PanelWindow {
 
     property real editorProgress: calPopup.selectedKey.length > 0 ? 1 : 0
     Behavior on editorProgress {
-        NumberAnimation { duration: calPopup.selectedKey.length > 0 ? 180 : 140; easing.type: Easing.OutCubic }
+        Anim { type: Anim.BouncyFast }
     }
 
     readonly property int timerHeight: 56
@@ -109,10 +112,7 @@ PanelWindow {
 
     // Same open/close animation as the notification center.
     Behavior on popProgress {
-        NumberAnimation {
-            duration: calPopup.closingBySelf ? 140 : 180
-            easing.type: Easing.OutCubic
-        }
+        Anim { type: Anim.Bouncy }
     }
 
     onPopProgressChanged: {
@@ -416,7 +416,7 @@ PanelWindow {
             }
 
         Behavior on height {
-            NumberAnimation { duration: calPopup.selectedKey.length > 0 ? 180 : 140; easing.type: Easing.OutCubic }
+            Anim { type: Anim.BouncyFast }
         }
 
         radius: 12
@@ -837,7 +837,7 @@ PanelWindow {
                                         border.width: 1
                                         border.color: entryDone ? calPopup.accentCol : rootRef.withAlpha(calPopup.popupFg, 0.35)
 
-                                        Behavior on color { ColorAnimation { duration: 120 } }
+                                        Behavior on color { CAnim { type: CAnim.FastEffects } }
 
                                         QIcon {
                                             visible: entryDone
@@ -951,14 +951,14 @@ PanelWindow {
                 ParallelAnimation {
                     id: timerPopupIn
                     running: false
-                    NumberAnimation { target: timerBody; property: "opacity"; to: 1; duration: 180; easing.type: Easing.OutCubic }
+                    Anim { target: timerBody; property: "opacity"; to: 1; type: Anim.DefaultEffects }
                 }
 
                 SequentialAnimation {
                     id: timerPopupOut
                     running: false
                     ParallelAnimation {
-                        NumberAnimation { target: timerBody; property: "opacity"; to: 0; duration: 140; easing.type: Easing.OutCubic }
+                        Anim { target: timerBody; property: "opacity"; to: 0; type: Anim.FastEffects }
                     }
                 }
 

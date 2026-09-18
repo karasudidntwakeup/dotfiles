@@ -1,0 +1,5 @@
+// Blurred wallpaper for overview backdrop (swaybg).
+layer-rule {
+    match namespace="^wallpaper$"
+    place-within-backdrop true
+}

@@ -16,11 +16,11 @@ Item {
     property bool searchFailed: false
     property string activeQuery: ""
     readonly property int cornerRadius: 12
-    readonly property int pad: 20
-    readonly property int cardWidth: Math.min(820, Math.max(0, ytx.width - 32))
-    readonly property int searchHeight: 40
+    readonly property int pad: 14
+    readonly property int cardWidth: Math.min(640, Math.max(0, ytx.width - 32))
+    readonly property int searchHeight: 36
     readonly property int maxItems: 48
-    readonly property int visibleRows: 3
+    readonly property int visibleRows: 2
     readonly property int columns: Math.max(1, Math.min(4, Math.floor((cardWidth - pad * 2 + gridSpacing) / 180)))
     readonly property int gridSpacing: 12
     readonly property real cellWidth: (cardWidth - pad * 2 + gridSpacing) / columns - gridSpacing
@@ -31,7 +31,11 @@ Item {
     readonly property int channelHeight: Math.max(10, fontSize - 3)
     readonly property int cellHeight: cellInset * 2 + thumbHeight + 7 + titleHeight + 3 + channelHeight
     readonly property string cardTile: "ytx_card"
-    readonly property color cardColor: rootRef ? (rootRef.qsLight ? (rootRef.pillColor(cardTile)) : rootRef.colorOf(cardTile)) : "#f3dfd1"
+    // Darker take on the periwinkle token — text/borders follow via contrastColor.
+    readonly property color cardColor: {
+        var base = rootRef ? (rootRef.qsLight ? (rootRef.pillColor(cardTile)) : rootRef.colorOf(cardTile)) : "#f3dfd1"
+        return Qt.darker(base, 1.2)
+    }
     readonly property color cardBorder: rootRef ? rootRef.withAlpha(rootRef.colorOf("widget_border"), rootRef.qsLight ? 0.7 : 0.5) : "#00000000"
     readonly property color fg: rootRef ? rootRef.contrastColor(ytx.cardColor) : "#000000"
     readonly property color accent: rootRef
@@ -627,9 +631,7 @@ Item {
                         }
 
                         Behavior on color {
-                            ColorAnimation {
-                                duration: 120
-                            }
+                            CAnim { type: CAnim.FastEffects }
 
                         }
 
@@ -638,9 +640,7 @@ Item {
                 }
 
                 Behavior on border.color {
-                    ColorAnimation {
-                        duration: 150
-                    }
+                    CAnim { type: CAnim.FastEffects }
 
                 }
 
@@ -829,6 +829,20 @@ Item {
                     currentIndex: 0
                     highlightFollowsCurrentItem: true
 
+                    // Springy grid motion while filtering.
+                    move: Transition {
+                        Anim { property: "x"; type: Anim.BouncyFast }
+                        Anim { property: "y"; type: Anim.BouncyFast }
+                        Anim { property: "opacity"; to: 1; type: Anim.DefaultEffects }
+                    }
+                    displaced: Transition {
+                        Anim { property: "x"; type: Anim.BouncyFast }
+                        Anim { property: "y"; type: Anim.BouncyFast }
+                    }
+                    add: Transition {
+                        Anim { property: "opacity"; from: 0; to: 1; type: Anim.DefaultEffects }
+                    }
+
                     delegate: Item {
                         id: cell
 
@@ -851,9 +865,7 @@ Item {
                             border.color: ytx.selBg
 
                             Behavior on color {
-                                ColorAnimation {
-                                    duration: 150
-                                }
+                                CAnim { type: CAnim.FastEffects }
 
                             }
 
@@ -887,6 +899,14 @@ Item {
                                     fillMode: Image.PreserveAspectCrop
                                     asynchronous: true
                                     clip: true
+                                    // Thumbnails used to snap in abruptly when
+                                    // the async load finished — fade + spring
+                                    // instead so covers bounce into place.
+                                    opacity: status === Image.Ready ? 1 : 0
+                                    Behavior on opacity { Anim { type: Anim.DefaultEffects } }
+                                    scale: status === Image.Ready ? 1 : 0.9
+                                    Behavior on scale { Anim { type: Anim.BouncyFast } }
+                                    transformOrigin: Item.Center
                                     onStatusChanged: {
                                         if (thumbImg.status === Image.Error && thumbImg.source !== cell.remoteThumb)
                                             thumbImg.source = cell.remoteThumb;
@@ -963,11 +983,7 @@ Item {
     }
 
     Behavior on animProgress {
-        NumberAnimation {
-            duration: ytx.active ? 180 : 140
-            easing.type: Easing.OutExpo
-        }
-
+        Anim { type: Anim.Bouncy }
     }
 
 }

@@ -10,23 +10,27 @@ Item {
 
     property var rootRef: null
     property bool active: false
-    readonly property int cardWidth: 940
+    readonly property int cardWidth: 700
     readonly property int leftWidth: Math.min(300, Math.max(0, (card.width - wa.pad * 2 - 10) * 0.34))
-    readonly property int chatRowHeight: 46
-    readonly property int maxChatRows: 8
-    readonly property int headerHeight: 40
-    readonly property int sendHeight: 40
-    readonly property int searchHeight: 40
-    readonly property int pad: 14
+    readonly property int chatRowHeight: 40
+    readonly property int maxChatRows: 7
+    readonly property int headerHeight: 36
+    readonly property int sendHeight: 36
+    readonly property int searchHeight: 36
+    readonly property int pad: 12
     readonly property int cornerRadius: 12
     readonly property int msgPad: 12
-    readonly property real bubbleMaxW: 380
-    readonly property int imgMaxW: 300
-    readonly property int imgMaxH: 240
+    readonly property real bubbleMaxW: 300
+    readonly property int imgMaxW: 240
+    readonly property int imgMaxH: 190
     property string activeTab: "chats"
     property string playingAudioSrc: ""
     readonly property string cardTile: "whatsapp_card"
-    readonly property color cardColor: rootRef ? (rootRef.qsLight ? rootRef.pillColor(cardTile) : rootRef.colorOf(cardTile)) : "#f3dfd1"
+    // Darker take on the pink token — text/borders follow via contrastColor.
+    readonly property color cardColor: {
+        var base = rootRef ? (rootRef.qsLight ? rootRef.pillColor(cardTile) : rootRef.colorOf(cardTile)) : "#f3dfd1"
+        return Qt.darker(base, 1.2)
+    }
     readonly property color cardBorder: rootRef ? rootRef.withAlpha(rootRef.colorOf("widget_border"), rootRef.qsLight ? 0.7 : 0.5) : "#00000000"
     readonly property color fg: rootRef ? rootRef.contrastColor(wa.cardColor) : "#000000"
     readonly property color accent: rootRef ? Qt.color(rootRef.colorOf("widget_accent")) : "#73737a"
@@ -712,9 +716,7 @@ Item {
                     }
 
                     Behavior on color {
-                        ColorAnimation {
-                            duration: 120
-                        }
+                        CAnim { type: CAnim.FastEffects }
 
                     }
 
@@ -826,9 +828,7 @@ Item {
                 }
 
                 Behavior on border.color {
-                    ColorAnimation {
-                        duration: 150
-                    }
+                    CAnim { type: CAnim.FastEffects }
 
                 }
 
@@ -858,9 +858,7 @@ Item {
                             color: wa.activeTab === "chats" ? wa.accent : "transparent"
 
                             Behavior on color {
-                                ColorAnimation {
-                                    duration: 140
-                                }
+                                CAnim { type: CAnim.FastEffects }
 
                             }
 
@@ -904,9 +902,7 @@ Item {
                             color: wa.activeTab === "groups" ? wa.accent : "transparent"
 
                             Behavior on color {
-                                ColorAnimation {
-                                    duration: 140
-                                }
+                                CAnim { type: CAnim.FastEffects }
 
                             }
 
@@ -1003,6 +999,18 @@ Item {
                             clip: true
                             keyNavigationWraps: true
 
+                            // Springy chat list motion.
+                            move: Transition {
+                                Anim { property: "y"; type: Anim.BouncyFast }
+                                Anim { property: "opacity"; to: 1; type: Anim.DefaultEffects }
+                            }
+                            displaced: Transition {
+                                Anim { property: "y"; type: Anim.BouncyFast }
+                            }
+                            add: Transition {
+                                Anim { property: "opacity"; from: 0; to: 1; type: Anim.DefaultEffects }
+                            }
+
                             Rectangle {
                                 id: chatMorph
 
@@ -1018,11 +1026,7 @@ Item {
                                 y: targetY
 
                                 Behavior on y {
-                                    NumberAnimation {
-                                        duration: 240
-                                        easing.type: Easing.OutQuint
-                                    }
-
+                                    Anim { type: Anim.BouncyFast }
                                 }
 
                             }
@@ -1069,9 +1073,7 @@ Item {
                                             }
 
                                             Behavior on color {
-                                                ColorAnimation {
-                                                    duration: 150
-                                                }
+                                                CAnim { type: CAnim.FastEffects }
 
                                             }
 
@@ -1280,6 +1282,15 @@ Item {
                                     boundsBehavior: Flickable.StopAtBounds
                                     clip: true
 
+                                    // Incoming messages spring in.
+                                    add: Transition {
+                                        Anim { property: "opacity"; from: 0; to: 1; type: Anim.DefaultEffects }
+                                        Anim { property: "y"; from: 14; type: Anim.BouncyFast }
+                                    }
+                                    displaced: Transition {
+                                        Anim { property: "y"; type: Anim.BouncyFast }
+                                    }
+
                                     delegate: Item {
                                         id: msgItem
 
@@ -1468,9 +1479,7 @@ Item {
                                                 }
 
                                                 Behavior on color {
-                                                    ColorAnimation {
-                                                        duration: 120
-                                                    }
+                                                    CAnim { type: CAnim.FastEffects }
 
                                                 }
 
@@ -1523,9 +1532,7 @@ Item {
                                                 }
 
                                                 Behavior on color {
-                                                    ColorAnimation {
-                                                        duration: 120
-                                                    }
+                                                    CAnim { type: CAnim.FastEffects }
 
                                                 }
 
@@ -1623,9 +1630,7 @@ Item {
                                         }
 
                                         Behavior on color {
-                                            ColorAnimation {
-                                                duration: 120
-                                            }
+                                            CAnim { type: CAnim.FastEffects }
 
                                         }
 
@@ -1656,9 +1661,7 @@ Item {
                                         }
 
                                         Behavior on color {
-                                            ColorAnimation {
-                                                duration: 120
-                                            }
+                                            CAnim { type: CAnim.FastEffects }
 
                                         }
 
@@ -1689,9 +1692,7 @@ Item {
                                         }
 
                                         Behavior on color {
-                                            ColorAnimation {
-                                                duration: 120
-                                            }
+                                            CAnim { type: CAnim.FastEffects }
 
                                         }
 
@@ -1718,11 +1719,7 @@ Item {
     }
 
     Behavior on animProgress {
-        NumberAnimation {
-            duration: wa.active ? 180 : 140
-            easing.type: Easing.OutExpo
-        }
-
+        Anim { type: Anim.Bouncy }
     }
 
 }

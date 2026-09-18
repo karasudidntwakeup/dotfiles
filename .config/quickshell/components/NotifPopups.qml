@@ -82,30 +82,29 @@ PanelWindow {
         boundsBehavior: Flickable.StopAtBounds
         cacheBuffer: 2000
 
-        // macOS-style entrance: slides in from the right edge with a strong
-        // decelerating curve plus quick fade and subtle scale-up.
+        // Caelestia drawer entrance: expressive slide + quick fade + subtle scale.
         populate: Transition {
-            NumberAnimation { property: "x"; from: popupList.width; to: 0; duration: 460; easing.type: Easing.OutExpo }
-            NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 200; easing.type: Easing.OutCubic }
-            NumberAnimation { property: "scale"; from: 0.96; to: 1.0; duration: 460; easing.type: Easing.OutExpo }
+            Anim { property: "x"; from: popupList.width; to: 0; type: Anim.Bouncy }
+            Anim { property: "opacity"; from: 0.0; to: 1.0; type: Anim.DefaultEffects }
+            Anim { property: "scale"; from: 0.96; to: 1.0; type: Anim.Bouncy }
         }
 
         add: Transition {
-            NumberAnimation { property: "x"; from: popupList.width; to: 0; duration: 460; easing.type: Easing.OutExpo }
-            NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 200; easing.type: Easing.OutCubic }
-            NumberAnimation { property: "scale"; from: 0.96; to: 1.0; duration: 460; easing.type: Easing.OutExpo }
+            Anim { property: "x"; from: popupList.width; to: 0; type: Anim.Bouncy }
+            Anim { property: "opacity"; from: 0.0; to: 1.0; type: Anim.DefaultEffects }
+            Anim { property: "scale"; from: 0.96; to: 1.0; type: Anim.Bouncy }
         }
 
         remove: Transition {
-            NumberAnimation { property: "x"; to: popupList.width + 40; duration: 260; easing.type: Easing.InCubic }
-            NumberAnimation { property: "opacity"; to: 0.0; duration: 200; easing.type: Easing.InQuad }
+            Anim { property: "x"; to: popupList.width + 40; type: Anim.BouncyFast }
+            Anim { property: "opacity"; to: 0.0; type: Anim.FastEffects }
         }
 
         displaced: Transition {
-            NumberAnimation { property: "y"; duration: 360; easing.type: Easing.OutQuint }
+            Anim { property: "y"; type: Anim.BouncyFast }
         }
         removeDisplaced: Transition {
-            NumberAnimation { property: "y"; duration: 360; easing.type: Easing.OutQuint }
+            Anim { property: "y"; type: Anim.BouncyFast }
         }
 
         delegate: NotificationCard {

@@ -27,16 +27,16 @@ Item {
 
     ParallelAnimation {
         id: openAnim
-        NumberAnimation { target: lockRoot; property: "blurAmount"; from: 1.0; to: 0; duration: 380; easing.type: Easing.OutCubic }
-        NumberAnimation { target: lockRoot; property: "opacity"; from: 0; to: 1; duration: 280; easing.type: Easing.OutCubic }
-        NumberAnimation { target: lockRoot; property: "scale"; from: 1.025; to: 1; duration: 380; easing.type: Easing.OutCubic }
+        Anim { target: lockRoot; property: "blurAmount"; from: 1.0; to: 0; type: Anim.DefaultEffects }
+        Anim { target: lockRoot; property: "opacity"; from: 0; to: 1; type: Anim.DefaultEffects }
+        Anim { target: lockRoot; property: "scale"; from: 1.025; to: 1; type: Anim.Bouncy }
     }
     property bool closing: false
     ParallelAnimation {
         id: closeAnim
-        NumberAnimation { target: lockRoot; property: "opacity"; to: 0; duration: 240; easing.type: Easing.InOutCubic }
-        NumberAnimation { target: lockRoot; property: "blurAmount"; to: 1.0; duration: 240; easing.type: Easing.InOutCubic }
-        NumberAnimation { target: lockRoot; property: "scale"; to: 1.015; duration: 240; easing.type: Easing.InOutCubic }
+        Anim { target: lockRoot; property: "opacity"; to: 0; type: Anim.FastEffects }
+        Anim { target: lockRoot; property: "blurAmount"; to: 1.0; type: Anim.FastEffects }
+        Anim { target: lockRoot; property: "scale"; to: 1.015; type: Anim.BouncyFast }
         onFinished: {
             if (!lockRoot.closing) return
             lockRoot.closing = false
@@ -182,7 +182,7 @@ Item {
             opacity: 0
             SequentialAnimation {
                 running: true
-                NumberAnimation { target: dateLine; property: "opacity"; to: 1; duration: 180; easing.type: Easing.OutCubic }
+                Anim { target: dateLine; property: "opacity"; to: 1; type: Anim.DefaultEffects }
             }
         }
     }
@@ -357,7 +357,7 @@ Item {
                 : (lockBtnHover.containsMouse ? Qt.rgba(1, 1, 1, 0.10) : "transparent")
             border.width: lockBtn.accent ? 0 : 1
             border.color: lockBtn.accent ? "transparent" : Qt.rgba(1, 1, 1, 0.20)
-            Behavior on color { ColorAnimation { duration: 120 } }
+            Behavior on color { CAnim { type: CAnim.FastEffects } }
 
             Text {
                 anchors.centerIn: parent
