@@ -2,7 +2,7 @@ onboarding = false
 # ~/.config/herdr/config.toml
 
 [theme]
-name = "rose-pine"
+name = "terminal"
 
 auto_switch = false
 [keys]
@@ -24,7 +24,7 @@ focus_pane_right = "ctrl+l"
 mouse_capture = true   # default is already true, included for parity with `set -g mouse on`
 
 show_agent_labels_on_pane_borders = true
-status_indicators = "symbols"
+status_indicators = "dots"
 agent_panel_sort = "spaces"
 
 # Nothing OS-style agent icons: NDot dot-matrix glyphs (custom font,
@@ -75,7 +75,7 @@ opencode = [
   [{ token = "$hs_gap" }],
 ]
 [ui.sound]
-enabled = false
+enabled = true
 
 [ui.toast]
 delivery = "system"
