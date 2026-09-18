@@ -51,7 +51,7 @@ Item {
     readonly property real selectedCenterOffset: (window.skewFactor * window.itemHeight) / 2
 
     readonly property var filterData: [
-        { name: "All", hex: "", icon: "grid" },
+        { name: "All", hex: "" },
         { name: "Red", hex: "#E60000" },
         { name: "Maroon", hex: "#800000" },
         { name: "Orange", hex: "#FFA500" },

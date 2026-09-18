@@ -216,12 +216,6 @@ Item {
     }
 
     function closeCenter() { svc.centerOpen = false }
-    function toggleCenter() {
-        if (svc.centerOpen)
-            svc.closeCenter()
-        else
-            svc.openCenter()
-    }
 
     Connections {
         target: historyModel

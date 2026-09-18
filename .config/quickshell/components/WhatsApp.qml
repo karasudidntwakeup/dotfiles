@@ -40,7 +40,6 @@ Item {
     readonly property color accentText: rootRef ? rootRef.contrastColor(wa.accent) : "#000000"
     readonly property color selectedFg: accentText
     readonly property color errorColor: rootRef ? Qt.color(rootRef.colorOf("widget_error")) : "#e30000"
-    readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
     readonly property string fontFamily: uiFont
     readonly property string uiFont: "Geist"
     readonly property string arabicFont: "SF Arabic"
@@ -364,16 +363,6 @@ Item {
         audioPlayer.command = ["mpv", "--no-video", "--no-terminal", "--really-quiet", "--", src];
         wa.playingAudioSrc = src;
         audioPlayer.running = true;
-    }
-
-    function countKind(kind) : int {
-        var n = 0;
-        for (var i = 0; i < wa.rawChats.length; i++) {
-            if ((wa.rawChats[i].kind || "dm") === kind)
-                n++;
-
-        }
-        return n;
     }
 
     function bodyHeight() : int {

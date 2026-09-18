@@ -48,7 +48,6 @@ Item {
     readonly property color selBg: Qt.darker(ytx.accent, 1.5)
 
     // Text/alpha helpers live on root (contrastColor/withAlpha).
-    readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
     readonly property string fontFamily: uiFont
     readonly property string uiFont: "Geist"
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
@@ -367,9 +366,6 @@ Item {
 
     FileView {
         id: searchFile
-
-        property var resultData: ({
-        })
 
         path: ytx.homeDir + "/.cache/quickshell/ytx-results.json"
         watchChanges: true

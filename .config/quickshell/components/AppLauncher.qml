@@ -45,7 +45,6 @@ Item {
     readonly property color hoverFill: rootRef ? rootRef.withAlpha(launcher.fg, 0.05) : "#0000000d"
     readonly property color descColor: rootRef ? rootRef.withAlpha(launcher.fg, 0.6) : "#888888"
 
-    readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
     readonly property string fontFamily: uiFont
     readonly property string uiFont: "Geist"
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13

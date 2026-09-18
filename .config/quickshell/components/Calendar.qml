@@ -21,7 +21,6 @@ PanelWindow {
 
     property var rootRef: null
     property var anchorItem: null
-    property var anchorScreen: null
     property var anchorWin: null
 
     readonly property color calColor: {
@@ -133,11 +132,6 @@ PanelWindow {
         calPopup.closingBySelf = true
         timerSection.playCloseAnim()
         calPopup.popProgress = 0
-    }
-
-    function forceClose() {
-        calPopup.closingBySelf = true
-        calPopup.visible = false
     }
 
     // Pill position is computed analytically: cross-window
@@ -614,7 +608,6 @@ PanelWindow {
                                     : isToday ? (rootRef ? rootRef.withAlpha(calPopup.accentCol, 0.35) : "transparent") : "transparent"
 
                             Text {
-                                id: dayNum
                                 anchors.centerIn: parent
                                 visible: day > 0
                                 text: day

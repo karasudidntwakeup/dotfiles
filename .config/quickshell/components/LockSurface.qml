@@ -16,7 +16,6 @@ Item {
     readonly property color fg: "#ffffff"
     readonly property color failC: "#dd0808"
     readonly property color acc: rootRef ? rootRef.colorOf("primary") : "#96c8f6"
-    readonly property string iconFontName: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
 
     property bool unlockInProgress: false
     // y2k dot-art mask cycle (emojicombos y2k-dot-art vocabulary)
@@ -159,7 +158,6 @@ Item {
         onTriggered: wpQuery.running = true
     }
     MultiEffect {
-        id: blurFx
         anchors.fill: wallpaper
         source: wallpaper
         autoPaddingEnabled: false

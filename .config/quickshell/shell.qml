@@ -96,11 +96,11 @@ ShellRoot {
     readonly property string fontFamily: "Geist"
     readonly property string uiFont: "Geist"
     readonly property string iconFont: "Symbols Nerd Font"
-    readonly property int fontSize: 13
+    readonly property int fontSize: 12
 
-    readonly property int barHeight: 35
-    readonly property int pillHeight: 35
-    readonly property int pillRadius: 10
+    readonly property int barHeight: 30
+    readonly property int pillHeight: 30
+    readonly property int pillRadius: 9
     readonly property int groupSpacing: 8
 
     readonly property string terminalCommand: "kitty"
@@ -187,6 +187,12 @@ ShellRoot {
 
     property string memText: ""
     property int memPercent: 0
+    property string memTotalText: ""
+
+    property string diskText: ""
+    property int diskPercent: 0
+    property string diskFreeText: ""
+    property string diskTotalText: ""
 
     Process {
         id: weatherProc
@@ -264,8 +270,28 @@ ShellRoot {
                 if (!data) return
                 var parts = data.trim().split("|")
                 var used = parts[0] || ""
-                root.memText = used ? used + "MB" : ""
+                root.memText = used ? used + "G" : ""
                 root.memPercent = parseInt(parts[1] || "0", 10) || 0
+                var total = parts[2] || ""
+                root.memTotalText = total ? total + "G" : ""
+            }
+        }
+    }
+
+    Process {
+        id: diskProc
+        command: ["sh", "-c", Quickshell.shellDir + "/scripts/disk.sh"]
+        stdout: SplitParser {
+            onRead: data => {
+                if (!data) return
+                var parts = data.trim().split("|")
+                var pct = parseInt(parts[0] || "0", 10) || 0
+                var free = parts[1] || ""
+                var total = parts[2] || ""
+                root.diskPercent = pct
+                root.diskText = pct + "%"
+                root.diskFreeText = free ? free + "G" : ""
+                root.diskTotalText = total ? total + "G" : ""
             }
         }
     }
@@ -314,9 +340,15 @@ ShellRoot {
         onTriggered: memProc.running = true
     }
 
+    Timer {
+        interval: 300000
+        running: true
+        repeat: true
+        onTriggered: diskProc.running = true
+    }
+
     property int volumePercent: 0
     property bool muted: false
-    readonly property string volumeIcon: muted ? "󰝟" : (volumePercent <= 33 ? "󰕿" : volumePercent <= 66 ? "󰖀" : "󰕾")
 
     Process {
         id: volProc
@@ -377,25 +409,6 @@ ShellRoot {
         var b = bytesPerSec || 0
         if (b >= 1048576) return (b / 1048576).toFixed(1) + " MB/s"
         return Math.round(b / 1024) + " KB/s"
-    }
-
-    function signalTint(sig) {
-        var s = sig || 0
-        if (s >= 85) return root.pillColor("secondary")
-        if (s >= 65) return root.pillColor("tertiary")
-        if (s >= 45) return root.pillColor("primary_fixed")
-        if (s >= 30) return root.pillColor("secondary_container")
-        if (s >= 15) return root.pillColor("tertiary_container")
-        return root.pillColor("error")
-    }
-
-    function batteryTint(p) {
-        if (root.charging) return root.pillColor("primary_fixed")
-        if (p >= 80) return root.pillColor("primary")
-        if (p >= 50) return root.pillColor("primary_fixed")
-        if (p >= 30) return root.pillColor("tertiary")
-        if (p >= 15) return root.pillColor("secondary_container")
-        return root.pillColor("error")
     }
 
     Process {
@@ -466,7 +479,6 @@ ShellRoot {
     property string mediaTitle: ""
     property string mediaArtist: ""
     property string mediaArt: ""
-    property string mediaInfo: ""
     property string mediaSig: ""
 
     Process {
@@ -500,7 +512,6 @@ ShellRoot {
                     root.mediaSig = sig
                     root.mediaTitle = title
                     root.mediaArtist = artist
-                    root.mediaInfo = title + "|" + artist
                     root.mediaArt = art
                 }
 
@@ -553,7 +564,6 @@ ShellRoot {
         var entry = root.calRegistry[outputName]
         if (!entry) return
         calPopup.anchorItem = entry.anchor || null
-        calPopup.anchorScreen = entry.screen || null
         calPopup.anchorWin = entry.win || null
         if (entry.screen) calPopup.screen = entry.screen
         calPopup.open()
@@ -647,6 +657,7 @@ ShellRoot {
         weatherProc.running = true
         prayerProc.running = true
         memProc.running = true
+        diskProc.running = true
         netProc.running = true
         btProc.running = true
         mediaProc.running = true
@@ -941,32 +952,6 @@ ShellRoot {
         Behavior on scale { Anim { type: Anim.BouncyFast } }
     }
 
-    component BoltGlyph: Canvas {
-        id: boltG
-        property color tintColor: root.primary
-        anchors.centerIn: parent
-        width: 14
-        height: 18
-
-        onTintColorChanged: requestPaint()
-
-        onPaint: {
-            var ctx = getContext("2d")
-            ctx.reset()
-            ctx.scale(boltG.width / 12, boltG.height / 16)
-            ctx.fillStyle = boltG.tintColor
-            ctx.beginPath()
-            ctx.moveTo(7.5, 0)
-            ctx.lineTo(2.3, 9.2)
-            ctx.lineTo(5.8, 9.2)
-            ctx.lineTo(4.5, 16)
-            ctx.lineTo(10, 6)
-            ctx.lineTo(6.4, 6)
-            ctx.closePath()
-            ctx.fill()
-        }
-    }
-
     component DynamicPill: Rectangle {
         id: dc
         property int padX: 14
@@ -1158,54 +1143,6 @@ ShellRoot {
             cursorShape: Qt.PointingHandCursor
         }
     }
-    component WifiIcon: Canvas {
-        id: wifi
-        property color tint: "#ffffff"
-        // 0-100, <0 = offline (all dim). Drives how many arcs are lit.
-        property real signal: 100
-        property bool connected: true
-        // Design-box size; the artwork scales to fit any canvas size.
-        implicitWidth: 26
-        implicitHeight: 20
-
-        onTintChanged: requestPaint()
-        onSignalChanged: requestPaint()
-        onConnectedChanged: requestPaint()
-        onWidthChanged: requestPaint()
-        onHeightChanged: requestPaint()
-
-        onPaint: {
-            var ctx = getContext("2d")
-            ctx.reset()
-            var w = wifi.width
-            var h = wifi.height
-            if (w <= 0 || h <= 0) return
-            // Resolution-independent: artwork authored in a 26x20 box.
-            var s = Math.min(w / 26, h / 20)
-            ctx.translate((w - 26 * s) / 2, (h - 20 * s) / 2)
-            ctx.scale(s, s)
-            ctx.lineCap = "round"
-            var cx = 13
-            var baseY = 17
-            var lit = !wifi.connected ? -1
-                : wifi.signal >= 70 ? 3
-                : wifi.signal >= 45 ? 2
-                : wifi.signal >= 20 ? 1 : 0
-            var t = wifi.tint
-            ctx.fillStyle = Qt.rgba(t.r, t.g, t.b, wifi.connected ? 1.0 : 0.18)
-            ctx.beginPath()
-            ctx.arc(cx, 15.5, 2.0, 0, Math.PI * 2)
-            ctx.fill()
-            for (var i = 0; i < 3; i++) {
-                ctx.lineWidth = 2.4
-                ctx.strokeStyle = Qt.rgba(t.r, t.g, t.b, (i < lit) ? 1.0 : 0.18)
-                ctx.beginPath()
-                ctx.arc(cx, baseY, 5.0 + i * 4.1, Math.PI * 1.25, Math.PI * 1.75, false)
-                ctx.stroke()
-            }
-        }
-    }
-
     component VolumeIcon: Canvas {
         id: v
         property color tint: "#ffffff"
@@ -1974,7 +1911,7 @@ delegate: Item {
                     //  anchors    → sapphire primary_container    (workspaces)
                     //              pink tertiary_container        (clock)
                     //
-                    //  Reading order: glance → faith → input → devices → sound → navigate → meters → time.
+                    //  Reading order: glance → faith → input → devices → navigate → sound → meters → time.
                     Module {
                         id: weatherPill
                         enterOrder: 0
@@ -2036,9 +1973,16 @@ delegate: Item {
                         }
                     }
 
+                    Workspaces {
+                        id: wsWidget
+                        enterOrder: 4
+                        workspaces: bar.workspaceList
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+
                     Module {
                         id: volPill
-                        enterOrder: 4
+                        enterOrder: 5
                         iconSource: volIconSource
                         label: root.muted ? "MUTE" : root.volumePercent + "%"
                         tint: root.volTint()
@@ -2064,13 +2008,6 @@ delegate: Item {
                             volProc.running = true
                             event.accepted = true
                         }
-                    }
-
-                    Workspaces {
-                        id: wsWidget
-                        enterOrder: 5
-                        workspaces: bar.workspaceList
-                        anchors.verticalCenter: parent.verticalCenter
                     }
 
                     Module {

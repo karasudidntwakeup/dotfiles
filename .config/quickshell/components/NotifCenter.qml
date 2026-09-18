@@ -15,7 +15,11 @@ Item {
     readonly property int panelWidth: 440
     readonly property int pad: 14
     readonly property int panelMaxHeight: Math.max(120, Math.round(center.height - 40))
-    readonly property int listMaxHeight: Math.max(64, center.panelMaxHeight - center.pad * 2 - 30 - 40 - (center.mediaOn ? 224 : 0))
+    readonly property bool memOn: rootRef && rootRef.memText && rootRef.memText.length > 0
+    readonly property bool diskOn: rootRef && rootRef.diskText && rootRef.diskText.length > 0
+    readonly property bool infoOn: center.memOn || center.diskOn
+    readonly property int infoHeight: center.infoOn ? 96 : 0
+    readonly property int listMaxHeight: Math.max(64, center.panelMaxHeight - center.pad * 2 - 30 - 40 - (center.infoOn ? center.infoHeight + 10 : 0) - (center.mediaOn ? 224 + 10 : 0))
     readonly property bool mediaOn: rootRef && rootRef.mediaStatus !== "none"
     readonly property string cardTile: "notif_card"
     readonly property color panelColor: {
@@ -34,6 +38,22 @@ Item {
     readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
     readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Geist"
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
+
+    function memSubtitle() {
+        if (!rootRef || !rootRef.memText) return ""
+        var pct = rootRef.memPercent || 0
+        var total = rootRef.memTotalText || ""
+        return pct + "%" + (total.length > 0 ? " of " + total : "") + " used"
+    }
+
+    function diskSubtitle() {
+        if (!rootRef || !rootRef.diskText) return ""
+        var free = rootRef.diskFreeText || ""
+        var total = rootRef.diskTotalText || ""
+        if (free.length > 0 && total.length > 0) return free + " free of " + total
+        if (free.length > 0) return free + " free"
+        return rootRef.diskText + " used"
+    }
 
     // Text helper lives on root (contrastColor).
     property real animProgress: svc && svc.centerOpen ? 1.0 : 0.0
@@ -156,6 +176,41 @@ Item {
                     enabled_: svc && svc.history.count > 0
                     active: false
                     onTapped: { if (svc) svc.clearAll() }
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.preferredHeight: center.infoHeight
+                visible: center.infoOn
+                spacing: 8
+
+                // RAM widget: used GB + percent of total + usage bar.
+                InfoWidget {
+                    visible: center.memOn
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    tintName: "secondary_container"
+                    title: rootRef ? rootRef.memText : ""
+                    subtitle: center.memSubtitle()
+                    caption: "Memory"
+                    glyph: ""
+                    isY2kMoon: false
+                    progress: rootRef ? Math.max(0, Math.min(1, (rootRef.memPercent || 0) / 100)) : 0
+                }
+
+                // Disk widget: used percent + free of total + usage bar.
+                InfoWidget {
+                    visible: center.diskOn
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    tintName: "primary_fixed_dim"
+                    title: rootRef ? rootRef.diskText : ""
+                    subtitle: center.diskSubtitle()
+                    caption: "Disk /"
+                    glyph: ""
+                    isY2kMoon: false
+                    progress: rootRef ? Math.max(0, Math.min(1, (rootRef.diskPercent || 0) / 100)) : 0
                 }
             }
 
@@ -589,6 +644,122 @@ Item {
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onClicked: btn.tapped()
+        }
+    }
+
+    // Widget-style cards mirroring the top-bar weather / prayer pills,
+    // with a caption, a big value and a subtitle line.
+    component InfoWidget: Rectangle {
+        id: widget
+        property string tintName: "primary_fixed_dim"
+        property string caption: ""
+        property string title: ""
+        property string subtitle: ""
+        property string glyph: ""
+        property bool isY2kMoon: false
+        // 0..1 usage bar at the card bottom; negative hides it.
+        property real progress: -1
+
+        Layout.preferredHeight: 96
+        Layout.fillHeight: false
+        radius: 12
+        color: rootRef ? rootRef.tonalPillColor(rootRef.pillColor(widget.tintName)) : "#1a1b1e"
+        border.width: 0
+        clip: true
+
+        readonly property color widgetFg: rootRef ? rootRef.pillForeground(widget.color) : center.fg
+        readonly property color widgetDim: Qt.rgba(widgetFg.r, widgetFg.g, widgetFg.b, 0.68)
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 12
+            anchors.rightMargin: 12
+            anchors.topMargin: 10
+            anchors.bottomMargin: 22
+            spacing: 10
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                spacing: 1
+
+                Text {
+                    visible: widget.caption.length > 0
+                    Layout.fillWidth: true
+                    text: widget.caption.toUpperCase()
+                    color: widget.widgetDim
+                    font.family: center.uiFont
+                    font.pixelSize: center.fontSize - 3
+                    font.weight: Font.DemiBold
+                    font.letterSpacing: 1.2
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    text: widget.title
+                    color: widget.widgetFg
+                    font.family: center.uiFont
+                    font.pixelSize: center.fontSize + 9
+                    font.weight: Font.Bold
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    text: widget.subtitle
+                    color: widget.widgetDim
+                    font.family: center.uiFont
+                    font.pixelSize: center.fontSize - 1
+                    font.weight: Font.Medium
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                    verticalAlignment: Text.AlignTop
+                }
+            }
+
+            Text {
+                visible: !widget.isY2kMoon && widget.glyph.length > 0
+                Layout.alignment: Qt.AlignVCenter
+                text: widget.glyph
+                color: widget.widgetFg
+                font.family: center.iconFont
+                font.pixelSize: 30
+            }
+
+            QIcon {
+                visible: widget.isY2kMoon
+                Layout.alignment: Qt.AlignVCenter
+                source: Qt.resolvedUrl("../assets/icons/y2k-moon-star.svg")
+                color: widget.widgetFg
+                iconSize: 32
+            }
+        }
+
+        // Usage bar inset above the card bottom edge.
+        Rectangle {
+            visible: widget.progress >= 0
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.leftMargin: 12
+            anchors.rightMargin: 12
+            anchors.bottomMargin: 10
+            height: 6
+            radius: 3
+            color: Qt.rgba(widget.widgetFg.r, widget.widgetFg.g, widget.widgetFg.b, 0.18)
+            clip: true
+
+            Rectangle {
+                anchors.left: parent.left
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                width: parent.width * Math.max(0, Math.min(1, widget.progress))
+                color: widget.widgetFg
+            }
         }
     }
 

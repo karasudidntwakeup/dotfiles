@@ -47,7 +47,6 @@ Item {
     readonly property color errorColor: rootRef ? Qt.color(rootRef.colorOf("widget_error")) : "#e30000"
 
     // Text/alpha helpers live on root (contrastColor/withAlpha).
-    readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
     readonly property string fontFamily: uiFont
     readonly property string uiFont: "Geist"
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
@@ -80,13 +79,6 @@ Item {
         interval: 40
         repeat: false
         onTriggered: notesField.forceActiveFocus()
-    }
-
-    Timer {
-        id: searchFocus
-        interval: 40
-        repeat: false
-        onTriggered: searchField.forceActiveFocus()
     }
 
     function reload() {
@@ -231,12 +223,8 @@ Item {
     onWipeArmedChanged: {
         if (notes.wipeArmed) {
             wipeDisarmTimer.restart()
-            notes.wipeStateText = "Confirm clear"
-        } else {
-            notes.wipeStateText = "Clear all"
         }
     }
-    property string wipeStateText: "Clear all"
 
     Rectangle {
         z: 0
