@@ -302,6 +302,13 @@ Item {
                     verticalAlignment: Text.AlignVCenter
                 }
 
+                QIcon {
+                    source: Qt.resolvedUrl("../assets/icons/y2k-star-4.svg")
+                    color: rootRef.withAlpha(notes.accent, 0.8)
+                    iconSize: notes.fontSize + 1
+                    Layout.alignment: Qt.AlignVCenter
+                }
+
                 Text {
                     text: notes.totalCount + (notes.totalCount === 1 ? " note" : " notes")
                     color: rootRef.withAlpha(notes.fg, 0.5)
@@ -790,7 +797,14 @@ Item {
 
                     Column {
                         anchors.centerIn: parent
-                        spacing: 4
+                        spacing: 8
+
+                        QIcon {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            source: Qt.resolvedUrl("../assets/icons/y2k-star-4.svg")
+                            color: rootRef.withAlpha(notes.fg, 0.5)
+                            iconSize: notes.fontSize + 14
+                        }
 
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter

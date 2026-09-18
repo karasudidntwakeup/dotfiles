@@ -110,6 +110,19 @@ Item {
         if (launcher.active) launcher.filterApps(searchField.text)
     }
 
+    // Local fallback for entries whose theme icon is missing/broken.
+    // File managers (pcmanfm et al.) get a folder; everything else sparkles.
+    function fallbackIconSource(icon, name, desktopId) {
+        var s = ((icon || "") + " " + (name || "") + " " + (desktopId || "")).toLowerCase()
+        if (s.indexOf("pcmanfm") >= 0 || s.indexOf("thunar") >= 0
+                || s.indexOf("nautilus") >= 0 || s.indexOf("dolphin") >= 0
+                || s.indexOf("nemo") >= 0 || s.indexOf("caja") >= 0
+                || s.indexOf("file manager") >= 0 || s.indexOf("filemanager") >= 0
+                || s.indexOf("system-file-manager") >= 0)
+            return Qt.resolvedUrl("../assets/icons/y2k-folder.svg")
+        return Qt.resolvedUrl("../assets/icons/y2k-sparkle.svg")
+    }
+
     function isSubsequence(sub, str) {
         var i = 0
         var j = 0
@@ -388,12 +401,21 @@ Item {
                                 x: 0
                                 width: parent.height * 0.8
                                 horizontalAlignment: Text.AlignHCenter
-                                visible: !appIcon.visible
-                                text: isCommand ? ">" : isCalc ? "=" : name.charAt(0).toUpperCase()
+                                visible: !appIcon.visible && (isCommand || isCalc)
+                                text: isCommand ? ">" : "="
                                 color: launcher.descColor
                                 font.family: launcher.fontFamily
                                 font.pixelSize: launcher.fontSize + 6
                                 font.weight: Font.Medium
+                            }
+
+                            QIcon {
+                                anchors.verticalCenter: parent.verticalCenter
+                                x: 0
+                                visible: !appIcon.visible && !isCommand && !isCalc
+                                source: launcher.fallbackIconSource(icon, name, desktopId)
+                                color: launcher.descColor
+                                iconSize: parent.height * 0.8
                             }
 
                             Item {
@@ -503,12 +525,24 @@ Item {
                     Column {
                         anchors.verticalCenter: parent.verticalCenter
 
-                        Text {
-                            text: "No results"
-                            font.family: launcher.fontFamily
-                            font.pixelSize: launcher.fontSize
-                            font.weight: Font.Medium
-                            color: launcher.descColor
+                        Row {
+                            spacing: 6
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: "No results"
+                                font.family: launcher.fontFamily
+                                font.pixelSize: launcher.fontSize
+                                font.weight: Font.Medium
+                                color: launcher.descColor
+                            }
+
+                            QIcon {
+                                anchors.verticalCenter: parent.verticalCenter
+                                source: Qt.resolvedUrl("../assets/icons/y2k-sparkle-double.svg")
+                                color: launcher.descColor
+                                iconSize: launcher.fontSize + 2
+                            }
                         }
 
                         Text {

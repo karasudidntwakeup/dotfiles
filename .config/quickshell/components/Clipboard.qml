@@ -259,6 +259,13 @@ Item {
                     verticalAlignment: Text.AlignVCenter
                 }
 
+                QIcon {
+                    source: Qt.resolvedUrl("../assets/icons/y2k-sparkle.svg")
+                    color: rootRef.withAlpha(clipMgr.fg, 0.55)
+                    iconSize: clipMgr.fontSize + 1
+                    Layout.alignment: Qt.AlignVCenter
+                }
+
                 Text {
                     text: clipMgr.totalCount + (clipMgr.totalCount === 1 ? " item" : " items")
                     color: rootRef.withAlpha(clipMgr.fg, 0.5)
@@ -666,7 +673,14 @@ Item {
 
                     Column {
                         anchors.centerIn: parent
-                        spacing: 4
+                        spacing: 8
+
+                        QIcon {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            source: Qt.resolvedUrl("../assets/icons/y2k-glitter.svg")
+                            color: rootRef.withAlpha(clipMgr.fg, 0.5)
+                            iconSize: clipMgr.fontSize + 14
+                        }
 
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter

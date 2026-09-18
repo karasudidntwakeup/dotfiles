@@ -484,6 +484,35 @@ Item {
             }
             }
 
+            Row {
+                Layout.alignment: Qt.AlignHCenter
+                visible: centerList.count === 0
+                spacing: 8
+                opacity: 0.6
+
+                QIcon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    source: Qt.resolvedUrl("../assets/icons/y2k-moon-star.svg")
+                    color: center.fg
+                    iconSize: center.fontSize + 8
+                }
+
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "All clear"
+                    color: center.fg
+                    font.family: center.uiFont
+                    font.pixelSize: center.fontSize
+                }
+
+                QIcon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    source: Qt.resolvedUrl("../assets/icons/y2k-sparkle.svg")
+                    color: center.fg
+                    iconSize: center.fontSize + 2
+                }
+            }
+
         }
 
     component MediaBtn: Item {
