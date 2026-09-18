@@ -36,9 +36,9 @@ Item {
         : "#00000000"
     readonly property color errorColor: rootRef ? Qt.color(rootRef.colorOf("widget_error")) : "#dc4446"
     readonly property color fg: rootRef
-        ? card.contrastColor(card.cardColor)
+        ? rootRef.contrastColor(card.cardColor)
         : "#000000"
-    readonly property color mute: rootRef ? rootRef.withAlpha(card.fg, 0.58) : "#666666"
+    readonly property color mute: rootRef ? rootRef.withAlpha(card.fg, 0.72) : "#666666"
     readonly property string iconFont: rootRef ? rootRef.iconFont : "Symbols Nerd Font"
     readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Geist"
     readonly property int fontSize: rootRef ? rootRef.fontSize : 13
@@ -87,19 +87,7 @@ Item {
         if (min < 7 * 24 * 60) return Qt.formatDateTime(d, "dddd") + " " + hhmm
         return Qt.formatDateTime(d, "yyyy-MM-dd HH:mm")
     }
-    function _lin(v: double): double {
-        if (v <= 0.03928) return v / 12.92
-        return Math.pow((v + 0.055) / 1.055, 2.4)
-    }
-    function relLum(c: color): double {
-        return 0.2126 * card._lin(c.r) + 0.7152 * card._lin(c.g) + 0.0722 * card._lin(c.b)
-    }
-    function contrastColor(c: color): color {
-        var l = card.relLum(c)
-        var white = (1.05) / (l + 0.05)
-        var black = (l + 0.05) / (0.05)
-        return white >= black ? "#ffffff" : "#000000"
-    }
+    // Text helper lives on root (contrastColor).
     function refreshTime() { card.timeText = card.fmtTime(card.ts) }
     onTsChanged: card.refreshTime()
 
@@ -220,6 +208,19 @@ Item {
         anchors.fill: parent
         transform: Translate { x: card.dragX }
         opacity: Math.max(0.0, 1.0 - Math.abs(card.dragX) / Math.max(1, card.width * 0.7))
+        // Shadow lives here (unclipped wrapper) rather than on cardBody:
+        // cardBody needs clip:true for its rounded corners, which would cut
+        // the shadow off on the same item.
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowBlur: 0.8
+            blurMax: 20
+            shadowHorizontalOffset: 4
+            shadowVerticalOffset: 8
+            shadowColor: Qt.rgba(0, 0, 0, 0.9)
+            shadowOpacity: 0.9
+        }
 
         Rectangle {
             id: cardBody
@@ -293,13 +294,12 @@ Item {
                         }
                     }
 
-                    Text {
+                    QIcon {
                         anchors.centerIn: parent
                         visible: card.iconSrc.length === 0 || card.iconFailed
-                        text: "󰂜"
+                        source: Qt.resolvedUrl("../assets/icons/app.svg")
                         color: card.fg
-                        font.family: card.iconFont
-                        font.pixelSize: card.fontSize + 3
+                        iconSize: card.fontSize + 5
                     }
                 }
 
@@ -486,12 +486,11 @@ Item {
             : rootRef.withAlpha(card.fg, 0.06)
         Behavior on color { ColorAnimation { duration: 120 } }
 
-        Text {
+        QIcon {
             anchors.centerIn: parent
-            text: "󰅖"
+            source: Qt.resolvedUrl("../assets/icons/close.svg")
             color: card.fg
-            font.family: card.iconFont
-            font.pixelSize: card.fontSize - 2
+            iconSize: card.fontSize
         }
 
         MouseArea {

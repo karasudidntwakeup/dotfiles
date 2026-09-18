@@ -21,27 +21,15 @@ Item {
         ? (rootRef.qsLight ? rootRef.pillColor("surface") : rootRef.colorOf("surface"))
         : "#15161a"
     readonly property color panelBorder: rootRef ? rootRef.withAlpha(Qt.color(rootRef.colorOf("widget_border")), rootRef.qsLight ? 0.7 : 0.5) : "#ffffff33"
-    readonly property color fg: rootRef ? center.contrastColor(center.panelColor) : "#ffffff"
-    readonly property color muteFg: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.55)
+    readonly property color fg: rootRef ? rootRef.contrastColor(center.panelColor) : "#ffffff"
+    readonly property color muteFg: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.72)
     readonly property color accent: rootRef ? Qt.color(rootRef.colorOf("widget_accent")) : "#ff8fb2"
     readonly property color signalAccent: "#ffffff"
     readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
     readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Geist"
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
 
-    function _lin(v: double): double {
-        if (v <= 0.03928) return v / 12.92
-        return Math.pow((v + 0.055) / 1.055, 2.4)
-    }
-    function relLum(c: color): double {
-        return 0.2126 * center._lin(c.r) + 0.7152 * center._lin(c.g) + 0.0722 * center._lin(c.b)
-    }
-    function contrastColor(c: color): color {
-        var l = center.relLum(c)
-        var white = (1.05) / (l + 0.05)
-        var black = (l + 0.05) / (0.05)
-        return white >= black ? "#ffffff" : "#000000"
-    }
+    // Text helper lives on root (contrastColor).
     property real animProgress: svc && svc.centerOpen ? 1.0 : 0.0
     Behavior on animProgress {
         NumberAnimation {
@@ -88,6 +76,16 @@ Item {
         border.width: 1
         border.color: center.panelBorder
         clip: true
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowBlur: 0.9
+            blurMax: 28
+            shadowHorizontalOffset: 5
+            shadowVerticalOffset: 10
+            shadowColor: Qt.rgba(0, 0, 0, 0.9)
+            shadowOpacity: 0.95
+        }
 
 
         opacity: Math.min(1, center.animProgress * 3)
@@ -109,15 +107,11 @@ Item {
                 Layout.preferredHeight: 30
                 spacing: 8
 
-                Text {
-                    text: "󰆂"
+                QIcon {
+                    source: Qt.resolvedUrl("../assets/icons/bell.svg")
                     color: center.fg
-                    font.family: center.iconFont
-                    font.pixelSize: center.fontSize + 3
-                    Layout.preferredWidth: 26
-                    Layout.preferredHeight: 30
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
+                    iconSize: center.fontSize + 5
+                    Layout.alignment: Qt.AlignVCenter
                 }
 
                 Text {
@@ -141,7 +135,7 @@ Item {
                         id: unreadLabel
                         anchors.centerIn: parent
                         text: svc ? String(svc.unreadCount) : ""
-                        color: "#15161a"
+                        color: rootRef ? rootRef.contrastColor(center.accent) : "#000000"
                         font.family: center.uiFont
                         font.pixelSize: center.fontSize - 2
                         font.weight: Font.DemiBold
@@ -149,13 +143,13 @@ Item {
                 }
 
                 HeaderBtn {
-                    glyph: "󰂚"
+                    iconSource: Qt.resolvedUrl("../assets/icons/bell.svg")
                     active: svc ? svc.dnd : false
                     onTapped: { if (svc) svc.dnd = !svc.dnd }
                 }
 
                 HeaderBtn {
-                    glyph: "󰗩"
+                    iconSource: Qt.resolvedUrl("../assets/icons/trash.svg")
                     enabled_: svc && svc.history.count > 0
                     active: false
                     onTapped: { if (svc) svc.clearAll() }
@@ -182,6 +176,14 @@ Item {
                 property real progress: rootRef && rootRef.mediaLenMs > 0
                     ? Math.max(0, Math.min(1, rootRef.mediaPosMs / rootRef.mediaLenMs))
                     : 0
+
+                function fmtTime(ms) {
+                    if (!isFinite(ms) || ms <= 0) return "0:00"
+                    var s = Math.floor(ms / 1000)
+                    var m = Math.floor(s / 60)
+                    s = s % 60
+                    return m + ":" + (s < 10 ? "0" : "") + s
+                }
 
                 Rectangle {
                     id: mediaArtMask
@@ -220,29 +222,18 @@ Item {
                         : Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.05)
                 }
 
-                Text {
+                QIcon {
                     anchors.centerIn: parent
-                    text: "󰽴"
-                    color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.35)
-                    font.family: center.iconFont
-                    font.pixelSize: 34
                     visible: !mediaCard.hasArt
+                    source: Qt.resolvedUrl("../assets/icons/music.svg")
+                    color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.75)
+                    iconSize: 40
                 }
 
                 ColumnLayout {
                     anchors.fill: parent
                     anchors.margins: 14
                     spacing: 10
-
-                    Text {
-                        Layout.alignment: Qt.AlignHCenter
-                        text: "NOW PLAYING"
-                        color: Qt.rgba(mediaCard.mediaAccent.r, mediaCard.mediaAccent.g, mediaCard.mediaAccent.b, 0.9)
-                        font.family: center.uiFont
-                        font.pixelSize: 10
-                        font.letterSpacing: 0.5
-                        font.weight: Font.DemiBold
-                    }
 
                     Item { Layout.fillHeight: true }
 
@@ -396,20 +387,20 @@ Item {
 
                         MediaBtn {
                             btnSize: 30
-                            glyph: "󰼨"
+                            iconSource: Qt.resolvedUrl("../assets/icons/prev.svg")
                             onTapped: rootRef ? Quickshell.execDetached(["playerctl", "previous"]) : {}
                         }
 
                         MediaBtn {
                             btnSize: 44
-                            glyph: rootRef && rootRef.mediaStatus === "Playing" ? "󰏤" : "󰐊"
-                            accent: true
+                            iconSource: rootRef && rootRef.mediaStatus === "Playing" ? Qt.resolvedUrl("../assets/icons/pause.svg") : Qt.resolvedUrl("../assets/icons/play.svg")
+                            accent: false
                             onTapped: rootRef ? Quickshell.execDetached(["playerctl", "play-pause"]) : {}
                         }
 
                         MediaBtn {
                             btnSize: 30
-                            glyph: "󰼧"
+                            iconSource: Qt.resolvedUrl("../assets/icons/next.svg")
                             onTapped: rootRef ? Quickshell.execDetached(["playerctl", "next"]) : {}
                         }
 
@@ -436,6 +427,14 @@ Item {
                 model: svc ? svc.history : []
                 spacing: 10
                 boundsBehavior: Flickable.StopAtBounds
+
+                add: Transition {
+                    NumberAnimation { property: "opacity"; from: 0; to: 1; duration: 180; easing.type: Easing.OutCubic }
+                    NumberAnimation { property: "x"; from: 28; to: 0; duration: 300; easing.type: Easing.OutExpo }
+                }
+                displaced: Transition {
+                    NumberAnimation { property: "y"; duration: 300; easing.type: Easing.OutCubic }
+                }
                 flickableDirection: Flickable.VerticalFlick
                 clip: true
 
@@ -489,7 +488,7 @@ Item {
 
     component MediaBtn: Item {
         id: btn
-        property string glyph: ""
+        property url iconSource
         property bool accent: false
         property int btnSize: 30
         signal tapped()
@@ -506,12 +505,11 @@ Item {
                 ? Qt.color(center.signalAccent)
                 : (hoverArea.containsMouse ? Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.1) : "transparent")
 
-            Text {
+            QIcon {
                 anchors.centerIn: parent
-                text: btn.glyph
+                source: btn.iconSource
                 color: btn.accent ? "#15161a" : center.fg
-                font.family: center.iconFont
-                font.pixelSize: center.fontSize + (btn.accent ? 6 : 2)
+                iconSize: center.fontSize + (btn.accent ? 8 : 4)
             }
 
             MouseArea {
@@ -526,7 +524,7 @@ Item {
 
     component HeaderBtn: Item {
         id: btn
-        property string glyph: ""
+        property url iconSource
         property bool active: false
         property bool enabled_: true
         signal tapped()
@@ -545,12 +543,11 @@ Item {
             Behavior on color { ColorAnimation { duration: 120 } }
         }
 
-        Text {
+        QIcon {
             anchors.centerIn: parent
-            text: btn.glyph
+            source: btn.iconSource
             color: !btn.enabled_ ? Qt.rgba(1, 1, 1, 0.25) : center.fg
-            font.family: center.iconFont
-            font.pixelSize: center.fontSize
+            iconSize: center.fontSize + 2
         }
 
         MouseArea {

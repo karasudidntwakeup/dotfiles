@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Effects
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
@@ -19,7 +20,7 @@ Item {
     readonly property int pad: 14
     readonly property int cornerRadius: 12
 
-    readonly property string cardTile: "surface"
+    readonly property string cardTile: "notes_card"
     readonly property color cardColor: rootRef
         ? (rootRef.qsLight
             ? rootRef.pillColor(cardTile)
@@ -31,34 +32,16 @@ Item {
         : "#00000000"
 
     readonly property color fg: rootRef
-        ? notes.contrastColor(notes.cardColor)
+        ? rootRef.contrastColor(notes.cardColor)
         : "#000000"
     readonly property color accent: rootRef
         ? Qt.color(rootRef.colorOf("secondary_container"))
         : "#ebcb8b"
-    readonly property color accentText: notes.contrastColor(notes.accent)
+    readonly property color accentText: rootRef ? rootRef.contrastColor(notes.accent) : "#000000"
     readonly property color selectedFg: accentText
     readonly property color errorColor: rootRef ? Qt.color(rootRef.colorOf("widget_error")) : "#e30000"
 
-    function alpha(c: color, a: double): color {
-        return Qt.rgba(c.r, c.g, c.b, a)
-    }
-
-    function _lin(v: double): double {
-        if (v <= 0.03928) return v / 12.92
-        return Math.pow((v + 0.055) / 1.055, 2.4)
-    }
-
-    function relLum(c: color): double {
-        return 0.2126 * notes._lin(c.r) + 0.7152 * notes._lin(c.g) + 0.0722 * notes._lin(c.b)
-    }
-
-    function contrastColor(c: color): color {
-        var l = notes.relLum(c)
-        var white = (1.05) / (l + 0.05)
-        var black = (l + 0.05) / (0.05)
-        return white >= black ? "#ffffff" : "#000000"
-    }
+    // Text/alpha helpers live on root (contrastColor/withAlpha).
     readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
     readonly property string fontFamily: uiFont
     readonly property string uiFont: "Geist"
@@ -69,7 +52,7 @@ Item {
     Behavior on animProgress {
         NumberAnimation {
             duration: notes.active ? 180 : 140
-            easing.type: Easing.OutCubic
+            easing.type: Easing.OutExpo
         }
     }
 
@@ -276,6 +259,16 @@ Item {
         border.width: 1
         border.color: notes.cardBorder
         clip: true
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowBlur: 0.9
+            blurMax: 28
+            shadowHorizontalOffset: 5
+            shadowVerticalOffset: 10
+            shadowColor: Qt.rgba(0, 0, 0, 0.9)
+            shadowOpacity: 0.95
+        }
 
 
         transform: Translate {
@@ -293,13 +286,11 @@ Item {
                 width: parent.width
                 spacing: 6
 
-                Text {
-                    text: "󰎚"
+                QIcon {
+                    source: Qt.resolvedUrl("../assets/icons/notes.svg")
                     color: notes.accent
-                    font.family: notes.iconFont
-                    font.pixelSize: notes.fontSize + 2
-                    Layout.preferredWidth: 22
-                    horizontalAlignment: Text.AlignHCenter
+                    iconSize: notes.fontSize + 4
+                    Layout.alignment: Qt.AlignVCenter
                 }
 
                 Text {
@@ -313,7 +304,7 @@ Item {
 
                 Text {
                     text: notes.totalCount + (notes.totalCount === 1 ? " note" : " notes")
-                    color: notes.alpha(notes.fg, 0.5)
+                    color: rootRef.withAlpha(notes.fg, 0.5)
                     font.family: notes.uiFont
                     font.pixelSize: notes.fontSize - 2
                     verticalAlignment: Text.AlignVCenter
@@ -327,18 +318,30 @@ Item {
                     Layout.preferredHeight: 24
                     radius: 7
                     color: notes.wipeArmed
-                        ? (wipeHover.containsMouse ? notes.alpha(notes.errorColor, 0.7) : notes.errorColor)
-                        : (wipeHover.containsMouse ? notes.alpha(notes.fg, 0.25) : notes.alpha(notes.fg, 0.1))
+                        ? (wipeHover.containsMouse ? rootRef.withAlpha(notes.errorColor, 0.7) : notes.errorColor)
+                        : (wipeHover.containsMouse ? rootRef.withAlpha(notes.fg, 0.25) : rootRef.withAlpha(notes.fg, 0.1))
                     Behavior on color { ColorAnimation { duration: 120 } }
 
-                    Text {
+                    Row {
                         id: wipeText
                         anchors.centerIn: parent
-                        text: notes.wipeArmed ? "Confirm clear" : "󰆴 Clear all"
-                        color: notes.wipeArmed ? "#ffffff" : notes.fg
-                        font.family: notes.uiFont
-                        font.pixelSize: notes.fontSize - 1
-                        font.weight: Font.Medium
+                        spacing: 5
+
+                        QIcon {
+                            anchors.verticalCenter: parent.verticalCenter
+                            source: Qt.resolvedUrl("../assets/icons/trash.svg")
+                            color: notes.wipeArmed ? "#ffffff" : notes.fg
+                            iconSize: notes.fontSize
+                        }
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: notes.wipeArmed ? "Confirm clear" : "Clear all"
+                            color: notes.wipeArmed ? "#ffffff" : notes.fg
+                            font.family: notes.uiFont
+                            font.pixelSize: notes.fontSize - 1
+                            font.weight: Font.Medium
+                        }
                     }
 
                     MouseArea {
@@ -362,16 +365,15 @@ Item {
                     Layout.preferredHeight: 24
                     radius: 6
                     color: closeHover.containsMouse
-                        ? notes.alpha(notes.fg, 0.2)
+                        ? rootRef.withAlpha(notes.fg, 0.2)
                         : "transparent"
                     Behavior on color { ColorAnimation { duration: 120 } }
 
-                    Text {
+                    QIcon {
                         anchors.centerIn: parent
-                        text: "󰅖"
+                        source: Qt.resolvedUrl("../assets/icons/close.svg")
                         color: notes.fg
-                        font.family: notes.iconFont
-                        font.pixelSize: notes.fontSize
+                        iconSize: notes.fontSize + 2
                     }
 
                     MouseArea {
@@ -389,11 +391,11 @@ Item {
                 width: parent.width
                 height: notes.searchHeight
                 radius: 8
-                color: notes.alpha(notes.accent, 0.18)
+                color: rootRef.withAlpha(notes.accent, 0.18)
                 border.width: 1
                 border.color: notesField.activeFocus
-                    ? notes.alpha(notes.accent, 0.7)
-                    : notes.alpha(notes.fg, 0.12)
+                    ? rootRef.withAlpha(notes.accent, 0.7)
+                    : rootRef.withAlpha(notes.fg, 0.12)
                 Behavior on border.color { ColorAnimation { duration: 150 } }
 
                 RowLayout {
@@ -402,11 +404,11 @@ Item {
                     anchors.rightMargin: 6
                     spacing: 8
 
-                    Text {
-                        text: "󰏫"
-                        color: notes.alpha(notes.accent, 0.9)
-                        font.family: notes.iconFont
-                        font.pixelSize: notes.fontSize + 1
+                    QIcon {
+                        source: Qt.resolvedUrl("../assets/icons/pencil.svg")
+                        color: rootRef.withAlpha(notes.accent, 0.9)
+                        iconSize: notes.fontSize + 3
+                        Layout.alignment: Qt.AlignVCenter
                     }
 
                     TextField {
@@ -418,7 +420,7 @@ Item {
                         font.pixelSize: notes.fontSize + 1
                         font.weight: Font.Medium
                         placeholderText: "Jot a note and press Enter"
-                        placeholderTextColor: notes.alpha(notes.fg, 0.4)
+                        placeholderTextColor: rootRef.withAlpha(notes.fg, 0.6)
                         selectByMouse: true
                         verticalAlignment: Text.AlignVCenter
                         background: Item {}
@@ -450,15 +452,14 @@ Item {
                         radius: 13
                         color: saveHover.containsMouse
                             ? notes.accent
-                            : notes.alpha(notes.accent, 0.6)
+                            : rootRef.withAlpha(notes.accent, 0.6)
                         Behavior on color { ColorAnimation { duration: 120 } }
 
-                        Text {
+                        QIcon {
                             anchors.centerIn: parent
-                            text: "󰐕"
+                            source: Qt.resolvedUrl("../assets/icons/plus.svg")
                             color: notes.accentText
-                            font.family: notes.iconFont
-                            font.pixelSize: notes.fontSize
+                            iconSize: notes.fontSize + 2
                         }
 
                         MouseArea {
@@ -477,11 +478,11 @@ Item {
                 width: parent.width
                 height: notes.searchHeight
                 radius: 8
-                color: notes.alpha(notes.fg, 0.08)
+                color: rootRef.withAlpha(notes.fg, 0.08)
                 border.width: 1
                 border.color: searchField.activeFocus
-                    ? notes.alpha(notes.fg, 0.4)
-                    : notes.alpha(notes.fg, 0.12)
+                    ? rootRef.withAlpha(notes.fg, 0.6)
+                    : rootRef.withAlpha(notes.fg, 0.12)
                 Behavior on border.color { ColorAnimation { duration: 150 } }
 
                 RowLayout {
@@ -490,11 +491,11 @@ Item {
                     anchors.rightMargin: 6
                     spacing: 8
 
-                    Text {
-                        text: "󰍉"
-                        color: notes.alpha(notes.fg, 0.55)
-                        font.family: notes.iconFont
-                        font.pixelSize: notes.fontSize + 1
+                    QIcon {
+                        source: Qt.resolvedUrl("../assets/icons/search.svg")
+                        color: rootRef.withAlpha(notes.fg, 0.75)
+                        iconSize: notes.fontSize + 3
+                        Layout.alignment: Qt.AlignVCenter
                     }
 
                     TextField {
@@ -506,7 +507,7 @@ Item {
                         font.pixelSize: notes.fontSize + 1
                         font.weight: Font.Medium
                         placeholderText: "Search notes"
-                        placeholderTextColor: notes.alpha(notes.fg, 0.4)
+                        placeholderTextColor: rootRef.withAlpha(notes.fg, 0.6)
                         selectByMouse: true
                         verticalAlignment: Text.AlignVCenter
                         background: Item {}
@@ -543,16 +544,15 @@ Item {
                         Layout.preferredHeight: 22
                         radius: 11
                         color: clearHover.containsMouse
-                            ? notes.alpha(notes.fg, 0.25)
+                            ? rootRef.withAlpha(notes.fg, 0.25)
                             : "transparent"
                         Behavior on color { ColorAnimation { duration: 120 } }
 
-                        Text {
+                        QIcon {
                             anchors.centerIn: parent
-                            text: "󰅖"
+                            source: Qt.resolvedUrl("../assets/icons/close.svg")
                             color: notes.fg
-                            font.family: notes.iconFont
-                            font.pixelSize: notes.fontSize
+                            iconSize: notes.fontSize + 2
                         }
 
                         MouseArea {
@@ -626,7 +626,7 @@ Item {
                             anchors.fill: parent
                             radius: 9
                             color: rowHover.containsMouse && !isSelected
-                                ? notes.alpha(notes.fg, 0.08)
+                                ? rootRef.withAlpha(notes.fg, 0.08)
                                 : "transparent"
                             Behavior on color { ColorAnimation { duration: 120 } }
                         }
@@ -646,17 +646,16 @@ Item {
                                     anchors.fill: parent
                                     radius: 8
                                     color: isSelected
-                                        ? notes.alpha(notes.accent, 0.30)
-                                        : notes.alpha(notes.fg, 0.10)
+                                        ? rootRef.withAlpha(notes.accent, 0.30)
+                                        : rootRef.withAlpha(notes.fg, 0.10)
                                     Behavior on color { ColorAnimation { duration: 150 } }
                                 }
 
-                                Text {
+                                QIcon {
                                     anchors.centerIn: parent
-                                    text: "󰎞"
+                                    source: Qt.resolvedUrl("../assets/icons/notes.svg")
                                     color: isSelected ? notes.selectedFg : notes.fg
-                                    font.family: notes.iconFont
-                                    font.pixelSize: notes.fontSize
+                                    iconSize: notes.fontSize + 2
                                 }
                             }
 
@@ -688,8 +687,8 @@ Item {
                                     font.family: notes.uiFont
                                     font.pixelSize: Math.max(9, notes.fontSize - 2)
                                     color: isSelected
-                                        ? notes.alpha(notes.selectedFg, 0.75)
-                                        : notes.alpha(notes.fg, 0.55)
+                                        ? rootRef.withAlpha(notes.selectedFg, 0.85)
+                                        : rootRef.withAlpha(notes.fg, 0.75)
                                 }
                             }
 
@@ -700,17 +699,15 @@ Item {
                                 Layout.alignment: Qt.AlignVCenter
                                 radius: 6
                                 color: copyHover.containsMouse
-                                    ? notes.alpha(notes.accent, isSelected ? 0.7 : 0.5)
-                                    : notes.alpha(notes.fg, isSelected ? 0.25 : 0.12)
+                                    ? rootRef.withAlpha(notes.accent, isSelected ? 0.7 : 0.5)
+                                    : rootRef.withAlpha(notes.fg, isSelected ? 0.25 : 0.12)
                                 Behavior on color { ColorAnimation { duration: 120 } }
 
-                                Text {
+                                QIcon {
                                     anchors.centerIn: parent
-                                    text: "󰆏"
-                                    color: copyHover.containsMouse ? notes.accentText
-                                        : (isSelected ? notes.selectedFg : notes.fg)
-                                    font.family: notes.iconFont
-                                    font.pixelSize: notes.fontSize
+                                    source: Qt.resolvedUrl("../assets/icons/copy.svg")
+                                    color: copyHover.containsMouse ? notes.accentText : (isSelected ? notes.selectedFg : notes.fg)
+                                    iconSize: notes.fontSize + 2
                                 }
 
                                 MouseArea {
@@ -732,15 +729,14 @@ Item {
                                 Layout.alignment: Qt.AlignVCenter
                                 radius: 6
                                 color: deleteHover.containsMouse
-                                    ? notes.alpha(notes.errorColor, 0.5)
-                                    : notes.alpha(notes.fg, isSelected ? 0.25 : 0.12)
+                                    ? rootRef.withAlpha(notes.errorColor, 0.5)
+                                    : rootRef.withAlpha(notes.fg, isSelected ? 0.25 : 0.12)
 
-                                Text {
+                                QIcon {
                                     anchors.centerIn: parent
-                                    text: "󰆴"
+                                    source: Qt.resolvedUrl("../assets/icons/trash.svg")
                                     color: deleteHover.containsMouse ? "#ffffff" : notes.fg
-                                    font.family: notes.iconFont
-                                    font.pixelSize: notes.fontSize
+                                    iconSize: notes.fontSize + 2
                                 }
 
                                 MouseArea {
@@ -789,7 +785,7 @@ Item {
                             text: searchField.text.length > 0
                                 ? "No matching notes"
                                 : "No notes yet — type one above"
-                            color: notes.alpha(notes.fg, 0.55)
+                            color: rootRef.withAlpha(notes.fg, 0.75)
                             font.family: notes.uiFont
                             font.pixelSize: notes.fontSize
                         }

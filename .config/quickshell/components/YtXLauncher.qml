@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Effects
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
@@ -29,33 +30,18 @@ Item {
     readonly property int titleHeight: Math.round((fontSize - 1) * 1.2) * 2
     readonly property int channelHeight: Math.max(10, fontSize - 3)
     readonly property int cellHeight: cellInset * 2 + thumbHeight + 7 + titleHeight + 3 + channelHeight
-    readonly property string cardTile: "surface"
+    readonly property string cardTile: "ytx_card"
     readonly property color cardColor: rootRef ? (rootRef.qsLight ? (rootRef.pillColor(cardTile)) : rootRef.colorOf(cardTile)) : "#f3dfd1"
     readonly property color cardBorder: rootRef ? rootRef.withAlpha(rootRef.colorOf("widget_border"), rootRef.qsLight ? 0.7 : 0.5) : "#00000000"
-    readonly property color fg: rootRef ? ytx.contrastColor(ytx.cardColor) : "#000000"
+    readonly property color fg: rootRef ? rootRef.contrastColor(ytx.cardColor) : "#000000"
     readonly property color accent: rootRef
         ? Qt.color(rootRef.colorOf("widget_error"))
         : "#bf616a"
-    readonly property color accentText: ytx.contrastColor(ytx.accent)
-    readonly property color selectedFg: rootRef
-        ? Qt.color(rootRef.colorOf("widget_error"))
-        : "#bf616a"
+    // Solid darkened selection bg: the old translucent-accent wash on the
+    // pink card measured ~1.1:1 and red-on-pink text ~1.36:1 (unreadable).
+    readonly property color selBg: Qt.darker(ytx.accent, 1.5)
 
-    function _lin(v: double): double {
-        if (v <= 0.03928) return v / 12.92
-        return Math.pow((v + 0.055) / 1.055, 2.4)
-    }
-
-    function relLum(c: color): double {
-        return 0.2126 * ytx._lin(c.r) + 0.7152 * ytx._lin(c.g) + 0.0722 * ytx._lin(c.b)
-    }
-
-    function contrastColor(c: color): color {
-        var l = ytx.relLum(c)
-        var white = (1.05) / (l + 0.05)
-        var black = (l + 0.05) / (0.05)
-        return white >= black ? "#ffffff" : "#000000"
-    }
+    // Text/alpha helpers live on root (contrastColor/withAlpha).
     readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
     readonly property string fontFamily: uiFont
     readonly property string uiFont: "Geist"
@@ -97,9 +83,7 @@ Item {
 
     signal requestClose()
 
-    function alpha(c: color, a: double) : color {
-        return Qt.rgba(c.r, c.g, c.b, a);
-    }
+    // (alpha helper removed: use rootRef.withAlpha)
 
     function loadRecent() {
         if (recentFile)
@@ -485,6 +469,16 @@ Item {
         border.width: 1
         border.color: ytx.cardBorder
         clip: true
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowBlur: 0.9
+            blurMax: 28
+            shadowHorizontalOffset: 5
+            shadowVerticalOffset: 10
+            shadowColor: Qt.rgba(0, 0, 0, 0.9)
+            shadowOpacity: 0.95
+        }
 
 
         transform: Translate {
@@ -505,9 +499,9 @@ Item {
                 width: parent.width
                 height: ytx.searchHeight
                 radius: 8
-                color: ytx.alpha(ytx.fg, 0.08)
+                color: rootRef.withAlpha(ytx.fg, 0.08)
                 border.width: 1
-                border.color: searchField.activeFocus ? ytx.alpha(ytx.fg, 0.4) : ytx.alpha(ytx.fg, 0.12)
+                border.color: searchField.activeFocus ? rootRef.withAlpha(ytx.fg, 0.4) : rootRef.withAlpha(ytx.fg, 0.12)
 
                 RowLayout {
                     anchors.fill: parent
@@ -515,11 +509,15 @@ Item {
                     anchors.rightMargin: 12
                     spacing: 8
 
-                    Text {
-                        text: "󰗃"
-                        color: ytx.alpha(ytx.fg, 0.55)
-                        font.family: ytx.iconFont
-                        font.pixelSize: ytx.fontSize + 1
+                    Image {
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.preferredWidth: 28
+                        Layout.preferredHeight: 20
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true
+                        mipmap: true
+                        asynchronous: true
+                        source: Qt.resolvedUrl("../assets/youtube.svg")
                     }
 
                     TextField {
@@ -532,7 +530,7 @@ Item {
                         font.pixelSize: ytx.fontSize + 1
                         font.weight: Font.Medium
                         placeholderText: "Search YouTube"
-                        placeholderTextColor: ytx.alpha(ytx.fg, 0.4)
+                        placeholderTextColor: rootRef.withAlpha(ytx.fg, 0.4)
                         selectByMouse: true
                         verticalAlignment: Text.AlignVCenter
                         onTextEdited: {
@@ -603,14 +601,13 @@ Item {
                         Layout.preferredWidth: 22
                         Layout.preferredHeight: 22
                         radius: 11
-                        color: clearHover.containsMouse ? ytx.alpha(ytx.fg, 0.25) : "transparent"
+                        color: clearHover.containsMouse ? rootRef.withAlpha(ytx.fg, 0.25) : "transparent"
 
-                        Text {
+                        QIcon {
                             anchors.centerIn: parent
-                            text: "󰅖"
+                            source: Qt.resolvedUrl("../assets/icons/close.svg")
                             color: ytx.fg
-                            font.family: ytx.iconFont
-                            font.pixelSize: ytx.fontSize
+                            iconSize: ytx.fontSize + 2
                         }
 
                         MouseArea {
@@ -675,7 +672,7 @@ Item {
                     text: ytx.searching ? "Searching\u2026" : ytx.pendingHome ? "Loading\u2026" : ytx.searchFailed ? "No results" : ytx.activeQuery.length > 0 ? ytx.videos.length + " results" : ytx.homeFailed ? "Couldn\u2019t load" : ytx.homeLoaded ? ytx.videos.length + " recommended" : ""
                     font.family: ytx.uiFont
                     font.pixelSize: Math.max(10, ytx.fontSize - 1)
-                    color: ytx.searchFailed || ytx.homeFailed ? Qt.rgba(1, 0.45, 0.4, 1) : ytx.alpha(ytx.fg, 0.6)
+                    color: ytx.searchFailed || ytx.homeFailed ? Qt.rgba(1, 0.45, 0.4, 1) : rootRef.withAlpha(ytx.fg, 0.6)
                 }
 
                 Row {
@@ -692,16 +689,28 @@ Item {
                         width: homeChipLabel.implicitWidth + 20
                         height: 22
                         radius: 11
-                        color: homeHover.containsMouse ? ytx.alpha(ytx.fg, 0.2) : ytx.alpha(ytx.fg, 0.08)
+                        color: homeHover.containsMouse ? rootRef.withAlpha(ytx.fg, 0.2) : rootRef.withAlpha(ytx.fg, 0.08)
 
-                        Text {
+                        Row {
                             id: homeChipLabel
 
                             anchors.centerIn: parent
-                            text: "󰋜 Home"
-                            color: ytx.fg
-                            font.family: ytx.iconFont
-                            font.pixelSize: Math.max(10, ytx.fontSize - 2)
+                            spacing: 5
+
+                            QIcon {
+                                anchors.verticalCenter: parent.verticalCenter
+                                source: Qt.resolvedUrl("../assets/icons/home.svg")
+                                color: ytx.fg
+                                iconSize: Math.max(10, ytx.fontSize - 1)
+                            }
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: "Home"
+                                color: ytx.fg
+                                font.family: ytx.uiFont
+                                font.pixelSize: Math.max(10, ytx.fontSize - 2)
+                            }
                         }
 
                         MouseArea {
@@ -726,16 +735,28 @@ Item {
                         width: recentChipLabel.implicitWidth + 20
                         height: 22
                         radius: 11
-                        color: recentHover.containsMouse ? ytx.alpha(ytx.fg, 0.2) : ytx.alpha(ytx.fg, 0.08)
+                        color: recentHover.containsMouse ? rootRef.withAlpha(ytx.fg, 0.2) : rootRef.withAlpha(ytx.fg, 0.08)
 
-                        Text {
+                        Row {
                             id: recentChipLabel
 
                             anchors.centerIn: parent
-                            text: "󰛉 Recent"
-                            color: ytx.fg
-                            font.family: ytx.iconFont
-                            font.pixelSize: Math.max(10, ytx.fontSize - 2)
+                            spacing: 5
+
+                            QIcon {
+                                anchors.verticalCenter: parent.verticalCenter
+                                source: Qt.resolvedUrl("../assets/icons/history.svg")
+                                color: ytx.fg
+                                iconSize: Math.max(10, ytx.fontSize - 1)
+                            }
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: "Recent"
+                                color: ytx.fg
+                                font.family: ytx.uiFont
+                                font.pixelSize: Math.max(10, ytx.fontSize - 2)
+                            }
                         }
 
                         MouseArea {
@@ -761,14 +782,13 @@ Item {
                         width: 22
                         height: 22
                         radius: 11
-                        color: refreshHover.containsMouse ? ytx.alpha(ytx.fg, 0.2) : ytx.alpha(ytx.fg, 0.08)
+                        color: refreshHover.containsMouse ? rootRef.withAlpha(ytx.fg, 0.2) : rootRef.withAlpha(ytx.fg, 0.08)
 
-                        Text {
+                        QIcon {
                             anchors.centerIn: parent
-                            text: "󰑐"
+                            source: Qt.resolvedUrl("../assets/icons/refresh.svg")
                             color: ytx.fg
-                            font.family: ytx.iconFont
-                            font.pixelSize: Math.max(10, ytx.fontSize - 2)
+                            iconSize: Math.max(10, ytx.fontSize)
                         }
 
                         MouseArea {
@@ -826,9 +846,9 @@ Item {
                         Rectangle {
                             anchors.fill: parent
                             radius: 12
-                            color: "transparent"
+                            color: isSelected ? rootRef.withAlpha(ytx.selBg, 0.28) : "transparent"
                             border.width: isSelected ? 2 : 0
-                            border.color: ytx.accent
+                            border.color: ytx.selBg
 
                             Behavior on color {
                                 ColorAnimation {
@@ -854,7 +874,7 @@ Item {
                                 clip: true
                                 color: "transparent"
                                 border.width: 1
-                                border.color: ytx.alpha(ytx.fg, 0.15)
+                                border.color: rootRef.withAlpha(ytx.fg, 0.15)
 
                                 Image {
                                     id: thumbImg
@@ -878,7 +898,7 @@ Item {
                                     visible: thumbImg.status !== Image.Ready
                                     anchors.fill: parent
                                     radius: 8
-                                    color: isSelected ? ytx.alpha(ytx.accent, 0.25) : ytx.alpha(ytx.fg, 0.08)
+                                    color: isSelected ? ytx.selBg : rootRef.withAlpha(ytx.fg, 0.08)
                                 }
 
                             }
@@ -898,8 +918,11 @@ Item {
                                     maximumLineCount: 2
                                     font.family: ytx.uiFont
                                     font.pixelSize: ytx.fontSize - 1
-                                    font.weight: Font.Medium
-                                    color: isSelected ? ytx.selectedFg : ytx.fg
+                                    // NOTE: the title sits on the card (or a
+                                    // translucent wash of it), never on solid
+                                    // selBg, so it uses card-based fg.
+                                    font.weight: isSelected ? Font.DemiBold : Font.Medium
+                                    color: ytx.fg
                                     lineHeight: 1.2
                                 }
 
@@ -912,7 +935,7 @@ Item {
                                     verticalAlignment: Text.AlignVCenter
                                     font.family: ytx.uiFont
                                     font.pixelSize: Math.max(9, ytx.fontSize - 3)
-                                    color: isSelected ? ytx.alpha(ytx.selectedFg, 0.75) : ytx.alpha(ytx.fg, 0.55)
+                                    color: isSelected ? rootRef.withAlpha(ytx.fg, 0.85) : rootRef.withAlpha(ytx.fg, 0.75)
                                 }
 
                             }
@@ -942,7 +965,7 @@ Item {
     Behavior on animProgress {
         NumberAnimation {
             duration: ytx.active ? 180 : 140
-            easing.type: Easing.OutCubic
+            easing.type: Easing.OutExpo
         }
 
     }

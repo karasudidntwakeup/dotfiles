@@ -55,7 +55,6 @@ ShellRoot {
 
     readonly property bool qsLight: qsThemeFile.qsTheme["mode"] === "light"
 
-    readonly property color qsPillFg: "#ffffff"
     readonly property color qsPillFallbackBg: "#1a1b1e"
 
     function pillColor(name) {
@@ -78,9 +77,16 @@ ShellRoot {
         return light > 0.179 ? "#000000" : "#ffffff"
     }
 
-    function popupSurface(name) {
-        var v = colorFile.paletteMap[name + "_light"]
-        return v === undefined ? colorOf(name) : v
+    // Max-contrast text pick (black vs white, whichever contrasts more).
+    // Single shared implementation — components must call this instead of
+    // carrying their own copies.
+    function contrastColor(c) {
+        var col = Qt.color(c)
+        var linear = value => value <= 0.03928 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4)
+        var l = 0.2126 * linear(col.r) + 0.7152 * linear(col.g) + 0.0722 * linear(col.b)
+        var white = 1.05 / (l + 0.05)
+        var black = (l + 0.05) / 0.05
+        return white >= black ? "#ffffff" : "#000000"
     }
 
     readonly property color primary: colorOf("primary")
@@ -96,10 +102,6 @@ ShellRoot {
     readonly property int pillHeight: 35
     readonly property int pillRadius: 10
     readonly property int groupSpacing: 8
-
-    readonly property color textColor: root.qsLight ? root.qsPillFg : "#000000"
-    readonly property color onTextColor: root.qsLight ? "#000000" : "#ffffff"
-    readonly property color darkText: colorOf("shadow")
 
     readonly property string terminalCommand: "kitty"
 
@@ -127,15 +129,41 @@ ShellRoot {
         return root.mixColor(a, r, (p - 50) / 50)
     }
 
+    // Audio meter: calm grey when quiet → primary blue when loud, red on mute.
     function volTint() {
         if (root.muted) return root.pillColor("error")
-        return root.mixColor(root.pillColor("secondary_container"),
-                             root.pillColor("secondary_fixed_dim"),
+        return root.mixColor(root.pillColor("surface_container_high"),
+                             root.pillColor("primary_fixed_dim"),
                              root.volumePercent / 100)
     }
 
     property string weatherText: ""
     property string weatherKey: "cloud"
+    property bool weatherIsDay: true
+
+    function updateWeatherDayNight() {
+        var h = new Date().getHours()
+        var day = h >= 6 && h < 19
+        if (day !== weatherIsDay) weatherIsDay = day
+    }
+
+    // Modern glyph icon (Symbols Nerd Font weather set —
+    // codepoints verified present in the installed font).
+    // Picks a glyph from both the condition and the time of day.
+    function weatherGlyph() {
+        var day = weatherIsDay
+        switch (weatherKey) {
+        case "sun": return day ? "\ue30d" : "\ue32b"
+        case "partly": return day ? "\ue302" : "\ue32e"
+        case "cloud": return "\ue312"
+        case "rain": return day ? "\ue308" : "\ue333"
+        case "storm": return day ? "\ue30f" : "\ue338"
+        case "snow": return day ? "\ue30a" : "\ue335"
+        case "fog": return day ? "\ue303" : "\ue313"
+        default: return "\ue312"
+        }
+    }
+
     property string prayerText: ""
     property string prayerName: ""
     property date prayerTarget: new Date(0)
@@ -163,15 +191,30 @@ ShellRoot {
                 var t = data ? data.trim() : ""
                 if (t && !/error|unavailable|failed|not available|⚠|N\/A/i.test(t)) {
                     var parts = t.split("|")
-                    if (parts.length === 2 && parts[1].trim().length > 0) {
-                        weatherKey = parts[0].trim()
+                    if (parts.length >= 2 && parts[1].trim().length > 0) {
+                        var k = parts[0].trim()
+                        if (k === "sun" || k === "partly" || k === "cloud"
+                                || k === "rain" || k === "storm"
+                                || k === "snow" || k === "fog")
+                            weatherKey = k
+                        else
+                            weatherKey = "cloud"
+                        // Prefer real sunrise/sunset from the script;
+                        // fall back to the fixed-hour guess.
+                        if (parts.length >= 3) {
+                            var dn = parts[2].trim()
+                            if (dn === "day" || dn === "night")
+                                weatherIsDay = dn === "day"
+                            else
+                                updateWeatherDayNight()
+                        } else {
+                            updateWeatherDayNight()
+                        }
                         weatherText = parts[1].trim()
                     } else {
-                        weatherKey = "cloud"
                         weatherText = ""
                     }
                 } else {
-                    weatherKey = "cloud"
                     weatherText = ""
                 }
             }
@@ -223,7 +266,7 @@ ShellRoot {
     }
 
     Timer {
-        interval: 1740000
+        interval: 600000
         running: true
         repeat: true
         onTriggered: weatherProc.running = true
@@ -370,7 +413,7 @@ ShellRoot {
     }
 
     Timer {
-        interval: 10000
+        interval: 3000
         running: true
         repeat: true
         onTriggered: netProc.running = true
@@ -568,14 +611,20 @@ ShellRoot {
     }
 
     property string clockText: ""
+    property string clockDateText: ""
 
     Timer {
         interval: 1000
         running: true
         repeat: true
         onTriggered: {
-            var t = Qt.formatDateTime(new Date(), "hh:mm AP")
+            var now = new Date()
+            var t = Qt.formatDateTime(now, "hh:mm AP")
             if (t !== root.clockText) root.clockText = t
+            var d = Qt.formatDateTime(now, "ddd MMM d")
+            if (d !== root.clockDateText) root.clockDateText = d
+            // NOTE: day/night comes from real sunrise/sunset via weather.sh —
+            // do not override it here with the fixed-hour guess.
         }
     }
 
@@ -587,6 +636,9 @@ ShellRoot {
 
     Component.onCompleted: {
         Quickshell.execDetached(["mkdir", "-p", Quickshell.env("HOME") + "/.cache/quickshell"])
+        var _now = new Date()
+        root.clockText = Qt.formatDateTime(_now, "hh:mm AP")
+        root.clockDateText = Qt.formatDateTime(_now, "ddd MMM d")
         weatherProc.running = true
         prayerProc.running = true
         memProc.running = true
@@ -801,7 +853,7 @@ ShellRoot {
         property int padX: 20
         property int rowSpacing: 4
         property bool rowClip: false
-        property int iconSize: root.fontSize + 5
+        property int iconSize: root.fontSize + 8
         property color tint: root.primary
         property alias clickArea: pillArea
         property alias wheelArea: pillArea
@@ -813,6 +865,28 @@ ShellRoot {
         radius: root.pillRadius
         color: root.tonalPillColor(tint)
         border.width: 0
+        property int enterOrder: 0
+        property real enterShift: 10
+        opacity: 0
+        transform: Translate { y: pill.enterShift }
+        Timer {
+            interval: 120 + pill.enterOrder * 55
+            running: true
+            repeat: false
+            onTriggered: { pill.opacity = 1; pill.enterShift = 0 }
+        }
+        Behavior on opacity { NumberAnimation { duration: 280; easing.type: Easing.OutCubic } }
+        Behavior on enterShift { NumberAnimation { duration: 380; easing.type: Easing.OutExpo } }
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowBlur: 0.7
+            blurMax: 16
+            shadowHorizontalOffset: 3
+            shadowVerticalOffset: 5
+            shadowColor: Qt.rgba(0, 0, 0, 0.9)
+            shadowOpacity: 0.9
+        }
 
         Behavior on color { ColorAnimation { duration: 250 } }
 
@@ -846,7 +920,7 @@ ShellRoot {
                 Layout.alignment: Qt.AlignVCenter
                 font.family: root.fontFamily
                 font.pixelSize: root.fontSize
-                font.weight: Font.Normal
+                font.weight: Font.DemiBold
             }
         }
 
@@ -858,8 +932,8 @@ ShellRoot {
             cursorShape: Qt.PointingHandCursor
         }
 
-        scale: pillArea.containsMouse ? 1.05 : 1.0
-        Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
+        scale: pillArea.pressed ? 0.94 : pillArea.containsMouse ? 1.06 : 1.0
+        Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutBack } }
     }
 
     component BoltGlyph: Canvas {
@@ -892,21 +966,48 @@ ShellRoot {
         id: dc
         property int padX: 14
         property int iconSize: root.fontSize + 2
-        readonly property color tint: root.networkConnected ? root.signalTint(root.networkSignal) : root.pillColor("error")
+        // Pill stays a neutral surface tone — wifi strength is shown by the
+        // live arcs inside, not by re-tinting the whole pill. Red only offline.
+        readonly property color tint: root.networkConnected ? root.pillColor("surface_container_high") : root.pillColor("error")
         readonly property color pillTextColor: root.pillForeground(dc.color)
         readonly property bool hovering: dcArea.containsMouse || dcArea.pressed
+        // Smoothed signal so arcs animate live instead of jumping.
+        property real liveSignal: root.networkSignal
+        Behavior on liveSignal { NumberAnimation { duration: 600; easing.type: Easing.OutCubic } }
 
         implicitHeight: root.pillHeight
         radius: root.pillRadius
         color: root.tonalPillColor(dc.tint)
         border.width: 0
+        property int enterOrder: 0
+        property real enterShift: 10
+        opacity: 0
+        transform: Translate { y: dc.enterShift }
+        Timer {
+            interval: 120 + dc.enterOrder * 55
+            running: true
+            repeat: false
+            onTriggered: { dc.opacity = 1; dc.enterShift = 0 }
+        }
+        Behavior on opacity { NumberAnimation { duration: 280; easing.type: Easing.OutCubic } }
+        Behavior on enterShift { NumberAnimation { duration: 380; easing.type: Easing.OutExpo } }
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowBlur: 0.7
+            blurMax: 16
+            shadowHorizontalOffset: 3
+            shadowVerticalOffset: 5
+            shadowColor: Qt.rgba(0, 0, 0, 0.9)
+            shadowOpacity: 0.9
+        }
 
         implicitWidth: dcRow.implicitWidth + dc.padX
         Behavior on implicitWidth { NumberAnimation { duration: 180; easing.type: Easing.InOutQuad } }
         Behavior on color { ColorAnimation { duration: 250 } }
 
-        scale: dcArea.containsMouse ? 1.05 : 1.0
-        Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
+        scale: dcArea.pressed ? 0.94 : dcArea.containsMouse ? 1.06 : 1.0
+        Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutBack } }
 
         Row {
             id: dcRow
@@ -928,10 +1029,14 @@ ShellRoot {
                     property int percent: root.batteryPercent
                     property bool charging: root.charging
                     property color base: dc.pillTextColor
+                    property real signal: dc.liveSignal
+                    property bool wifiConnected: root.networkConnected
 
                     onPercentChanged: requestPaint()
                     onChargingChanged: requestPaint()
                     onBaseChanged: requestPaint()
+                    onSignalChanged: requestPaint()
+                    onWifiConnectedChanged: requestPaint()
 
                     onPaint: {
                         var ctx = arcC.getContext("2d")
@@ -973,17 +1078,26 @@ ShellRoot {
                         }
 
                         var gy = cy + 4
-                        ctx.fillStyle = arcC.base
-                        ctx.strokeStyle = arcC.base
                         ctx.lineWidth = 2
+                        // Live signal: dot + 3 arcs light up by thresholds.
+                        // Disconnected -> everything dim.
+                        var litArcs = !arcC.wifiConnected ? -1
+                            : arcC.signal >= 70 ? 3
+                            : arcC.signal >= 45 ? 2
+                            : arcC.signal >= 20 ? 1 : 0
+                        var dotA = arcC.wifiConnected ? 1.0 : 0.18
+                        var b = arcC.base
+                        ctx.fillStyle = Qt.rgba(b.r, b.g, b.b, dotA)
+                        ctx.beginPath()
+                        ctx.arc(cx, gy, 1.8, 0, Math.PI * 2)
+                        ctx.fill()
                         for (var i = 0; i < 3; i++) {
+                            var a = (i < litArcs) ? 1.0 : 0.18
+                            ctx.strokeStyle = Qt.rgba(b.r, b.g, b.b, a)
                             ctx.beginPath()
                             ctx.arc(cx, gy, 3 + i * 3.15, Math.PI * 1.25, Math.PI * 1.75)
                             ctx.stroke()
                         }
-                        ctx.beginPath()
-                        ctx.arc(cx, gy, 1.8, 0, Math.PI * 2)
-                        ctx.fill()
                     }
                 }
             }
@@ -995,7 +1109,7 @@ ShellRoot {
                 color: dc.pillTextColor
                 font.family: root.fontFamily
                 font.pixelSize: root.fontSize
-                font.weight: Font.Normal
+                font.weight: Font.DemiBold
             }
         }
 
@@ -1034,28 +1148,38 @@ ShellRoot {
     component WifiIcon: Canvas {
         id: wifi
         property color tint: "#ffffff"
-        implicitWidth: 22
-        implicitHeight: 17
+        // 0-100, <0 = offline (all dim). Drives how many arcs are lit.
+        property real signal: 100
+        property bool connected: true
+        implicitWidth: 26
+        implicitHeight: 20
 
         onTintChanged: requestPaint()
+        onSignalChanged: requestPaint()
+        onConnectedChanged: requestPaint()
 
         onPaint: {
             var ctx = getContext("2d")
             ctx.reset()
-            ctx.strokeStyle = wifi.tint
-            ctx.fillStyle = wifi.tint
             ctx.lineCap = "round"
             var cx = wifi.width / 2
             var baseY = wifi.height - 3
+            var lit = !wifi.connected ? -1
+                : wifi.signal >= 70 ? 3
+                : wifi.signal >= 45 ? 2
+                : wifi.signal >= 20 ? 1 : 0
+            var t = wifi.tint
+            ctx.fillStyle = Qt.rgba(t.r, t.g, t.b, wifi.connected ? 1.0 : 0.18)
+            ctx.beginPath()
+            ctx.arc(cx, wifi.height - 4.5, 2.0, 0, Math.PI * 2)
+            ctx.fill()
             for (var i = 0; i < 3; i++) {
-                ctx.lineWidth = 2
+                ctx.lineWidth = 2.4
+                ctx.strokeStyle = Qt.rgba(t.r, t.g, t.b, (i < lit) ? 1.0 : 0.18)
                 ctx.beginPath()
-                ctx.arc(cx, baseY, 3 + i * 3.2, Math.PI * 1.25, Math.PI * 1.75, false)
+                ctx.arc(cx, baseY, 3.5 + i * 3.8, Math.PI * 1.25, Math.PI * 1.75, false)
                 ctx.stroke()
             }
-            ctx.beginPath()
-            ctx.arc(cx, wifi.height - 4, 1.7, 0, Math.PI * 2)
-            ctx.fill()
         }
     }
 
@@ -1064,8 +1188,8 @@ ShellRoot {
         property color tint: "#ffffff"
         property bool muted: false
         property int percent: 50
-        implicitWidth: 18
-        implicitHeight: 18
+        implicitWidth: 22
+        implicitHeight: 22
 
         onTintChanged: requestPaint()
         onMutedChanged: requestPaint()
@@ -1077,32 +1201,37 @@ ShellRoot {
             ctx.scale(v.width / 24, v.height / 24)
             ctx.strokeStyle = v.tint
             ctx.fillStyle = v.tint
-            ctx.lineWidth = 2
             ctx.lineCap = "round"
             ctx.lineJoin = "round"
 
+            // Solid speaker body.
             ctx.beginPath()
-            ctx.moveTo(11, 5)
-            ctx.lineTo(6, 9)
-            ctx.lineTo(2, 9)
-            ctx.lineTo(2, 15)
-            ctx.lineTo(6, 15)
-            ctx.lineTo(11, 19)
+            ctx.moveTo(11, 5.5)
+            ctx.lineTo(6.5, 9.5)
+            ctx.lineTo(3, 9.5)
+            ctx.lineTo(3, 14.5)
+            ctx.lineTo(6.5, 14.5)
+            ctx.lineTo(11, 18.5)
             ctx.closePath()
-            ctx.stroke()
+            ctx.fill()
 
             if (v.muted) {
+                ctx.lineWidth = 2.2
                 ctx.beginPath()
-                ctx.moveTo(16, 9)
-                ctx.lineTo(22, 15)
-                ctx.moveTo(22, 9)
-                ctx.lineTo(16, 15)
+                ctx.moveTo(15.5, 9.5)
+                ctx.lineTo(21, 15)
+                ctx.moveTo(21, 9.5)
+                ctx.lineTo(15.5, 15)
                 ctx.stroke()
             } else {
-                var arcs = v.percent > 66 ? 2 : v.percent > 0 ? 1 : 0
-                for (var i = 0; i < arcs; i++) {
+                // Three live waves — lit by level, dim when below threshold.
+                var lit = v.percent > 66 ? 3 : v.percent > 33 ? 2 : v.percent > 0 ? 1 : 0
+                ctx.lineWidth = 2
+                for (var i = 0; i < 3; i++) {
+                    var t = v.tint
+                    ctx.strokeStyle = Qt.rgba(t.r, t.g, t.b, (i < lit) ? 1.0 : 0.18)
                     ctx.beginPath()
-                    ctx.arc(12, 12, 5 + i * 5, -Math.PI / 4, Math.PI / 4, false)
+                    ctx.arc(8.5, 12, 4.2 + i * 3, -Math.PI / 4, Math.PI / 4, false)
                     ctx.stroke()
                 }
             }
@@ -1112,8 +1241,8 @@ ShellRoot {
     component BluetoothIcon: Canvas {
         id: bt
         property color tint: "#ffffff"
-        implicitWidth: 18
-        implicitHeight: 18
+        implicitWidth: 22
+        implicitHeight: 22
 
         onTintChanged: requestPaint()
 
@@ -1160,14 +1289,16 @@ ShellRoot {
     component MemoryIcon: Canvas {
         id: m
         property color tint: "#ffffff"
-        implicitWidth: 20
-        implicitHeight: 20
+        implicitWidth: 22
+        implicitHeight: 22
 
         onTintChanged: requestPaint()
 
         onPaint: {
             var ctx = getContext("2d")
             ctx.reset()
+            // Native art is a 20px grid — scale into the shared 22px icon cell.
+            ctx.scale(1.1, 1.1)
             ctx.strokeStyle = m.tint
             ctx.fillStyle = m.tint
             ctx.lineWidth = 1.6
@@ -1196,10 +1327,10 @@ ShellRoot {
         }
     }
 
-    component ClockIcon: Canvas {
-        id: cl
+    component KeyboardIcon: Canvas {
+        id: kb
         property color tint: "#ffffff"
-        implicitWidth: 19
+        implicitWidth: 26
         implicitHeight: 19
 
         onTintChanged: requestPaint()
@@ -1207,133 +1338,37 @@ ShellRoot {
         onPaint: {
             var ctx = getContext("2d")
             ctx.reset()
-            var c = cl.width / 2
-            ctx.strokeStyle = cl.tint
-            ctx.fillStyle = cl.tint
-            ctx.lineCap = "round"
-
-            ctx.lineWidth = 1.6
-            ctx.beginPath()
-            ctx.arc(c, c, 7.4, 0, Math.PI * 2)
-            ctx.stroke()
-
-            ctx.lineWidth = 2.4
-            ctx.beginPath()
-            ctx.moveTo(c, c)
-            ctx.lineTo(c, c - 4)
-            ctx.stroke()
-
-            ctx.lineWidth = 2.4
-            ctx.beginPath()
-            ctx.moveTo(c, c)
-            ctx.lineTo(c + 3.2, c - 3.2)
-            ctx.stroke()
-
-            ctx.lineWidth = 1.1
-            for (var i = 0; i < 4; i++) {
-                var a = i * Math.PI / 2 - Math.PI / 2
-                ctx.beginPath()
-                ctx.moveTo(c + Math.cos(a) * 5.6, c + Math.sin(a) * 5.6)
-                ctx.lineTo(c + Math.cos(a) * 6.9, c + Math.sin(a) * 6.9)
-                ctx.stroke()
-            }
-
-            ctx.beginPath()
-            ctx.arc(c, c, 1.5, 0, Math.PI * 2)
-            ctx.fill()
-        }
-    }
-
-    component WeatherIcon: Canvas {
-        id: wi
-        property color tint: "#ffffff"
-        property string variant: "cloud"
-        implicitWidth: 26
-        implicitHeight: 22
-
-        onTintChanged: requestPaint()
-        onVariantChanged: requestPaint()
-
-        function cloud(ctx, cx, cy, s) {
-            ctx.beginPath()
-            ctx.arc(cx - s * 0.55, cy - s * 0.1, s * 0.4, 0, Math.PI * 2)
-            ctx.arc(cx, cy - s * 0.32, s * 0.48, 0, Math.PI * 2)
-            ctx.arc(cx + s * 0.55, cy - s * 0.1, s * 0.4, 0, Math.PI * 2)
-            ctx.fill()
-            ctx.fillRect(cx - s * 0.55, cy - s * 0.15, s * 1.1, s * 0.55)
-        }
-
-        function sun(ctx, cx, cy, r) {
-            ctx.beginPath()
-            ctx.arc(cx, cy, r, 0, Math.PI * 2)
-            ctx.fill()
-            ctx.strokeStyle = wi.tint
+            // Scale the 22x16 native art about its center into the 26x19 cell.
+            ctx.translate(13, 9.5)
+            ctx.scale(1.2, 1.2)
+            ctx.translate(-11, -8)
+            ctx.strokeStyle = kb.tint
+            ctx.fillStyle = kb.tint
             ctx.lineCap = "round"
             ctx.lineWidth = 1.5
-            for (var i = 0; i < 8; i++) {
-                var a = i * Math.PI / 4
-                ctx.beginPath()
-                ctx.moveTo(cx + Math.cos(a) * (r + 2.2), cy + Math.sin(a) * (r + 2.2))
-                ctx.lineTo(cx + Math.cos(a) * (r + 3.6), cy + Math.sin(a) * (r + 3.6))
-                ctx.stroke()
-            }
-        }
 
-        onPaint: {
-            var ctx = getContext("2d")
-            ctx.reset()
-            ctx.strokeStyle = wi.tint
-            ctx.fillStyle = wi.tint
-            ctx.lineCap = "round"
+            // Board outline.
+            var x = 2, y = 3, w = 18, h = 10, r = 2.5
+            ctx.beginPath()
+            ctx.moveTo(x + r, y)
+            ctx.lineTo(x + w - r, y)
+            ctx.arcTo(x + w, y, x + w, y + r, r)
+            ctx.lineTo(x + w, y + h - r)
+            ctx.arcTo(x + w, y + h, x + w - r, y + h, r)
+            ctx.lineTo(x + r, y + h)
+            ctx.arcTo(x, y + h, x, y + h - r, r)
+            ctx.lineTo(x, y + r)
+            ctx.arcTo(x, y, x + r, y, r)
+            ctx.closePath()
+            ctx.stroke()
 
-            if (wi.variant === "sun") {
-                wi.sun(ctx, wi.width / 2, wi.height / 2 - 1, 3.4)
-            } else if (wi.variant === "partly") {
-                wi.sun(ctx, 9, 6, 2.6)
-                wi.cloud(ctx, 16, 13, 5)
-            } else if (wi.variant === "rain" || wi.variant === "snow" || wi.variant === "storm" || wi.variant === "fog") {
-                wi.cloud(ctx, 13, 8, 6)
-                if (wi.variant === "rain") {
-                    ctx.lineWidth = 1.6
-                    for (var i = 0; i < 3; i++) {
-                        var x = 13 - 3.6 + i * 3.6
-                        ctx.beginPath()
-                        ctx.moveTo(x, 12.5)
-                        ctx.lineTo(x - 1.3, 15.2)
-                        ctx.stroke()
-                    }
-                } else if (wi.variant === "snow") {
-                    ctx.lineWidth = 1.4
-                    for (var j = 0; j < 3; j++) {
-                        var sx = 13 - 3.6 + j * 3.6
-                        var sy = 14
-                        ctx.beginPath()
-                        ctx.moveTo(sx - 1.4, sy); ctx.lineTo(sx + 1.4, sy)
-                        ctx.moveTo(sx, sy - 1.4); ctx.lineTo(sx, sy + 1.4)
-                        ctx.stroke()
-                    }
-                } else if (wi.variant === "storm") {
-                    ctx.beginPath()
-                    ctx.moveTo(15.2, 11)
-                    ctx.lineTo(11.6, 14.6)
-                    ctx.lineTo(13, 14.6)
-                    ctx.lineTo(10.8, 18.6)
-                    ctx.lineTo(15.4, 13.4)
-                    ctx.lineTo(13.9, 13.4)
-                    ctx.closePath()
-                    ctx.fill()
-                } else {
-                    ctx.lineWidth = 1.4
-                    for (var k = 0; k < 3; k++) {
-                        ctx.beginPath()
-                        ctx.moveTo(6.5, 13 + k * 2)
-                        ctx.lineTo(19.5, 13 + k * 2)
-                        ctx.stroke()
-                    }
-                }
-            } else {
-                wi.cloud(ctx, 13, 11, 6)
-            }
+            // Top row keys.
+            for (var i = 0; i < 4; i++)
+                ctx.fillRect(4.5 + i * 3.4, 5, 2, 2)
+            // Bottom row: key + spacebar + key.
+            ctx.fillRect(4.5, 8.6, 2, 2)
+            ctx.fillRect(7.4, 8.6, 7.2, 2)
+            ctx.fillRect(15.3, 8.6, 2, 2)
         }
     }
 
@@ -1365,6 +1400,28 @@ ShellRoot {
         radius: root.pillRadius
         color: root.tonalPillColor(root.pillColor("primary_container"))
         border.width: 0
+        property int enterOrder: 0
+        property real enterShift: 10
+        opacity: 0
+        transform: Translate { y: wsWidget.enterShift }
+        Timer {
+            interval: 120 + wsWidget.enterOrder * 55
+            running: true
+            repeat: false
+            onTriggered: { wsWidget.opacity = 1; wsWidget.enterShift = 0 }
+        }
+        Behavior on opacity { NumberAnimation { duration: 280; easing.type: Easing.OutCubic } }
+        Behavior on enterShift { NumberAnimation { duration: 380; easing.type: Easing.OutExpo } }
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowBlur: 0.7
+            blurMax: 16
+            shadowHorizontalOffset: 3
+            shadowVerticalOffset: 5
+            shadowColor: Qt.rgba(0, 0, 0, 0.9)
+            shadowOpacity: 0.9
+        }
 
         Row {
             id: wsDotRow
@@ -1884,53 +1941,60 @@ delegate: Item {
                 height: root.barHeight + 24
                 anchors.horizontalCenter: parent.horizontalCenter
 
-                MultiEffect {
-                    id: barShadowFx
-                    anchors.fill: barRow
-                    source: barRow
-                    shadowEnabled: true
-                    shadowBlur: 0.85
-                    blurMax: 24
-                    shadowHorizontalOffset: 0
-                    shadowVerticalOffset: 5
-                    shadowColor: Qt.rgba(0, 0, 0, 0.65)
-                    shadowOpacity: 0.6
-                }
-
                 Row {
                     id: barRow
                     anchors.centerIn: parent
                     anchors.verticalCenterOffset: -2
                     spacing: root.groupSpacing
 
+                    // Pill color roles (matugen tokens, one hue per family):
+                    //  sky info   → blue   primary_fixed_dim      (weather)
+                    //  faith      → yellow `prayer` token         (prayer)
+                    //  devices    → green  secondary_fixed_dim    (bluetooth)
+                    //  chrome     → neutral surface_container_high (keyboard, net/battery)
+                    //  audio      → grey→blue volTint, red on mute (volume)
+                    //  pressure   → green→yellow→red memTint      (memory)
+                    //  anchors    → sapphire primary_container    (workspaces)
+                    //              pink tertiary_container        (clock)
+                    //
+                    //  Reading order: glance → faith → input → devices → navigate → sound → meters → time.
                     Module {
                         id: weatherPill
-                        iconSource: weatherIconSource
+                        enterOrder: 0
+                        icon: root.weatherGlyph()
+                        iconSize: root.fontSize + 11
                         label: root.weatherText
                         tint: root.pillColor("primary_fixed_dim")
                         visible: root.weatherText.length > 0
-
-                        Component {
-                            id: weatherIconSource
-                            WeatherIcon {
-                                tint: weatherPill.pillTextColor
-                                variant: root.weatherKey
-                            }
-                        }
                     }
 
                     Module {
                         id: prayerPill
+                        enterOrder: 1
                         label: root.prayerText
-                        tint: root.pillColor("secondary_container")
+                        tint: root.pillColor("prayer")
                         visible: root.prayerText.length > 0
                     }
 
                     Module {
+                        id: kbPill
+                        enterOrder: 2
+                        iconSource: kbIconSource
+                        label: root.shortLayout(niriIpc.keyboardLayoutName)
+                        tint: root.pillColor("surface_container_high")
+
+                        Component {
+                            id: kbIconSource
+                            KeyboardIcon { tint: kbPill.pillTextColor }
+                        }
+                    }
+
+                    Module {
                         id: btPill
+                        enterOrder: 3
                         iconSource: bluetoothIconSource
                         label: root.bluetoothText
-                        tint: root.pillColor("tertiary_fixed")
+                        tint: root.pillColor("secondary_fixed_dim")
                         visible: root.bluetoothStatus === "connected"
 
                         Component {
@@ -1947,18 +2011,14 @@ delegate: Item {
 
                     Workspaces {
                         id: wsWidget
+                        enterOrder: 4
                         workspaces: bar.workspaceList
                         anchors.verticalCenter: parent.verticalCenter
                     }
 
                     Module {
-                        id: kbPill
-                        label: root.shortLayout(niriIpc.keyboardLayoutName)
-                        tint: root.pillColor("secondary_fixed")
-                    }
-
-                    Module {
                         id: volPill
+                        enterOrder: 5
                         iconSource: volIconSource
                         label: root.muted ? "MUTE" : root.volumePercent + "%"
                         tint: root.volTint()
@@ -1988,6 +2048,7 @@ delegate: Item {
 
                     Module {
                         id: memPill
+                        enterOrder: 6
                         iconSource: memIconSource
                         label: root.memText
                         tint: root.memTint(root.memPercent)
@@ -2000,21 +2061,164 @@ delegate: Item {
 
                     DynamicPill {
                         id: netBattPill
+                        enterOrder: 7
                     }
 
-                    Module {
+                    Rectangle {
                         id: clockPill
-                        icon: "󰥔"
-                        iconSize: root.fontSize + 3
-                        label: root.clockText
-                        // Caelestia-style: pill lights up while its popout is open.
-                        tint: calPopup.visible
+                        property int enterOrder: 8
+                        property color tint: calPopup.visible
                             ? root.mixColor(root.pillColor("tertiary_container"), "#ffffff", 0.3)
                             : root.pillColor("tertiary_container")
-                        rowSpacing: 8
-                        rowClip: true
+                        readonly property color pillTextColor: root.pillForeground(clockPill.color)
+                        readonly property color dimTextColor: Qt.rgba(pillTextColor.r, pillTextColor.g, pillTextColor.b, 0.62)
 
-                        clickArea.onClicked: root.openCalendarForOutput(bar.outputName)
+                        implicitWidth: clockRow.implicitWidth + 20
+                        implicitHeight: root.pillHeight
+                        radius: root.pillRadius
+                        color: root.tonalPillColor(tint)
+                        border.width: 0
+                        property real enterShift: 10
+                        opacity: 0
+                        transform: Translate { y: clockPill.enterShift }
+                        Timer {
+                            interval: 120 + clockPill.enterOrder * 55
+                            running: true
+                            repeat: false
+                            onTriggered: { clockPill.opacity = 1; clockPill.enterShift = 0 }
+                        }
+                        Behavior on opacity { NumberAnimation { duration: 280; easing.type: Easing.OutCubic } }
+                        Behavior on enterShift { NumberAnimation { duration: 380; easing.type: Easing.OutExpo } }
+                        layer.enabled: true
+                        layer.effect: MultiEffect {
+                            shadowEnabled: true
+                            shadowBlur: 0.7
+                            blurMax: 16
+                            shadowHorizontalOffset: 3
+                            shadowVerticalOffset: 5
+                            shadowColor: Qt.rgba(0, 0, 0, 0.9)
+                            shadowOpacity: 0.9
+                        }
+                        Behavior on color { ColorAnimation { duration: 250 } }
+                        Behavior on implicitWidth { NumberAnimation { duration: 180; easing.type: Easing.InOutQuad } }
+
+                        Row {
+                            id: clockRow
+                            anchors.centerIn: parent
+                            spacing: 6
+
+                            Canvas {
+                                id: timeIcon
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 14
+                                height: 14
+                                antialiasing: true
+                                property color fg: clockPill.pillTextColor
+                                property color bg: clockPill.color
+                                onFgChanged: requestPaint()
+                                onBgChanged: requestPaint()
+                                onPaint: {
+                                    var ctx = getContext("2d")
+                                    ctx.reset()
+                                    var c = width / 2
+                                    ctx.lineCap = "round"
+                                    ctx.fillStyle = timeIcon.fg
+                                    ctx.beginPath()
+                                    ctx.arc(c, c, 6, 0, Math.PI * 2)
+                                    ctx.fill()
+                                    ctx.strokeStyle = timeIcon.bg
+                                    var hand = (frac, len, w) => {
+                                        var a = frac * Math.PI * 2 - Math.PI / 2
+                                        ctx.lineWidth = w
+                                        ctx.beginPath()
+                                        ctx.moveTo(c, c)
+                                        ctx.lineTo(c + Math.cos(a) * len, c + Math.sin(a) * len)
+                                        ctx.stroke()
+                                    }
+                                    hand(10 / 12, 2.8, 1.9)
+                                    hand(9 / 60, 4.0, 1.6)
+                                }
+                            }
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: root.clockText
+                                color: clockPill.pillTextColor
+                                font.family: root.fontFamily
+                                font.pixelSize: root.fontSize
+                                font.weight: Font.DemiBold
+                            }
+
+                            Rectangle {
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 3
+                                height: 3
+                                radius: 1.5
+                                color: clockPill.dimTextColor
+                            }
+
+                            Canvas {
+                                id: dateIcon
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 14
+                                height: 14
+                                antialiasing: true
+                                property color fg: clockPill.dimTextColor
+                                onFgChanged: requestPaint()
+                                onPaint: {
+                                    var ctx = getContext("2d")
+                                    ctx.reset()
+                                    ctx.strokeStyle = dateIcon.fg
+                                    ctx.lineCap = "round"
+                                    ctx.lineWidth = 1.5
+                                    var x = 2, y = 3, w = 10, h = 9, r = 2
+                                    ctx.beginPath()
+                                    ctx.moveTo(x + r, y)
+                                    ctx.lineTo(x + w - r, y)
+                                    ctx.arcTo(x + w, y, x + w, y + r, r)
+                                    ctx.lineTo(x + w, y + h - r)
+                                    ctx.arcTo(x + w, y + h, x + w - r, y + h, r)
+                                    ctx.lineTo(x + r, y + h)
+                                    ctx.arcTo(x, y + h, x, y + h - r, r)
+                                    ctx.lineTo(x, y + r)
+                                    ctx.arcTo(x, y, x + r, y, r)
+                                    ctx.closePath()
+                                    ctx.stroke()
+                                    ctx.beginPath()
+                                    ctx.moveTo(x, y + 3.4)
+                                    ctx.lineTo(x + w, y + 3.4)
+                                    ctx.stroke()
+                                    ctx.lineWidth = 1.6
+                                    ctx.beginPath()
+                                    ctx.moveTo(x + 3.2, y + 1.2)
+                                    ctx.lineTo(x + 3.2, y + 3.4)
+                                    ctx.moveTo(x + w - 3.2, y + 1.2)
+                                    ctx.lineTo(x + w - 3.2, y + 3.4)
+                                    ctx.stroke()
+                                }
+                            }
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: root.clockDateText
+                                color: clockPill.dimTextColor
+                                font.family: root.fontFamily
+                                font.pixelSize: root.fontSize - 1
+                                font.weight: Font.Normal
+                            }
+                        }
+
+                        MouseArea {
+                            id: clockArea
+                            anchors.fill: parent
+                            acceptedButtons: Qt.LeftButton | Qt.RightButton
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.openCalendarForOutput(bar.outputName)
+                        }
+
+                        scale: clockArea.pressed ? 0.94 : clockArea.containsMouse ? 1.06 : 1.0
+                        Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutBack } }
                     }
                 }
             }

@@ -18,7 +18,9 @@ if [ -f "$LOG" ] && [ "$(wc -c <"$LOG")" -gt 262144 ]; then
   tail -n 400 "$LOG" >"$LOG.tmp" && mv "$LOG.tmp" "$LOG"
 fi
 
-flock 9
+# Non-blocking: a second supervisor exits instead of queueing behind the
+# first (blocking flock let duplicates pile up across session restarts).
+flock -n 9 || exit 0
 
 # Record the current session bus so the long-lived notifier can drop a stale
 # address (its env bus dies whenever the session restarts; the process being
@@ -30,9 +32,6 @@ fi
 
 # Restart the notifier so it inherits this session's environment.
 pkill -f '[w]a-notify\.py' 2>/dev/null || true
-setsid -f python3 "$HOME/.config/quickshell/scripts/wa-notify.py" \
-  </dev/null >/dev/null 2>&1
-
 setsid -f python3 "$HOME/.config/quickshell/scripts/wa-notify.py" \
   </dev/null >/dev/null 2>&1
 

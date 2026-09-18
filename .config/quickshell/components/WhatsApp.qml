@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Effects
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
@@ -24,12 +25,12 @@ Item {
     readonly property int imgMaxH: 240
     property string activeTab: "chats"
     property string playingAudioSrc: ""
-    readonly property string cardTile: "surface"
+    readonly property string cardTile: "whatsapp_card"
     readonly property color cardColor: rootRef ? (rootRef.qsLight ? rootRef.pillColor(cardTile) : rootRef.colorOf(cardTile)) : "#f3dfd1"
     readonly property color cardBorder: rootRef ? rootRef.withAlpha(rootRef.colorOf("widget_border"), rootRef.qsLight ? 0.7 : 0.5) : "#00000000"
-    readonly property color fg: rootRef ? wa.contrastColor(wa.cardColor) : "#000000"
+    readonly property color fg: rootRef ? rootRef.contrastColor(wa.cardColor) : "#000000"
     readonly property color accent: rootRef ? Qt.color(rootRef.colorOf("widget_accent")) : "#73737a"
-    readonly property color accentText: wa.contrastColor(wa.accent)
+    readonly property color accentText: rootRef ? rootRef.contrastColor(wa.accent) : "#000000"
     readonly property color selectedFg: accentText
     readonly property color errorColor: rootRef ? Qt.color(rootRef.colorOf("widget_error")) : "#e30000"
     readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
@@ -60,29 +61,7 @@ Item {
 
     signal requestClose()
 
-    function alpha(c: color, a: double) : color {
-        return Qt.rgba(c.r, c.g, c.b, a);
-    }
-
-    function _lin(v: double) : double {
-        if (v <= 0.03928)
-            return v / 12.92;
-
-        return Math.pow((v + 0.055) / 1.055, 2.4);
-    }
-
-    function relLum(c: color) : double {
-        return 0.2126 * wa._lin(c.r) + 0.7152 * wa._lin(c.g) + 0.0722 * wa._lin(c.b);
-    }
-
-    // Pick the text color (black/white) with the higher WCAG contrast ratio
-    // against the given background, using relative luminance like the human eye.
-    function contrastColor(c: color) : color {
-        var l = wa.relLum(c);
-        var white = (1.05) / (l + 0.05);
-        var black = (l + 0.05) / (0.05);
-        return white >= black ? "#ffffff" : "#000000";
-    }
+    // Text/alpha helpers live on root (contrastColor/withAlpha).
 
     function copyChat(chat) {
         return chat ? {
@@ -623,6 +602,16 @@ Item {
         border.width: 1
         border.color: wa.cardBorder
         clip: true
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowBlur: 0.9
+            blurMax: 28
+            shadowHorizontalOffset: 5
+            shadowVerticalOffset: 10
+            shadowColor: Qt.rgba(0, 0, 0, 0.9)
+            shadowOpacity: 0.95
+        }
 
         Column {
             id: contentColumn
@@ -664,7 +653,7 @@ Item {
                 Text {
                     visible: wa.currentJid.length > 0 && (wa.msgsLoading || wa.sending)
                     text: wa.msgsLoading ? "Loading\u2026" : "Sending\u2026"
-                    color: wa.alpha(wa.fg, 0.5)
+                    color: rootRef.withAlpha(wa.fg, 0.7)
                     font.family: wa.uiFont
                     font.pixelSize: Math.max(10, wa.fontSize - 2)
                 }
@@ -683,17 +672,29 @@ Item {
                     Layout.preferredWidth: refreshText.implicitWidth + 20
                     Layout.preferredHeight: 24
                     radius: 7
-                    color: refreshHover.containsMouse ? wa.alpha(wa.fg, 0.2) : wa.alpha(wa.fg, 0.08)
+                    color: refreshHover.containsMouse ? rootRef.withAlpha(wa.fg, 0.2) : rootRef.withAlpha(wa.fg, 0.08)
 
-                    Text {
+                    Row {
                         id: refreshText
-
+                    
                         anchors.centerIn: parent
-                        text: "󰑐 Refresh"
-                        color: wa.fg
-                        font.family: wa.uiFont
-                        font.pixelSize: wa.fontSize - 1
-                        font.weight: Font.Medium
+                        spacing: 5
+                    
+                        QIcon {
+                            anchors.verticalCenter: parent.verticalCenter
+                            source: Qt.resolvedUrl("../assets/icons/refresh.svg")
+                            color: wa.fg
+                            iconSize: Math.max(10, wa.fontSize)
+                        }
+                    
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "Refresh"
+                            color: wa.fg
+                            font.family: wa.uiFont
+                            font.pixelSize: wa.fontSize - 1
+                            font.weight: Font.Medium
+                        }
                     }
 
                     MouseArea {
@@ -727,9 +728,9 @@ Item {
                 width: parent.width
                 height: wa.searchHeight
                 radius: 8
-                color: wa.alpha(wa.fg, 0.08)
+                color: rootRef.withAlpha(wa.fg, 0.08)
                 border.width: 1
-                border.color: searchField.activeFocus ? wa.alpha(wa.fg, 0.4) : wa.alpha(wa.fg, 0.12)
+                border.color: searchField.activeFocus ? rootRef.withAlpha(wa.fg, 0.78) : rootRef.withAlpha(wa.fg, 0.12)
 
                 RowLayout {
                     anchors.fill: parent
@@ -756,7 +757,7 @@ Item {
                         font.pixelSize: wa.fontSize + 1
                         font.weight: Font.Medium
                         placeholderText: "Search chats\u2026"
-                        placeholderTextColor: wa.alpha(wa.fg, 0.4)
+                        placeholderTextColor: rootRef.withAlpha(wa.fg, 0.78)
                         selectByMouse: true
                         verticalAlignment: Text.AlignVCenter
                         onTextEdited: wa.applyChatFilter(searchField.text)
@@ -798,14 +799,13 @@ Item {
                         Layout.preferredHeight: 22
                         Layout.alignment: Qt.AlignVCenter
                         radius: 11
-                        color: clearHover.containsMouse ? wa.alpha(wa.fg, 0.25) : "transparent"
+                        color: clearHover.containsMouse ? rootRef.withAlpha(wa.fg, 0.25) : "transparent"
 
-                        Text {
+                        QIcon {
                             anchors.centerIn: parent
-                            text: "󰅖"
+                            source: Qt.resolvedUrl("../assets/icons/close.svg")
                             color: wa.fg
-                            font.family: wa.iconFont
-                            font.pixelSize: wa.fontSize
+                            iconSize: wa.fontSize + 2
                         }
 
                         MouseArea {
@@ -839,7 +839,7 @@ Item {
                 height: 30
                 anchors.horizontalCenter: parent.horizontalCenter
                 radius: 15
-                color: wa.alpha(wa.fg, 0.06)
+                color: rootRef.withAlpha(wa.fg, 0.06)
 
                 RowLayout {
                     anchors.fill: parent
@@ -872,7 +872,7 @@ Item {
 
                             Text {
                                 text: "Chats"
-                                color: wa.activeTab === "chats" ? wa.accentText : wa.alpha(wa.fg, 0.6)
+                                color: wa.activeTab === "chats" ? wa.accentText : rootRef.withAlpha(wa.fg, 0.78)
                                 font.family: wa.uiFont
                                 font.pixelSize: wa.fontSize
                                 font.weight: Font.Bold
@@ -918,7 +918,7 @@ Item {
 
                             Text {
                                 text: "Groups"
-                                color: wa.activeTab === "groups" ? wa.accentText : wa.alpha(wa.fg, 0.6)
+                                color: wa.activeTab === "groups" ? wa.accentText : rootRef.withAlpha(wa.fg, 0.78)
                                 font.family: wa.uiFont
                                 font.pixelSize: wa.fontSize
                                 font.weight: Font.Bold
@@ -954,7 +954,7 @@ Item {
                                 id: tabLabel
                                 anchors.centerIn: parent
                                 text: modelData.label
-                                color: wa.activeTab === modelData.key ? wa.accentText : wa.alpha(wa.fg, 0.6)
+                                color: wa.activeTab === modelData.key ? wa.accentText : rootRef.withAlpha(wa.fg, 0.78)
                                 font.family: wa.uiFont
                                 font.pixelSize: wa.fontSize
                                 font.weight: Font.Bold
@@ -988,7 +988,7 @@ Item {
 
                         anchors.fill: parent
                         radius: 12
-                        color: wa.alpha(wa.fg, 0.05)
+                        color: rootRef.withAlpha(wa.fg, 0.05)
                         clip: true
 
                         ListView {
@@ -1057,7 +1057,7 @@ Item {
                                         Rectangle {
                                             anchors.fill: parent
                                             radius: 20
-                                            color: isSelected ? wa.alpha(wa.accent, 0.28) : wa.alpha(wa.fg, 0.1)
+                                            color: isSelected ? rootRef.withAlpha(wa.accent, 0.28) : rootRef.withAlpha(wa.fg, 0.1)
 
                                             Text {
                                                 anchors.centerIn: parent
@@ -1101,7 +1101,7 @@ Item {
                                             visible: unreadCount > 0
                                             text: (unreadCount === 1 ? "1 unread" : unreadCount + " unread")
                                             elide: Text.ElideRight
-                                            color: isSelected ? wa.alpha(wa.selectedFg, 0.8) : wa.alpha(wa.fg, 0.55)
+                                            color: isSelected ? rootRef.withAlpha(wa.selectedFg, 0.8) : rootRef.withAlpha(wa.fg, 0.75)
                                             font.family: wa.uiFont
                                             font.pixelSize: Math.max(9, wa.fontSize - 3)
                                         }
@@ -1117,14 +1117,12 @@ Item {
                                         color: isSelected ? wa.accentText : wa.accent
                                     }
 
-                                    Text {
-                                        Layout.preferredWidth: 16
+                                    QIcon {
                                         Layout.alignment: Qt.AlignVCenter
                                         visible: isMuted
-                                        text: "󰂛"
-                                        color: isSelected ? wa.alpha(wa.selectedFg, 0.7) : wa.alpha(wa.fg, 0.55)
-                                        font.family: wa.iconFont
-                                        font.pixelSize: Math.max(10, wa.fontSize - 1)
+                                        source: Qt.resolvedUrl("../assets/icons/bell-off.svg")
+                                        color: isSelected ? rootRef.withAlpha(wa.selectedFg, 0.7) : rootRef.withAlpha(wa.fg, 0.75)
+                                        iconSize: Math.max(12, wa.fontSize + 1)
                                     }
 
                                     Text {
@@ -1133,7 +1131,7 @@ Item {
                                         text: wa.fmtTime(lastTs)
                                         horizontalAlignment: Text.AlignRight
                                         elide: Text.ElideRight
-                                        color: isSelected ? wa.alpha(wa.selectedFg, 0.7) : wa.alpha(wa.fg, 0.45)
+                                        color: isSelected ? rootRef.withAlpha(wa.selectedFg, 0.7) : rootRef.withAlpha(wa.fg, 0.65)
                                         font.family: wa.uiFont
                                         font.pixelSize: Math.max(9, wa.fontSize - 3)
                                     }
@@ -1158,7 +1156,7 @@ Item {
                             anchors.centerIn: parent
                             visible: chatModel.count === 0 && !wa.chatsLoading && !wa.chatsFailed
                             text: "No chats"
-                            color: wa.alpha(wa.fg, 0.5)
+                            color: rootRef.withAlpha(wa.fg, 0.7)
                             font.family: wa.uiFont
                             font.pixelSize: wa.fontSize - 1
                         }
@@ -1187,7 +1185,7 @@ Item {
 
                         anchors.fill: parent
                         radius: 12
-                        color: wa.alpha(wa.fg, 0.05)
+                        color: rootRef.withAlpha(wa.fg, 0.05)
                         clip: true
 
                         Column {
@@ -1199,7 +1197,7 @@ Item {
                                 width: parent.width
                                 height: wa.headerHeight
                                 radius: 9
-                                color: wa.alpha(wa.fg, 0.06)
+                                color: rootRef.withAlpha(wa.fg, 0.06)
 
                                 RowLayout {
                                     anchors.fill: parent
@@ -1211,7 +1209,7 @@ Item {
                                         text: wa.currentJid ? wa.shortName(wa.currentChat || {
                                         }) : "Select a chat"
                                         elide: Text.ElideRight
-                                        color: wa.currentJid ? wa.fg : wa.alpha(wa.fg, 0.4)
+                                        color: wa.currentJid ? wa.fg : rootRef.withAlpha(wa.fg, 0.78)
                                         font.family: wa.arabicFont
                                         font.pixelSize: wa.fontSize
                                         font.weight: Font.DemiBold
@@ -1221,7 +1219,7 @@ Item {
                                     Text {
                                         visible: wa.currentJid.length > 0 && (wa.msgsLoading || wa.sending)
                                         text: wa.msgsLoading ? "Loading\u2026" : "Sending\u2026"
-                                        color: wa.alpha(wa.fg, 0.5)
+                                        color: rootRef.withAlpha(wa.fg, 0.7)
                                         font.family: wa.uiFont
                                         font.pixelSize: Math.max(10, wa.fontSize - 2)
                                     }
@@ -1241,14 +1239,13 @@ Item {
                                         Layout.preferredHeight: 20
                                         radius: 10
                                         visible: wa.currentJid
-                                        color: backHover.containsMouse ? wa.alpha(wa.fg, 0.25) : wa.alpha(wa.fg, 0.1)
+                                        color: backHover.containsMouse ? rootRef.withAlpha(wa.fg, 0.25) : rootRef.withAlpha(wa.fg, 0.1)
 
-                                        Text {
+                                        QIcon {
                                             anchors.centerIn: parent
-                                            text: "󰅖"
+                                            source: Qt.resolvedUrl("../assets/icons/close.svg")
                                             color: wa.fg
-                                            font.family: wa.iconFont
-                                            font.pixelSize: Math.max(9, wa.fontSize - 3)
+                                            iconSize: Math.max(11, wa.fontSize - 1)
                                         }
 
                                         MouseArea {
@@ -1324,7 +1321,7 @@ Item {
                                                 height: wa.imgMaxH
                                                 radius: 10
                                                 clip: true
-                                                color: wa.alpha(wa.fg, 0.08)
+                                                color: rootRef.withAlpha(wa.fg, 0.08)
 
                                                 AnimatedImage {
                                                     id: imageItem
@@ -1426,7 +1423,7 @@ Item {
                                                 width: Math.min(230, bubbleCol.width - 8)
                                                 height: 40
                                                 radius: 10
-                                                color: fromMe ? wa.accent : wa.alpha(wa.fg, 0.1)
+                                                color: fromMe ? wa.accent : rootRef.withAlpha(wa.fg, 0.1)
 
                                                 MouseArea {
                                                     anchors.fill: parent
@@ -1446,7 +1443,7 @@ Item {
                                                         width: 26
                                                         height: 26
                                                         radius: 13
-                                                        color: wa.alpha("#ffffff", 0.25)
+                                                        color: rootRef.withAlpha("#ffffff", 0.25)
 
                                                         Text {
                                                             anchors.centerIn: parent
@@ -1463,7 +1460,7 @@ Item {
                                                         anchors.right: parent.right
                                                         anchors.verticalCenter: parent.verticalCenter
                                                         text: msgItem.time
-                                                        color: wa.alpha(wa.accentText, 0.7)
+                                                        color: rootRef.withAlpha(wa.accentText, 0.7)
                                                         font.family: wa.uiFont
                                                         font.pixelSize: Math.max(8, wa.fontSize - 3)
                                                     }
@@ -1489,7 +1486,7 @@ Item {
                                                 width: Math.min(textBubble.textWidth + timeText.implicitWidth + 6 + wa.msgPad * 2, textBubble.availableWidth)
                                                 height: Math.max(bubbleText.implicitHeight, timeText.implicitHeight) + 6
                                                 radius: 10
-                                                color: fromMe ? wa.accent : wa.alpha(wa.fg, 0.1)
+                                                color: fromMe ? wa.accent : rootRef.withAlpha(wa.fg, 0.1)
 
                                                 RowLayout {
                                                     anchors.fill: parent
@@ -1518,7 +1515,7 @@ Item {
 
                                                         Layout.alignment: Qt.AlignBottom
                                                         text: msgItem.time
-                                                        color: fromMe ? wa.alpha(wa.accentText, 0.7) : wa.alpha(wa.fg, 0.5)
+                                                        color: fromMe ? rootRef.withAlpha(wa.accentText, 0.7) : rootRef.withAlpha(wa.fg, 0.7)
                                                         font.family: wa.uiFont
                                                         font.pixelSize: Math.max(8, wa.fontSize - 3)
                                                     }
@@ -1538,7 +1535,7 @@ Item {
                                                 textFormat: Text.PlainText
                                                 visible: msgItem.sender.length > 0 && !msgItem.fromMe
                                                 text: msgItem.sender
-                                                color: wa.alpha(wa.fg, 0.45)
+                                                color: rootRef.withAlpha(wa.fg, 0.65)
                                                 font.family: wa.uiFont
                                                 font.pixelSize: Math.max(9, wa.fontSize - 3)
                                             }
@@ -1553,7 +1550,7 @@ Item {
                                     anchors.centerIn: parent
                                     visible: messageModel.count === 0
                                     text: wa.msgsLoading ? "Loading messages\u2026" : wa.msgsFailed ? "Failed to load messages" : wa.currentJid ? "No messages yet" : ""
-                                    color: wa.alpha(wa.fg, 0.5)
+                                    color: rootRef.withAlpha(wa.fg, 0.7)
                                     font.family: wa.uiFont
                                     font.pixelSize: wa.fontSize - 1
                                 }
@@ -1566,9 +1563,9 @@ Item {
                                 width: parent.width
                                 height: wa.sendHeight
                                 radius: wa.sendHeight / 2
-                                color: wa.alpha(wa.fg, 0.06)
+                                color: rootRef.withAlpha(wa.fg, 0.06)
                                 border.width: 1
-                                border.color: sendField.activeFocus ? wa.alpha(wa.fg, 0.35) : wa.alpha(wa.fg, 0.1)
+                                border.color: sendField.activeFocus ? rootRef.withAlpha(wa.fg, 0.35) : rootRef.withAlpha(wa.fg, 0.1)
 
                                 RowLayout {
                                     anchors.fill: parent
@@ -1587,7 +1584,7 @@ Item {
                                         selectByMouse: true
                                         verticalAlignment: Text.AlignVCenter
                                         placeholderText: wa.currentJid ? "Type a message\u2026" : "Select a chat first"
-                                        placeholderTextColor: wa.alpha(wa.fg, 0.35)
+                                        placeholderTextColor: rootRef.withAlpha(wa.fg, 0.35)
                                         readOnly: wa.currentJid.length === 0
                                         enabled: wa.currentJid.length > 0
                                         onAccepted: wa.sendMessage()
@@ -1605,7 +1602,7 @@ Item {
                                         Layout.preferredWidth: 30
                                         Layout.preferredHeight: 30
                                         radius: 15
-                                        color: pasteHover.containsMouse ? wa.alpha(wa.fg, 0.14) : wa.alpha(wa.fg, 0.06)
+                                        color: pasteHover.containsMouse ? rootRef.withAlpha(wa.fg, 0.14) : rootRef.withAlpha(wa.fg, 0.06)
                                         enabled: wa.currentJid.length > 0 && !wa.sending
                                         opacity: enabled ? 1 : 0.4
 
@@ -1638,7 +1635,7 @@ Item {
                                         Layout.preferredWidth: 30
                                         Layout.preferredHeight: 30
                                         radius: 15
-                                        color: photoHover.containsMouse ? wa.alpha(wa.fg, 0.14) : wa.alpha(wa.fg, 0.06)
+                                        color: photoHover.containsMouse ? rootRef.withAlpha(wa.fg, 0.14) : rootRef.withAlpha(wa.fg, 0.06)
                                         enabled: wa.currentJid.length > 0 && !wa.sending
                                         opacity: enabled ? 1 : 0.4
 
@@ -1646,7 +1643,7 @@ Item {
                                             anchors.centerIn: parent
                                             width: 15
                                             height: 15
-                                            source: "data:image/svg+xml;utf8," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='" + wa.alpha(wa.fg, 0.7).toString() + "'><path d='M21,19V5c0,-1.1 -0.9,-2 -2,-2H5C3.9,3 3,3.9 3,5v14c0,1.1 0.9,2 2,2h14c1.1,0 2,-0.9 2,-2zM8.5,13.5l2.5,3.01L14.5,12l4.5,6H5l3.5,-4.5z'/></svg>")
+                                            source: "data:image/svg+xml;utf8," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='" + rootRef.withAlpha(wa.fg, 0.7).toString() + "'><path d='M21,19V5c0,-1.1 -0.9,-2 -2,-2H5C3.9,3 3,3.9 3,5v14c0,1.1 0.9,2 2,2h14c1.1,0 2,-0.9 2,-2zM8.5,13.5l2.5,3.01L14.5,12l4.5,6H5l3.5,-4.5z'/></svg>")
                                         }
 
                                         MouseArea {
@@ -1671,16 +1668,15 @@ Item {
                                         Layout.preferredWidth: 30
                                         Layout.preferredHeight: 30
                                         radius: 15
-                                        color: sendHover.containsMouse || sendField.text.length > 0 ? wa.accent : wa.alpha(wa.fg, 0.15)
+                                        color: sendHover.containsMouse || sendField.text.length > 0 ? wa.accent : rootRef.withAlpha(wa.fg, 0.15)
                                         enabled: wa.currentJid.length > 0 && !wa.sending && sendField.text.length > 0
                                         opacity: enabled ? 1 : 0.4
 
-                                        Text {
+                                        QIcon {
                                             anchors.centerIn: parent
-                                            text: "󰇰"
-                                            color: sendField.text.length > 0 ? wa.accentText : wa.alpha(wa.fg, 0.5)
-                                            font.family: wa.iconFont
-                                            font.pixelSize: wa.fontSize + 1
+                                            source: Qt.resolvedUrl("../assets/icons/send.svg")
+                                            color: sendField.text.length > 0 ? wa.accentText : rootRef.withAlpha(wa.fg, 0.7)
+                                            iconSize: wa.fontSize + 3
                                         }
 
                                         MouseArea {
@@ -1724,7 +1720,7 @@ Item {
     Behavior on animProgress {
         NumberAnimation {
             duration: wa.active ? 180 : 140
-            easing.type: Easing.OutCubic
+            easing.type: Easing.OutExpo
         }
 
     }

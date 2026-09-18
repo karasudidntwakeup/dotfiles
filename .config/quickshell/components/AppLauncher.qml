@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Effects
 import Quickshell
 
 Item {
@@ -18,7 +19,7 @@ Item {
     readonly property int pad: 14
     readonly property int cornerRadius: 12
 
-    readonly property string cardTile: "surface"
+    readonly property string cardTile: "launcher_card"
     readonly property color cardColor: rootRef
         ? (rootRef.qsLight
             ? rootRef.pillColor(cardTile)
@@ -30,45 +31,32 @@ Item {
         : "#00000000"
 
     readonly property color fg: rootRef
-        ? launcher.contrastColor(launcher.cardColor)
+        ? rootRef.contrastColor(launcher.cardColor)
         : "#000000"
     readonly property color accent: rootRef
         ? Qt.color(rootRef.colorOf("primary_fixed"))
         : "#9aafe6"
-    readonly property color accentText: launcher.contrastColor(launcher.accent)
+    // Selection background must stand apart from the card: the raw accent
+    // can equal launcher_card (both sapphire), which made the highlight
+    // invisible (1.0:1). Darken it so selected rows always read clearly.
+    readonly property color selBg: Qt.darker(launcher.accent, 1.55)
+    readonly property color accentText: rootRef ? rootRef.contrastColor(launcher.selBg) : "#000000"
     readonly property color selectedFg: accentText
 
     readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
     readonly property string fontFamily: uiFont
     readonly property string uiFont: "Geist"
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
-    readonly property string terminalCommand: rootRef && rootRef.terminalCommand ? rootRef.terminalCommand : "foot"
+    readonly property string terminalCommand: rootRef ? rootRef.terminalCommand : "kitty"
 
-    function alpha(c: color, a: double): color {
-        return Qt.rgba(c.r, c.g, c.b, a)
-    }
-
-    function _lin(v: double): double {
-        if (v <= 0.03928) return v / 12.92
-        return Math.pow((v + 0.055) / 1.055, 2.4)
-    }
-
-    function relLum(c: color): double {
-        return 0.2126 * launcher._lin(c.r) + 0.7152 * launcher._lin(c.g) + 0.0722 * launcher._lin(c.b)
-    }
-
-    function contrastColor(c: color): color {
-        var l = launcher.relLum(c)
-        var white = (1.05) / (l + 0.05)
-        var black = (l + 0.05) / (0.05)
-        return white >= black ? "#ffffff" : "#000000"
-    }
+    // Text/alpha helpers live on root (contrastColor/withAlpha) — do not
+    // reintroduce local copies here.
 
     property real animProgress: launcher.active ? 1.0 : 0.0
     Behavior on animProgress {
         NumberAnimation {
             duration: launcher.active ? 180 : 140
-            easing.type: Easing.OutCubic
+            easing.type: Easing.OutExpo
         }
     }
 
@@ -285,6 +273,16 @@ Item {
         border.width: 1
         border.color: launcher.cardBorder
         clip: true
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowBlur: 0.9
+            blurMax: 28
+            shadowHorizontalOffset: 5
+            shadowVerticalOffset: 10
+            shadowColor: Qt.rgba(0, 0, 0, 0.9)
+            shadowOpacity: 0.95
+        }
 
 
         transform: Translate {
@@ -303,11 +301,11 @@ Item {
                 width: parent.width
                 height: launcher.searchHeight
                 radius: 8
-                color: launcher.alpha(launcher.fg, 0.08)
+                color: rootRef.withAlpha(launcher.fg, 0.08)
                 border.width: 1
                 border.color: searchField.activeFocus
-                    ? launcher.alpha(launcher.fg, 0.4)
-                    : launcher.alpha(launcher.fg, 0.12)
+                    ? rootRef.withAlpha(launcher.fg, 0.4)
+                    : rootRef.withAlpha(launcher.fg, 0.12)
                 Behavior on border.color { ColorAnimation { duration: 150 } }
 
                 RowLayout {
@@ -316,11 +314,11 @@ Item {
                     anchors.rightMargin: 6
                     spacing: 8
 
-                    Text {
-                        text: "󰍉"
-                        color: launcher.alpha(launcher.fg, 0.55)
-                        font.family: launcher.iconFont
-                        font.pixelSize: launcher.fontSize + 1
+                    QIcon {
+                        Layout.alignment: Qt.AlignVCenter
+                        source: Qt.resolvedUrl("../assets/icons/search.svg")
+                        color: rootRef.withAlpha(launcher.fg, 0.55)
+                        iconSize: launcher.fontSize + 3
                     }
 
                     TextField {
@@ -332,7 +330,7 @@ Item {
                         font.pixelSize: launcher.fontSize + 1
                         font.weight: Font.Medium
                         placeholderText: "Search apps    >  runs a command"
-                        placeholderTextColor: launcher.alpha(launcher.fg, 0.4)
+                        placeholderTextColor: rootRef.withAlpha(launcher.fg, 0.6)
                         selectByMouse: true
                         verticalAlignment: Text.AlignVCenter
                         background: Item {}
@@ -364,16 +362,15 @@ Item {
                         Layout.preferredHeight: 22
                         radius: 11
                         color: clearHover.containsMouse
-                            ? launcher.alpha(launcher.fg, 0.25)
+                            ? rootRef.withAlpha(launcher.fg, 0.25)
                             : "transparent"
                         Behavior on color { ColorAnimation { duration: 120 } }
 
-                        Text {
+                        QIcon {
                             anchors.centerIn: parent
-                            text: "󰅖"
+                            source: Qt.resolvedUrl("../assets/icons/close.svg")
                             color: launcher.fg
-                            font.family: launcher.iconFont
-                            font.pixelSize: launcher.fontSize
+                            iconSize: launcher.fontSize
                         }
 
                         MouseArea {
@@ -415,7 +412,7 @@ Item {
                         width: appList.width
                         height: launcher.rowHeight
                         radius: 9
-                        color: launcher.accent
+                        color: launcher.selBg
 
                         readonly property real targetY: (appList.currentIndex >= 0 && appList.currentItem !== null)
                             ? appList.currentItem.y : 0
@@ -451,7 +448,7 @@ Item {
                             anchors.fill: parent
                             radius: 9
                             color: rowHover.containsMouse && !isSelected
-                                ? launcher.alpha(launcher.fg, 0.08)
+                                ? rootRef.withAlpha(launcher.fg, 0.08)
                                 : "transparent"
                             Behavior on color { ColorAnimation { duration: 120 } }
                         }
@@ -472,8 +469,8 @@ Item {
                                     anchors.fill: parent
                                     radius: 8
                                     color: isSelected
-                                        ? launcher.alpha(launcher.accentText, 0.14)
-                                        : launcher.alpha(launcher.fg, 0.10)
+                                        ? rootRef.withAlpha(launcher.accentText, 0.14)
+                                        : rootRef.withAlpha(launcher.fg, 0.10)
                                     Behavior on color { ColorAnimation { duration: 150 } }
                                 }
 
@@ -527,8 +524,8 @@ Item {
                                     font.family: launcher.uiFont
                                     font.pixelSize: Math.max(9, launcher.fontSize - 2)
                                     color: isSelected
-                                        ? launcher.alpha(launcher.selectedFg, 0.75)
-                                        : launcher.alpha(launcher.fg, 0.55)
+                                        ? rootRef.withAlpha(launcher.selectedFg, 0.85)
+                                        : rootRef.withAlpha(launcher.fg, 0.72)
                                     Behavior on color { ColorAnimation { duration: 150 } }
                                 }
                             }

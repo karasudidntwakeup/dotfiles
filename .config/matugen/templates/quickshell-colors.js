@@ -213,25 +213,32 @@ var prayer = "{{colors.secondary_container.default.hex}}"
 
 var prayer_light = "{{colors.secondary_container.light.hex}}"
 
-/* Widget colors: yt-x, clipboard, notification, launcher. These follow
-   matugen by default; scheme_fzf.sh pins them via wallpaper_apply.sh. */
+/* Widget colors: each quickshell component gets its own distinct hue.
+   launcher  -> primary_container   (sapphire/blue)
+   ytx       -> tertiary_container  (pink)
+   clipboard -> tertiary_fixed_dim  (peach, distinct from ytx pink)
+   notes     -> primary_fixed_dim   (blue, distinct from launcher sapphire)
+   whatsapp  -> secondary_fixed_dim (green)
+   prayer    -> secondary_container (yellow) */
 var ytx_card = "{{colors.tertiary_container.default.hex}}"
 
 var ytx_card_light = "{{colors.tertiary_container.light.hex}}"
 
-var widget_card = "{{colors.tertiary_container.default.hex}}"
+var widget_card = "{{colors.tertiary_fixed_dim.default.hex}}"
 
-var widget_card_light = "{{colors.tertiary_container.light.hex}}"
+var widget_card_light = "{{colors.tertiary_fixed_dim.light.hex}}"
 
 var launcher_card = "{{colors.primary_container.default.hex}}"
 
 var launcher_card_light = "{{colors.primary_container.light.hex}}"
 
+var notes_card = "{{colors.primary_fixed_dim.default.hex}}"
+
+var notes_card_light = "{{colors.primary_fixed_dim.light.hex}}"
+
 var whatsapp_card = "{{colors.secondary_fixed_dim.default.hex}}"
 
 var whatsapp_card_light = "{{colors.secondary_fixed_dim.light.hex}}"
-
-var panel_bg = "#{{colors.secondary_container.dark.hex_stripped}}"
 
 var widget_accent = "{{colors.primary.default.hex}}"
 

@@ -342,6 +342,15 @@ p = {
     "green": "#3ad900", "red": "#ff628c", "mauve": "#e5a0ff",
     "pink": "#ff628c", "yellow": "#ffc600", "maroon": "#e24d70",
   },
+  "nothing": {
+    "base": "#0b0b0d", "mantle": "#08080a", "crust": "#050506",
+    "surface0": "#141417", "surface1": "#1d1d21", "surface2": "#26262c",
+    "overlay0": "#3c3c44", "overlay1": "#6e6e78", "overlay2": "#8f8f9a",
+    "text": "#f4f4f2", "subtext0": "#b6b6bc", "subtext1": "#8a8a94",
+    "blue": "#d71920", "sapphire": "#ff5a52", "peach": "#f4f4f2",
+    "green": "#8f8f9a", "red": "#d71920", "mauve": "#c9c9cf",
+    "pink": "#f4f4f2", "yellow": "#b6b6bc", "maroon": "#7a1210",
+  },
   "wombat": {
     "base": "#242424", "mantle": "#1e1e1e", "crust": "#1a1a1a",
     "surface0": "#2b2b2b", "surface1": "#333333", "surface2": "#3d3d3d",
@@ -585,7 +594,7 @@ if [ "$PIN_WIDGETS" = "1" ] && [ -f "$COLOR_JS" ]; then
   widget_snapshot="$(python3 - "$COLOR_JS" <<'PY'
 import re, sys
 content = open(sys.argv[1]).read()
-keys = ["ytx_card","ytx_card_light","widget_card","widget_card_light","launcher_card","launcher_card_light","whatsapp_card","whatsapp_card_light","widget_accent","widget_border","widget_error"]
+keys = ["ytx_card","ytx_card_light","widget_card","widget_card_light","launcher_card","launcher_card_light","notes_card","notes_card_light","whatsapp_card","whatsapp_card_light","widget_accent","widget_border","widget_error"]
 lines = []
 for k in keys:
     m = re.findall(r'var\s+%s\s*=\s*"([^"]*)"' % k, content)

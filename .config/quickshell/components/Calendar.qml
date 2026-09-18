@@ -4,6 +4,7 @@ import Quickshell.Io
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Effects
 
 PanelWindow {
     id: calPopup
@@ -24,7 +25,7 @@ PanelWindow {
     property var anchorWin: null
 
     readonly property color calColor: rootRef
-        ? (rootRef.qsLight ? rootRef.pillColor("tertiary_container") : rootRef.colorOf("tertiary_container"))
+        ? (rootRef.qsLight ? rootRef.pillColor("error_container") : rootRef.colorOf("error_container"))
         : Qt.rgba(0.08, 0.08, 0.08, 0.85)
     readonly property color popupFg: rootRef
         ? (rootRef.luminance(Qt.color(calColor)) > 0.45 ? "#000000" : "#ffffff")
@@ -423,6 +424,16 @@ PanelWindow {
         border.width: 1
         border.color: Qt.rgba(1, 1, 1, 0.12)
         clip: true
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowBlur: 0.9
+            blurMax: 28
+            shadowHorizontalOffset: 5
+            shadowVerticalOffset: 10
+            shadowColor: Qt.rgba(0, 0, 0, 0.9)
+            shadowOpacity: 0.95
+        }
 
         opacity: calPopup.popProgress
         transform: Translate { y: (1 - calPopup.popProgress) * 8 }
@@ -444,12 +455,11 @@ PanelWindow {
                     radius: 8
                     color: calPrevHover.containsMouse ? rootRef.withAlpha(calPopup.popupFg, 0.15) : "transparent"
 
-                    Text {
+                    QIcon {
                         anchors.centerIn: parent
-                        text: "󰁍"
+                        source: Qt.resolvedUrl("../assets/icons/chev-left.svg")
                         color: calPopup.popupFg
-                        font.family: rootRef.iconFont
-                        font.pixelSize: rootRef.fontSize + 1
+                        iconSize: rootRef.fontSize + 4
                     }
 
                     MouseArea {
@@ -478,12 +488,11 @@ PanelWindow {
                     radius: 8
                     color: calNextHover.containsMouse ? rootRef.withAlpha(calPopup.popupFg, 0.15) : "transparent"
 
-                    Text {
+                    QIcon {
                         anchors.centerIn: parent
-                        text: "󰁔"
+                        source: Qt.resolvedUrl("../assets/icons/chev-right.svg")
                         color: calPopup.popupFg
-                        font.family: rootRef.iconFont
-                        font.pixelSize: rootRef.fontSize + 1
+                        iconSize: rootRef.fontSize + 4
                     }
 
                     MouseArea {
@@ -501,12 +510,11 @@ PanelWindow {
                     radius: 8
                     color: calCloseHover.containsMouse ? rootRef.withAlpha(rootRef.error, 0.25) : "transparent"
 
-                    Text {
+                    QIcon {
                         anchors.centerIn: parent
-                        text: "󰅖"
+                        source: Qt.resolvedUrl("../assets/icons/close.svg")
                         color: calCloseHover.containsMouse ? rootRef.error : calPopup.popupFg
-                        font.family: rootRef.iconFont
-                        font.pixelSize: rootRef.fontSize + 1
+                        iconSize: rootRef.fontSize + 3
                     }
 
                     MouseArea {
@@ -525,12 +533,11 @@ PanelWindow {
                 Layout.bottomMargin: 16
                 spacing: 6
 
-                Text {
+                QIcon {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: "󰥔"
+                    source: Qt.resolvedUrl("../assets/icons/history.svg")
                     color: calPopup.popupFg
-                    font.family: rootRef.iconFont
-                    font.pixelSize: rootRef.fontSize + 3
+                    iconSize: rootRef.fontSize + 5
                 }
 
                 Text {
@@ -654,15 +661,11 @@ PanelWindow {
                     Layout.preferredHeight: 22
                     spacing: 8
 
-                    Text {
-                        text: "󰃭"
+                    QIcon {
+                        source: Qt.resolvedUrl("../assets/icons/calendar.svg")
                         color: calPopup.popupFg
-                        font.family: rootRef.iconFont
-                        font.pixelSize: rootRef.fontSize + 1
-                        Layout.preferredWidth: 22
-                        Layout.preferredHeight: 22
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
+                        iconSize: rootRef.fontSize + 3
+                        Layout.alignment: Qt.AlignVCenter
                     }
 
                     Text {
@@ -691,15 +694,16 @@ PanelWindow {
                         verticalAlignment: Text.AlignVCenter
                     }
 
-                    Text {
-                        text: "󰅖"
-                        color: calPopup.popupFg
-                        font.family: rootRef.iconFont
-                        font.pixelSize: rootRef.fontSize + 1
+                    Item {
                         Layout.preferredWidth: 20
                         Layout.preferredHeight: 22
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
+
+                        QIcon {
+                            anchors.centerIn: parent
+                            source: Qt.resolvedUrl("../assets/icons/close.svg")
+                            color: calPopup.popupFg
+                            iconSize: rootRef.fontSize + 3
+                        }
 
                         MouseArea {
                             anchors.fill: parent
@@ -723,13 +727,11 @@ PanelWindow {
                             ? rootRef.withAlpha(calPopup.popupFg, 0.35)
                             : rootRef.withAlpha(calPopup.popupFg, 0.22)
 
-                        Text {
+                        QIcon {
                             anchors.centerIn: parent
-                            text: "+"
+                            source: Qt.resolvedUrl("../assets/icons/plus.svg")
                             color: calPopup.popupFg
-                            font.family: rootRef.uiFont
-                            font.pixelSize: rootRef.fontSize + 2
-                            font.weight: Font.Normal
+                            iconSize: rootRef.fontSize + 4
                         }
 
                         MouseArea {
@@ -751,13 +753,11 @@ PanelWindow {
                             : rootRef.withAlpha(calPopup.popupFg, calPopup.selectedEntryId >= 0 ? 0.12 : 0.05)
                         enabled: calPopup.selectedEntryId >= 0
 
-                        Text {
+                        QIcon {
                             anchors.centerIn: parent
-                            text: "-"
+                            source: Qt.resolvedUrl("../assets/icons/minus.svg")
                             color: calPopup.selectedEntryId >= 0 ? rootRef.error : rootRef.withAlpha(calPopup.popupFg, 0.3)
-                            font.family: rootRef.uiFont
-                            font.pixelSize: rootRef.fontSize + 2
-                            font.weight: Font.Normal
+                            iconSize: rootRef.fontSize + 4
                         }
 
                         MouseArea {
@@ -839,13 +839,12 @@ PanelWindow {
 
                                         Behavior on color { ColorAnimation { duration: 120 } }
 
-                                        Text {
+                                        QIcon {
                                             visible: entryDone
                                             anchors.centerIn: parent
-                                            text: "󰄲"
+                                            source: Qt.resolvedUrl("../assets/icons/check.svg")
                                             color: calPopup.accentFg
-                                            font.family: rootRef.iconFont
-                                            font.pixelSize: rootRef.fontSize - 2
+                                            iconSize: rootRef.fontSize
                                         }
 
                                         MouseArea {
@@ -895,12 +894,11 @@ PanelWindow {
                                         radius: 8
                                         color: saveHover.containsMouse ? rootRef.withAlpha(calPopup.popupFg, 0.25) : "transparent"
 
-                                        Text {
+                                        QIcon {
                                             anchors.centerIn: parent
-                                            text: "󰄴"
+                                            source: Qt.resolvedUrl("../assets/icons/check.svg")
                                             color: calPopup.popupFg
-                                            font.family: rootRef.iconFont
-                                            font.pixelSize: rootRef.fontSize
+                                            iconSize: rootRef.fontSize + 2
                                         }
 
                                         MouseArea {
@@ -978,15 +976,11 @@ PanelWindow {
                         anchors.fill: parent
                         spacing: 6
 
-                        Text {
-                            text: "󰄉"
+                        QIcon {
+                            source: Qt.resolvedUrl("../assets/icons/timer.svg")
                             color: calPopup.popupFg
-                            font.family: rootRef.iconFont
-                            font.pixelSize: rootRef.fontSize + 2
-                            Layout.preferredWidth: 22
-                            Layout.preferredHeight: 40
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
+                            iconSize: rootRef.fontSize + 4
+                            Layout.alignment: Qt.AlignVCenter
                         }
 
                         Text {
@@ -1009,13 +1003,11 @@ PanelWindow {
                                 ? rootRef.withAlpha(calPopup.popupFg, 0.35)
                                 : rootRef.withAlpha(calPopup.popupFg, 0.18)
 
-                            Text {
+                            QIcon {
                                 anchors.centerIn: parent
-                                text: "-"
+                                source: Qt.resolvedUrl("../assets/icons/minus.svg")
                                 color: calPopup.popupFg
-                                font.family: rootRef.uiFont
-                                font.pixelSize: rootRef.fontSize + 2
-                                font.weight: Font.Normal
+                                iconSize: rootRef.fontSize + 4
                             }
 
                             MouseArea {
@@ -1037,13 +1029,11 @@ PanelWindow {
                                 ? rootRef.withAlpha(calPopup.popupFg, 0.35)
                                 : rootRef.withAlpha(calPopup.popupFg, 0.18)
 
-                            Text {
+                            QIcon {
                                 anchors.centerIn: parent
-                                text: "+"
+                                source: Qt.resolvedUrl("../assets/icons/plus.svg")
                                 color: calPopup.popupFg
-                                font.family: rootRef.uiFont
-                                font.pixelSize: rootRef.fontSize + 2
-                                font.weight: Font.Normal
+                                iconSize: rootRef.fontSize + 4
                             }
 
                             MouseArea {
@@ -1065,12 +1055,11 @@ PanelWindow {
                                 ? (timerToggleHover.containsMouse ? rootRef.withAlpha(calPopup.accentCol, 0.85) : calPopup.accentCol)
                                 : (timerToggleHover.containsMouse ? rootRef.withAlpha(calPopup.popupFg, 0.45) : rootRef.withAlpha(calPopup.popupFg, 0.28))
 
-                            Text {
+                            QIcon {
                                 anchors.centerIn: parent
-                                text: rootRef.timerRunning ? "󰏤" : "󰐊"
+                                source: rootRef.timerRunning ? Qt.resolvedUrl("../assets/icons/pause.svg") : Qt.resolvedUrl("../assets/icons/play.svg")
                                 color: rootRef.timerRunning ? calPopup.accentFg : calPopup.popupFg
-                                font.family: rootRef.iconFont
-                                font.pixelSize: rootRef.fontSize + 2
+                                iconSize: rootRef.fontSize + 4
                             }
 
                             MouseArea {
@@ -1092,12 +1081,11 @@ PanelWindow {
                                 ? rootRef.withAlpha(rootRef.error, 0.35)
                                 : rootRef.withAlpha(calPopup.popupFg, 0.08)
 
-                            Text {
+                            QIcon {
                                 anchors.centerIn: parent
-                                text: "󰃢"
+                                source: Qt.resolvedUrl("../assets/icons/refresh.svg")
                                 color: rootRef.error
-                                font.family: rootRef.iconFont
-                                font.pixelSize: rootRef.fontSize
+                                iconSize: rootRef.fontSize + 2
                             }
 
                             MouseArea {

@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Effects
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
@@ -19,7 +20,7 @@ Item {
     readonly property int pad: 14
     readonly property int cornerRadius: 12
 
-    readonly property string cardTile: "surface_container_highest"
+    readonly property string cardTile: "widget_card"
     readonly property color cardColor: rootRef
         ? (rootRef.qsLight
             ? rootRef.pillColor(cardTile)
@@ -31,33 +32,15 @@ Item {
         : "#00000000"
 
     readonly property color fg: rootRef
-        ? clipMgr.contrastColor(clipMgr.cardColor)
+        ? rootRef.contrastColor(clipMgr.cardColor)
         : "#000000"
     readonly property color accent: rootRef
-        ? clipMgr.alpha(clipMgr.fg, 0.10)
+        ? rootRef.withAlpha(clipMgr.fg, 0.10)
         : "#26282b"
     readonly property color selectedFg: clipMgr.fg
     readonly property color errorColor: rootRef ? Qt.color(rootRef.colorOf("widget_error")) : "#e30000"
 
-    function alpha(c: color, a: double): color {
-        return Qt.rgba(c.r, c.g, c.b, a)
-    }
-
-    function _lin(v: double): double {
-        if (v <= 0.03928) return v / 12.92
-        return Math.pow((v + 0.055) / 1.055, 2.4)
-    }
-
-    function relLum(c: color): double {
-        return 0.2126 * clipMgr._lin(c.r) + 0.7152 * clipMgr._lin(c.g) + 0.0722 * clipMgr._lin(c.b)
-    }
-
-    function contrastColor(c: color): color {
-        var l = clipMgr.relLum(c)
-        var white = (1.05) / (l + 0.05)
-        var black = (l + 0.05) / (0.05)
-        return white >= black ? "#ffffff" : "#000000"
-    }
+    // Text/alpha helpers live on root (contrastColor/withAlpha).
     readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
     readonly property string fontFamily: uiFont
     readonly property string uiFont: "Geist"
@@ -68,7 +51,7 @@ Item {
     Behavior on animProgress {
         NumberAnimation {
             duration: clipMgr.active ? 180 : 140
-            easing.type: Easing.OutCubic
+            easing.type: Easing.OutExpo
         }
     }
 
@@ -232,6 +215,16 @@ Item {
         border.width: 1
         border.color: clipMgr.cardBorder
         clip: true
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowBlur: 0.9
+            blurMax: 28
+            shadowHorizontalOffset: 5
+            shadowVerticalOffset: 10
+            shadowColor: Qt.rgba(0, 0, 0, 0.9)
+            shadowOpacity: 0.95
+        }
 
         transform: Translate {
             x: -(1.0 - clipMgr.animProgress) * 8
@@ -250,13 +243,10 @@ Item {
                 width: parent.width
                 spacing: 6
 
-                Text {
-                    text: "󰅌"
+                QIcon {
+                    source: Qt.resolvedUrl("../assets/icons/clipboard.svg")
                     color: clipMgr.fg
-                    font.family: clipMgr.iconFont
-                    font.pixelSize: clipMgr.fontSize + 2
-                    Layout.preferredWidth: 22
-                    horizontalAlignment: Text.AlignHCenter
+                    iconSize: clipMgr.fontSize + 4
                 }
 
                 Text {
@@ -271,7 +261,7 @@ Item {
 
                 Text {
                     text: clipMgr.totalCount + (clipMgr.totalCount === 1 ? " item" : " items")
-                    color: clipMgr.alpha(clipMgr.fg, 0.5)
+                    color: rootRef.withAlpha(clipMgr.fg, 0.5)
                     font.family: clipMgr.uiFont
                     font.pixelSize: clipMgr.fontSize - 2
                     font.letterSpacing: 1.5
@@ -286,23 +276,35 @@ Item {
                     Layout.preferredHeight: 24
                     radius: 7
                     color: clipMgr.wipeArmed
-                        ? (wipeHover.containsMouse ? clipMgr.alpha(clipMgr.errorColor, 0.8) : clipMgr.errorColor)
-                        : (wipeHover.containsMouse ? clipMgr.alpha(clipMgr.fg, 0.08) : Qt.rgba(clipMgr.fg.r, clipMgr.fg.g, clipMgr.fg.b, 0.02))
+                        ? (wipeHover.containsMouse ? rootRef.withAlpha(clipMgr.errorColor, 0.8) : clipMgr.errorColor)
+                        : (wipeHover.containsMouse ? rootRef.withAlpha(clipMgr.fg, 0.08) : Qt.rgba(clipMgr.fg.r, clipMgr.fg.g, clipMgr.fg.b, 0.02))
                     border.width: 1
                     border.color: clipMgr.wipeArmed
                         ? "transparent"
-                        : (wipeHover.containsMouse ? clipMgr.alpha(clipMgr.fg, 0.35) : clipMgr.alpha(clipMgr.fg, 0.16))
+                        : (wipeHover.containsMouse ? rootRef.withAlpha(clipMgr.fg, 0.35) : rootRef.withAlpha(clipMgr.fg, 0.16))
                     Behavior on color { ColorAnimation { duration: 120 } }
 
-                    Text {
+                    Row {
                         id: wipeText
                         anchors.centerIn: parent
-                        text: clipMgr.wipeArmed ? "CONFIRM CLEAR" : "󰇘 CLEAR ALL"
-                        color: clipMgr.wipeArmed ? "#ffffff" : clipMgr.fg
-                        font.family: clipMgr.uiFont
-                        font.pixelSize: clipMgr.fontSize - 2
-                        font.weight: Font.DemiBold
-                        font.letterSpacing: 1.5
+                        spacing: 5
+
+                        QIcon {
+                            anchors.verticalCenter: parent.verticalCenter
+                            source: Qt.resolvedUrl("../assets/icons/trash.svg")
+                            color: clipMgr.wipeArmed ? "#ffffff" : clipMgr.fg
+                            iconSize: clipMgr.fontSize
+                        }
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: clipMgr.wipeArmed ? "CONFIRM CLEAR" : "CLEAR ALL"
+                            color: clipMgr.wipeArmed ? "#ffffff" : clipMgr.fg
+                            font.family: clipMgr.uiFont
+                            font.pixelSize: clipMgr.fontSize - 2
+                            font.weight: Font.DemiBold
+                            font.letterSpacing: 1.5
+                        }
                     }
 
                     MouseArea {
@@ -326,16 +328,15 @@ Item {
                     Layout.preferredHeight: 24
                     radius: 6
                     color: closeHover.containsMouse
-                        ? clipMgr.alpha(clipMgr.fg, 0.2)
+                        ? rootRef.withAlpha(clipMgr.fg, 0.2)
                         : "transparent"
                     Behavior on color { ColorAnimation { duration: 120 } }
 
-                    Text {
+                    QIcon {
                         anchors.centerIn: parent
-                        text: "󰅖"
+                        source: Qt.resolvedUrl("../assets/icons/close.svg")
                         color: clipMgr.fg
-                        font.family: clipMgr.iconFont
-                        font.pixelSize: clipMgr.fontSize
+                        iconSize: clipMgr.fontSize + 2
                     }
 
                     MouseArea {
@@ -353,11 +354,11 @@ Item {
                 width: parent.width
                 height: clipMgr.searchHeight
                 radius: 8
-                color: clipMgr.alpha(clipMgr.fg, 0.06)
+                color: rootRef.withAlpha(clipMgr.fg, 0.06)
                 border.width: 1
                 border.color: searchField.activeFocus
-                    ? clipMgr.alpha(clipMgr.fg, 0.5)
-                    : clipMgr.alpha(clipMgr.fg, 0.16)
+                    ? rootRef.withAlpha(clipMgr.fg, 0.5)
+                    : rootRef.withAlpha(clipMgr.fg, 0.16)
                 Behavior on border.color { ColorAnimation { duration: 150 } }
 
                 RowLayout {
@@ -366,11 +367,11 @@ Item {
                     anchors.rightMargin: 6
                     spacing: 8
 
-                    Text {
-                        text: "󰍉"
-                        color: clipMgr.alpha(clipMgr.fg, 0.55)
-                        font.family: clipMgr.iconFont
-                        font.pixelSize: clipMgr.fontSize + 1
+                    QIcon {
+                        source: Qt.resolvedUrl("../assets/icons/search.svg")
+                        color: rootRef.withAlpha(clipMgr.fg, 0.75)
+                        iconSize: clipMgr.fontSize + 4
+                        Layout.alignment: Qt.AlignVCenter
                     }
 
                     TextField {
@@ -382,7 +383,7 @@ Item {
                         font.pixelSize: clipMgr.fontSize + 1
                         font.weight: Font.Medium
                         placeholderText: "Search history"
-                        placeholderTextColor: clipMgr.alpha(clipMgr.fg, 0.4)
+                        placeholderTextColor: rootRef.withAlpha(clipMgr.fg, 0.6)
                         selectByMouse: true
                         verticalAlignment: Text.AlignVCenter
                         background: Item {}
@@ -419,16 +420,15 @@ Item {
                         Layout.preferredHeight: 22
                         radius: 11
                         color: clearHover.containsMouse
-                            ? clipMgr.alpha(clipMgr.fg, 0.25)
+                            ? rootRef.withAlpha(clipMgr.fg, 0.25)
                             : "transparent"
                         Behavior on color { ColorAnimation { duration: 120 } }
 
-                        Text {
+                        QIcon {
                             anchors.centerIn: parent
-                            text: "󰅖"
+                            source: Qt.resolvedUrl("../assets/icons/close.svg")
                             color: clipMgr.fg
-                            font.family: clipMgr.iconFont
-                            font.pixelSize: clipMgr.fontSize
+                            iconSize: clipMgr.fontSize + 2
                         }
 
                         MouseArea {
@@ -472,7 +472,7 @@ Item {
                         width: listView.width
                         height: clipMgr.rowHeight
                         radius: 9
-                        color: clipMgr.alpha(clipMgr.fg, 0.09)
+                        color: rootRef.withAlpha(clipMgr.fg, 0.09)
 
                         readonly property real targetY: (listView.currentIndex >= 0 && listView.currentItem !== null)
                             ? listView.currentItem.y : 0
@@ -503,7 +503,7 @@ Item {
                             anchors.fill: parent
                             radius: 9
                             color: rowHover.containsMouse && !isSelected
-                                ? clipMgr.alpha(clipMgr.fg, 0.08)
+                                ? rootRef.withAlpha(clipMgr.fg, 0.08)
                                 : "transparent"
                             Behavior on color { ColorAnimation { duration: 120 } }
                         }
@@ -523,8 +523,8 @@ Item {
                                     anchors.fill: parent
                                     radius: 8
                                     color: isSelected
-                                        ? clipMgr.alpha(clipMgr.fg, 0.16)
-                                        : clipMgr.alpha(clipMgr.fg, 0.08)
+                                        ? rootRef.withAlpha(clipMgr.fg, 0.16)
+                                        : rootRef.withAlpha(clipMgr.fg, 0.08)
                                     Behavior on color { ColorAnimation { duration: 150 } }
                                 }
 
@@ -556,13 +556,12 @@ Item {
                                     }
                                 }
 
-                                Text {
+                                QIcon {
                                     anchors.centerIn: parent
                                     visible: !isImage
-                                    text: "󰅌"
+                                    source: Qt.resolvedUrl("../assets/icons/clipboard.svg")
                                     color: isSelected ? clipMgr.selectedFg : clipMgr.fg
-                                    font.family: clipMgr.iconFont
-                                    font.pixelSize: clipMgr.fontSize
+                                    iconSize: clipMgr.fontSize + 2
                                 }
                             }
 
@@ -595,8 +594,8 @@ Item {
                                     font.family: clipMgr.uiFont
                                     font.pixelSize: Math.max(9, clipMgr.fontSize - 2)
                                     color: isSelected
-                                        ? clipMgr.alpha(clipMgr.selectedFg, 0.75)
-                                        : clipMgr.alpha(clipMgr.fg, 0.55)
+                                        ? rootRef.withAlpha(clipMgr.selectedFg, 0.85)
+                                        : rootRef.withAlpha(clipMgr.fg, 0.75)
                                 }
                             }
 
@@ -607,15 +606,14 @@ Item {
                                 Layout.alignment: Qt.AlignVCenter
                                 radius: 6
                                 color: deleteHover.containsMouse
-                                    ? clipMgr.alpha(clipMgr.errorColor, 0.5)
-                                    : clipMgr.alpha(clipMgr.fg, isSelected ? 0.25 : 0.12)
+                                    ? rootRef.withAlpha(clipMgr.errorColor, 0.5)
+                                    : rootRef.withAlpha(clipMgr.fg, isSelected ? 0.25 : 0.12)
 
-                                Text {
+                                QIcon {
                                     anchors.centerIn: parent
-                                    text: "󰇘"
+                                    source: Qt.resolvedUrl("../assets/icons/trash.svg")
                                     color: deleteHover.containsMouse ? "#ffffff" : clipMgr.fg
-                                    font.family: clipMgr.iconFont
-                                    font.pixelSize: clipMgr.fontSize
+                                    iconSize: clipMgr.fontSize + 2
                                 }
 
                                 MouseArea {
@@ -663,7 +661,7 @@ Item {
                             text: searchField.text.length > 0
                                 ? "No matches"
                                 : "Clipboard is empty"
-                            color: clipMgr.alpha(clipMgr.fg, 0.55)
+                            color: rootRef.withAlpha(clipMgr.fg, 0.75)
                             font.family: clipMgr.uiFont
                             font.pixelSize: clipMgr.fontSize
                         }

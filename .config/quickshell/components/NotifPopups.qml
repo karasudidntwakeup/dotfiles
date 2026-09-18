@@ -21,7 +21,9 @@ PanelWindow {
     anchors.right: true
 
     readonly property real popupMaxH: Math.max(0, (screen ? screen.height : 1200) - margins.top - 24)
-    implicitHeight: Math.min(popupMaxH, popupList.contentHeight)
+    // NB: Flickable topMargin/bottomMargin sit outside contentHeight, so add
+    // them explicitly or the window comes up short and slices the card.
+    implicitHeight: Math.min(popupMaxH, popupList.contentHeight + popupList.topMargin + popupList.bottomMargin)
 
     margins {
         top: barThickness + 40
@@ -71,8 +73,14 @@ PanelWindow {
         model: svc ? svc.popups : []
         spacing: 10
         interactive: true
-        clip: true
+        // No viewport clipping: the window bounds already clip, and clipping
+        // here would slice the card shadows (offset + blur overhang).
+        // Shadow room comes from the side inset + top/bottom margins below.
+        clip: false
+        topMargin: 12
+        bottomMargin: 12
         boundsBehavior: Flickable.StopAtBounds
+        cacheBuffer: 2000
 
         // macOS-style entrance: slides in from the right edge with a strong
         // decelerating curve plus quick fade and subtle scale-up.
@@ -101,7 +109,10 @@ PanelWindow {
         }
 
         delegate: NotificationCard {
-            width: popupList.width
+            // Inset so the shadow (right/down overhang + blur) stays inside
+            // the window instead of being sliced at its edges.
+            x: 12
+            width: popupList.width - 24
             rootRef: popupLayer.rootRef
             svc: popupLayer.svc
             nData: model
