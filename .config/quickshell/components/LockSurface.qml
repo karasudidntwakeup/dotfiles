@@ -3,7 +3,6 @@ import Quickshell.Io
 import Quickshell.Services.Pam
 import QtQuick
 import QtQuick.Effects
-import QtQuick.Layouts
 
 Item {
     id: lockRoot
@@ -20,10 +19,46 @@ Item {
     readonly property string iconFontName: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
 
     property bool unlockInProgress: false
+    // y2k dot-art mask cycle (emojicombos y2k-dot-art vocabulary)
+    readonly property var y2kDots: ["✦", "˚", "☾", "⋆", "✧", "★", "･", "♡"]
+    readonly property var y2kSizes: [42, 56, 40, 42, 42, 40, 40, 40]
+    // Drives the icon bob while PAM verifies.
+    property real verifyPhase: 0
+    NumberAnimation on verifyPhase {
+        from: 0; to: Math.PI * 2; duration: 1100
+        loops: Animation.Infinite; running: lockRoot.unlockInProgress
+    }
     property bool failed: false
     property string statusText: ""
     property int attempts: 0
+    // Android 17-style attempt policy
+    property string lastWrong: ""
+    property real lockoutUntil: 0
+    property bool lockedOut: false
     property real blurAmount: 1.0
+
+    // Guesses 1-4 free; then escalating waits. Capped at 1h (Android goes
+    // to years/permanent — unsafe for a desktop, where a reboot is the
+    // only recovery).
+    function lockoutFor(n) {
+        if (n <= 4) return 0
+        if (n === 5) return 60
+        if (n === 6) return 300
+        if (n === 7) return 900
+        if (n === 8) return 1800
+        return 3600
+    }
+
+    function humanTimeout(ms) {
+        var s = Math.ceil(ms / 1000)
+        if (s < 60) return s + (s === 1 ? " SECOND" : " SECONDS")
+        var m = Math.ceil(s / 60)
+        if (m < 60) return m + (m === 1 ? " MINUTE" : " MINUTES")
+        var h = Math.ceil(m / 60)
+        if (h < 48) return h + (h === 1 ? " HOUR" : " HOURS")
+        var d = Math.ceil(h / 24)
+        return d + (d === 1 ? " DAY" : " DAYS")
+    }
 
     ParallelAnimation {
         id: openAnim
@@ -47,7 +82,11 @@ Item {
     }
 
     function tryUnlock() {
-        if (unlockInProgress || passInput.text.length === 0) return
+        if (unlockInProgress || lockedOut || passInput.text.length === 0) {
+            if (lockedOut)
+                statusText = "TRY AGAIN IN " + humanTimeout(lockoutUntil - Date.now())
+            return
+        }
         unlockInProgress = true
         statusText = ""
         failed = false
@@ -61,15 +100,34 @@ Item {
         onPamMessage: { if (responseRequired) respond(passInput.text) }
         onCompleted: result => {
             if (result === PamResult.Success) {
+                lockRoot.attempts = 0
+                lockRoot.lastWrong = ""
+                lockRoot.lockoutUntil = 0
+                lockRoot.lockedOut = false
                 openAnim.stop()
                 closing = true
                 closeAnim.start()
             } else {
                 unlockInProgress = false
-                lockRoot.attempts++
-                statusText = "WRONG PASSCODE (" + lockRoot.attempts + ")"
-                failed = true
+                // NOTE: read + clear first — clearing fires onTextChanged,
+                // which wipes a status set before it.
+                var guess = passInput.text
                 passInput.text = ""
+                if (guess.length > 0 && guess === lockRoot.lastWrong) {
+                    statusText = "ALREADY TRIED — NOT COUNTED"
+                } else {
+                    lockRoot.lastWrong = guess
+                    lockRoot.attempts++
+                    var wait = lockRoot.lockoutFor(lockRoot.attempts)
+                    if (wait > 0) {
+                        lockRoot.lockoutUntil = Date.now() + wait * 1000
+                        lockRoot.lockedOut = true
+                        statusText = "TRY AGAIN IN " + humanTimeout(wait * 1000)
+                    } else {
+                        statusText = "WRONG PASSCODE (" + lockRoot.attempts + ")"
+                    }
+                }
+                failed = true
                 cardshake.restart()
                 passInput.forceActiveFocus()
             }
@@ -120,7 +178,7 @@ Item {
         anchors.fill: parent
         focus: true
         Keys.onPressed: event => {
-            if (lockRoot.unlockInProgress) return
+            if (lockRoot.unlockInProgress || lockRoot.lockedOut) return
             if (!passInput.activeFocus && event.key !== Qt.Key_Return
                 && event.key !== Qt.Key_Enter && event.key !== Qt.Key_Tab
                 && event.key !== Qt.Key_Escape) {
@@ -191,7 +249,7 @@ Item {
         text: (Quickshell.env("USER") || "HUMAN").toUpperCase() + "-01"
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 58
+        anchors.bottomMargin: 94
         font.family: lockRoot.uiFont
         font.pixelSize: 11
         font.bold: true
@@ -214,7 +272,7 @@ Item {
         text: "かいぜん"
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 190
+        anchors.bottomMargin: 175
         font.family: lockRoot.fontJp
         font.pixelSize: 10
         font.bold: true
@@ -226,7 +284,7 @@ Item {
         text: "You can have everything and feel nothing."
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 130
+        anchors.bottomMargin: 147
         font.family: lockRoot.uiFont
         font.pixelSize: 8
         color: lockRoot.fg
@@ -237,7 +295,7 @@ Item {
         text: "What you resist, persists. What you accept, dissolves."
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 115
+        anchors.bottomMargin: 132
         font.family: lockRoot.uiFont
         font.pixelSize: 8
         color: lockRoot.fg
@@ -256,10 +314,10 @@ Item {
 
     Rectangle {
         id: passBox
-        width: 110; height: 25; radius: 8
+        width: 480; height: 72
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 24
+        anchors.bottomMargin: 14
         color: "transparent"
         border.width: 0
 
@@ -272,25 +330,72 @@ Item {
             NumberAnimation { target: shakeT; property: "x"; to: 0; duration: 70; easing.type: Easing.OutQuad }
         }
 
-        RowLayout {
-            anchors.fill: parent; anchors.leftMargin: 4; anchors.rightMargin: 4; spacing: 4
-            Text {
-                id: passPrompt
-                text: passInput.text.length === 0 ? "PASSCODE" : lockRoot.passDots
-                font.family: lockRoot.uiFont
-                font.pixelSize: 10
-                font.weight: Font.Bold
-                font.letterSpacing: 1
-                color: lockRoot.failed ? lockRoot.failC : lockRoot.fg
-                Layout.fillWidth: true; Layout.fillHeight: true
-                verticalAlignment: Text.AlignVCenter
-                horizontalAlignment: Text.AlignHCenter
-                elide: Text.ElideRight
-            }
-            Rectangle {
-                id: caret; width: 1; height: 14; color: lockRoot.fg
-                property real blink: 0
-                opacity: passInput.activeFocus ? blink : 0
+        Item {
+            id: dotsArea
+            anchors.centerIn: parent
+            width: 460; height: 64
+
+                Row {
+                    id: dotsRow
+                    anchors.centerIn: parent
+                    spacing: 8
+
+                Repeater {
+                    model: Math.min(passInput.text.length, 12)
+                        delegate: Item {
+                            id: slot
+                            width: 30; height: 56
+                        property color dotColor: lockRoot.failed ? lockRoot.failC : lockRoot.fg
+                        transformOrigin: Item.Center
+                        scale: 0.6
+                        opacity: 0
+                        y: 3.5
+                        rotation: -9
+                        ParallelAnimation {
+                            id: slotIn
+                            Anim { target: slot; property: "scale"; from: 0.6; to: 1.0; type: Anim.Bouncy }
+                            Anim { target: slot; property: "y"; from: 3.5; to: 0; type: Anim.BouncyFast }
+                            Anim { target: slot; property: "rotation"; from: -9; to: 0; type: Anim.FastEffects }
+                            Anim { target: slot; property: "opacity"; from: 0; to: 1.0; type: Anim.FastEffects }
+                        }
+                        Component.onCompleted: slotIn.start()
+
+                        // y2k dot-art icon, one glyph per keystroke — never "."/real chars
+                        Text {
+                            id: glyphText
+                            anchors.centerIn: parent
+                            // staggered float while PAM verifies
+                            y: lockRoot.unlockInProgress
+                                ? Math.sin(lockRoot.verifyPhase - index * 0.7) * 3 : 0
+                            text: lockRoot.y2kDots[index % lockRoot.y2kDots.length]
+                            color: slot.dotColor
+                            font.family: lockRoot.uiFont
+                            font.pixelSize: lockRoot.y2kSizes[index % lockRoot.y2kSizes.length]
+                            font.weight: Font.Bold
+                            Behavior on color { CAnim { type: CAnim.FastEffects } }
+                        }
+                    }
+                }
+
+                    Rectangle {
+                        id: caret
+                        width: 2; height: 24
+                        y: 16
+                    color: lockRoot.failed ? lockRoot.failC : lockRoot.acc
+                    property real blink: 0
+                    opacity: passInput.activeFocus ? blink : 0
+                    Behavior on opacity { NumberAnimation { duration: 150 } }
+                }
+
+                    Text {
+                        y: 22
+                        visible: passInput.text.length > 12
+                        text: "+" + (passInput.text.length - 12)
+                        color: Qt.rgba(1, 1, 1, 0.55)
+                        font.family: lockRoot.uiFont
+                        font.pixelSize: 11
+                        font.weight: Font.Bold
+                    }
             }
         }
 
@@ -299,26 +404,30 @@ Item {
             triggeredOnStart: true
             onTriggered: caret.blink = caret.blink === 0 ? 1 : 0
         }
+    }
 
         TextInput {
             id: passInput; anchors.fill: parent; visible: false
-            echoMode: TextInput.Password; passwordCharacter: "•"; focus: true
+            echoMode: TextInput.Password; passwordCharacter: "×"; focus: true
+            maximumLength: 32
+            enabled: !lockRoot.lockedOut
             onTextChanged: { if (lockRoot.failed) { lockRoot.failed = false; lockRoot.statusText = "" } }
             onAccepted: lockRoot.tryUnlock()
         }
-    }
-
-    property string passDots: "•".repeat(Math.min(passInput.text.length, 14))
 
     Text {
         id: statusLine
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 54
+        anchors.bottomMargin: 112
         text: lockRoot.statusText
         font.family: lockRoot.uiFont; font.pixelSize: 9
         font.weight: Font.Bold; font.letterSpacing: 1
-        visible: lockRoot.statusText.length > 0
+        property real shown: lockRoot.statusText.length > 0 ? 1 : 0
+        Behavior on shown { Anim { type: Anim.FastEffects } }
+        opacity: shown
+        visible: opacity > 0.01
+        transform: Translate { y: (1 - statusLine.shown) * 5 }
         color: lockRoot.failed ? lockRoot.failC : lockRoot.acc
     }
 
@@ -329,51 +438,20 @@ Item {
     Timer {
         interval: 1000; running: lockRoot.locked; repeat: true; triggeredOnStart: true
         onTriggered: {
+            var out = Date.now() < lockRoot.lockoutUntil
+            if (out) {
+                lockRoot.lockedOut = true
+                lockRoot.statusText = "TRY AGAIN IN " + humanTimeout(lockRoot.lockoutUntil - Date.now())
+            } else if (lockRoot.lockedOut) {
+                lockRoot.lockedOut = false
+                if (!lockRoot.failed) lockRoot.statusText = ""
+                passInput.forceActiveFocus()
+            }
             var d = new Date()
             var h12 = d.getHours() % 12; if (h12 === 0) h12 = 12
             clockHour.text = (h12 < 10 ? "0" : "") + h12
             clockMinute.text = (d.getMinutes() < 10 ? "0" : "") + d.getMinutes()
             dateLine.text = Qt.formatDateTime(d, "dddd MMMM d")
-        }
-    }
-
-    component LockMediaBtn: Item {
-        id: lockBtn
-        property string glyph: ""
-        property bool accent: false
-        property int btnSize: 36
-        signal tapped()
-
-        Layout.preferredWidth: lockBtn.btnSize
-        Layout.preferredHeight: lockBtn.btnSize
-
-        Rectangle {
-            anchors.centerIn: parent
-            width: lockBtn.btnSize
-            height: lockBtn.btnSize
-            radius: 8
-            color: lockBtn.accent
-                ? lockRoot.acc
-                : (lockBtnHover.containsMouse ? Qt.rgba(1, 1, 1, 0.10) : "transparent")
-            border.width: lockBtn.accent ? 0 : 1
-            border.color: lockBtn.accent ? "transparent" : Qt.rgba(1, 1, 1, 0.20)
-            Behavior on color { CAnim { type: CAnim.FastEffects } }
-
-            Text {
-                anchors.centerIn: parent
-                text: lockBtn.glyph
-                color: lockBtn.accent ? "#0c0d10" : "#ffffff"
-                font.family: lockRoot.iconFontName
-                font.pixelSize: Math.round(lockBtn.btnSize * 0.42)
-            }
-
-            MouseArea {
-                id: lockBtnHover
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: lockBtn.tapped()
-            }
         }
     }
 
