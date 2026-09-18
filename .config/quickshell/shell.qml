@@ -1022,14 +1022,15 @@ ShellRoot {
             Item {
                 id: arcSlot
                 anchors.verticalCenter: parent.verticalCenter
-                implicitWidth: 40
+                implicitWidth: arcC.width + 8
                 implicitHeight: root.pillHeight
 
                 Canvas {
                     id: arcC
                     anchors.centerIn: parent
-                    width: 32
-                    height: 32
+                    // Follow the pill height so the icon scales with the bar.
+                    width: root.pillHeight - 3
+                    height: root.pillHeight - 3
                     antialiasing: true
                     property int percent: root.batteryPercent
                     property bool charging: root.charging
@@ -1042,6 +1043,8 @@ ShellRoot {
                     onBaseChanged: requestPaint()
                     onSignalChanged: requestPaint()
                     onWifiConnectedChanged: requestPaint()
+                    onWidthChanged: requestPaint()
+                    onHeightChanged: requestPaint()
 
                     onPaint: {
                         var ctx = arcC.getContext("2d")
@@ -1049,18 +1052,23 @@ ShellRoot {
                         var w = arcC.width
                         var h = arcC.height
                         if (w <= 0 || h <= 0) return
-                        var cx = w / 2
-                        var cy = h / 2
+                        // Resolution-independent: the artwork below is authored
+                        // in a 32x32 design box, scaled to fit the canvas.
+                        var s = Math.min(w, h) / 32
+                        ctx.translate((w - 32 * s) / 2, (h - 32 * s) / 2)
+                        ctx.scale(s, s)
+                        var cx = 16
+                        var cy = 16
                         var r = 13.5
                         var gapRad = Math.PI / 4
                         var maxSweep = 2 * Math.PI - 2 * gapRad
+                        ctx.lineCap = "round"
+                        ctx.lineWidth = 3
                         var capInset = (ctx.lineWidth / 2) / r
                         var sweepMax = maxSweep - 2 * capInset
                         var frac = Math.max(0, Math.min(1, arcC.percent / 100))
                         var start = Math.PI / 2 + gapRad + capInset
 
-                        ctx.lineCap = "round"
-                        ctx.lineWidth = 3
                         ctx.strokeStyle = Qt.rgba(arcC.base.r, arcC.base.g, arcC.base.b, 0.13)
                         ctx.beginPath()
                         ctx.arc(cx, cy, r, start, start + sweepMax)
@@ -1083,7 +1091,7 @@ ShellRoot {
                         }
 
                         var gy = cy + 4
-                        ctx.lineWidth = 2
+                        ctx.lineWidth = 1.8
                         // Live signal: dot + 3 arcs light up by thresholds.
                         // Disconnected -> everything dim.
                         var litArcs = !arcC.wifiConnected ? -1
@@ -1100,7 +1108,7 @@ ShellRoot {
                             var a = (i < litArcs) ? 1.0 : 0.18
                             ctx.strokeStyle = Qt.rgba(b.r, b.g, b.b, a)
                             ctx.beginPath()
-                            ctx.arc(cx, gy, 3 + i * 3.15, Math.PI * 1.25, Math.PI * 1.75)
+                            ctx.arc(cx, gy, 4.2 + i * 3.3, Math.PI * 1.25, Math.PI * 1.75)
                             ctx.stroke()
                         }
                     }
@@ -1156,19 +1164,29 @@ ShellRoot {
         // 0-100, <0 = offline (all dim). Drives how many arcs are lit.
         property real signal: 100
         property bool connected: true
+        // Design-box size; the artwork scales to fit any canvas size.
         implicitWidth: 26
         implicitHeight: 20
 
         onTintChanged: requestPaint()
         onSignalChanged: requestPaint()
         onConnectedChanged: requestPaint()
+        onWidthChanged: requestPaint()
+        onHeightChanged: requestPaint()
 
         onPaint: {
             var ctx = getContext("2d")
             ctx.reset()
+            var w = wifi.width
+            var h = wifi.height
+            if (w <= 0 || h <= 0) return
+            // Resolution-independent: artwork authored in a 26x20 box.
+            var s = Math.min(w / 26, h / 20)
+            ctx.translate((w - 26 * s) / 2, (h - 20 * s) / 2)
+            ctx.scale(s, s)
             ctx.lineCap = "round"
-            var cx = wifi.width / 2
-            var baseY = wifi.height - 3
+            var cx = 13
+            var baseY = 17
             var lit = !wifi.connected ? -1
                 : wifi.signal >= 70 ? 3
                 : wifi.signal >= 45 ? 2
@@ -1176,13 +1194,13 @@ ShellRoot {
             var t = wifi.tint
             ctx.fillStyle = Qt.rgba(t.r, t.g, t.b, wifi.connected ? 1.0 : 0.18)
             ctx.beginPath()
-            ctx.arc(cx, wifi.height - 4.5, 2.0, 0, Math.PI * 2)
+            ctx.arc(cx, 15.5, 2.0, 0, Math.PI * 2)
             ctx.fill()
             for (var i = 0; i < 3; i++) {
                 ctx.lineWidth = 2.4
                 ctx.strokeStyle = Qt.rgba(t.r, t.g, t.b, (i < lit) ? 1.0 : 0.18)
                 ctx.beginPath()
-                ctx.arc(cx, baseY, 3.5 + i * 3.8, Math.PI * 1.25, Math.PI * 1.75, false)
+                ctx.arc(cx, baseY, 5.0 + i * 4.1, Math.PI * 1.25, Math.PI * 1.75, false)
                 ctx.stroke()
             }
         }
