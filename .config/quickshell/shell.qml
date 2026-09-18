@@ -1951,7 +1951,7 @@ delegate: Item {
                     //  anchors    → sapphire primary_container    (workspaces)
                     //              pink tertiary_container        (clock)
                     //
-                    //  Reading order: glance → faith → input → devices → navigate → sound → meters → time.
+                    //  Reading order: glance → faith → input → devices → sound → navigate → meters → time.
                     Module {
                         id: weatherPill
                         enterOrder: 0
@@ -2003,16 +2003,9 @@ delegate: Item {
                         }
                     }
 
-                    Workspaces {
-                        id: wsWidget
-                        enterOrder: 4
-                        workspaces: bar.workspaceList
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-
                     Module {
                         id: volPill
-                        enterOrder: 5
+                        enterOrder: 4
                         iconSource: volIconSource
                         label: root.muted ? "MUTE" : root.volumePercent + "%"
                         tint: root.volTint()
@@ -2038,6 +2031,13 @@ delegate: Item {
                             volProc.running = true
                             event.accepted = true
                         }
+                    }
+
+                    Workspaces {
+                        id: wsWidget
+                        enterOrder: 5
+                        workspaces: bar.workspaceList
+                        anchors.verticalCenter: parent.verticalCenter
                     }
 
                     Module {
