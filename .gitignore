@@ -5,3 +5,16 @@
 
 __pycache__/
 *.py[cod]
+
+# Joplin - secrets, database, caches (keep userchrome.css/userstyle.css)
+.config/joplin-desktop/database.sqlite*
+.config/joplin-desktop/resources/
+.config/joplin-desktop/cache/
+.config/joplin-desktop/tmp/
+.config/joplin-desktop/*.log*
+.config/joplin-desktop/lock
+.config/joplin-desktop/ipc_secret_key.txt
+.config/joplin-desktop/settings.json*
+.config/joplin-desktop/window-state-prod.json
+.config/joplin-desktop/JoplinBackup/
+.config/joplin-desktop/spell-checker-migration-done
