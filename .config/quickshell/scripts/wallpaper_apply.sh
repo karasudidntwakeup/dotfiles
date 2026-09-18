@@ -594,7 +594,7 @@ if [ "$PIN_WIDGETS" = "1" ] && [ -f "$COLOR_JS" ]; then
   widget_snapshot="$(python3 - "$COLOR_JS" <<'PY'
 import re, sys
 content = open(sys.argv[1]).read()
-keys = ["ytx_card","ytx_card_light","widget_card","widget_card_light","launcher_card","launcher_card_light","notes_card","notes_card_light","whatsapp_card","whatsapp_card_light","widget_accent","widget_border","widget_error"]
+keys = ["ytx_card","ytx_card_light","widget_card","widget_card_light","launcher_card","launcher_card_light","notes_card","notes_card_light","whatsapp_card","whatsapp_card_light","notif_card","notif_card_light","widget_accent","widget_border","widget_error"]
 lines = []
 for k in keys:
     m = re.findall(r'var\s+%s\s*=\s*"([^"]*)"' % k, content)

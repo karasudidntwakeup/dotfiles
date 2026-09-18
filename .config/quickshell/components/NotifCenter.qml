@@ -17,10 +17,13 @@ Item {
     readonly property int panelMaxHeight: Math.max(120, Math.round(center.height - 40))
     readonly property int listMaxHeight: Math.max(64, center.panelMaxHeight - center.pad * 2 - 30 - 40 - (center.mediaOn ? 224 : 0))
     readonly property bool mediaOn: rootRef && rootRef.mediaStatus !== "none"
+    readonly property string cardTile: "notif_card"
     readonly property color panelColor: {
         var base = rootRef
-            ? (rootRef.qsLight ? rootRef.pillColor("surface") : rootRef.colorOf("surface"))
+            ? (rootRef.qsLight ? rootRef.pillColor(cardTile) : rootRef.colorOf(cardTile))
             : "#15161a"
+        if (rootRef && rootRef.mixColor && rootRef.colorOf)
+            base = rootRef.mixColor(base, rootRef.colorOf("surface_container_highest"), 0.1)
         return Qt.darker(base, 1.2)
     }
     readonly property color panelBorder: rootRef ? rootRef.withAlpha(Qt.color(rootRef.colorOf("widget_border")), rootRef.qsLight ? 0.7 : 0.5) : "#ffffff33"

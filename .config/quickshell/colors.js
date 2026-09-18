@@ -219,6 +219,7 @@ var prayer_light = "#f6c177"
    clipboard -> tertiary_fixed_dim  (peach, distinct from ytx pink)
    notes     -> primary_fixed_dim   (blue, distinct from launcher sapphire)
    whatsapp  -> secondary_fixed_dim (green)
+   notif     -> tertiary_fixed      (rose, distinct from ytx pink)
    prayer    -> secondary_container (yellow) */
 var ytx_card = "#ff83a6"
 
@@ -239,6 +240,10 @@ var notes_card_light = "#8bbec7"
 var whatsapp_card = "#abe9b3"
 
 var whatsapp_card_light = "#abe9b3"
+
+var notif_card = "#ff83a6"
+
+var notif_card_light = "#ff83a6"
 
 var widget_accent = "#8bbec7"
 
