@@ -880,7 +880,8 @@ ShellRoot {
         implicitHeight: root.pillHeight
         radius: root.pillRadius
         color: root.tonalPillColor(tint)
-        border.width: 0
+        border.width: 1
+        border.color: Qt.rgba(1, 1, 1, 0.12)
         property int enterOrder: 0
         property real enterShift: 10
         opacity: 0
@@ -968,7 +969,8 @@ ShellRoot {
         implicitHeight: root.pillHeight
         radius: root.pillRadius
         color: root.tonalPillColor(dc.tint)
-        border.width: 0
+        border.width: 1
+        border.color: Qt.rgba(1, 1, 1, 0.12)
         property int enterOrder: 0
         property real enterShift: 10
         opacity: 0
@@ -1359,7 +1361,8 @@ ShellRoot {
         height: root.pillHeight
         radius: root.pillRadius
         color: root.tonalPillColor(root.pillColor("primary_container"))
-        border.width: 0
+        border.width: 1
+        border.color: Qt.rgba(1, 1, 1, 0.12)
         property int enterOrder: 0
         property real enterShift: 10
         opacity: 0
@@ -2041,7 +2044,8 @@ delegate: Item {
                         implicitHeight: root.pillHeight
                         radius: root.pillRadius
                         color: root.tonalPillColor(tint)
-                        border.width: 0
+                        border.width: 1
+                        border.color: Qt.rgba(1, 1, 1, 0.12)
                         property real enterShift: 10
                         opacity: 0
                         transform: Translate { y: clockPill.enterShift }

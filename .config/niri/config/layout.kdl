@@ -32,10 +32,6 @@ window-rule {
 }
 
 window-rule {
-    match app-id="pcmanfm"
-}
-
-window-rule {
     match app-id=r#"telegram"#
     default-column-width { proportion 0.3; }
 }
