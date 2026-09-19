@@ -325,7 +325,7 @@ Item {
             if (!svc.dnd || n.urgency === NotificationUrgency.Critical) {
                 if (now - svc.lastSoundTime >= 100) {
                     svc.lastSoundTime = now
-                    Quickshell.execDetached(["paplay", Quickshell.env("HOME") + "/.local/share/sounds/bell.oga"])
+                    Quickshell.execDetached(["paplay", Quickshell.env("HOME") + "/.local/share/sounds/ios-rebound.oga"])
                 }
 
                 if (!svc.centerOpen) {

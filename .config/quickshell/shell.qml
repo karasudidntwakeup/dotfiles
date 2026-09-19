@@ -355,7 +355,7 @@ ShellRoot {
                 return
             root.prayerAlerted = true
             Quickshell.execDetached(["sh", "-c",
-                "paplay ~/.local/share/sounds/bell.oga &\n" +
+                "paplay ~/.local/share/sounds/ios-rebound.oga &\n" +
                 "notify-send -u critical -i appointment-soon -t 15000 '" + root.prayerName + "' 'It is time for " + root.prayerName + " 󰦕'"])
             prayerProc.running = true
         }
@@ -657,9 +657,9 @@ ShellRoot {
                 root.timerRunning = false
                 root.timerRemainingMs = 0
                 Quickshell.execDetached(["sh", "-c",
-                    "{ sleep 1; paplay /usr/share/sounds/freedesktop/stereo/alarm-clock-elapsed.oga; } &\n" +
+                    "{ sleep 1; paplay ~/.local/share/sounds/iphone-radar.oga; } &\n" +
                     "resp=$(notify-send -u critical -i alarm-clock -t 10000 -A 'default=Stop' 'Timer' 'Time is up! 󰄉');\n" +
-                    "[ \"$resp\" = \"default\" ] && pkill -f 'paplay .*alarm-clock-elapsed\\.oga'"])
+                    "[ \"$resp\" = \"default\" ] && pkill -f 'paplay .*iphone-radar\\.oga'"])
             } else {
                 root.timerRemainingMs = left
             }
