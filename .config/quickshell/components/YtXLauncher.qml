@@ -1,15 +1,12 @@
 pragma ComponentBehavior: Bound
-
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Effects
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
-
 Item {
     id: ytx
-
     property var rootRef: null
     property bool active: false
     property bool searching: false
@@ -46,14 +43,12 @@ Item {
     // Solid darkened selection bg: the old translucent-accent wash on the
     // pink card measured ~1.1:1 and red-on-pink text ~1.36:1 (unreadable).
     readonly property color selBg: Qt.darker(ytx.accent, 1.5)
-
     // Text/alpha helpers live on root (contrastColor/withAlpha).
     readonly property string fontFamily: uiFont
     readonly property string uiFont: "Geist"
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
     property real animProgress: ytx.active ? 1 : 0
     readonly property int bottomMargin: 24
-
     readonly property string homeDir: Quickshell.env("HOME")
     readonly property string thumbCache: homeDir + "/.cache/rofi-youtube"
     property real thumbTicks: 0
@@ -66,17 +61,14 @@ Item {
     readonly property bool showingHome: !ytx.showingRecent && !ytx.searching && ytx.activeQuery.length === 0
     property var prefetched: ({
     })
-
     Process {
         id: thumbProc
         onExited: () => {
             ytx.thumbTicks++
         }
     }
-
     Process {
         id: homeProc
-
         onExited: (exitCode, exitStatus) => {
             ytx.pendingHome = false;
             if (exitCode === 0 && exitStatus === 0)
@@ -85,26 +77,20 @@ Item {
                 ytx.homeFailed = true;
         }
     }
-
     signal requestClose()
-
     // (alpha helper removed: use rootRef.withAlpha)
-
     function loadRecent() {
         if (recentFile)
             recentFile.reload();
     }
-
     function onRecentData(obj) {
         if (!obj || !obj.entries || !ytx.active || !ytx.showingRecent)
             return ;
-
         var arr = [];
         for (var i = 0; i < obj.entries.length && arr.length < ytx.maxItems; i++) {
             var e = obj.entries[i];
             if (!e || !e.id || !e.url)
                 continue;
-
             arr.push({
                 "title": e.title || "",
                 "vid": e.id,
@@ -116,37 +102,35 @@ Item {
         ytx.videos = arr;
         if (ytx.active)
             ytx.filter(searchField.text);
-
         ytx.prefetchThumbs(arr);
     }
-
     function prefetchThumbs(arr) {
-        if (!ytx.active) return
-        var cmds = [];
+        if (!ytx.active || thumbProc.running) return
+        var downloads = [];
         for (var i = 0; i < arr.length; i++) {
             var v = arr[i];
             if (ytx.prefetched[v.vid])
                 continue;
-
             ytx.prefetched[v.vid] = true;
-            cmds.push("test -s '" + v.thumb + "' || { curl -sfL --max-time 10 " + "'https://i.ytimg.com/vi/" + v.vid + "/mqdefault.jpg' -o '" + v.thumb + ".part' && mv '" + v.thumb + ".part' '" + v.thumb + "'; }");
+            downloads.push("test -s '" + v.thumb + "' || { curl -sfL --max-time 10 " + "'https://i.ytimg.com/vi/" + v.vid + "/mqdefault.jpg' -o '" + v.thumb + ".part' && mv '" + v.thumb + ".part' '" + v.thumb + "'; }");
         }
-        if (cmds.length === 0) return
-        thumbProc.command = ["bash", "-c", cmds.join("; ")];
+        if (downloads.length === 0) {
+            ytx.thumbTicks++;
+            return
+        }
+        thumbProc.command = ["bash", "-c", "mkdir -p '" + ytx.thumbCache + "'\n" + downloads.join("\n")];
+        thumbProc.running = true;
     }
-
     function isSubsequence(sub, str) {
         var i = 0;
         var j = 0;
         while (i < sub.length && j < str.length) {
             if (sub[i] === str[j])
                 i++;
-
             j++;
         }
         return i === sub.length;
     }
-
     function filter(text) {
         var q = text.trim().toLowerCase();
         listModel.clear();
@@ -156,7 +140,6 @@ Item {
             var ok = q.length === 0 || titleLower.indexOf(q) >= 0 || (v.channel.length > 0 && v.channel.toLowerCase().indexOf(q) >= 0) || ytx.isSubsequence(q, titleLower);
             if (!ok)
                 continue;
-
             listModel.append({
                 "title": v.title,
                 "vid": v.vid,
@@ -168,30 +151,25 @@ Item {
         grid.currentIndex = listModel.count > 0 ? 0 : -1;
         grid.positionViewAtBeginning();
     }
-
     function play(args) {
         var cmd = ["bash", Quickshell.shellDir + "/scripts/ytx-play.sh"];
         for (var i = 0; i < args.length; i++)
             cmd.push(args[i]);
         Quickshell.execDetached(cmd);
     }
-
     function activate(asAudio) {
         var idx = grid.currentIndex;
         if (idx < 0 || idx >= listModel.count)
             return ;
-
         var it = listModel.get(idx);
         if (!it.url)
             return ;
-
         if (asAudio)
             ytx.play(["--no-video", "--ytdl-format=bestaudio/best", "--force-media-title=" + it.title, it.url]);
         else
             ytx.play(["--force-media-title=" + it.title, it.url]);
         ytx.requestClose();
     }
-
     function playAll(asAudio) {
         var urls = [];
         for (var i = 0; i < listModel.count; i++) {
@@ -201,7 +179,6 @@ Item {
         }
         if (urls.length === 0)
             return ;
-
         var args = [];
         if (asAudio)
             args.push("--no-video", "--ytdl-format=bestaudio/best");
@@ -210,26 +187,21 @@ Item {
         ytx.play(args);
         ytx.requestClose();
     }
-
     function runSearch(q) {
         var query = q.trim();
         if (query.length === 0)
             return ;
-
         ytx.pendingHome = false;
         ytx.showingRecent = false;
         ytx.homeFailed = false;
-
         ytx.activeQuery = query;
         ytx.searchFailed = false;
         ytx.searching = true;
         Quickshell.execDetached(["bash", Quickshell.shellDir + "/scripts/ytx-search.sh", query]);
     }
-
     function onSearchResults(obj) {
         if (!ytx.searching)
             return ;
-
         ytx.searching = false;
         if (!obj || !obj.results || obj.results.length === 0) {
             ytx.searchFailed = true;
@@ -241,7 +213,6 @@ Item {
             var r = obj.results[i];
             if (!r || !r.id || !r.url)
                 continue;
-
             arr.push({
                 "title": r.title || "",
                 "vid": r.id,
@@ -258,7 +229,6 @@ Item {
         ytx.filter("");
         ytx.prefetchThumbs(arr);
     }
-
     function showRecent() {
         searchField.text = "";
         ytx.videos = [];
@@ -273,7 +243,6 @@ Item {
         ytx.loadRecent();
         ytx.filter(searchField.text);
     }
-
     function ensureHome(force) {
         var switching = !ytx.showingHome;
         searchField.text = "";
@@ -289,21 +258,17 @@ Item {
         homeFile.reload();
         ytx.refreshFeed(force);
     }
-
     function refreshFeed(force) {
         if (homeProc.running)
             return ;
-
         ytx.homeFailed = false;
         ytx.pendingHome = true;
         homeProc.command = ["bash", Quickshell.shellDir + "/scripts/ytx-home.sh", "feed", force ? "force" : ""];
         homeProc.running = true;
     }
-
     function onHomeResults(obj) {
         if (!ytx.showingHome || !ytx.active)
             return ;
-
         ytx.pendingHome = homeProc.running;
         if (!obj || !obj.results || obj.results.length === 0) {
             ytx.homeFailed = true;
@@ -314,7 +279,6 @@ Item {
             var r = obj.results[i];
             if (!r || !r.id || !r.url)
                 continue;
-
             arr.push({
                 "title": r.title || "",
                 "vid": r.id,
@@ -335,15 +299,12 @@ Item {
             ytx.prefetchThumbs(arr);
         }
     }
-
     function gridHeight() {
         var rows = Math.min(Math.ceil(listModel.count / ytx.columns), ytx.visibleRows);
         if (rows < 1)
             rows = 1;
-
         return rows * ytx.cellHeight + (rows - 1) * ytx.gridSpacing;
     }
-
     opacity: ytx.animProgress
     onActiveChanged: {
         if (ytx.active) {
@@ -356,17 +317,15 @@ Item {
             }
             focusRequest.restart();
         } else {
+            ytx.prefetched = ({});
             focusRequest.stop();
         }
     }
-
     ListModel {
         id: listModel
     }
-
     FileView {
         id: searchFile
-
         path: ytx.homeDir + "/.cache/quickshell/ytx-results.json"
         watchChanges: true
         blockLoading: true
@@ -374,7 +333,6 @@ Item {
         onLoaded: {
             if (!ytx.searching)
                 return ;
-
             try {
                 var obj = JSON.parse(String(searchFile.text()));
                 ytx.onSearchResults(obj);
@@ -388,10 +346,8 @@ Item {
             ytx.searching = false;
         }
     }
-
     FileView {
         id: homeFile
-
         path: ytx.homeDir + "/.cache/quickshell/ytx-home.json"
         watchChanges: true
         blockLoading: false
@@ -399,7 +355,6 @@ Item {
         onLoaded: {
             if (!ytx.showingHome)
                 return ;
-
             try {
                 var obj = JSON.parse(String(homeFile.text()));
                 ytx.onHomeResults(obj);
@@ -412,23 +367,19 @@ Item {
         onLoadFailed: (error) => {
             if (!ytx.showingHome)
                 return ;
-
             console.log("[ytx] home results load failed:", error);
             ytx.pendingHome = homeProc.running;
             ytx.homeFailed = true;
         }
     }
-
     FileView {
         id: recentFile
-
         path: ytx.homeDir + "/.config/yt-x/recent.json"
         watchChanges: false
         blockLoading: true
         onLoaded: {
             if (!ytx.showingRecent)
                 return ;
-
             try {
                 var obj = JSON.parse(String(recentFile.text()));
                 ytx.onRecentData(obj);
@@ -440,27 +391,21 @@ Item {
             console.log("[ytx] recent load failed:", error);
         }
     }
-
     Timer {
         id: focusRequest
-
         interval: 40
         repeat: false
         onTriggered: searchField.forceActiveFocus()
     }
-
     Timer {
         id: feedTicker
-
         interval: 300000
         repeat: true
         running: ytx.active && ytx.showingHome
         onTriggered: ytx.refreshFeed(false)
     }
-
     Rectangle {
         id: card
-
 
         width: ytx.cardWidth
         anchors.horizontalCenter: parent.horizontalCenter
@@ -473,7 +418,7 @@ Item {
         clip: true
         layer.enabled: true
         layer.effect: MultiEffect {
-            shadowEnabled: true
+            shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
             shadowBlur: 0.9
             blurMax: 28
             shadowHorizontalOffset: 5
@@ -482,35 +427,28 @@ Item {
             shadowOpacity: 0.95
         }
 
-
         transform: Translate {
             y: (1.0 - ytx.animProgress) * 8
         }
-
         Column {
             id: contentColumn
-
             x: ytx.pad
             y: ytx.pad
             width: ytx.cardWidth - ytx.pad * 2
             spacing: 12
-
             Rectangle {
                 id: searchBox
-
                 width: parent.width
                 height: ytx.searchHeight
                 radius: 8
                 color: rootRef.withAlpha(ytx.fg, 0.08)
                 border.width: 1
-                border.color: searchField.activeFocus ? rootRef.withAlpha(ytx.fg, 0.4) : rootRef.withAlpha(ytx.fg, 0.12)
-
+                border.color: searchField.inputFocus ? rootRef.withAlpha(ytx.fg, 0.4) : rootRef.withAlpha(ytx.fg, 0.12)
                 RowLayout {
                     anchors.fill: parent
                     anchors.leftMargin: 12
                     anchors.rightMargin: 12
                     spacing: 8
-
                     Image {
                         Layout.alignment: Qt.AlignVCenter
                         Layout.preferredWidth: 28
@@ -521,13 +459,11 @@ Item {
                         asynchronous: true
                         source: Qt.resolvedUrl("../assets/youtube.svg")
                     }
-
-                    TextField {
+                    CharField {
                         id: searchField
-
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        color: ytx.fg
+                        textColor: ytx.fg
                         font.family: ytx.uiFont
                         font.pixelSize: ytx.fontSize + 1
                         font.weight: Font.Medium
@@ -552,13 +488,11 @@ Item {
                         Keys.onRightPressed: (event) => {
                             if (grid.currentIndex < listModel.count - 1)
                                 grid.currentIndex++;
-
                             event.accepted = true;
                         }
                         Keys.onLeftPressed: (event) => {
                             if (grid.currentIndex > 0)
                                 grid.currentIndex--;
-
                             event.accepted = true;
                         }
                         Keys.onReturnPressed: (event) => {
@@ -592,29 +526,21 @@ Item {
                             ytx.requestClose();
                             event.accepted = true;
                         }
-
-                        background: Item {
-                        }
-
                     }
-
                     Rectangle {
                         visible: searchField.text.length > 0
                         Layout.preferredWidth: 22
                         Layout.preferredHeight: 22
                         radius: 11
                         color: clearHover.containsMouse ? rootRef.withAlpha(ytx.fg, 0.25) : "transparent"
-
                         QIcon {
                             anchors.centerIn: parent
                             source: Qt.resolvedUrl("../assets/icons/close.svg")
                             color: ytx.fg
                             iconSize: ytx.fontSize + 2
                         }
-
                         MouseArea {
                             id: clearHover
-
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
@@ -627,30 +553,20 @@ Item {
                                     ytx.filter("");
                             }
                         }
-
                         Behavior on color {
                             CAnim { type: CAnim.FastEffects }
-
                         }
-
                     }
-
                 }
-
                 Behavior on border.color {
                     CAnim { type: CAnim.FastEffects }
-
                 }
-
             }
-
             Item {
                 id: statusRow
-
                 width: parent.width
                 height: 22
                 visible: true
-
                 BusyIndicator {
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
@@ -659,7 +575,6 @@ Item {
                     running: ytx.searching || ytx.pendingHome
                     visible: ytx.searching || ytx.pendingHome
                 }
-
                 Text {
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
@@ -672,36 +587,28 @@ Item {
                     font.pixelSize: Math.max(10, ytx.fontSize - 1)
                     color: ytx.searchFailed || ytx.homeFailed ? Qt.rgba(1, 0.45, 0.4, 1) : rootRef.withAlpha(ytx.fg, 0.6)
                 }
-
                 Row {
                     id: chipRow
-
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 8
                     visible: true
-
                     Rectangle {
                         id: homeChip
-
                         width: homeChipLabel.implicitWidth + 20
                         height: 22
                         radius: 11
                         color: homeHover.containsMouse ? rootRef.withAlpha(ytx.fg, 0.2) : rootRef.withAlpha(ytx.fg, 0.08)
-
                         Row {
                             id: homeChipLabel
-
                             anchors.centerIn: parent
                             spacing: 5
-
                             QIcon {
                                 anchors.verticalCenter: parent.verticalCenter
                                 source: Qt.resolvedUrl("../assets/icons/home.svg")
                                 color: ytx.fg
                                 iconSize: Math.max(10, ytx.fontSize - 1)
                             }
-
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: "Home"
@@ -710,10 +617,8 @@ Item {
                                 font.pixelSize: Math.max(10, ytx.fontSize - 2)
                             }
                         }
-
                         MouseArea {
                             id: homeHover
-
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
@@ -724,30 +629,23 @@ Item {
                                 ytx.filter("");
                             }
                         }
-
                     }
-
                     Rectangle {
                         id: recentChip
-
                         width: recentChipLabel.implicitWidth + 20
                         height: 22
                         radius: 11
                         color: recentHover.containsMouse ? rootRef.withAlpha(ytx.fg, 0.2) : rootRef.withAlpha(ytx.fg, 0.08)
-
                         Row {
                             id: recentChipLabel
-
                             anchors.centerIn: parent
                             spacing: 5
-
                             QIcon {
                                 anchors.verticalCenter: parent.verticalCenter
                                 source: Qt.resolvedUrl("../assets/icons/history.svg")
                                 color: ytx.fg
                                 iconSize: Math.max(10, ytx.fontSize - 1)
                             }
-
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: "Recent"
@@ -756,10 +654,8 @@ Item {
                                 font.pixelSize: Math.max(10, ytx.fontSize - 2)
                             }
                         }
-
                         MouseArea {
                             id: recentHover
-
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
@@ -769,29 +665,23 @@ Item {
                                 searchField.forceActiveFocus();
                             }
                         }
-
                     }
-
                     Rectangle {
                         id: refreshChip
-
                         visible: ytx.showingHome
                         enabled: !homeProc.running
                         width: 22
                         height: 22
                         radius: 11
                         color: refreshHover.containsMouse ? rootRef.withAlpha(ytx.fg, 0.2) : rootRef.withAlpha(ytx.fg, 0.08)
-
                         QIcon {
                             anchors.centerIn: parent
                             source: Qt.resolvedUrl("../assets/icons/refresh.svg")
                             color: ytx.fg
                             iconSize: Math.max(10, ytx.fontSize)
                         }
-
                         MouseArea {
                             id: refreshHover
-
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
@@ -799,22 +689,15 @@ Item {
                                 ytx.ensureHome(true);
                             }
                         }
-
                     }
-
                 }
-
             }
-
             Item {
                 id: gridContainer
-
                 width: parent.width
                 height: ytx.gridHeight()
-
                 GridView {
                     id: grid
-
                     anchors.left: parent.left
                     anchors.top: parent.top
                     width: parent.width + ytx.gridSpacing
@@ -826,24 +709,22 @@ Item {
                     clip: true
                     currentIndex: 0
                     highlightFollowsCurrentItem: true
-
-                    // Springy grid motion while filtering.
+                    // Springy grid motion while filtering. Overshoot is moderated from the
+                    // default 2.6 so cells bounce without fully crossing each other.
                     move: Transition {
-                        Anim { property: "x"; type: Anim.BouncyFast }
-                        Anim { property: "y"; type: Anim.BouncyFast }
+                        Anim { property: "x"; type: Anim.BouncyFast; easing.overshoot: 1.5 }
+                        Anim { property: "y"; type: Anim.BouncyFast; easing.overshoot: 1.5 }
                         Anim { property: "opacity"; to: 1; type: Anim.DefaultEffects }
                     }
                     displaced: Transition {
-                        Anim { property: "x"; type: Anim.BouncyFast }
-                        Anim { property: "y"; type: Anim.BouncyFast }
+                        Anim { property: "x"; type: Anim.BouncyFast; easing.overshoot: 1.5 }
+                        Anim { property: "y"; type: Anim.BouncyFast; easing.overshoot: 1.5 }
                     }
                     add: Transition {
                         Anim { property: "opacity"; from: 0; to: 1; type: Anim.DefaultEffects }
                     }
-
                     delegate: Item {
                         id: cell
-
                         required property int index
                         required property string title
                         required property string vid
@@ -851,24 +732,28 @@ Item {
                         required property string thumb
                         readonly property bool isSelected: grid.currentIndex === index
                         readonly property string remoteThumb: "https://i.ytimg.com/vi/" + vid + "/mqdefault.jpg"
+                        readonly property string localThumb: "file://" + thumb + "?v=" + vid + "&t=" + ytx.thumbTicks
+                        property bool localFail: false
+                        onVidChanged: cell.localFail = false
+                        Connections {
+                            target: ytx
+                            function onThumbTicksChanged() {
+                                cell.localFail = false
+                            }
+                        }
 
                         width: ytx.cellWidth
                         height: ytx.cellHeight
-
                         Rectangle {
                             anchors.fill: parent
                             radius: 12
                             color: isSelected ? rootRef.withAlpha(ytx.selBg, 0.28) : "transparent"
                             border.width: isSelected ? 2 : 0
                             border.color: ytx.selBg
-
                             Behavior on color {
                                 CAnim { type: CAnim.FastEffects }
-
                             }
-
                         }
-
                         Column {
                             anchors.fill: parent
                             anchors.topMargin: ytx.cellInset
@@ -876,7 +761,6 @@ Item {
                             anchors.rightMargin: ytx.cellInset
                             anchors.bottomMargin: ytx.cellInset
                             spacing: 7
-
                             Rectangle {
                                 width: ytx.thumbWidth
                                 height: ytx.thumbHeight
@@ -885,14 +769,10 @@ Item {
                                 color: "transparent"
                                 border.width: 1
                                 border.color: rootRef.withAlpha(ytx.fg, 0.15)
-
                                 Image {
                                     id: thumbImg
-
                                     anchors.fill: parent
-                                    source: ytx.thumbTicks > 0
-                                        ? "file://" + thumb + "?t=" + ytx.thumbTicks
-                                        : "https://i.ytimg.com/vi/" + vid + "/mqdefault.jpg"
+                                    source: cell.localFail ? cell.remoteThumb : cell.localThumb
                                     sourceSize: Qt.size(ytx.thumbWidth * 2, ytx.thumbHeight * 2)
                                     fillMode: Image.PreserveAspectCrop
                                     asynchronous: true
@@ -903,31 +783,25 @@ Item {
                                     opacity: status === Image.Ready ? 1 : 0
                                     Behavior on opacity { Anim { type: Anim.DefaultEffects } }
                                     scale: status === Image.Ready ? 1 : 0.9
-                                    Behavior on scale { Anim { type: Anim.BouncyFast } }
+                                    Behavior on scale { Anim { type: Anim.BouncyFast; easing.overshoot: 2.0 } }
                                     transformOrigin: Item.Center
                                     onStatusChanged: {
-                                        if (thumbImg.status === Image.Error && thumbImg.source !== cell.remoteThumb)
-                                            thumbImg.source = cell.remoteThumb;
-
+                                        if (thumbImg.status === Image.Error && !cell.localFail)
+                                            cell.localFail = true;
                                     }
                                 }
-
                                 Rectangle {
                                     visible: thumbImg.status !== Image.Ready
                                     anchors.fill: parent
                                     radius: 8
                                     color: isSelected ? ytx.selBg : rootRef.withAlpha(ytx.fg, 0.08)
                                 }
-
                             }
-
                             Column {
                                 width: parent.width
                                 spacing: 2
-
                                 Text {
                                     id: titleText
-
                                     width: parent.width
                                     height: ytx.titleHeight
                                     text: title
@@ -943,7 +817,6 @@ Item {
                                     color: ytx.fg
                                     lineHeight: 1.2
                                 }
-
                                 Text {
                                     width: parent.width
                                     height: ytx.channelHeight
@@ -955,11 +828,8 @@ Item {
                                     font.pixelSize: Math.max(9, ytx.fontSize - 3)
                                     color: isSelected ? rootRef.withAlpha(ytx.fg, 0.85) : rootRef.withAlpha(ytx.fg, 0.75)
                                 }
-
                             }
-
                         }
-
                         MouseArea {
                             anchors.fill: parent
                             hoverEnabled: true
@@ -969,19 +839,12 @@ Item {
                                 ytx.activate(false);
                             }
                         }
-
                     }
-
                 }
-
             }
-
         }
-
     }
-
     Behavior on animProgress {
         Anim { type: Anim.Bouncy }
     }
-
 }

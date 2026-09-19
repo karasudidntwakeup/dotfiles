@@ -434,6 +434,12 @@ ShellRoot {
         return name
     }
 
+    // Workspace click router: mango tags when available, niri otherwise.
+    function focusTag(idx) {
+        if (mangoIpc.available) mangoIpc.focusWorkspace(idx)
+        else niriIpc.focusWorkspace(idx)
+    }
+
     property string networkText: ""
     property string networkIp: ""
     property bool networkConnected: false
@@ -696,7 +702,7 @@ ShellRoot {
         mountedDisksProc.running = true
         netProc.running = true
         btProc.running = true
-        mediaProc.running = true
+mediaProc.running = true
     }
 
     component NiriIpc: Item {
@@ -893,8 +899,99 @@ ShellRoot {
         Component.onCompleted: Qt.callLater(() => ocProc.running = true)
     }
 
+    // Mango tag source (mmsg). Idle unless running under mango
+    // (MANGO_INSTANCE_SIGNATURE set by the compositor). Niri path untouched.
+    component MangoIpc: Item {
+        id: mango
+
+        readonly property bool available: (Quickshell.env("MANGO_INSTANCE_SIGNATURE") || "").length > 0
+
+        // Same shape as NiriIpc.workspaces so bar/widgets need no changes:
+        // {id, idx (0-based), name, output, active, focused, urgent, occupied}
+        property var workspaces: []
+
+        signal workspacesUpdated()
+
+        function applyPayload(text) {
+            var list = []
+            try {
+                var obj = JSON.parse(text)
+                var groups = obj.all_tags || []
+                for (var g = 0; g < groups.length; g++) {
+                    var mon = groups[g].monitor || ""
+                    var tags = groups[g].tags || []
+                    for (var t = 0; t < tags.length; t++) {
+                        var tg = tags[t]
+                        var num = parseInt(tg.index) || 0
+                        if (num <= 0) continue
+                        list.push({
+                            id: mon + ":" + num,
+                            idx: num - 1,
+                            name: String(num),
+                            output: mon,
+                            active: tg.is_active === true,
+                            focused: tg.is_active === true,
+                            urgent: tg.is_urgent === true,
+                            occupied: (parseInt(tg.client_count) || 0) > 0
+                        })
+                    }
+                }
+            } catch (e) { return }
+            mango.workspaces = list
+            mango.workspacesUpdated()
+        }
+
+        function focusWorkspace(idx) {
+            Quickshell.execDetached(["mmsg", "dispatch", "comboview," + (idx + 1)])
+        }
+
+        function refreshOnce() {
+            if (!mango.available || getProc.running) return
+            getProc.running = true
+        }
+
+        Process {
+            id: getProc
+            command: ["sh", "-c", "mmsg get all-tags 2>/dev/null"]
+            stdout: SplitParser {
+                onRead: data => { if (data) mango.applyPayload(data) }
+            }
+        }
+
+        Process {
+            id: watchProc
+            command: ["sh", "-c", "exec mmsg watch all-tags 2>/dev/null"]
+            running: mango.available
+            stdout: SplitParser {
+                onRead: data => { if (data) mango.applyPayload(data) }
+            }
+            onExited: watchRestart.restart()
+        }
+
+        Timer {
+            id: watchRestart
+            interval: 5000
+            repeat: false
+            onTriggered: { if (mango.available) watchProc.running = true }
+        }
+
+        Timer {
+            id: tagPoller
+            interval: 10000
+            running: mango.available
+            repeat: true
+            onTriggered: mango.refreshOnce()
+        }
+
+        Component.onCompleted: Qt.callLater(() => mango.refreshOnce())
+    }
+
     NiriIpc {
         id: niriIpc
+    }
+
+    MangoIpc {
+        id: mangoIpc
     }
 
     component Module: Rectangle {
@@ -932,7 +1029,7 @@ ShellRoot {
         Behavior on enterShift { Anim { type: Anim.Bouncy } }
         layer.enabled: true
         layer.effect: MultiEffect {
-            shadowEnabled: true
+            shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
             shadowBlur: 0.7
             blurMax: 16
             shadowHorizontalOffset: 3
@@ -1021,7 +1118,7 @@ ShellRoot {
         Behavior on enterShift { Anim { type: Anim.Bouncy } }
         layer.enabled: true
         layer.effect: MultiEffect {
-            shadowEnabled: true
+            shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
             shadowBlur: 0.7
             blurMax: 16
             shadowHorizontalOffset: 3
@@ -1413,7 +1510,7 @@ ShellRoot {
         Behavior on enterShift { Anim { type: Anim.Bouncy } }
         layer.enabled: true
         layer.effect: MultiEffect {
-            shadowEnabled: true
+            shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
             shadowBlur: 0.7
             blurMax: 16
             shadowHorizontalOffset: 3
@@ -1458,7 +1555,7 @@ delegate: Item {
                                 onEntered: parent.hovered = true
                                 onExited: parent.hovered = false
                                 onClicked: {
-                                    if (modelData) niriIpc.focusWorkspace(modelData.idx)
+                                    if (modelData) root.focusTag(modelData.idx)
                                 }
                             }
                         }
@@ -1471,7 +1568,7 @@ delegate: Item {
             if (i < 0) i = 0
             var next = (i + delta + wsWidget.count) % wsWidget.count
             var ws = wsWidget.workspaces[next]
-            if (ws && niriIpc) niriIpc.focusWorkspace(ws.idx)
+            if (ws) root.focusTag(ws.idx)
         }
 
         MouseArea {
@@ -1521,12 +1618,12 @@ delegate: Item {
         }
     }
 
-    function closeOverlays() {
+function closeOverlays() {
         notifSvc.closeCenter()
         root.launcherActive = false
         root.ytxActive = false
-        root.clipboardActive = false
         root.whatsappActive = false
+        root.clipboardActive = false
         root.notesActive = false
         root.closeWallpaperPicker()
     }
@@ -1579,6 +1676,7 @@ delegate: Item {
         color: "transparent"
         WlrLayershell.namespace: "app-launcher"
         WlrLayershell.layer: WlrLayer.Overlay
+        WlrLayershell.keyboardFocus: root.launcherActive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
         anchors.top: true
         anchors.bottom: true
         anchors.left: true
@@ -1616,6 +1714,7 @@ delegate: Item {
         color: "transparent"
         WlrLayershell.namespace: "ytx-picker"
         WlrLayershell.layer: WlrLayer.Overlay
+        WlrLayershell.keyboardFocus: root.ytxActive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
         anchors.top: true
         anchors.bottom: true
         anchors.left: true
@@ -1653,6 +1752,7 @@ delegate: Item {
         color: "transparent"
         WlrLayershell.namespace: "whatsapp-picker"
         WlrLayershell.layer: WlrLayer.Overlay
+        WlrLayershell.keyboardFocus: root.whatsappActive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
         anchors.top: true
         anchors.bottom: true
         anchors.left: true
@@ -1690,6 +1790,7 @@ delegate: Item {
         color: "transparent"
         WlrLayershell.namespace: "clipboard-picker"
         WlrLayershell.layer: WlrLayer.Overlay
+        WlrLayershell.keyboardFocus: root.clipboardActive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
         anchors.top: true
         anchors.bottom: true
         anchors.left: true
@@ -1727,6 +1828,7 @@ delegate: Item {
         color: "transparent"
         WlrLayershell.namespace: "notes-picker"
         WlrLayershell.layer: WlrLayer.Overlay
+        WlrLayershell.keyboardFocus: root.notesActive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
         anchors.top: true
         anchors.bottom: true
         anchors.left: true
@@ -1748,6 +1850,7 @@ delegate: Item {
         color: "transparent"
         WlrLayershell.namespace: "wallpaper-picker"
         WlrLayershell.layer: WlrLayer.Overlay
+        WlrLayershell.keyboardFocus: wallPicker.visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
         anchors.top: true
         anchors.bottom: true
         anchors.left: true
@@ -1869,6 +1972,7 @@ delegate: Item {
         color: "transparent"
         WlrLayershell.namespace: "notification-center"
         WlrLayershell.layer: WlrLayer.Overlay
+        WlrLayershell.keyboardFocus: notifSvc.centerOpen ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
         anchors.top: true
         anchors.bottom: true
         anchors.left: true
@@ -1893,7 +1997,10 @@ delegate: Item {
             id: bar
             property var modelData
             screen: modelData
-            focusable: true
+            // Mango gives keyboard focus to any EXCLUSIVE layer, so a permanently
+            // focusable bar would trap keys (and receive focus after pickers close).
+            // Niri handles this fine, so only gate it under mango.
+            focusable: !mangoIpc.available
 
             anchors.top: true
             margins.top: 12
@@ -1911,7 +2018,9 @@ delegate: Item {
 
             function refreshWorkspaces() {
                 var list = []
-                for (const ws of niriIpc.workspaces) {
+                var src = (mangoIpc.available && mangoIpc.workspaces.length > 0)
+                    ? mangoIpc.workspaces : niriIpc.workspaces
+                for (const ws of src) {
                     if (ws.output === outputName) list.push(ws)
                 }
                 list.sort((a, b) => a.idx - b.idx)
@@ -1920,6 +2029,11 @@ delegate: Item {
 
             Connections {
                 target: niriIpc
+                function onWorkspacesUpdated() { bar.refreshWorkspaces() }
+            }
+
+            Connections {
+                target: mangoIpc
                 function onWorkspacesUpdated() { bar.refreshWorkspaces() }
             }
 
@@ -2017,6 +2131,7 @@ delegate: Item {
                         enterOrder: 4
                         workspaces: bar.workspaceList
                         anchors.verticalCenter: parent.verticalCenter
+                        visible: true
                     }
 
                     Module {
@@ -2095,7 +2210,7 @@ delegate: Item {
                         Behavior on enterShift { Anim { type: Anim.Bouncy } }
                         layer.enabled: true
                         layer.effect: MultiEffect {
-                            shadowEnabled: true
+                            shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
                             shadowBlur: 0.7
                             blurMax: 16
                             shadowHorizontalOffset: 3

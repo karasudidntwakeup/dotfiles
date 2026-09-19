@@ -217,7 +217,7 @@ Item {
         // the shadow off on the same item.
         layer.enabled: true
         layer.effect: MultiEffect {
-            shadowEnabled: true
+            shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
             shadowBlur: 0.8
             blurMax: 20
             shadowHorizontalOffset: 4

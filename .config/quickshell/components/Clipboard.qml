@@ -211,7 +211,7 @@ Item {
         clip: true
         layer.enabled: true
         layer.effect: MultiEffect {
-            shadowEnabled: true
+            shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
             shadowBlur: 0.9
             blurMax: 28
             shadowHorizontalOffset: 5
@@ -357,7 +357,7 @@ Item {
                 radius: 8
                 color: rootRef.withAlpha(clipMgr.fg, 0.06)
                 border.width: 1
-                border.color: searchField.activeFocus
+                border.color: searchField.inputFocus
                     ? rootRef.withAlpha(clipMgr.fg, 0.5)
                     : rootRef.withAlpha(clipMgr.fg, 0.16)
                 Behavior on border.color { CAnim { type: CAnim.FastEffects } }
@@ -375,11 +375,11 @@ Item {
                         Layout.alignment: Qt.AlignVCenter
                     }
 
-                    TextField {
+                    CharField {
                         id: searchField
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        color: clipMgr.fg
+                        textColor: clipMgr.fg
                         font.family: clipMgr.uiFont
                         font.pixelSize: clipMgr.fontSize + 1
                         font.weight: Font.Medium
@@ -387,7 +387,6 @@ Item {
                         placeholderTextColor: rootRef.withAlpha(clipMgr.fg, 0.6)
                         selectByMouse: true
                         verticalAlignment: Text.AlignVCenter
-                        background: Item {}
 
                         onTextEdited: clipMgr.applyFilter(searchField.text)
 

@@ -600,7 +600,7 @@ Item {
         clip: true
         layer.enabled: true
         layer.effect: MultiEffect {
-            shadowEnabled: true
+            shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
             shadowBlur: 0.9
             blurMax: 28
             shadowHorizontalOffset: 5
@@ -724,7 +724,7 @@ Item {
                 radius: 8
                 color: rootRef.withAlpha(wa.fg, 0.08)
                 border.width: 1
-                border.color: searchField.activeFocus ? rootRef.withAlpha(wa.fg, 0.78) : rootRef.withAlpha(wa.fg, 0.12)
+                border.color: searchField.inputFocus ? rootRef.withAlpha(wa.fg, 0.78) : rootRef.withAlpha(wa.fg, 0.12)
 
                 RowLayout {
                     anchors.fill: parent
@@ -740,13 +740,13 @@ Item {
                         smooth: true
                     }
 
-                    TextField {
+                    CharField {
                         id: searchField
 
                         Layout.alignment: Qt.AlignHCenter
                         Layout.preferredWidth: Math.min(360, searchBox.width - 96)
                         Layout.fillHeight: true
-                        color: wa.fg
+                        textColor: wa.fg
                         font.family: wa.uiFont
                         font.pixelSize: wa.fontSize + 1
                         font.weight: Font.Medium
@@ -780,9 +780,6 @@ Item {
                         Keys.onEscapePressed: (event) => {
                             wa.requestClose();
                             event.accepted = true;
-                        }
-
-                        background: Item {
                         }
 
                     }
@@ -1286,7 +1283,7 @@ Item {
                                     delegate: Item {
                                         id: msgItem
 
-                                        required property int index
+required property int index
                                         required property bool fromMe
                                         required property string sender
                                         required property string text
@@ -1564,7 +1561,7 @@ Item {
                                 radius: wa.sendHeight / 2
                                 color: rootRef.withAlpha(wa.fg, 0.06)
                                 border.width: 1
-                                border.color: sendField.activeFocus ? rootRef.withAlpha(wa.fg, 0.35) : rootRef.withAlpha(wa.fg, 0.1)
+                                border.color: sendField.inputFocus ? rootRef.withAlpha(wa.fg, 0.35) : rootRef.withAlpha(wa.fg, 0.1)
 
                                 RowLayout {
                                     anchors.fill: parent
@@ -1572,12 +1569,12 @@ Item {
                                     anchors.rightMargin: 6
                                     spacing: 8
 
-                                    TextField {
+                                    CharField {
                                         id: sendField
 
                                         Layout.fillWidth: true
                                         Layout.fillHeight: true
-                                        color: wa.fg
+                                        textColor: wa.fg
                                         font.family: wa.arabicFont
                                         font.pixelSize: wa.fontSize
                                         selectByMouse: true
@@ -1590,9 +1587,6 @@ Item {
                                         Keys.onEscapePressed: (event) => {
                                             searchField.forceActiveFocus();
                                             event.accepted = true;
-                                        }
-
-                                        background: Item {
                                         }
 
                                     }

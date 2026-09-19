@@ -43,9 +43,11 @@ for side in ("open", "close"):
         continue
     src = f.read_text()
     assert '"#' not in src, f"{f}: cannot embed in KDL raw string"
+    dur_file = d / name / f"duration-{side}"
+    dur = dur_file.read_text().strip() if dur_file.exists() else ms
     lines += [
         f"    window-{side} {{",
-        f"        duration-ms {ms}",
+        f"        duration-ms {dur}",
         '        curve "linear"',
         f'        custom-shader r#"{src}"#',
         "    }",

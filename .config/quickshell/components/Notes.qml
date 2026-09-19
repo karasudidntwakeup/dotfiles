@@ -251,7 +251,7 @@ Item {
         clip: true
         layer.enabled: true
         layer.effect: MultiEffect {
-            shadowEnabled: true
+            shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
             shadowBlur: 0.9
             blurMax: 28
             shadowHorizontalOffset: 5
@@ -390,7 +390,7 @@ Item {
                 radius: 8
                 color: rootRef.withAlpha(notes.accent, 0.18)
                 border.width: 1
-                border.color: notesField.activeFocus
+                border.color: notesField.inputFocus
                     ? rootRef.withAlpha(notes.accent, 0.7)
                     : rootRef.withAlpha(notes.fg, 0.12)
                 Behavior on border.color { CAnim { type: CAnim.FastEffects } }
@@ -408,11 +408,11 @@ Item {
                         Layout.alignment: Qt.AlignVCenter
                     }
 
-                    TextField {
+                    CharField {
                         id: notesField
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        color: notes.fg
+                        textColor: notes.fg
                         font.family: notes.uiFont
                         font.pixelSize: notes.fontSize + 1
                         font.weight: Font.Medium
@@ -420,7 +420,6 @@ Item {
                         placeholderTextColor: rootRef.withAlpha(notes.fg, 0.6)
                         selectByMouse: true
                         verticalAlignment: Text.AlignVCenter
-                        background: Item {}
 
                         onAccepted: notes.saveNote()
 
@@ -477,7 +476,7 @@ Item {
                 radius: 8
                 color: rootRef.withAlpha(notes.fg, 0.08)
                 border.width: 1
-                border.color: searchField.activeFocus
+                border.color: searchField.inputFocus
                     ? rootRef.withAlpha(notes.fg, 0.6)
                     : rootRef.withAlpha(notes.fg, 0.12)
                 Behavior on border.color { CAnim { type: CAnim.FastEffects } }
@@ -495,11 +494,11 @@ Item {
                         Layout.alignment: Qt.AlignVCenter
                     }
 
-                    TextField {
+                    CharField {
                         id: searchField
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        color: notes.fg
+                        textColor: notes.fg
                         font.family: notes.uiFont
                         font.pixelSize: notes.fontSize + 1
                         font.weight: Font.Medium
@@ -507,7 +506,6 @@ Item {
                         placeholderTextColor: rootRef.withAlpha(notes.fg, 0.6)
                         selectByMouse: true
                         verticalAlignment: Text.AlignVCenter
-                        background: Item {}
 
                         onTextEdited: notes.applyFilter(searchField.text)
 

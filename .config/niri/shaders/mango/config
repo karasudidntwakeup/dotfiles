@@ -1,0 +1,4 @@
+mango
+1:1 replica of mango compositor animations.
+Open: zoom 0.3->0.7 + fade 0.6->1, 400ms, bezier(0.46,1,0.29,1.1).
+Close: pure fade 0.8->0, 800ms, bezier(0.08,0.92,0,1).

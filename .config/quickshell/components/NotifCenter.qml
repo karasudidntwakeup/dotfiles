@@ -101,7 +101,7 @@ Item {
         clip: true
         layer.enabled: true
         layer.effect: MultiEffect {
-            shadowEnabled: true
+            shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
             shadowBlur: 0.9
             blurMax: 28
             shadowHorizontalOffset: 5

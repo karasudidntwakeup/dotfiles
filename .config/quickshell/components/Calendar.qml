@@ -420,7 +420,7 @@ PanelWindow {
         clip: true
         layer.enabled: true
         layer.effect: MultiEffect {
-            shadowEnabled: true
+            shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
             shadowBlur: 0.9
             blurMax: 28
             shadowHorizontalOffset: 5
@@ -850,19 +850,18 @@ PanelWindow {
                                         }
                                     }
 
-                                    TextField {
+                                    CharField {
                                         id: entryInput
                                         visible: !saved
                                         Layout.fillWidth: true
                                         Layout.fillHeight: true
                                         text: entryText
-                                        color: calPopup.popupFg
+                                        textColor: calPopup.popupFg
                                         font.family: rootRef.uiFont
                                         font.pixelSize: rootRef.fontSize
                                         selectByMouse: true
-                                        background: Item {}
-                                        onActiveFocusChanged: {
-                                            if (activeFocus) calPopup.selectEntry(entryId)
+                                        onInputFocusChanged: {
+                                            if (inputFocus) calPopup.selectEntry(entryId)
                                         }
                                         onAccepted: calPopup.saveEntry(entryId, entryInput.text)
                                     }

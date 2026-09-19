@@ -278,7 +278,7 @@ Item {
         clip: true
         layer.enabled: true
         layer.effect: MultiEffect {
-            shadowEnabled: true
+            shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
             shadowBlur: 0.9
             blurMax: 28
             shadowHorizontalOffset: 5
@@ -562,12 +562,12 @@ Item {
                 height: launcher.searchHeight
                 radius: 12
                 // Pops a little when focused for typing.
-                scale: searchField.activeFocus ? 1.02 : 1.0
+                scale: searchField.inputFocus ? 1.02 : 1.0
                 Behavior on scale { Anim { type: Anim.BouncyFast } }
                 transformOrigin: Item.Center
                 color: rootRef.withAlpha(launcher.fg, 0.08)
                 border.width: 1
-                border.color: searchField.activeFocus
+                border.color: searchField.inputFocus
                     ? rootRef.withAlpha(launcher.fg, 0.4)
                     : rootRef.withAlpha(launcher.fg, 0.12)
                 Behavior on border.color { CAnim { type: CAnim.FastEffects } }
@@ -585,11 +585,11 @@ Item {
                         iconSize: launcher.fontSize + 3
                     }
 
-                    TextField {
+                    CharField {
                         id: searchField
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        color: launcher.fg
+                        textColor: launcher.fg
                         font.family: launcher.uiFont
                         font.pixelSize: launcher.fontSize + 1
                         font.weight: Font.Medium
@@ -597,7 +597,6 @@ Item {
                         placeholderTextColor: rootRef.withAlpha(launcher.fg, 0.6)
                         selectByMouse: true
                         verticalAlignment: Text.AlignVCenter
-                        background: Item {}
 
                         onTextEdited: launcher.filterApps(searchField.text)
 
