@@ -196,6 +196,110 @@ ShellRoot {
     property string memTotalText: ""
 
     property var mountedDisks: []
+    property var removableDrives: []
+    property string removableError: ""
+
+    function refreshRemovable() {
+        if (!removableProc.running) removableProc.running = true
+    }
+
+    function removableAction(args) {
+        removableCmd.command = args
+        removableCmd.running = true
+    }
+
+    function mountVolume(devPath) {
+        root.removableAction(["udisksctl", "mount", "-b", devPath])
+    }
+
+    function unmountVolume(devPath) {
+        root.removableAction(["udisksctl", "unmount", "-b", devPath])
+    }
+
+    function ejectDrive(devPath) {
+        // Unmount every volume first, then power the drive down.
+        var vols = []
+        for (var i = 0; i < root.removableDrives.length; i++) {
+            var d = root.removableDrives[i]
+            if (d && d.dev === devPath && d.volumes) vols = d.volumes
+        }
+        var mounts = []
+        for (var j = 0; j < vols.length; j++)
+            if (vols[j] && vols[j].mount) mounts.push(vols[j].path)
+        var script = "disk=\"$1\"; shift; "
+                   + "for v in \"$@\"; do udisksctl unmount -b \"$v\" >/dev/null 2>&1; done; "
+                   + "udisksctl power-off -b \"$disk\""
+        root.removableAction(["sh", "-c", script, "eject", devPath] + mounts)
+    }
+
+    function openMount(mountPoint) {
+        // Goes through xdg-open, which is configured system-wide to open
+        // directories in foot (foot-open.desktop handles inode/directory).
+        if (mountPoint) Quickshell.execDetached(["xdg-open", mountPoint])
+    }
+
+    Process {
+        id: removableProc
+        command: ["sh", "-c", Quickshell.shellDir + "/scripts/removable.sh"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    var arr = JSON.parse(this.text)
+                    if (arr instanceof Array) {
+                        // Guard: keep the old reference when nothing changed so
+                        // the NotifCenter repeater doesn't rebuild every poll.
+                        if (JSON.stringify(arr) !== JSON.stringify(root.removableDrives))
+                            root.removableDrives = arr
+                        root.removableError = ""
+                    }
+                } catch (e) {
+                    root.removableError = "Could not read drives"
+                }
+            }
+        }
+        onExited: code => { if (code !== 0) root.removableError = "Could not read drives" }
+    }
+
+    Process {
+        id: removableCmd
+        onExited: code => {
+            // Re-read drive + disk state after any mount/unmount/eject.
+            Qt.callLater(() => {
+                root.refreshRemovable()
+                mountedDisksProc.running = true
+            })
+        }
+    }
+
+    // Event-driven refresh: removableWatch blocks on udisks2 D-Bus signals
+    // (attach / detach / mount / unmount) and prints one line per event.
+    // Bursts (one plug = several signals) are coalesced by the debounce timer.
+    Process {
+        id: removableWatch
+        command: ["sh", "-c", Quickshell.shellDir + "/scripts/removable_watch.sh"]
+        running: true
+        stdout: SplitParser {
+            onRead: data => {
+                if (data && data.indexOf("refresh") >= 0 && !removableDebounce.running)
+                    removableDebounce.restart()
+            }
+        }
+        onExited: watchRestart.restart()
+    }
+
+    Timer {
+        id: removableDebounce
+        interval: 600
+        repeat: false
+        onTriggered: root.refreshRemovable()
+    }
+
+    Timer {
+        id: watchRestart
+        interval: 5000
+        repeat: false
+        onTriggered: { if (!removableWatch.running) removableWatch.running = true }
+    }
 
     Process {
         id: weatherProc
@@ -700,6 +804,7 @@ ShellRoot {
         prayerProc.running = true
         memProc.running = true
         mountedDisksProc.running = true
+        root.refreshRemovable()
         netProc.running = true
         btProc.running = true
 mediaProc.running = true

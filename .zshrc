@@ -46,9 +46,6 @@ zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
 ##
 #PS1="%B%{$fg[red]%}[%{$fg[yellow]%}%n%{$fg[green]%}@%{$fg[blue]%}%M %{$fg[magenta]%}%~%{$fg[red]%}]%{$reset_color%}   $%b "
-
-#ZSH_THEME="powerlevel10k"
-
 # ── Shell options ─────────────────────────
 setopt autocd
 setopt interactive_comments
@@ -75,7 +72,7 @@ export SDL_VIDEODRIVER=wayland
 export QT_QPA_PLATFORM=wayland
 
 #alias
-alias backup-keys='sudo rsync -rv --delete --exclude="S.gpg-agent*" --exclude="S.keyboxd*" ~/.gnupg ~/.password-store /media/'
+alias backup-keys='sudo rsync -rv --delete --exclude="S.gpg-agent*" --exclude="S.keyboxd*" ~/.gnupg ~/.password-store /run/media/$USER/External/'
 alias nightmode='gammastep -m wayland -P -O 4500'
 alias cp='\rsync -av --progress'
 alias mv='\rsync -av --progress --remove-source-files'
@@ -89,14 +86,14 @@ alias u='topgrade'
 alias i='doas pacman -S '
 alias r='doas pacman -Rnscu '
 alias lta='eza --tree --icons --sort=newest'
-alias ls=' eza  --icons --color=always --group-directories-first --classify --sort=newest'
+alias ls=' eza  --icons --color=always --group-directories-first  --sort=newest'
 alias l='eza -al --icons --color=always --group-directories-first --sort=newest'
 alias sl='eza --icons --sort=newest'
 alias sxiv='nsxiv'
 alias 00='loginctl poweroff'
 alias 01='loginctl reboot'
-alias x='dbus-run-session niri --session'
-alias m='dbus-run-session mango'
+alias m='dbus-run-session niri --session'
+alias x='dbus-run-session mango'
 alias ip='ip --color=auto'
 alias netstat='/usr/bin/grc --colour=auto netstat'
 alias df='/usr/bin/grc --colour=auto df'

@@ -19,7 +19,20 @@ Item {
     readonly property int weekHeight: 288
     readonly property int mountedDiskCount: rootRef && rootRef.mountedDisks ? rootRef.mountedDisks.length : 0
     readonly property int mountedDisksHeight: Math.ceil(center.mountedDiskCount / 2) * 106
-    readonly property int listMaxHeight: Math.max(64, center.panelMaxHeight - center.pad * 2 - 30 - 40 - center.mountedDisksHeight - (center.weekOn ? center.weekHeight + 10 : 0) - (center.mediaOn ? 224 + 10 : 0))
+    readonly property var removableList: rootRef && rootRef.removableDrives ? rootRef.removableDrives : []
+    readonly property int removableCount: center.removableList.length
+    // Header (~30) + per-drive card (~64 + 40/volume), + spacing.
+    readonly property int removableHeight: {
+        if (center.removableCount === 0) return 0
+        var h = 38
+        for (var i = 0; i < center.removableList.length; i++) {
+            var d = center.removableList[i]
+            var vols = (d && d.volumes) ? d.volumes.length : 0
+            h += 72 + Math.max(1, vols) * 40 + 8
+        }
+        return h
+    }
+    readonly property int listMaxHeight: Math.max(64, center.panelMaxHeight - center.pad * 2 - 30 - 40 - center.mountedDisksHeight - center.removableHeight - (center.weekOn ? center.weekHeight + 10 : 0) - (center.mediaOn ? 224 + 10 : 0))
     readonly property bool mediaOn: rootRef && rootRef.mediaStatus !== "none"
     readonly property string cardTile: "notif_card"
     readonly property color panelColor: {
@@ -71,7 +84,49 @@ Item {
         return [(min - center.weekLo) / span, Math.max(0.06, (max - min) / span)]
     }
 
-    // Text helper lives on root (contrastColor).
+    // Removable-drive helpers (port of wian47.removable-drives, simple scope:
+    // mount / open / unmount / safely eject USB sticks, SD cards, ext. drives).
+    function fmtSizeGB(gb) {
+        var n = parseFloat(gb)
+        if (!isFinite(n) || n <= 0) return ""
+        if (n >= 1024) return (n / 1024).toFixed(1) + " TB"
+        return n.toFixed(n >= 100 ? 0 : 1) + " GB"
+    }
+    function driveName(d) {
+        if (!d) return "Drive"
+        var parts = []
+        if (d.vendor) parts.push(d.vendor)
+        if (d.model) parts.push(d.model)
+        if (parts.length > 0) return parts.join(" ")
+        if (d.volumes && d.volumes.length === 1 && d.volumes[0].label)
+            return d.volumes[0].label
+        return d.dev || "Drive"
+    }
+    function volTitle(v) {
+        if (!v) return ""
+        if (v.label) return v.label
+        var fs = (v.fstype || "").toUpperCase()
+        var dev = (v.path || "").replace("/dev/", "")
+        return (fs ? fs + " · " : "") + dev
+    }
+    function diskFreeText(mount) {
+        if (!mount || !rootRef || !rootRef.mountedDisks) return ""
+        for (var i = 0; i < rootRef.mountedDisks.length; i++) {
+            var m = rootRef.mountedDisks[i]
+            if (m && m.mount === mount) return m.free + "G free of " + m.total + "G"
+        }
+        return ""
+    }
+
+    // Refresh the drive list every time the center opens.
+    Connections {
+        target: center.svc
+        enabled: center.svc !== null
+        function onCenterOpenChanged() {
+            if (center.svc && center.svc.centerOpen && center.rootRef)
+                center.rootRef.refreshRemovable()
+        }
+    }
     property real animProgress: svc && svc.centerOpen ? 1.0 : 0.0
     Behavior on animProgress {
         Anim { type: Anim.Bouncy }
@@ -616,6 +671,171 @@ Item {
                 }
             }
 
+            // Removable drives (USB sticks, SD cards, external drives):
+            // mount, open, unmount and safely eject without a terminal.
+            ColumnLayout {
+                Layout.fillWidth: true
+                visible: center.removableCount > 0
+                spacing: 8
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 30
+                    spacing: 8
+
+                    QIcon {
+                        source: Qt.resolvedUrl("../assets/icons/y2k-folder.svg")
+                        color: center.muteFg
+                        iconSize: center.fontSize + 4
+                        Layout.alignment: Qt.AlignVCenter
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: "Removable" + (center.removableCount > 1 ? " · " + center.removableCount : "")
+                        color: center.muteFg
+                        font.family: center.uiFont
+                        font.pixelSize: center.fontSize
+                        font.weight: Font.DemiBold
+                        elide: Text.ElideRight
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    HeaderBtn {
+                        iconSource: Qt.resolvedUrl("../assets/icons/refresh.svg")
+                        active: false
+                        onTapped: { if (rootRef) rootRef.refreshRemovable() }
+                    }
+                }
+
+                Repeater {
+                    model: center.removableList
+                    delegate: Rectangle {
+                        required property var modelData
+                        property var drive: modelData
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: driveCol.implicitHeight + 20
+                        radius: 0
+                        color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.04)
+                        border.width: 1
+                        border.color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.09)
+                        clip: true
+
+                        ColumnLayout {
+                            id: driveCol
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.top: parent.top
+                            anchors.margins: 10
+                            spacing: 6
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 8
+
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 1
+
+                                    Text {
+                                        Layout.fillWidth: true
+                                        text: center.driveName(drive)
+                                        color: center.fg
+                                        font.family: center.uiFont
+                                        font.pixelSize: center.fontSize + 1
+                                        font.weight: Font.Bold
+                                        elide: Text.ElideRight
+                                        maximumLineCount: 1
+                                    }
+
+                                    Text {
+                                        Layout.fillWidth: true
+                                        text: {
+                                            var size = center.fmtSizeGB(drive.sizeGB)
+                                            var dev = (drive.dev || "").replace("/dev/", "")
+                                            return (size ? size + " · " : "") + dev
+                                        }
+                                        color: center.muteFg
+                                        font.family: center.uiFont
+                                        font.pixelSize: center.fontSize - 2
+                                        elide: Text.ElideRight
+                                        maximumLineCount: 1
+                                    }
+                                }
+
+                                DriveBtn {
+                                    label: "Eject"
+                                    accent: true
+                                    onTapped: { if (rootRef) rootRef.ejectDrive(drive.dev) }
+                                }
+                            }
+
+                            Repeater {
+                                model: drive.volumes || []
+                                delegate: RowLayout {
+                                    required property var modelData
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 30
+                                    spacing: 8
+
+                                    Rectangle {
+                                        Layout.preferredWidth: 6
+                                        Layout.fillHeight: true
+                                        radius: 0
+                                        color: modelData.mount ? center.accent : Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.25)
+                                    }
+
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 0
+
+                                        Text {
+                                            Layout.fillWidth: true
+                                            text: center.volTitle(modelData)
+                                            color: center.fg
+                                            font.family: center.uiFont
+                                            font.pixelSize: center.fontSize
+                                            font.weight: Font.Medium
+                                            elide: Text.ElideRight
+                                            maximumLineCount: 1
+                                        }
+
+                                        Text {
+                                            Layout.fillWidth: true
+                                            visible: text.length > 0
+                                            text: modelData.mount
+                                                ? (modelData.mount + (center.diskFreeText(modelData.mount).length > 0 ? " · " + center.diskFreeText(modelData.mount) : ""))
+                                                : "Not mounted"
+                                            color: center.muteFg
+                                            font.family: center.uiFont
+                                            font.pixelSize: center.fontSize - 2
+                                            elide: Text.ElideRight
+                                            maximumLineCount: 1
+                                        }
+                                    }
+
+                                    DriveBtn {
+                                        visible: !modelData.mount
+                                        label: "Mount"
+                                        onTapped: { if (rootRef) rootRef.mountVolume(modelData.path) }
+                                    }
+                                    DriveBtn {
+                                        visible: !!modelData.mount
+                                        label: "Open"
+                                        onTapped: { if (rootRef) rootRef.openMount(modelData.mount) }
+                                    }
+                                    DriveBtn {
+                                        visible: !!modelData.mount
+                                        label: "Unmount"
+                                        onTapped: { if (rootRef) rootRef.unmountVolume(modelData.path) }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             Rectangle {
                 id: listWrap
                 Layout.fillWidth: true
@@ -796,6 +1016,47 @@ Item {
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onClicked: btn.tapped()
+        }
+    }
+
+    // Small text pill button for drive actions (Mount / Open / Unmount / Eject).
+    component DriveBtn: Item {
+        id: dbtn
+        property string label: ""
+        property bool accent: false
+        signal tapped()
+
+        Layout.preferredHeight: 26
+        Layout.minimumWidth: 58
+        implicitWidth: Math.max(58, dbtnLabel.implicitWidth + 20)
+
+        Rectangle {
+            anchors.fill: parent
+            radius: 0
+            color: dbtn.accent
+                ? Qt.rgba(center.accent.r, center.accent.g, center.accent.b, 0.28)
+                : (dbHover.containsMouse ? Qt.rgba(1, 1, 1, 0.16) : Qt.rgba(1, 1, 1, 0.08))
+            border.width: 1
+            border.color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.14)
+            Behavior on color { CAnim { type: CAnim.FastEffects } }
+
+            Text {
+                id: dbtnLabel
+                anchors.centerIn: parent
+                text: dbtn.label
+                color: center.fg
+                font.family: center.uiFont
+                font.pixelSize: center.fontSize - 1
+                font.weight: Font.DemiBold
+            }
+
+            MouseArea {
+                id: dbHover
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: dbtn.tapped()
+            }
         }
     }
 
