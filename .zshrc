@@ -75,7 +75,7 @@ export SDL_VIDEODRIVER=wayland
 export QT_QPA_PLATFORM=wayland
 
 #alias
-alias backup-keys='sudo rsync -rv --delete --exclude="S.gpg-agent*" --exclude="S.keyboxd*" ~/.gnupg ~/.password-store /mnt/'
+alias backup-keys='sudo rsync -rv --delete --exclude="S.gpg-agent*" --exclude="S.keyboxd*" ~/.gnupg ~/.password-store /media/'
 alias nightmode='gammastep -m wayland -P -O 4500'
 alias cp='\rsync -av --progress'
 alias mv='\rsync -av --progress --remove-source-files'
@@ -96,6 +96,7 @@ alias sxiv='nsxiv'
 alias 00='loginctl poweroff'
 alias 01='loginctl reboot'
 alias x='dbus-run-session niri --session'
+alias m='dbus-run-session mango'
 alias ip='ip --color=auto'
 alias netstat='/usr/bin/grc --colour=auto netstat'
 alias df='/usr/bin/grc --colour=auto df'
