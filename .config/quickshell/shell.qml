@@ -1657,24 +1657,21 @@ function closeOverlays() {
         root.whatsappActive = false
         root.clipboardActive = false
         root.notesActive = false
-        root.closeWallpaperPicker()
+        root.wallpaperActive = false
     }
 
+    property bool wallpaperActive: false
+
     function openWallpaperPicker() {
-        if (wallPicker.visible || openAnim.running) return
+        if (root.wallpaperActive) return
         root.closeOverlays()
-        pickerContent.opacity = 0
-        pickerContent.anchors.topMargin = -24
-        pickerContent.anchors.bottomMargin = 24
-        wallPicker.visible = true
-        openAnim.start()
+        root.wallpaperActive = true
     }
     function closeWallpaperPicker() {
-        if (!wallPicker.visible || closeAnim.running) return
-        closeAnim.start()
+        root.wallpaperActive = false
     }
     function toggleWallpaperPicker() {
-        if (wallPicker.visible) closeWallpaperPicker()
+        if (root.wallpaperActive) closeWallpaperPicker()
         else openWallpaperPicker()
     }
 
@@ -1875,11 +1872,11 @@ function closeOverlays() {
 
     PanelWindow {
         id: wallPicker
-        visible: false
+        visible: root.wallpaperActive || pickerContent.animProgress > 0.001
         color: "transparent"
         WlrLayershell.namespace: "wallpaper-picker"
         WlrLayershell.layer: WlrLayer.Overlay
-        WlrLayershell.keyboardFocus: wallPicker.visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+        WlrLayershell.keyboardFocus: root.wallpaperActive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
         anchors.top: true
         anchors.bottom: true
         anchors.left: true
@@ -1888,6 +1885,7 @@ function closeOverlays() {
         WallpaperPicker {
             id: pickerContent
             anchors.fill: parent
+            visible_: root.wallpaperActive
             currentMode: root.qsLight ? "light" : "dark"
 
             surfaceColor: "#17181c"
@@ -1896,74 +1894,12 @@ function closeOverlays() {
             accentColor: Qt.color(root.colorOf("primary"))
             iconFont: root.iconFont
             uiFont: root.uiFont
-            onRequestClose: root.closeWallpaperPicker()
+            onRequestClose: root.wallpaperActive = false
         }
 
         onVisibleChanged: {
-            pickerContent.visible_ = visible
             if (visible) {
                 pickerContent.triggerIndexer()
-            }
-        }
-    }
-
-    SequentialAnimation {
-        id: openAnim
-        running: false
-        ParallelAnimation {
-            Anim {
-                target: pickerContent
-                property: "opacity"
-                from: 0
-                to: 1
-                type: Anim.DefaultEffects
-            }
-            Anim {
-                target: pickerContent
-                property: "anchors.topMargin"
-                from: -24
-                to: 0
-                type: Anim.Bouncy
-            }
-            Anim {
-                target: pickerContent
-                property: "anchors.bottomMargin"
-                from: 24
-                to: 0
-                type: Anim.Bouncy
-            }
-        }
-    }
-
-    SequentialAnimation {
-        id: closeAnim
-        running: false
-        ParallelAnimation {
-            Anim {
-                target: pickerContent
-                property: "opacity"
-                to: 0
-                type: Anim.DefaultEffects
-            }
-            Anim {
-                target: pickerContent
-                property: "anchors.topMargin"
-                to: 24
-                type: Anim.BouncyFast
-            }
-            Anim {
-                target: pickerContent
-                property: "anchors.bottomMargin"
-                to: -24
-                type: Anim.BouncyFast
-            }
-        }
-        ScriptAction {
-            script: {
-                wallPicker.visible = false
-                pickerContent.anchors.topMargin = 0
-                pickerContent.anchors.bottomMargin = 0
-                pickerContent.opacity = 1
             }
         }
     }

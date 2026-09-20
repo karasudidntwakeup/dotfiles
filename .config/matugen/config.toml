@@ -3,8 +3,9 @@
 contrast = 1.0
 # Fallback if image extraction fails
 [config.wallpaper]
-# Automatecally set wallpaper using a command
-set = true
+# Wallpaper is set once by quickshell's wallpaper_apply.sh (fast fade, before
+# theming) — keep the matugen hook off so every apply doesn't set it twice.
+set = false
 command = "awww img  {{ image }}"
 [templates.foot]
 input_path = '~/.config/matugen/templates/foot.ini'

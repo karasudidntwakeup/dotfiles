@@ -1,5 +1,6 @@
+// No solid overview backdrop — transparent so the wallpaper stays visible.
 overview {
-    backdrop-color "{{colors.background.dark.hex}}"
+    backdrop-color "transparent"
 }
 
 layout {

@@ -20,6 +20,13 @@ Item {
 
     signal requestClose()
     property bool visible_: false
+    // Fade/slide driven by visible_ (same animProgress pattern as the other
+    // pickers). The PanelWindow stays alive until this reaches ~0 so close
+    // animates instead of vanishing. Transform-only: no layout work per frame.
+    property real animProgress: visible_ ? 1.0 : 0.0
+    Behavior on animProgress { Anim { type: Anim.Bouncy } }
+    opacity: animProgress
+    transform: Translate { y: (1.0 - animProgress) * 24 }
     property string currentPath: ""
 
     property color surfaceColor: "#101013"
@@ -115,11 +122,14 @@ Item {
         running: false
         command: ["python3", window.scriptDir + "/color_extract.py", window.srcDir, window.cacheDir]
         stdout: StdioCollector { onStreamFinished: Qt.callLater(() => listFile.reload()) }
+        stderr: StdioCollector {}
         onExited: Qt.callLater(() => listFile.reload())
     }
 
     function triggerIndexer() {
-        indexer.running = false
+        // Never overlap runs: the previous run reloads the manifest on exit,
+        // and FolderListModel re-fires Ready when the dir actually changes.
+        if (indexer.running) return
         indexer.running = true
     }
 
@@ -136,9 +146,14 @@ Item {
     }
 
     function jumpToCurrent() {
+        if (window.displayModel.length === 0) {
+            view.currentIndex = -1
+            return
+        }
         var path = window.currentPath
         if (path === "") {
-            view.currentIndex = Math.max(0, Math.min(window.displayModel.length - 1, view.currentIndex))
+            if (view.currentIndex < 0) view.currentIndex = 0
+            else view.currentIndex = Math.max(0, Math.min(window.displayModel.length - 1, view.currentIndex))
             return
         }
         var best = -1
@@ -154,7 +169,9 @@ Item {
 
     function stepToNextValidIndex(direction) {
         if (window.isApplying || window.showPanel || window.displayModel.length === 0) return
-        var next = view.currentIndex + direction
+        var next = view.currentIndex < 0
+            ? (direction > 0 ? 0 : window.displayModel.length - 1)
+            : view.currentIndex + direction
         if (next >= 0 && next < window.displayModel.length) view.currentIndex = next
     }
 
@@ -170,29 +187,49 @@ Item {
     property string currentMode: "dark"
     property string applyMode: currentMode
     property string applyError: ""
+    // Live stage reported by wallpaper_apply.sh (@@stage lines on stdout).
+    property string applyStatus: ""
 
     function openPanel(index) {
         if (window.isApplying || window.showPanel || index < 0 || index >= window.displayModel.length) return
         window.selectedItem = window.displayModel[index]
         window.applyMode = window.currentMode
         window.applyError = ""
+        window.applyStatus = ""
         window.showPanel = true
     }
 
-    property var applyArgs: []
+    function parseApplyStage(line) {
+        var t = String(line || "").trim()
+        if (t.indexOf("@@stage ") !== 0) return
+        var stage = t.substring(8)
+        if (stage === "wallpaper") window.applyStatus = "Setting wallpaper…"
+        else if (stage === "theme") window.applyStatus = "Generating theme…"
+    }
+
+    // Non-empty initial command so the QStringList binding never sees [undefined].
+    property var applyArgs: ["true"]
     function confirmApply() {
         if (!window.selectedItem || window.isApplying) return
         window.applyError = ""
+        window.applyStatus = "Starting…"
         window.isApplying = true
         window.applyArgs = ["bash", window.scriptDir + "/wallpaper_apply.sh",
                             window.selectedItem.filePath, window.applyMode]
-        applyProc.running = true
+        // Restart cleanly on the next tick so the command binding (applyArgs)
+        // has propagated before the process spawns.
+        applyProc.running = false
+        Qt.callLater(function() { applyProc.running = true })
     }
 
     Process {
         id: applyProc
         running: false
         command: window.applyArgs
+        stdout: SplitParser {
+            onRead: data => window.parseApplyStage(data)
+        }
+        stderr: StdioCollector {}
         onExited: code => {
             window.isApplying = false
             if (code !== 0) {
@@ -200,7 +237,7 @@ Item {
                 console.warn("Wallpaper apply failed with exit code", code)
                 return
             }
-            window.currentPath = window.selectedItem.filePath
+            if (window.selectedItem) window.currentPath = window.selectedItem.filePath
             window.showPanel = false
             window.requestClose()
         }
@@ -212,10 +249,18 @@ Item {
         stdout: StdioCollector {
             onStreamFinished: {
                 var t = String(this.text || "").trim()
-                window.currentPath = t
+                // Keep the previous selection when current.txt is missing or
+                // empty (first run) instead of wiping it.
+                if (t.length > 0) window.currentPath = t
                 window.jumpToCurrent()
             }
         }
+        stderr: StdioCollector {}
+    }
+
+    function refreshCurrent() {
+        if (currentReader.running) return
+        currentReader.running = true
     }
 
     onVisible_Changed: {
@@ -223,10 +268,10 @@ Item {
             window.showPanel = false
             window.selectedItem = null
             window.applyError = ""
+            window.applyStatus = ""
         }
         if (window.visible_) {
-            currentReader.running = false
-            currentReader.running = true
+            window.refreshCurrent()
             view.forceActiveFocus()
         }
     }
@@ -246,8 +291,12 @@ Item {
         preferredHighlightEnd: (width / 2) + ((window.itemWidth * 1.5 + window.spacing) / 2) + window.selectedCenterOffset
 
         model: window.displayModel
-        currentIndex: 0
-        cacheBuffer: window.itemWidth * 2
+        currentIndex: -1
+        // Cache well past the viewport so thumbnails don't decode/reload
+        // mid-scroll (the old 2-item buffer caused visible popping).
+        cacheBuffer: Math.max(view.width, window.itemWidth * 6)
+        highlightMoveDuration: 220
+        highlightResizeDuration: 220
 
         header: Item { width: Math.max(0, (view.width / 2) - (window.itemWidth * 1.5 / 2) + window.selectedCenterOffset) }
         footer: Item { width: Math.max(0, (view.width / 2) - (window.itemWidth * 1.5 / 2) - window.selectedCenterOffset) }
@@ -270,8 +319,10 @@ Item {
             z: isCurrent ? 100 : Math.max(1, 50 - dist)
             opacity: 1.0
 
-            Behavior on width { enabled: window.isLoaded && !window.isApplying; Anim { type: Anim.BouncyFast } }
-            Behavior on height { enabled: window.isLoaded && !window.isApplying; Anim { type: Anim.BouncyFast } }
+            // NOTE: no Behavior on width/height here on purpose. Animating
+            // delegate size relayouts the whole ListView every frame (layout
+            // thrash + highlight fighting = jank). Emphasis animates via the
+            // GPU-cheap inner scale below; the snap itself stays exact.
 
             Item {
                 id: skewedWrapper
@@ -279,6 +330,9 @@ Item {
                 anchors.horizontalCenterOffset: -(window.skewFactor * height) / 2
                 width: parent.width
                 height: parent.height
+                // GPU transform emphasis instead of layout animation.
+                scale: isCurrent ? 1.0 : 0.94
+                Behavior on scale { Anim { type: Anim.BouncyFast } }
                 transform: Matrix4x4 {
                     property real s: window.skewFactor
                     matrix: Qt.matrix4x4(1, s, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
@@ -323,8 +377,10 @@ Item {
                             asynchronous: true
                             cache: true
                             smooth: true
-                            sourceSize.width: Math.round(width)
-                            sourceSize.height: Math.round(height)
+                            // No sourceSize override: thumbs on disk are
+                            // already small (THUMB_HEIGHT 420). Forcing a
+                            // size tied to the animated delegate geometry
+                            // re-decoded the image on every frame.
                             transform: Matrix4x4 {
                                 property real s: -window.skewFactor
                                 matrix: Qt.matrix4x4(1, s, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
@@ -384,8 +440,10 @@ Item {
                         radius: window.cornerRadius
                         color: window.currentFilter === modelData.name ? window.surface2
                              : (tabMouse.containsMouse ? window.surface1 : window.surface0)
-                        border.width: 0
+                        border.width: window.currentFilter === modelData.name ? 2 : 0
+                        border.color: window.textColor
                         Behavior on color { CAnim { } }
+                        Behavior on border.width { Anim { type: Anim.BouncyFast } }
 
                         Column {
                             anchors.centerIn: parent
@@ -422,8 +480,10 @@ Item {
                         anchors.fill: parent
                         radius: window.cornerRadius
                         color: modelData.hex
-                        border.width: 0
+                        border.width: window.currentFilter === modelData.name ? 2 : 0
+                        border.color: window.textColor
                         Behavior on color { CAnim { } }
+                        Behavior on border.width { Anim { type: Anim.BouncyFast } }
 
                         MouseArea {
                             id: swatchMouse
@@ -556,6 +616,7 @@ Item {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
+                        enabled: !window.isApplying
                         onClicked: window.showPanel = false
                     }
                 }
@@ -568,7 +629,7 @@ Item {
                     Text {
                         id: applyLabel
                         anchors.centerIn: parent
-                        text: window.isApplying ? "Applying..." : "Apply"
+                        text: window.isApplying ? (window.applyStatus !== "" ? window.applyStatus : "Applying…") : "Apply"
                         color: "#000000"
                         font.family: window.uiFont
                         font.pixelSize: window.u * 12
@@ -579,6 +640,7 @@ Item {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
+                        enabled: !window.isApplying
                         onClicked: window.confirmApply()
                     }
                 }

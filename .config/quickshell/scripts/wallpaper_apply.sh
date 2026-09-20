@@ -606,10 +606,9 @@ PY
 fi
 
 # Mango has no native wallpaper setter; the image goes through awww's
-# layer-shell surface, and matugen itself runs `awww img` via its wallpaper
-# hook. exec-once autostart only covers session start, and a stale/dead daemon
-# (leftover socket, connection refused) makes every apply fail, so make sure
-# the daemon is actually answering before matugen runs.
+# layer-shell surface. exec-once autostart only covers session start, and a
+# stale/dead daemon (leftover socket, connection refused) makes every apply
+# fail, so make sure the daemon is actually answering before we set anything.
 if ! awww query >/dev/null 2>&1; then
   pkill -x awww-daemon 2>/dev/null || true
   (setsid -f awww-daemon </dev/null >/dev/null 2>&1 &)
@@ -619,6 +618,16 @@ if ! awww query >/dev/null 2>&1; then
   done
 fi
 
+echo "@@stage wallpaper"
+# awww re-reads every cached sprite-sheet on each `img` call; clear the cache
+# so the new image decodes fresh instead of animating from stale frames.
+awww clear-cache 2>/dev/null || true
+# Single wallpaper set, FIRST: a short fade so the new photo is visible
+# immediately; the ~1s theme generation below then settles the colors.
+# (matugen's own wallpaper hook stays off to avoid setting it twice.)
+awww img "$IMG" --transition-type fade --transition-duration 0.6 --transition-fps 60
+
+echo "@@stage theme"
 matugen "${MATUGEN[@]}" --mode "$MODE"
 
 # Accent green/mauve into colors.js: preset runs already carry native theme
@@ -692,10 +701,8 @@ if [ "$PIN_WIDGETS" = "1" ] && [ -n "$widget_snapshot" ]; then
   printf '\n/* Widget colors pinned by color-scheme picker */\n%s\n' "$widget_snapshot" >> "$COLOR_JS"
 fi
 
-# awww re-reads every cached sprite-sheet on each `img` call; clear the cache
-# so applying stays instant.
-awww clear-cache 2>/dev/null || true
-awww img "$IMG" --transition-type random --transition-duration 2.0
+# Wallpaper was already set (fast fade) before theming — nothing left to do
+# here except remember the selection.
 
 # QuickShell only: write the chosen light/dark mode for the bar to read.
 # Matugen stays dark/light per PREFER but qs-theme only affects QuickShell's
