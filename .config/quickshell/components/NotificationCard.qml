@@ -232,7 +232,7 @@ Item {
             anchors.left: parent.left
             anchors.right: parent.right
             height: cardContent.implicitHeight + card.pad * 2 + (card.imageOk ? card.imageBoxHeight + card.pad : 0)
-            radius: 12
+            radius: 0
             color: card.cardColor
             border.width: card.urgency === 2 ? 1.5 : 1
             border.color: card.urgency === 2 ? card.errorColor : card.borderColor
@@ -283,7 +283,7 @@ Item {
                     Layout.preferredWidth: card.badgeSize
                     Layout.preferredHeight: card.badgeSize
                     Layout.alignment: Qt.AlignTop
-                    radius: 12
+                    radius: 0
                     color: rootRef ? rootRef.withAlpha(card.fg, 0.08) : "#dfdf00"
                     clip: true
 
@@ -372,7 +372,7 @@ Item {
                         required property var modelData
                         Layout.preferredHeight: 26
                         implicitWidth: actionRow.implicitWidth + 20
-                        radius: 8
+                        radius: 0
                         color: actHover.containsMouse || actHover.pressed
                             ? rootRef.withAlpha(card.fg, 0.1)
                             : Qt.rgba(card.fg.r, card.fg.g, card.fg.b, 0.02)
@@ -430,7 +430,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: 12
+        radius: 0
         visible: card.selected
         color: "transparent"
         border.width: 2
@@ -486,7 +486,7 @@ Item {
         z: 3
         width: 22
         height: 22
-        radius: 11
+        radius: 0
         visible: card.isPopup ? (card.hovering || card.dragging) : true
         color: closeHover.containsMouse
             ? rootRef.withAlpha(card.fg, 0.22)

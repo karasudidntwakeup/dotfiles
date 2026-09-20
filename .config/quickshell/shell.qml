@@ -100,7 +100,7 @@ ShellRoot {
 
     readonly property int barHeight: 32
     readonly property int pillHeight: 32
-    readonly property int pillRadius: 9
+    readonly property int pillRadius: 0
     readonly property int groupSpacing: 8
 
     readonly property string terminalCommand: "kitty"
@@ -1284,7 +1284,7 @@ mediaProc.running = true
             anchors.verticalCenter: parent.verticalCenter
             width: tipText.implicitWidth + 14
             height: 22
-            radius: 11
+            radius: 0
             color: "#0b0b0e"
             border.width: 1
             border.color: Qt.rgba(1, 1, 1, 0.12)
@@ -1514,7 +1514,7 @@ mediaProc.running = true
         readonly property real dotH: 10
         readonly property real dotSpacing: 4
         readonly property real pillPad: 6
-        readonly property real dotRadius: 5
+        readonly property real dotRadius: 0
         readonly property color accent: root.pillColor("primary")
 
         function contentWidth() {
@@ -1573,7 +1573,7 @@ delegate: Item {
 
                             Rectangle {
                                 anchors.fill: parent
-                                radius: wsWidget.dotRadius
+                                radius: 0
                                 color: focused ? wsWidget.accent : root.pillForeground(wsWidget.color)
                                 opacity: focused ? 1.0 : (occupied ? 0.5 : 0.18)
                                 Behavior on color { CAnim { } }
@@ -2241,7 +2241,7 @@ function closeOverlays() {
                                 anchors.verticalCenter: parent.verticalCenter
                                 width: 3
                                 height: 3
-                                radius: 1.5
+                                radius: 0
                                 color: clockPill.dimTextColor
                             }
 

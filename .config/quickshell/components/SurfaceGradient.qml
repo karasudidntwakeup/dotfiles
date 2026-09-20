@@ -4,7 +4,7 @@ Canvas {
     id: root
 
     property color color: "#00000000"
-    property real radius: 8
+    property real radius: 0
     property real inset: 0
     property real darkFactor: 1.0
 

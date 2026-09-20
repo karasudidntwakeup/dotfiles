@@ -12,7 +12,7 @@ Item {
     property bool searching: false
     property bool searchFailed: false
     property string activeQuery: ""
-    readonly property int cornerRadius: 12
+    readonly property int cornerRadius: 0
     readonly property int pad: 14
     readonly property int cardWidth: Math.min(640, Math.max(0, ytx.width - 32))
     readonly property int searchHeight: 36
@@ -440,7 +440,7 @@ Item {
                 id: searchBox
                 width: parent.width
                 height: ytx.searchHeight
-                radius: 8
+                radius: 0
                 color: rootRef.withAlpha(ytx.fg, 0.08)
                 border.width: 1
                 border.color: searchField.inputFocus ? rootRef.withAlpha(ytx.fg, 0.4) : rootRef.withAlpha(ytx.fg, 0.12)
@@ -531,7 +531,7 @@ Item {
                         visible: searchField.text.length > 0
                         Layout.preferredWidth: 22
                         Layout.preferredHeight: 22
-                        radius: 11
+                        radius: 0
                         color: clearHover.containsMouse ? rootRef.withAlpha(ytx.fg, 0.25) : "transparent"
                         QIcon {
                             anchors.centerIn: parent
@@ -597,7 +597,7 @@ Item {
                         id: homeChip
                         width: homeChipLabel.implicitWidth + 20
                         height: 22
-                        radius: 11
+                        radius: 0
                         color: homeHover.containsMouse ? rootRef.withAlpha(ytx.fg, 0.2) : rootRef.withAlpha(ytx.fg, 0.08)
                         Row {
                             id: homeChipLabel
@@ -634,7 +634,7 @@ Item {
                         id: recentChip
                         width: recentChipLabel.implicitWidth + 20
                         height: 22
-                        radius: 11
+                        radius: 0
                         color: recentHover.containsMouse ? rootRef.withAlpha(ytx.fg, 0.2) : rootRef.withAlpha(ytx.fg, 0.08)
                         Row {
                             id: recentChipLabel
@@ -672,7 +672,7 @@ Item {
                         enabled: !homeProc.running
                         width: 22
                         height: 22
-                        radius: 11
+                        radius: 0
                         color: refreshHover.containsMouse ? rootRef.withAlpha(ytx.fg, 0.2) : rootRef.withAlpha(ytx.fg, 0.08)
                         QIcon {
                             anchors.centerIn: parent
@@ -746,7 +746,7 @@ Item {
                         height: ytx.cellHeight
                         Rectangle {
                             anchors.fill: parent
-                            radius: 12
+                            radius: 0
                             color: isSelected ? rootRef.withAlpha(ytx.selBg, 0.28) : "transparent"
                             border.width: isSelected ? 2 : 0
                             border.color: ytx.selBg
@@ -764,7 +764,7 @@ Item {
                             Rectangle {
                                 width: ytx.thumbWidth
                                 height: ytx.thumbHeight
-                                radius: 8
+                                radius: 0
                                 clip: true
                                 color: "transparent"
                                 border.width: 1
@@ -793,7 +793,7 @@ Item {
                                 Rectangle {
                                     visible: thumbImg.status !== Image.Ready
                                     anchors.fill: parent
-                                    radius: 8
+                                    radius: 0
                                     color: isSelected ? ytx.selBg : rootRef.withAlpha(ytx.fg, 0.08)
                                 }
                             }

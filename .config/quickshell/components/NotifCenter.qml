@@ -111,7 +111,7 @@ Item {
         anchors.topMargin: rootRef ? rootRef.barHeight - 15 : 21
 
         color: center.panelColor
-        radius: 12
+        radius: 0
         border.width: 1
         border.color: center.panelBorder
         clip: true
@@ -168,7 +168,7 @@ Item {
                     visible: svc && svc.unreadCount > 0
                     Layout.preferredHeight: 20
                     implicitWidth: unreadLabel.implicitWidth + 12
-                    radius: 8
+                    radius: 0
                     color: center.accent
 
                     Text {
@@ -202,7 +202,7 @@ Item {
                 Layout.preferredHeight: 224
                 Layout.minimumHeight: 224
                 visible: rootRef && rootRef.mediaStatus !== "none"
-                radius: 12
+                radius: 0
                 clip: true
                 antialiasing: true
                 smooth: true
@@ -230,7 +230,7 @@ Item {
                     id: mediaArtMask
                     anchors.fill: parent
                     anchors.margins: -5
-                    radius: mediaCard.radius + 5
+                    radius: 0
                     color: "#ffffff"
                     antialiasing: true
                     smooth: true
@@ -458,7 +458,7 @@ Item {
                 Layout.preferredHeight: center.weekHeight
                 Layout.minimumHeight: center.weekHeight
                 visible: center.weekOn
-                radius: 12
+                radius: 0
                 color: rootRef ? rootRef.tonalPillColor(rootRef.pillColor("primary_fixed_dim")) : "#1a1b1e"
                 border.width: 0
                 clip: true
@@ -506,7 +506,7 @@ Item {
                         Rectangle {
                             Layout.preferredWidth: 24
                             Layout.preferredHeight: 24
-                            radius: 8
+                            radius: 0
                             color: weekRefreshHover.containsMouse ? Qt.rgba(weekWidget.wfg.r, weekWidget.wfg.g, weekWidget.wfg.b, 0.15) : "transparent"
 
                             QIcon {
@@ -567,12 +567,12 @@ Item {
 
                                 Rectangle {
                                     anchors.fill: parent
-                                    radius: 2
+                                    radius: 0
                                     color: Qt.rgba(weekWidget.wfg.r, weekWidget.wfg.g, weekWidget.wfg.b, 0.18)
                                 }
                                 Rectangle {
                                     height: 4
-                                    radius: 2
+                                    radius: 0
                                     color: weekWidget.wfg
                                     width: parent.width * center.weekFrac(modelData.min, modelData.max)[1]
                                     x: parent.width * center.weekFrac(modelData.min, modelData.max)[0]
@@ -623,7 +623,7 @@ Item {
                 Layout.minimumHeight: 64
                 Layout.preferredHeight: Math.min(centerList.contentHeight, center.listMaxHeight) + 16
                 visible: centerList.count > 0
-                radius: 12
+                radius: 0
                 color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.04)
                 border.width: 1
                 border.color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.09)
@@ -661,7 +661,7 @@ Item {
                     background: Item {}
                     contentItem: Rectangle {
                         implicitWidth: 4
-                        radius: 2
+                        radius: 0
                          color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.25)
                     }
                 }
@@ -739,7 +739,7 @@ Item {
             anchors.centerIn: parent
             width: btn.btnSize
             height: btn.btnSize
-            radius: 8
+            radius: 0
             color: btn.accent
                 ? Qt.color(center.signalAccent)
                 : (hoverArea.containsMouse ? Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.1) : "transparent")
@@ -773,7 +773,7 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            radius: 8
+            radius: 0
             color: !btn.enabled_
                 ? Qt.rgba(1, 1, 1, 0.04)
                 : btn.active
@@ -814,7 +814,7 @@ Item {
 
         Layout.preferredHeight: 96
         Layout.fillHeight: false
-        radius: 12
+        radius: 0
         color: rootRef ? rootRef.tonalPillColor(rootRef.pillColor(widget.tintName)) : "#1a1b1e"
         border.width: 0
         clip: true
@@ -901,7 +901,7 @@ Item {
             anchors.rightMargin: 12
             anchors.bottomMargin: 10
             height: 6
-            radius: 3
+            radius: 0
             color: Qt.rgba(widget.widgetFg.r, widget.widgetFg.g, widget.widgetFg.b, 0.18)
             clip: true
 

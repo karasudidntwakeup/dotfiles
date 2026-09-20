@@ -18,7 +18,7 @@ Item {
     readonly property int sendHeight: 36
     readonly property int searchHeight: 36
     readonly property int pad: 12
-    readonly property int cornerRadius: 12
+    readonly property int cornerRadius: 0
     readonly property int msgPad: 12
     readonly property real bubbleMaxW: 300
     readonly property int imgMaxW: 240
@@ -667,7 +667,7 @@ Item {
                 Rectangle {
                     Layout.preferredWidth: refreshText.implicitWidth + 20
                     Layout.preferredHeight: 24
-                    radius: 7
+                    radius: 0
                     color: refreshHover.containsMouse ? rootRef.withAlpha(wa.fg, 0.2) : rootRef.withAlpha(wa.fg, 0.08)
 
                     Row {
@@ -721,7 +721,7 @@ Item {
 
                 width: parent.width
                 height: wa.searchHeight
-                radius: 8
+                radius: 0
                 color: rootRef.withAlpha(wa.fg, 0.08)
                 border.width: 1
                 border.color: searchField.inputFocus ? rootRef.withAlpha(wa.fg, 0.78) : rootRef.withAlpha(wa.fg, 0.12)
@@ -789,7 +789,7 @@ Item {
                         Layout.preferredWidth: 22
                         Layout.preferredHeight: 22
                         Layout.alignment: Qt.AlignVCenter
-                        radius: 11
+                        radius: 0
                         color: clearHover.containsMouse ? rootRef.withAlpha(wa.fg, 0.25) : "transparent"
 
                         QIcon {
@@ -827,7 +827,7 @@ Item {
                 width: Math.min(330, parent.width)
                 height: 30
                 anchors.horizontalCenter: parent.horizontalCenter
-                radius: 15
+                radius: 0
                 color: rootRef.withAlpha(wa.fg, 0.06)
 
                 RowLayout {
@@ -843,7 +843,7 @@ Item {
 
                         Rectangle {
                             anchors.fill: parent
-                            radius: 12
+                            radius: 0
                             color: wa.activeTab === "chats" ? wa.accent : "transparent"
 
                             Behavior on color {
@@ -887,7 +887,7 @@ Item {
 
                         Rectangle {
                             anchors.fill: parent
-                            radius: 12
+                            radius: 0
                             color: wa.activeTab === "groups" ? wa.accent : "transparent"
 
                             Behavior on color {
@@ -932,7 +932,7 @@ Item {
                             Layout.fillHeight: true
                             Layout.preferredWidth: 1
                             Layout.minimumWidth: 0
-                            radius: 12
+                            radius: 0
                             color: wa.activeTab === modelData.key ? wa.accent : "transparent"
 
                             Text {
@@ -972,7 +972,7 @@ Item {
                         id: chatBox
 
                         anchors.fill: parent
-                        radius: 12
+                        radius: 0
                         color: rootRef.withAlpha(wa.fg, 0.05)
                         clip: true
 
@@ -1010,7 +1010,7 @@ Item {
                                 visible: chatModel.count > 0 && chatList.currentIndex >= 0 && chatList.currentItem !== null
                                 width: chatList.width
                                 height: wa.chatRowHeight
-                                radius: 9
+                                radius: 0
                                 color: wa.accent
                                 y: targetY
 
@@ -1049,7 +1049,7 @@ Item {
 
                                         Rectangle {
                                             anchors.fill: parent
-                                            radius: 20
+                                            radius: 0
                                             color: isSelected ? rootRef.withAlpha(wa.accent, 0.28) : rootRef.withAlpha(wa.fg, 0.1)
 
                                             Text {
@@ -1103,7 +1103,7 @@ Item {
                                         Layout.preferredWidth: 20
                                         Layout.preferredHeight: 20
                                         Layout.alignment: Qt.AlignVCenter
-                                        radius: 10
+                                        radius: 0
                                         visible: unread && unreadCount === 0
                                         color: isSelected ? wa.accentText : wa.accent
                                     }
@@ -1175,7 +1175,7 @@ Item {
                         id: msgBox
 
                         anchors.fill: parent
-                        radius: 12
+                        radius: 0
                         color: rootRef.withAlpha(wa.fg, 0.05)
                         clip: true
 
@@ -1187,7 +1187,7 @@ Item {
                             Rectangle {
                                 width: parent.width
                                 height: wa.headerHeight
-                                radius: 9
+                                radius: 0
                                 color: rootRef.withAlpha(wa.fg, 0.06)
 
                                 RowLayout {
@@ -1228,7 +1228,7 @@ Item {
                                     Rectangle {
                                         Layout.preferredWidth: 20
                                         Layout.preferredHeight: 20
-                                        radius: 10
+                                        radius: 0
                                         visible: wa.currentJid
                                         color: backHover.containsMouse ? rootRef.withAlpha(wa.fg, 0.25) : rootRef.withAlpha(wa.fg, 0.1)
 
@@ -1319,7 +1319,7 @@ required property int index
                                                 visible: msgItem.isImage
                                                 width: Math.min(wa.imgMaxW, Math.max(60, bubbleCol.width - 8))
                                                 height: wa.imgMaxH
-                                                radius: 10
+                                                radius: 0
                                                 clip: true
                                                 color: rootRef.withAlpha(wa.fg, 0.08)
 
@@ -1378,7 +1378,7 @@ required property int index
                                                 visible: msgItem.isSticker
                                                 width: 160
                                                 height: 160
-                                                radius: 10
+                                                radius: 0
                                                 clip: true
                                                 color: "transparent"
 
@@ -1422,7 +1422,7 @@ required property int index
                                                 visible: msgItem.isAudio
                                                 width: Math.min(230, bubbleCol.width - 8)
                                                 height: 40
-                                                radius: 10
+                                                radius: 0
                                                 color: fromMe ? wa.accent : rootRef.withAlpha(wa.fg, 0.1)
 
                                                 MouseArea {
@@ -1442,7 +1442,7 @@ required property int index
                                                         anchors.verticalCenter: parent.verticalCenter
                                                         width: 26
                                                         height: 26
-                                                        radius: 13
+                                                        radius: 0
                                                         color: rootRef.withAlpha("#ffffff", 0.25)
 
                                                         Text {
@@ -1483,7 +1483,7 @@ required property int index
                                                 visible: msgItem.text.length > 0
                                                 width: Math.min(textBubble.textWidth + timeText.implicitWidth + 6 + wa.msgPad * 2, textBubble.availableWidth)
                                                 height: Math.max(bubbleText.implicitHeight, timeText.implicitHeight) + 6
-                                                radius: 10
+                                                radius: 0
                                                 color: fromMe ? wa.accent : rootRef.withAlpha(wa.fg, 0.1)
 
                                                 RowLayout {
@@ -1558,7 +1558,7 @@ required property int index
 
                                 width: parent.width
                                 height: wa.sendHeight
-                                radius: wa.sendHeight / 2
+                                radius: 0
                                 color: rootRef.withAlpha(wa.fg, 0.06)
                                 border.width: 1
                                 border.color: sendField.inputFocus ? rootRef.withAlpha(wa.fg, 0.35) : rootRef.withAlpha(wa.fg, 0.1)
@@ -1594,7 +1594,7 @@ required property int index
                                     Rectangle {
                                         Layout.preferredWidth: 30
                                         Layout.preferredHeight: 30
-                                        radius: 15
+                                        radius: 0
                                         color: pasteHover.containsMouse ? rootRef.withAlpha(wa.fg, 0.14) : rootRef.withAlpha(wa.fg, 0.06)
                                         enabled: wa.currentJid.length > 0 && !wa.sending
                                         opacity: enabled ? 1 : 0.4
@@ -1625,7 +1625,7 @@ required property int index
                                     Rectangle {
                                         Layout.preferredWidth: 30
                                         Layout.preferredHeight: 30
-                                        radius: 15
+                                        radius: 0
                                         color: photoHover.containsMouse ? rootRef.withAlpha(wa.fg, 0.14) : rootRef.withAlpha(wa.fg, 0.06)
                                         enabled: wa.currentJid.length > 0 && !wa.sending
                                         opacity: enabled ? 1 : 0.4
@@ -1656,7 +1656,7 @@ required property int index
                                     Rectangle {
                                         Layout.preferredWidth: 30
                                         Layout.preferredHeight: 30
-                                        radius: 15
+                                        radius: 0
                                         color: sendHover.containsMouse || sendField.text.length > 0 ? wa.accent : rootRef.withAlpha(wa.fg, 0.15)
                                         enabled: wa.currentJid.length > 0 && !wa.sending && sendField.text.length > 0
                                         opacity: enabled ? 1 : 0.4

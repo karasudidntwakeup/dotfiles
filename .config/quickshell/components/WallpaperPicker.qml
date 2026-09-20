@@ -54,7 +54,7 @@ Item {
     readonly property real borderWidth: 3 * u
     readonly property real spacing: 10 * u
     readonly property real skewFactor: -0.35
-    readonly property real cornerRadius: 12 * u
+    readonly property real cornerRadius: 0
     readonly property real selectedCenterOffset: (window.skewFactor * window.itemHeight) / 2
 
     readonly property var filterData: [
@@ -457,7 +457,7 @@ Item {
                                         delegate: Rectangle {
                                             width: window.u * 5
                                             height: window.u * 5
-                                            radius: 1
+                                            radius: 0
                                             color: window.currentFilter === modelData.name ? window.surface0 : window.subtextColor
                                         }
                                     }
@@ -558,7 +558,7 @@ Item {
                         required property var modelData
                         width: modeLabel.implicitWidth + window.u * 20
                         height: window.u * 28
-                        radius: window.u * 8
+                        radius: 0
                         color: window.applyMode === modelData.key ? window.surface2
                              : (modeHover.containsMouse ? window.surface1 : window.surface0)
                         border.color: window.applyMode === modelData.key ? window.textColor : window.borderColor
@@ -601,7 +601,7 @@ Item {
                 Rectangle {
                     width: cancelLabel.implicitWidth + window.u * 28
                     height: window.u * 32
-                    radius: window.u * 10
+                    radius: 0
                     color: cancelHov.containsMouse ? window.surface1 : "transparent"
                     Text {
                         id: cancelLabel
@@ -624,7 +624,7 @@ Item {
                 Rectangle {
                     width: applyLabel.implicitWidth + window.u * 28
                     height: window.u * 32
-                    radius: window.u * 10
+                    radius: 0
                     color: window.blue
                     Text {
                         id: applyLabel

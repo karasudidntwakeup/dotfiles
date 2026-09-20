@@ -17,7 +17,7 @@ Item {
 
     readonly property int cardWidth: 720
     readonly property int pad: 16
-    readonly property int cornerRadius: 14
+    readonly property int cornerRadius: 0
     readonly property int searchHeight: 38
 
     readonly property string cardTile: "notes_card"
@@ -332,7 +332,7 @@ Item {
                     id: wipeBtn
                     Layout.preferredWidth: wipeText.implicitWidth + 20
                     Layout.preferredHeight: 24
-                    radius: 7
+                    radius: 0
                     color: notes.wipeArmed
                         ? (wipeHover.containsMouse ? rootRef.withAlpha(notes.errorColor, 0.7) : notes.errorColor)
                         : (wipeHover.containsMouse ? rootRef.withAlpha(notes.fg, 0.25) : rootRef.withAlpha(notes.fg, 0.1))
@@ -374,7 +374,7 @@ Item {
                 Rectangle {
                     Layout.preferredWidth: 24
                     Layout.preferredHeight: 24
-                    radius: 6
+                    radius: 0
                     color: closeHover.containsMouse ? rootRef.withAlpha(notes.fg, 0.2) : "transparent"
                     Behavior on color { CAnim { type: CAnim.FastEffects } }
                     QIcon {
@@ -397,7 +397,7 @@ Item {
             Rectangle {
                 width: parent.width
                 height: composerCol.implicitHeight + 20
-                radius: 10
+                radius: 0
                 color: rootRef.withAlpha(notes.stickyBg(notes.composerColor), 0.16)
                 border.width: 1
                 border.color: (titleField.inputFocus || bodyArea.activeFocus)
@@ -506,7 +506,7 @@ Item {
                                     required property int index
                                     width: 18
                                     height: 18
-                                    radius: 9
+                                    radius: 0
                                     color: notes.stickyBg(modelData)
                                     border.width: notes.composerColor === modelData ? 2 : 1
                                     border.color: notes.composerColor === modelData ? notes.fg : Qt.rgba(0, 0, 0, 0.25)
@@ -534,7 +534,7 @@ Item {
                             id: saveBtn
                             Layout.preferredWidth: saveLabel.implicitWidth + 22
                             Layout.preferredHeight: 26
-                            radius: 8
+                            radius: 0
                             color: saveHover.containsMouse ? notes.accent : rootRef.withAlpha(notes.accent, 0.65)
                             Behavior on color { CAnim { type: CAnim.FastEffects } }
                             Row {
@@ -573,7 +573,7 @@ Item {
             Rectangle {
                 width: parent.width
                 height: notes.searchHeight
-                radius: 8
+                radius: 0
                 color: rootRef.withAlpha(notes.fg, 0.08)
                 border.width: 1
                 border.color: searchField.inputFocus
@@ -622,7 +622,7 @@ Item {
                         visible: searchField.text.length > 0
                         Layout.preferredWidth: 22
                         Layout.preferredHeight: 22
-                        radius: 11
+                        radius: 0
                         color: clearHover.containsMouse ? rootRef.withAlpha(notes.fg, 0.25) : "transparent"
                         QIcon {
                             anchors.centerIn: parent
@@ -689,7 +689,7 @@ Item {
                             id: sticky
                             anchors.fill: parent
                             anchors.margins: 5
-                            radius: 10
+                            radius: 0
                             color: notes.stickyBg(stickyColor)
                             border.width: pinned ? 2 : 1
                             border.color: pinned
@@ -713,7 +713,7 @@ Item {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 width: 64
                                 height: 15
-                                radius: 2
+                                radius: 0
                                 rotation: index % 2 === 0 ? -3 : 3
                                 color: Qt.rgba(1, 1, 1, 0.4)
                                 border.width: 1
@@ -770,7 +770,7 @@ Item {
                                             required property string modelData
                                             width: 12
                                             height: 12
-                                            radius: 6
+                                            radius: 0
                                             color: notes.stickyBg(modelData)
                                             border.width: 1
                                             border.color: modelData === stickyColor
@@ -811,7 +811,7 @@ Item {
                                             required property int index
                                             Layout.preferredWidth: 22
                                             Layout.preferredHeight: 22
-                                            radius: 6
+                                            radius: 0
                                             color: btnHover.containsMouse
                                                 ? Qt.rgba(0, 0, 0, 0.18)
                                                 : "transparent"
@@ -839,7 +839,7 @@ Item {
                                     Rectangle {
                                         Layout.preferredWidth: 22
                                         Layout.preferredHeight: 22
-                                        radius: 6
+                                        radius: 0
                                         color: pinHover.containsMouse
                                             ? Qt.rgba(0, 0, 0, 0.18)
                                             : (pinned ? Qt.rgba(0, 0, 0, 0.14) : "transparent")
