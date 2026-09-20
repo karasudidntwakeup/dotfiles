@@ -45,7 +45,7 @@ post_hook = 'killall -USR1 kitty || :'
 [templates.niri]
 input_path = '~/.config/matugen/templates/niri.kdl'
 output_path = '~/.config/niri/colors.kdl'
-post_hook = 'niri msg action load-config-file'
+post_hook = 'niri msg action load-config-file 2>/dev/null || :'
 [templates.mango]
 input_path = '~/.config/matugen/templates/mango-colors.conf'
 output_path = '~/.config/mango/colors.conf'

@@ -605,6 +605,20 @@ PY
 )"
 fi
 
+# Mango has no native wallpaper setter; the image goes through awww's
+# layer-shell surface, and matugen itself runs `awww img` via its wallpaper
+# hook. exec-once autostart only covers session start, and a stale/dead daemon
+# (leftover socket, connection refused) makes every apply fail, so make sure
+# the daemon is actually answering before matugen runs.
+if ! awww query >/dev/null 2>&1; then
+  pkill -x awww-daemon 2>/dev/null || true
+  (setsid -f awww-daemon </dev/null >/dev/null 2>&1 &)
+  for i in $(seq 1 40); do
+    awww query >/dev/null 2>&1 && break
+    sleep 0.25
+  done
+fi
+
 matugen "${MATUGEN[@]}" --mode "$MODE"
 
 # Accent green/mauve into colors.js: preset runs already carry native theme
@@ -682,10 +696,6 @@ fi
 # so applying stays instant.
 awww clear-cache 2>/dev/null || true
 awww img "$IMG" --transition-type random --transition-duration 2.0
-
-# Niri overview backdrop: pre-blurred copy for swaybg (place-within-backdrop).
-BLUR_BG="$HOME/.cache/niri-backdrop-blur.jpg"
-(magick "$IMG"[0] -resize 1920x -blur 0x30 -fill "#11111b" -colorize 30% "$BLUR_BG" 2>/dev/null && pkill -x swaybg 2>/dev/null; setsid -f swaybg -i "$BLUR_BG" -m fill </dev/null >/dev/null 2>&1 &) 2>/dev/null || true
 
 # QuickShell only: write the chosen light/dark mode for the bar to read.
 # Matugen stays dark/light per PREFER but qs-theme only affects QuickShell's

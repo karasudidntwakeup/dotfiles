@@ -1843,7 +1843,7 @@ function closeOverlays() {
 
     PanelWindow {
         id: wallPicker
-        visible: wallPicker.visible || openAnim.running || closeAnim.running
+        visible: false
         color: "transparent"
         WlrLayershell.namespace: "wallpaper-picker"
         WlrLayershell.layer: WlrLayer.Overlay
