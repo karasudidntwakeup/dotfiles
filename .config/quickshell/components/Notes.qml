@@ -80,8 +80,9 @@ Item {
 
     // Composer state.
     property string editingId: ""
+    property string editingTitle: ""
     property string composerColor: "yellow"
-    property bool composerDirty: titleField.text.length > 0 || bodyArea.text.length > 0
+    property bool composerDirty: bodyArea.text.length > 0
 
     onActiveChanged: {
         if (notes.active) {
@@ -96,7 +97,7 @@ Item {
         id: addFocus
         interval: 40
         repeat: false
-        onTriggered: titleField.forceActiveFocus()
+        onTriggered: bodyArea.forceActiveFocus()
     }
 
     // ---- data ----
@@ -193,12 +194,11 @@ Item {
     // ---- composer actions ----
     function saveComposer() {
         var body = bodyArea.text.trim()
-        var title = titleField.text.trim()
-        if (mutProc.running || (body.length === 0 && title.length === 0)) return
+        if (mutProc.running || body.length === 0) return
         if (notes.editingId.length > 0)
-            notes.runMut(["update", notes.editingId, bodyArea.text, titleField.text, notes.composerColor])
+            notes.runMut(["update", notes.editingId, bodyArea.text, notes.editingTitle, notes.composerColor])
         else
-            notes.runMut(["add", bodyArea.text, titleField.text, notes.composerColor])
+            notes.runMut(["add", bodyArea.text, "", notes.composerColor])
         notes.cancelEdit()
     }
 
@@ -207,7 +207,7 @@ Item {
             var e = notes.allNotes[i]
             if (e.noteId === noteId) {
                 notes.editingId = noteId
-                titleField.text = e.title
+                notes.editingTitle = e.title
                 bodyArea.text = e.note
                 notes.composerColor = e.color
                 bodyArea.forceActiveFocus()
@@ -218,7 +218,7 @@ Item {
 
     function cancelEdit() {
         notes.editingId = ""
-        titleField.text = ""
+        notes.editingTitle = ""
         bodyArea.text = ""
         notes.composerColor = "yellow"
     }
@@ -400,7 +400,7 @@ Item {
                 radius: 0
                 color: rootRef.withAlpha(notes.stickyBg(notes.composerColor), 0.16)
                 border.width: 1
-                border.color: (titleField.inputFocus || bodyArea.activeFocus)
+                border.color: bodyArea.activeFocus
                     ? rootRef.withAlpha(notes.stickyBg(notes.composerColor), 0.8)
                     : rootRef.withAlpha(notes.fg, 0.12)
                 Behavior on border.color { CAnim { type: CAnim.FastEffects } }
@@ -438,32 +438,6 @@ Item {
                             }
                         }
                     }
-
-                    CharField {
-                        id: titleField
-                        width: parent.width
-                        height: 24
-                        textColor: notes.fg
-                        font.family: notes.uiFont
-                        font.pixelSize: notes.fontSize + 1
-                        font.weight: Font.DemiBold
-                        placeholderText: "Title (optional)"
-                        placeholderTextColor: rootRef.withAlpha(notes.fg, 0.45)
-                        selectByMouse: true
-                        verticalAlignment: Text.AlignVCenter
-                        Keys.onReturnPressed: event => {
-                            bodyArea.forceActiveFocus()
-                            event.accepted = true
-                        }
-                        Keys.onEscapePressed: event => {
-                            if (notes.editingId.length > 0) notes.cancelEdit()
-                            else if (titleField.text.length > 0) titleField.text = ""
-                            else notes.requestClose()
-                            event.accepted = true
-                        }
-                    }
-
-                    Rectangle { width: parent.width; height: 1; color: rootRef.withAlpha(notes.fg, 0.1) }
 
                     TextArea {
                         id: bodyArea
@@ -599,7 +573,7 @@ Item {
                         font.family: notes.uiFont
                         font.pixelSize: notes.fontSize
                         font.weight: Font.Medium
-                        placeholderText: "Search titles and bodies"
+                        placeholderText: "Search notes"
                         placeholderTextColor: rootRef.withAlpha(notes.fg, 0.55)
                         selectByMouse: true
                         verticalAlignment: Text.AlignVCenter
@@ -728,17 +702,23 @@ Item {
 
                                 RowLayout {
                                     width: parent.width
+                                    visible: title.length > 0 || pinned
                                     spacing: 6
                                     Text {
+                                        visible: title.length > 0
                                         Layout.fillWidth: true
-                                        text: title.length > 0 ? title : "(untitled)"
+                                        text: title
                                         color: notes.stickyInk
                                         font.family: notes.fontFamily
                                         font.pixelSize: notes.fontSize
                                         font.weight: Font.DemiBold
-                                        font.italic: title.length === 0
                                         elide: Text.ElideRight
                                         maximumLineCount: 1
+                                    }
+                                    Item {
+                                        visible: title.length === 0
+                                        Layout.fillWidth: true
+                                        implicitHeight: 1
                                     }
                                     QIcon {
                                         visible: pinned
