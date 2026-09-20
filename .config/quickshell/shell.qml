@@ -198,7 +198,7 @@ ShellRoot {
 
     Process {
         id: weatherProc
-        command: ["sh", "-c", "~/.config/waybar/scripts/weather.sh"]
+        command: ["sh", "-c", Quickshell.shellDir + "/scripts/weather.sh"]
         stdout: SplitParser {
             onRead: data => {
                 var t = data ? data.trim() : ""
@@ -237,7 +237,7 @@ ShellRoot {
 
     Process {
         id: prayerProc
-        command: ["sh", "-c", "~/.config/waybar/scripts/prayer.sh"]
+        command: ["sh", "-c", Quickshell.shellDir + "/scripts/prayer.sh"]
         stdout: SplitParser {
             onRead: data => {
                 if (!data) return
