@@ -15,13 +15,11 @@ Item {
     readonly property int panelWidth: 440
     readonly property int pad: 14
     readonly property int panelMaxHeight: Math.max(120, Math.round(center.height - 40))
-    readonly property bool memOn: rootRef && rootRef.memText && rootRef.memText.length > 0
-    readonly property bool diskOn: rootRef && rootRef.diskText && rootRef.diskText.length > 0
-    readonly property bool infoOn: center.memOn || center.diskOn
-    readonly property int infoHeight: center.infoOn ? 96 : 0
+    readonly property bool weekOn: rootRef && rootRef.weatherWeek && rootRef.weatherWeek.length > 0
+    readonly property int weekHeight: 288
     readonly property int mountedDiskCount: rootRef && rootRef.mountedDisks ? rootRef.mountedDisks.length : 0
-    readonly property int mountedDisksHeight: center.mountedDiskCount * 106
-    readonly property int listMaxHeight: Math.max(64, center.panelMaxHeight - center.pad * 2 - 30 - 40 - center.mountedDisksHeight - (center.infoOn ? center.infoHeight + 10 : 0) - (center.mediaOn ? 224 + 10 : 0))
+    readonly property int mountedDisksHeight: Math.ceil(center.mountedDiskCount / 2) * 106
+    readonly property int listMaxHeight: Math.max(64, center.panelMaxHeight - center.pad * 2 - 30 - 40 - center.mountedDisksHeight - (center.weekOn ? center.weekHeight + 10 : 0) - (center.mediaOn ? 224 + 10 : 0))
     readonly property bool mediaOn: rootRef && rootRef.mediaStatus !== "none"
     readonly property string cardTile: "notif_card"
     readonly property color panelColor: {
@@ -41,20 +39,36 @@ Item {
     readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Geist"
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
 
-    function memSubtitle() {
-        if (!rootRef || !rootRef.memText) return ""
-        var pct = rootRef.memPercent || 0
-        var total = rootRef.memTotalText || ""
-        return pct + "%" + (total.length > 0 ? " of " + total : "") + " used"
+    function weekGlyph(key) {
+        switch (key) {
+        case "sun": return ""
+        case "partly": return ""
+        case "cloud": return ""
+        case "rain": return ""
+        case "storm": return ""
+        case "snow": return ""
+        case "fog": return ""
+        default: return ""
+        }
     }
 
-    function diskSubtitle() {
-        if (!rootRef || !rootRef.diskText) return ""
-        var free = rootRef.diskFreeText || ""
-        var total = rootRef.diskTotalText || ""
-        if (free.length > 0 && total.length > 0) return free + " free of " + total
-        if (free.length > 0) return free + " free"
-        return rootRef.diskText + " used"
+    readonly property int weekLo: {
+        var days = rootRef ? rootRef.weatherWeek : []
+        if (!days || days.length === 0) return 0
+        var lo = days[0].min
+        for (var i = 1; i < days.length; i++) lo = Math.min(lo, days[i].min)
+        return lo
+    }
+    readonly property int weekHi: {
+        var days = rootRef ? rootRef.weatherWeek : []
+        if (!days || days.length === 0) return 1
+        var hi = days[0].max
+        for (var i = 1; i < days.length; i++) hi = Math.max(hi, days[i].max)
+        return Math.max(hi, center.weekLo + 1)
+    }
+    function weekFrac(min, max) {
+        var span = Math.max(1, center.weekHi - center.weekLo)
+        return [(min - center.weekLo) / span, Math.max(0.06, (max - min) / span)]
     }
 
     // Text helper lives on root (contrastColor).
@@ -179,59 +193,6 @@ Item {
                     enabled_: svc && svc.history.count > 0
                     active: false
                     onTapped: { if (svc) svc.clearAll() }
-                }
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-                Layout.preferredHeight: center.infoHeight
-                Layout.minimumHeight: center.infoHeight
-                visible: center.infoOn
-                spacing: 8
-
-                // RAM widget: used GB + percent of total + usage bar.
-                InfoWidget {
-                    visible: center.memOn
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    tintName: "secondary_container"
-                    title: rootRef ? rootRef.memText : ""
-                    subtitle: center.memSubtitle()
-                    caption: "Memory"
-                    glyph: ""
-                    isY2kMoon: false
-                    progress: rootRef ? Math.max(0, Math.min(1, (rootRef.memPercent || 0) / 100)) : 0
-                }
-
-                // Disk widget: used percent + free of total + usage bar.
-                InfoWidget {
-                    visible: center.diskOn
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    tintName: "primary_fixed_dim"
-                    title: rootRef ? rootRef.diskText : ""
-                    subtitle: center.diskSubtitle()
-                    caption: "Disk /"
-                    glyph: ""
-                    isY2kMoon: false
-                    progress: rootRef ? Math.max(0, Math.min(1, (rootRef.diskPercent || 0) / 100)) : 0
-                }
-            }
-
-            // Mounted disks widgets
-            Repeater {
-                model: rootRef && rootRef.mountedDisks ? rootRef.mountedDisks : []
-                delegate: InfoWidget {
-                    Layout.fillWidth: true
-                    Layout.minimumHeight: 96
-                    visible: true
-                    tintName: "tertiary_container"
-                    title: modelData.pct + "%"
-                    subtitle: modelData.free + "G free of " + modelData.total + "G"
-                    caption: modelData.mount
-                    glyph: ""
-                    isY2kMoon: false
-                    progress: Math.max(0, Math.min(1, (modelData.pct || 0) / 100))
                 }
             }
 
@@ -488,6 +449,173 @@ Item {
                     }
                 }
             }
+
+            // Week forecast widget: tinted like the weather tile,
+            // with day rows and min/max range bars.
+            Rectangle {
+                id: weekWidget
+                Layout.fillWidth: true
+                Layout.preferredHeight: center.weekHeight
+                Layout.minimumHeight: center.weekHeight
+                visible: center.weekOn
+                radius: 12
+                color: rootRef ? rootRef.tonalPillColor(rootRef.pillColor("primary_fixed_dim")) : "#1a1b1e"
+                border.width: 0
+                clip: true
+
+                readonly property color wfg: rootRef ? rootRef.pillForeground(weekWidget.color) : center.fg
+                readonly property color wdim: Qt.rgba(wfg.r, wfg.g, wfg.b, 0.68)
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: 12
+                    spacing: 6
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 26
+                        spacing: 8
+
+                        Text {
+                            visible: rootRef ? !rootRef.weatherIsY2kMoon() : false
+                            Layout.alignment: Qt.AlignVCenter
+                            text: rootRef ? rootRef.weatherGlyph() : ""
+                            color: weekWidget.wfg
+                            font.family: center.iconFont
+                            font.pixelSize: center.fontSize + 6
+                        }
+
+                        QIcon {
+                            visible: rootRef ? rootRef.weatherIsY2kMoon() : false
+                            Layout.alignment: Qt.AlignVCenter
+                            source: Qt.resolvedUrl("../assets/icons/y2k-moon-star.svg")
+                            color: weekWidget.wfg
+                            iconSize: center.fontSize + 6
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: rootRef ? rootRef.weatherText : ""
+                            color: weekWidget.wfg
+                            font.family: center.uiFont
+                            font.pixelSize: center.fontSize + 4
+                            font.weight: Font.Bold
+                            elide: Text.ElideRight
+                        }
+
+                        Rectangle {
+                            Layout.preferredWidth: 24
+                            Layout.preferredHeight: 24
+                            radius: 8
+                            color: weekRefreshHover.containsMouse ? Qt.rgba(weekWidget.wfg.r, weekWidget.wfg.g, weekWidget.wfg.b, 0.15) : "transparent"
+
+                            QIcon {
+                                anchors.centerIn: parent
+                                source: Qt.resolvedUrl("../assets/icons/refresh.svg")
+                                color: weekWidget.wfg
+                                iconSize: center.fontSize + 2
+                            }
+
+                            MouseArea {
+                                id: weekRefreshHover
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: { if (rootRef) rootRef.refreshWeather() }
+                            }
+                        }
+                    }
+
+                    Repeater {
+                        model: rootRef ? rootRef.weatherWeek : []
+                        delegate: RowLayout {
+                            required property var modelData
+                            required property int index
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 28
+                            spacing: 8
+
+                            Text {
+                                Layout.preferredWidth: 52
+                                text: modelData.day
+                                color: weekWidget.wfg
+                                opacity: index === 0 ? 1.0 : 0.7
+                                font.family: center.uiFont
+                                font.pixelSize: center.fontSize
+                                font.weight: index === 0 ? Font.Bold : Font.Normal
+                                elide: Text.ElideRight
+                            }
+                            Text {
+                                Layout.preferredWidth: 22
+                                horizontalAlignment: Text.AlignHCenter
+                                text: center.weekGlyph(modelData.key)
+                                color: weekWidget.wfg
+                                font.family: center.iconFont
+                                font.pixelSize: center.fontSize + 4
+                            }
+                            Text {
+                                Layout.preferredWidth: 34
+                                horizontalAlignment: Text.AlignRight
+                                text: modelData.min + "°"
+                                color: weekWidget.wdim
+                                font.family: center.uiFont
+                                font.pixelSize: center.fontSize
+                            }
+                            Item {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 4
+
+                                Rectangle {
+                                    anchors.fill: parent
+                                    radius: 2
+                                    color: Qt.rgba(weekWidget.wfg.r, weekWidget.wfg.g, weekWidget.wfg.b, 0.18)
+                                }
+                                Rectangle {
+                                    height: 4
+                                    radius: 2
+                                    color: weekWidget.wfg
+                                    width: parent.width * center.weekFrac(modelData.min, modelData.max)[1]
+                                    x: parent.width * center.weekFrac(modelData.min, modelData.max)[0]
+                                }
+                            }
+                            Text {
+                                Layout.preferredWidth: 34
+                                text: modelData.max + "°"
+                                color: weekWidget.wfg
+                                font.family: center.uiFont
+                                font.pixelSize: center.fontSize
+                                font.weight: Font.DemiBold
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Mounted disks, two tiles per row.
+            Grid {
+                Layout.fillWidth: true
+                visible: center.mountedDiskCount > 0
+                columns: 2
+                rowSpacing: 10
+                columnSpacing: 8
+
+                Repeater {
+                    model: rootRef && rootRef.mountedDisks ? rootRef.mountedDisks : []
+                    delegate: InfoWidget {
+                        width: Math.round((center.panelWidth - center.pad * 2 - 8) / 2)
+                        height: 96
+                        visible: true
+                        tintName: "tertiary_container"
+                        title: modelData.pct + "%"
+                        subtitle: modelData.free + "G free of " + modelData.total + "G"
+                        caption: modelData.mount
+                        glyph: ""
+                        isY2kMoon: false
+                        progress: Math.max(0, Math.min(1, (modelData.pct || 0) / 100))
+                    }
+                }
+            }
+
             Rectangle {
                 id: listWrap
                 Layout.fillWidth: true

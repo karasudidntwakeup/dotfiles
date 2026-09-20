@@ -140,6 +140,7 @@ ShellRoot {
     property string weatherText: ""
     property string weatherKey: "cloud"
     property bool weatherIsDay: true
+    property var weatherWeek: []
 
     function updateWeatherDayNight() {
         var h = new Date().getHours()
@@ -169,6 +170,11 @@ ShellRoot {
         return !weatherIsDay && weatherKey === "sun"
     }
 
+    function refreshWeather() {
+        weatherProc.running = true
+        weatherWeekProc.running = true
+    }
+
     property string prayerText: ""
     property string prayerName: ""
     property date prayerTarget: new Date(0)
@@ -188,11 +194,6 @@ ShellRoot {
     property string memText: ""
     property int memPercent: 0
     property string memTotalText: ""
-
-    property string diskText: ""
-    property int diskPercent: 0
-    property string diskFreeText: ""
-    property string diskTotalText: ""
 
     property var mountedDisks: []
 
@@ -280,46 +281,44 @@ ShellRoot {
         }
     }
 
-    Process {
-        id: diskProc
-        command: ["sh", "-c", Quickshell.shellDir + "/scripts/disk.sh"]
-        stdout: SplitParser {
-            onRead: data => {
-                if (!data) return
-                var parts = data.trim().split("|")
-                var pct = parseInt(parts[0] || "0", 10) || 0
-                var free = parts[1] || ""
-                var total = parts[2] || ""
-                root.diskPercent = pct
-                root.diskText = pct + "%"
-                root.diskFreeText = free ? free + "G" : ""
-                root.diskTotalText = total ? total + "G" : ""
+    function parseMountedDisks(text) {
+        var disks = []
+        if (!text) return disks
+        var lines = text.trim().split("\n")
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i].trim()
+            if (!line) continue
+            var parts = line.split("|")
+            if (parts.length >= 4) {
+                disks.push({
+                    mount: parts[0],
+                    pct: parseInt(parts[1] || "0", 10) || 0,
+                    free: parts[2] || "0",
+                    total: parts[3] || "0"
+                })
             }
         }
+        return disks
     }
 
     Process {
         id: mountedDisksProc
         command: ["sh", "-c", Quickshell.shellDir + "/scripts/mounted_disks.sh"]
+        stdout: StdioCollector {
+            onStreamFinished: root.mountedDisks = root.parseMountedDisks(this.text)
+        }
+    }
+
+    Process {
+        id: weatherWeekProc
+        command: ["sh", "-c", Quickshell.shellDir + "/scripts/weather_week.sh"]
         stdout: SplitParser {
             onRead: data => {
                 if (!data) return
-                var lines = data.trim().split("\n")
-                var disks = []
-                for (var i = 0; i < lines.length; i++) {
-                    var line = lines[i].trim()
-                    if (!line) continue
-                    var parts = line.split("|")
-                    if (parts.length >= 4) {
-                        disks.push({
-                            mount: parts[0],
-                            pct: parseInt(parts[1] || "0", 10) || 0,
-                            free: parts[2] || "0",
-                            total: parts[3] || "0"
-                        })
-                    }
-                }
-                root.mountedDisks = disks
+                try {
+                    var arr = JSON.parse(data.trim())
+                    if (arr instanceof Array) root.weatherWeek = arr
+                } catch (e) {}
             }
         }
     }
@@ -329,6 +328,13 @@ ShellRoot {
         running: true
         repeat: true
         onTriggered: weatherProc.running = true
+    }
+
+    Timer {
+        interval: 1800000
+        running: true
+        repeat: true
+        onTriggered: weatherWeekProc.running = true
     }
 
     Timer {
@@ -366,13 +372,6 @@ ShellRoot {
         running: true
         repeat: true
         onTriggered: memProc.running = true
-    }
-
-    Timer {
-        interval: 300000
-        running: true
-        repeat: true
-        onTriggered: diskProc.running = true
     }
 
     Timer {
@@ -697,9 +696,9 @@ ShellRoot {
         root.clockText = Qt.formatDateTime(_now, "hh:mm AP")
         root.clockDateText = Qt.formatDateTime(_now, "ddd MMM d")
         weatherProc.running = true
+        weatherWeekProc.running = true
         prayerProc.running = true
         memProc.running = true
-        diskProc.running = true
         mountedDisksProc.running = true
         netProc.running = true
         btProc.running = true
@@ -1658,6 +1657,7 @@ function closeOverlays() {
         root.clipboardActive = false
         root.notesActive = false
         root.wallpaperActive = false
+        if (calPopup.visible) calPopup.close()
     }
 
     property bool wallpaperActive: false
