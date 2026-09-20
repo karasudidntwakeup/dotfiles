@@ -429,8 +429,9 @@ ShellRoot {
         || battery.state === UPowerDeviceState.PendingCharge)
 
     function shortLayout(name) {
-        if (name.indexOf("Arabic") >= 0) return "AR"
-        if (name.indexOf("English") >= 0) return "US"
+        if (!name) return ""
+        if (name.indexOf("Arabic") >= 0 || name === "ara") return "AR"
+        if (name.indexOf("English") >= 0 || name === "us") return "US"
         return name
     }
 
@@ -910,6 +911,10 @@ mediaProc.running = true
         // {id, idx (0-based), name, output, active, focused, urgent, occupied}
         property var workspaces: []
 
+        // Keyboard layout via `mmsg watch keyboardlayout`
+        // (niri path uses niriIpc.keyboardLayoutName; mango has no niri socket).
+        property string keyboardLayoutName: ""
+
         signal workspacesUpdated()
 
         function applyPayload(text) {
@@ -945,6 +950,14 @@ mediaProc.running = true
             Quickshell.execDetached(["mmsg", "dispatch", "comboview," + (idx + 1)])
         }
 
+        function applyKbLayout(text) {
+            try {
+                var obj = JSON.parse(text)
+                if (obj.layout && obj.layout !== mango.keyboardLayoutName)
+                    mango.keyboardLayoutName = obj.layout
+            } catch (e) { return }
+        }
+
         function refreshOnce() {
             if (!mango.available || getProc.running) return
             getProc.running = true
@@ -973,6 +986,25 @@ mediaProc.running = true
             interval: 5000
             repeat: false
             onTriggered: { if (mango.available) watchProc.running = true }
+        }
+
+        // Streams {"layout":"English (US)"} / {"layout":"Arabic"}; emits
+        // the current layout immediately on connect, so no initial get needed.
+        Process {
+            id: kbWatchProc
+            command: ["sh", "-c", "exec mmsg watch keyboardlayout 2>/dev/null"]
+            running: mango.available
+            stdout: SplitParser {
+                onRead: data => { if (data) mango.applyKbLayout(data) }
+            }
+            onExited: kbWatchRestart.restart()
+        }
+
+        Timer {
+            id: kbWatchRestart
+            interval: 5000
+            repeat: false
+            onTriggered: { if (mango.available) kbWatchProc.running = true }
         }
 
         Timer {
@@ -2097,7 +2129,7 @@ function closeOverlays() {
                         id: kbPill
                         enterOrder: 2
                         iconSource: kbIconSource
-                        label: root.shortLayout(niriIpc.keyboardLayoutName)
+                        label: root.shortLayout(mangoIpc.keyboardLayoutName.length > 0 ? mangoIpc.keyboardLayoutName : niriIpc.keyboardLayoutName)
                         tint: root.pillColor("surface_container_high")
 
                         Component {
