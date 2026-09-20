@@ -96,10 +96,10 @@ ShellRoot {
     readonly property string fontFamily: "Geist"
     readonly property string uiFont: "Geist"
     readonly property string iconFont: "Symbols Nerd Font"
-    readonly property int fontSize: 12
+    readonly property int fontSize: 13
 
-    readonly property int barHeight: 30
-    readonly property int pillHeight: 30
+    readonly property int barHeight: 32
+    readonly property int pillHeight: 32
     readonly property int pillRadius: 9
     readonly property int groupSpacing: 8
 
