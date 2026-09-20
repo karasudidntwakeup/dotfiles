@@ -1672,12 +1672,10 @@ function closeOverlays() {
     PanelWindow {
         id: appLauncherWin
         visible: root.launcherActive || appLauncherContent.animProgress > 0.001
+        focusable: root.launcherActive
         color: "transparent"
         WlrLayershell.namespace: "app-launcher"
         WlrLayershell.layer: WlrLayer.Overlay
-        // NOTE: no `focusable:` alongside keyboardFocus (both write the same
-        // property; focusable would downgrade Exclusive to OnDemand and mango
-        // only auto-focuses Exclusive layers).
         WlrLayershell.keyboardFocus: root.launcherActive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
         anchors.top: true
         anchors.bottom: true
@@ -1712,6 +1710,7 @@ function closeOverlays() {
     PanelWindow {
         id: ytxWin
         visible: root.ytxActive || ytxContent.animProgress > 0.001
+        focusable: root.ytxActive
         color: "transparent"
         WlrLayershell.namespace: "ytx-picker"
         WlrLayershell.layer: WlrLayer.Overlay
@@ -1749,6 +1748,7 @@ function closeOverlays() {
     PanelWindow {
         id: whatsappWin
         visible: root.whatsappActive || waContent.animProgress > 0.001
+        focusable: root.whatsappActive
         color: "transparent"
         WlrLayershell.namespace: "whatsapp-picker"
         WlrLayershell.layer: WlrLayer.Overlay
@@ -1786,6 +1786,7 @@ function closeOverlays() {
     PanelWindow {
         id: clipWin
         visible: root.clipboardActive || clipContent.animProgress > 0.001
+        focusable: root.clipboardActive
         color: "transparent"
         WlrLayershell.namespace: "clipboard-picker"
         WlrLayershell.layer: WlrLayer.Overlay
@@ -1823,6 +1824,7 @@ function closeOverlays() {
     PanelWindow {
         id: notesWin
         visible: root.notesActive || notesContent.animProgress > 0.001
+        focusable: root.notesActive
         color: "transparent"
         WlrLayershell.namespace: "notes-picker"
         WlrLayershell.layer: WlrLayer.Overlay
@@ -1843,7 +1845,8 @@ function closeOverlays() {
 
     PanelWindow {
         id: wallPicker
-        visible: wallPicker.visible || openAnim.running || closeAnim.running
+        visible: false
+        focusable: true
         color: "transparent"
         WlrLayershell.namespace: "wallpaper-picker"
         WlrLayershell.layer: WlrLayer.Overlay
@@ -1965,6 +1968,7 @@ function closeOverlays() {
     PanelWindow {
         id: notifCenterWin
         visible: notifSvc.centerOpen || notifCenterContent.animProgress > 0.001
+        focusable: notifSvc.centerOpen
         color: "transparent"
         WlrLayershell.namespace: "notification-center"
         WlrLayershell.layer: WlrLayer.Overlay

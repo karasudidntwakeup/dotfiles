@@ -9,11 +9,7 @@ import QtQuick.Effects
 PanelWindow {
     id: calPopup
     visible: false
-    // NOTE: no `focusable:` here on purpose. PanelWindow.focusable and
-    // WlrLayershell.keyboardFocus write the same underlying property, so
-    // setting both fights and Exclusive loses nondeterministically. mango
-    // only auto-focuses Exclusive layers (niri focuses OnDemand too).
-    WlrLayershell.keyboardFocus: calPopup.visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    focusable: calPopup.visible
     color: "transparent"
 
     WlrLayershell.namespace: "calendar-card"

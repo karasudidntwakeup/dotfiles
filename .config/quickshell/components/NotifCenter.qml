@@ -19,7 +19,9 @@ Item {
     readonly property bool diskOn: rootRef && rootRef.diskText && rootRef.diskText.length > 0
     readonly property bool infoOn: center.memOn || center.diskOn
     readonly property int infoHeight: center.infoOn ? 96 : 0
-    readonly property int listMaxHeight: Math.max(64, center.panelMaxHeight - center.pad * 2 - 30 - 40 - (center.infoOn ? center.infoHeight + 10 : 0) - (center.mediaOn ? 224 + 10 : 0))
+    readonly property int mountedDiskCount: rootRef && rootRef.mountedDisks ? rootRef.mountedDisks.length : 0
+    readonly property int mountedDisksHeight: center.mountedDiskCount * 106
+    readonly property int listMaxHeight: Math.max(64, center.panelMaxHeight - center.pad * 2 - 30 - 40 - center.mountedDisksHeight - (center.infoOn ? center.infoHeight + 10 : 0) - (center.mediaOn ? 224 + 10 : 0))
     readonly property bool mediaOn: rootRef && rootRef.mediaStatus !== "none"
     readonly property string cardTile: "notif_card"
     readonly property color panelColor: {
@@ -128,6 +130,7 @@ Item {
             RowLayout {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 30
+                Layout.minimumHeight: 30
                 spacing: 8
 
                 QIcon {
@@ -182,6 +185,7 @@ Item {
             RowLayout {
                 Layout.fillWidth: true
                 Layout.preferredHeight: center.infoHeight
+                Layout.minimumHeight: center.infoHeight
                 visible: center.infoOn
                 spacing: 8
 
@@ -219,6 +223,7 @@ Item {
                 model: rootRef && rootRef.mountedDisks ? rootRef.mountedDisks : []
                 delegate: InfoWidget {
                     Layout.fillWidth: true
+                    Layout.minimumHeight: 96
                     visible: true
                     tintName: "tertiary_container"
                     title: modelData.pct + "%"
@@ -234,6 +239,7 @@ Item {
                 id: mediaCard
                 Layout.fillWidth: true
                 Layout.preferredHeight: 224
+                Layout.minimumHeight: 224
                 visible: rootRef && rootRef.mediaStatus !== "none"
                 radius: 12
                 clip: true
@@ -485,6 +491,8 @@ Item {
             Rectangle {
                 id: listWrap
                 Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.minimumHeight: 64
                 Layout.preferredHeight: Math.min(centerList.contentHeight, center.listMaxHeight) + 16
                 visible: centerList.count > 0
                 radius: 12

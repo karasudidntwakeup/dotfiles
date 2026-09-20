@@ -10,6 +10,8 @@ Item {
     property bool centerOpen: false
     property int unreadCount: 0
     property var liveNotifs: ({})
+    property int maxHistory: 64
+    property int maxPopups: 5
 
     ListModel {
         id: historyModel
@@ -181,6 +183,30 @@ Item {
         svc.liveNotifs = remaining
     }
 
+    function pruneHistory() {
+        var excess = historyModel.count - svc.maxHistory
+        if (excess <= 0) return
+        var doomed = []
+        for (var i = historyModel.count - 1; i >= 0 && excess > 0; i--, excess--)
+            doomed.push(historyModel.get(i).uid)
+        for (var j = 0; j < doomed.length; j++) {
+            var uid = doomed[j]
+            var n = svc.liveNotifs[uid]
+            svc.removeFromModel(popupsModel, uid)
+            svc.releaseNotif(uid)
+            svc.removeFromModel(historyModel, uid)
+            if (n && typeof n.dismiss === "function") n.dismiss()
+        }
+    }
+
+    function prunePopups() {
+        var excess = popupsModel.count - svc.maxPopups
+        while (excess > 0) {
+            svc.hidePopup(popupsModel.get(popupsModel.count - 1).uid)
+            excess--
+        }
+    }
+
     function dismissNotif(uid) {
         var n = svc.liveNotifs[uid]
         svc.releaseNotif(uid)
@@ -310,6 +336,7 @@ Item {
             }
 
             historyModel.insert(0, entry)
+            svc.pruneHistory()
 
             n.closed.connect(() => {
                 svc.releaseNotif(uid)
@@ -343,6 +370,7 @@ Item {
                          timestamp: now,
                         urgency: n.urgency
                     })
+                    svc.prunePopups()
                 }
             }
         }

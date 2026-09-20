@@ -11,8 +11,7 @@ env=ELECTRON_OZONE_PLATFORM_HINT,auto
 env=GDK_BACKEND,wayland,x11
 env=MOZ_ENABLE_WAYLAND,1
 env=MOZ_DBUS_REMOTE,1
-# QS_NO_SHADOW intentionally unset: QS draws its own shaped Qt shadows
-# (same as under niri); mango draws no layer shadows (see layer_shadows=0).
+env=QS_NO_SHADOW,1
 # niri sets DISPLAY ":0" for xwayland-satellite; mango has built-in xwayland, not needed
 # niri: prefer-no-csd / clipboard disable-primary / xwayland-satellite off / hot-corners off
 # mango has no direct equivalents; CSD allowed per-app via windowrule allow_csd if needed
@@ -24,8 +23,8 @@ exec-once=bash -c "pipewire & sleep 1; pipewire-pulse & sleep 1; exec wireplumbe
 exec-once=awww-daemon
 exec-once=bash -c "python3 /home/karasu/.config/quickshell/scripts/wa-notify.py"
 exec-once=bash -c "/home/karasu/.config/quickshell/scripts/wa-follow-watch.sh"
-exec-once=bash -c "pkill -x qs 2>/dev/null;pkill -x quickshell 2>/dev/null;sleep 1;exec qs -d --path /home/karasu/.config/quickshell/shell.qml"
-exec-once=bash -c "pkill -f '^python3 -u .*bombaclip.py';sleep 1;WAYLAND_DISPLAY=$(ls -t /run/user/1000/|grep -m1 '^wayland-[0-9]*$') exec python3 -u /home/karasu/github/bombaclip/bombaclip.py --token $(cat ~/.bombaclip_token)>>/tmp/bombaclip.log 2>&1"
+exec-once=bash -c "QS_NO_SHADOW=1 qs -d --path /home/karasu/.config/quickshell/shell.qml"
+exec-once=bash -c "cd /home/karasu/github/bombaclip && python3 -u bombaclip.py --token \"$(cat ~/.bombaclip_token)\" >> /tmp/bombaclip.log 2>&1"
 
 # ---------- Output (from output.kdl: eDP-1 scale 1.0) ----------
 monitorrule=name:^eDP-1$,scale:1
@@ -52,9 +51,13 @@ cursor_hide_timeout=3
 cursor_hide_on_keypress=1
 # niri gestures (dnd-edge scroll/switch) have no direct mango equivalent; see gesturebind below
 
-# ---------- Theming (matugen-generated; see ~/.config/matugen/templates/mango-colors.conf) ----------
-# Regenerates on every wallpaper/scheme change via wallpaper_apply.sh.
-source=~/.config/mango/colors.conf
+# ---------- Theming (from colors.kdl) ----------
+# overview backdrop #11111b, active #89b4fa, inactive #a6adc8, urgent #f38ba8, shadow #000000
+rootcolor=0x11111bff
+focuscolor=0x89b4faff
+bordercolor=0xa6adc8ff
+urgentcolor=0xf38ba8ff
+shadowscolor=0x000000ff
 
 # ---------- Layout / gaps / borders (from layout.kdl: gaps 16) ----------
 # focus ring ON: borderpx=4 (thicker to cover rounded-corner artifacts), focused=blue, unfocused=grey (from colors.kdl)
@@ -81,11 +84,7 @@ blur_params_brightness=0.9
 blur_params_contrast=0.9
 blur_params_saturation=1.2
 shadows=1
-# No per-layer shadow opt-out exists in mango 0.17.2 (no `noshadow` layerrule key
-# in the binary; it would silently ignore it). layer_shadows=1 draws a shadow
-# behind every layer rect, incl. QS fullscreen transparent overlays -> the broken
-# look. QS draws its own shaped shadows (QS_NO_SHADOW unset, same as niri).
-layer_shadows=0
+layer_shadows=1
 shadow_only_floating=0
 shadows_size=12
 shadows_blur=33
@@ -103,9 +102,9 @@ layer_animation_type_close=fade
 animation_fade_in=1
 animation_fade_out=1
 tag_animation_direction=0
-animation_duration_tag=350
-animation_duration_move=500
-animation_duration_close=800
+animation_duration_tag=250
+animation_duration_move=300
+animation_duration_close=300
 zoom_initial_ratio=0.3
 zoom_end_ratio=0.7
 fadein_begin_opacity=0.6
@@ -148,24 +147,22 @@ windowrule=isfloating:1,width:400,height:600,appid:xdg-desktop-portal-gtk
 # niri pcmanfm rule is empty -> no mango rule needed
 # avoid blur/anim artifacts on selection layers (mango equivalent of niri portal handling)
 layerrule=noanim:1,noblur:1,layer_name:selection
-# QS pickers are fullscreen transparent overlays: per-layer blur+anim on
+# QS pickers are fullscreen transparent overlays: per-layer blur+shadow+anim on
 # open costs a full-screen effect pass each frame -> stutter. Skip it for instant
 # qs ipc opens (delete these if you prefer the blurred look and accept the lag).
-# NOTE: no `noshadow` key in mango 0.17.2 (silently ignored); layer shadows are
-# off globally via layer_shadows=0 instead.
-layerrule=noanim:1,noblur:1,layer_name:app-launcher
-layerrule=noanim:1,noblur:1,layer_name:ytx-picker
-layerrule=noanim:1,noblur:1,layer_name:whatsapp-picker
-layerrule=noanim:1,noblur:1,layer_name:clipboard-picker
-layerrule=noanim:1,noblur:1,layer_name:notes-picker
-layerrule=noanim:1,noblur:1,layer_name:wallpaper-picker
-layerrule=noanim:1,noblur:1,layer_name:notification-center
-layerrule=noanim:1,noblur:1,layer_name:qs-notif-popups
-layerrule=noanim:1,noblur:1,layer_name:calendar-card
+layerrule=noanim:1,noblur:1,noshadow:1,layer_name:app-launcher
+layerrule=noanim:1,noblur:1,noshadow:1,layer_name:ytx-picker
+layerrule=noanim:1,noblur:1,noshadow:1,layer_name:whatsapp-picker
+layerrule=noanim:1,noblur:1,noshadow:1,layer_name:clipboard-picker
+layerrule=noanim:1,noblur:1,noshadow:1,layer_name:notes-picker
+layerrule=noanim:1,noblur:1,noshadow:1,layer_name:wallpaper-picker
+layerrule=noanim:1,noblur:1,noshadow:1,layer_name:notification-center
+layerrule=noanim:1,noblur:1,noshadow:1,layer_name:qs-notif-popups
+layerrule=noanim:1,noblur:1,noshadow:1,layer_name:calendar-card
 # main bar has no explicit WlrLayershell.namespace in shell.qml; Quickshell's
 # default namespace is "quickshell" (src/wayland/wlr_layershell/wlr_layershell.hpp).
-# Skip mango blur + layer open-animation (those ghost on every qs start/reload).
-# Bar shadow comes from QS's own Qt shadow (QS_NO_SHADOW unset), same as niri.
+# Keep mango's drop shadow on the bar (QS-side shadows are off via QS_NO_SHADOW=1),
+# but skip blur + layer open-animation (those ghost on every qs start/reload).
 # Plain string, no regex anchors: matches whether mango uses substring or regex.
 layerrule=noanim:1,noblur:1,layer_name:quickshell
 
