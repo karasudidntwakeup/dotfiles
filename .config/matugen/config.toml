@@ -46,6 +46,10 @@ post_hook = 'killall -USR1 kitty || :'
 input_path = '~/.config/matugen/templates/niri.kdl'
 output_path = '~/.config/niri/colors.kdl'
 post_hook = 'niri msg action load-config-file'
+[templates.mango]
+input_path = '~/.config/matugen/templates/mango-colors.conf'
+output_path = '~/.config/mango/colors.conf'
+post_hook = 'mmsg dispatch reload_config 2>/dev/null || :'
 [templates.ddg_css]
 input_path = '~/.config/matugen/templates/ddg.css'
 output_path = '~/.librewolf/fuoz9ly2.default-default/chrome/websites/duckduckgo.css'

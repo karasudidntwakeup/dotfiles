@@ -2003,6 +2003,10 @@ function closeOverlays() {
             implicitWidth: barContent.width
             implicitHeight: barContent.height
             color: "transparent"
+            // mango 0.17.2 stacks the surface offset on top of the exclusive
+            // zone (usable_top = margins.top + exclusiveZone), and outer gaps
+            // (gappov) stack on top of that. -14 keeps tiled windows ~15px
+            // under the pills with gappov=15.
             exclusiveZone: margins.top + barRow.y + barRow.height - 5
 
             mask: Region {

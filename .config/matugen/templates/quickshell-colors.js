@@ -219,6 +219,7 @@ var prayer_light = "{{colors.secondary_container.light.hex}}"
    clipboard -> tertiary_fixed_dim  (peach, distinct from ytx pink)
    notes     -> primary_fixed_dim   (blue, distinct from launcher sapphire)
    whatsapp  -> secondary_fixed_dim (green)
+   notif     -> tertiary_fixed      (rose, distinct from ytx pink)
    prayer    -> secondary_container (yellow) */
 var ytx_card = "{{colors.tertiary_container.default.hex}}"
 
@@ -239,6 +240,10 @@ var notes_card_light = "{{colors.primary_fixed_dim.light.hex}}"
 var whatsapp_card = "{{colors.secondary_fixed_dim.default.hex}}"
 
 var whatsapp_card_light = "{{colors.secondary_fixed_dim.light.hex}}"
+
+var notif_card = "{{colors.tertiary_fixed.default.hex}}"
+
+var notif_card_light = "{{colors.tertiary_fixed.light.hex}}"
 
 var widget_accent = "{{colors.primary.default.hex}}"
 
