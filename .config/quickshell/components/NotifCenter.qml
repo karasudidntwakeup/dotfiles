@@ -167,7 +167,7 @@ Item {
 
         color: center.panelColor
         radius: 0
-        border.width: 1
+        border.width: 0
         border.color: center.panelBorder
         clip: true
         layer.enabled: true
@@ -195,61 +195,6 @@ Item {
             anchors.topMargin: center.pad
             anchors.bottomMargin: center.pad
             spacing: 10
-
-            RowLayout {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 30
-                Layout.minimumHeight: 30
-                spacing: 8
-
-                QIcon {
-                    source: Qt.resolvedUrl("../assets/icons/bell.svg")
-                    color: center.fg
-                    iconSize: center.fontSize + 5
-                    Layout.alignment: Qt.AlignVCenter
-                }
-
-                Text {
-                    text: "Notifications"
-                    color: center.fg
-                    font.family: center.uiFont
-                    font.pixelSize: center.fontSize + 2
-                    font.weight: Font.DemiBold
-                    Layout.fillWidth: true
-                    verticalAlignment: Text.AlignVCenter
-                }
-
-                Rectangle {
-                    visible: svc && svc.unreadCount > 0
-                    Layout.preferredHeight: 20
-                    implicitWidth: unreadLabel.implicitWidth + 12
-                    radius: 0
-                    color: center.accent
-
-                    Text {
-                        id: unreadLabel
-                        anchors.centerIn: parent
-                        text: svc ? String(svc.unreadCount) : ""
-                        color: rootRef ? rootRef.contrastColor(center.accent) : "#000000"
-                        font.family: center.uiFont
-                        font.pixelSize: center.fontSize - 2
-                        font.weight: Font.DemiBold
-                    }
-                }
-
-                HeaderBtn {
-                    iconSource: Qt.resolvedUrl("../assets/icons/bell.svg")
-                    active: svc ? svc.dnd : false
-                    onTapped: { if (svc) svc.dnd = !svc.dnd }
-                }
-
-                HeaderBtn {
-                    iconSource: Qt.resolvedUrl("../assets/icons/trash.svg")
-                    enabled_: svc && svc.history.count > 0
-                    active: false
-                    onTapped: { if (svc) svc.clearAll() }
-                }
-            }
 
             Rectangle {
                 id: mediaCard
@@ -836,6 +781,62 @@ Item {
                 }
             }
 
+            // Notifications header: sits directly above the list.
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 30
+                Layout.minimumHeight: 30
+                spacing: 8
+
+                QIcon {
+                    source: Qt.resolvedUrl("../assets/icons/bell.svg")
+                    color: center.fg
+                    iconSize: center.fontSize + 5
+                    Layout.alignment: Qt.AlignVCenter
+                }
+
+                Text {
+                    text: "Notifications"
+                    color: center.fg
+                    font.family: center.uiFont
+                    font.pixelSize: center.fontSize + 2
+                    font.weight: Font.DemiBold
+                    Layout.fillWidth: true
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                Rectangle {
+                    visible: svc && svc.unreadCount > 0
+                    Layout.preferredHeight: 20
+                    implicitWidth: unreadLabel.implicitWidth + 12
+                    radius: 0
+                    color: center.accent
+
+                    Text {
+                        id: unreadLabel
+                        anchors.centerIn: parent
+                        text: svc ? String(svc.unreadCount) : ""
+                        color: rootRef ? rootRef.contrastColor(center.accent) : "#000000"
+                        font.family: center.uiFont
+                        font.pixelSize: center.fontSize - 2
+                        font.weight: Font.DemiBold
+                    }
+                }
+
+                HeaderBtn {
+                    iconSource: Qt.resolvedUrl("../assets/icons/bell.svg")
+                    active: svc ? svc.dnd : false
+                    onTapped: { if (svc) svc.dnd = !svc.dnd }
+                }
+
+                HeaderBtn {
+                    iconSource: Qt.resolvedUrl("../assets/icons/trash.svg")
+                    enabled_: svc && svc.history.count > 0
+                    active: false
+                    onTapped: { if (svc) svc.clearAll() }
+                }
+            }
+
             Rectangle {
                 id: listWrap
                 Layout.fillWidth: true
@@ -844,8 +845,8 @@ Item {
                 Layout.preferredHeight: Math.min(centerList.contentHeight, center.listMaxHeight) + 16
                 visible: centerList.count > 0
                 radius: 0
-                color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.04)
-                border.width: 1
+                color: "transparent"
+                border.width: 0
                 border.color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.09)
                 clip: true
 

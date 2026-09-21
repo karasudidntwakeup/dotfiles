@@ -200,9 +200,10 @@ Item {
     }
 
     function prunePopups() {
+        // Oldest sits at index 0 (newest appends at the end).
         var excess = popupsModel.count - svc.maxPopups
         while (excess > 0) {
-            svc.hidePopup(popupsModel.get(popupsModel.count - 1).uid)
+            svc.hidePopup(popupsModel.get(0).uid)
             excess--
         }
     }
@@ -356,7 +357,8 @@ Item {
                 }
 
                 if (!svc.centerOpen) {
-                    popupsModel.insert(0, {
+                    // Append: newest popup lands under the existing ones.
+                    popupsModel.append({
                         uid: uid,
                         appName: appLabel,
                         desktopEntry: entry.desktopEntry,
