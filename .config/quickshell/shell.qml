@@ -71,10 +71,10 @@ ShellRoot {
         return Qt.hsla(Math.max(0, color.hslHue), color.hslSaturation, lightness, 1)
     }
 
+    // Kept as the pill-text entry point; delegates to the single shared
+    // max-contrast implementation so both never drift apart.
     function pillForeground(background) {
-        var linear = value => value <= 0.04045 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4)
-        var light = 0.2126 * linear(background.r) + 0.7152 * linear(background.g) + 0.0722 * linear(background.b)
-        return light > 0.179 ? "#000000" : "#ffffff"
+        return root.contrastColor(background)
     }
 
     // Max-contrast text pick (black vs white, whichever contrasts more).
@@ -91,7 +91,6 @@ ShellRoot {
 
     readonly property color primary: colorOf("primary")
     readonly property color error: colorOf("error")
-    readonly property color outlineVariant: colorOf("outline_variant")
 
     readonly property string fontFamily: "Geist"
     readonly property string uiFont: "Geist"
@@ -431,21 +430,21 @@ ShellRoot {
         interval: 600000
         running: true
         repeat: true
-        onTriggered: weatherProc.running = true
+        onTriggered: { if (!weatherProc.running) weatherProc.running = true }
     }
 
     Timer {
         interval: 1800000
         running: true
         repeat: true
-        onTriggered: weatherWeekProc.running = true
+        onTriggered: { if (!weatherWeekProc.running) weatherWeekProc.running = true }
     }
 
     Timer {
         interval: 600000
         running: true
         repeat: true
-        onTriggered: prayerProc.running = true
+        onTriggered: { if (!prayerProc.running) prayerProc.running = true }
     }
 
     Timer {
@@ -475,14 +474,14 @@ ShellRoot {
         interval: 15000
         running: true
         repeat: true
-        onTriggered: memProc.running = true
+        onTriggered: { if (!memProc.running) memProc.running = true }
     }
 
     Timer {
         interval: 300000
         running: true
         repeat: true
-        onTriggered: mountedDisksProc.running = true
+        onTriggered: { if (!mountedDisksProc.running) mountedDisksProc.running = true }
     }
 
     property int volumePercent: 0
@@ -576,10 +575,10 @@ ShellRoot {
     }
 
     Timer {
-        interval: 3000
+        interval: 5000
         running: true
         repeat: true
-        onTriggered: netProc.running = true
+        onTriggered: { if (!netProc.running) netProc.running = true }
     }
 
     property string bluetoothText: ""
@@ -615,7 +614,7 @@ ShellRoot {
         interval: 10000
         running: true
         repeat: true
-        onTriggered: btProc.running = true
+        onTriggered: { if (!btProc.running) btProc.running = true }
     }
 
     property string mediaStatus: "none"
@@ -678,21 +677,21 @@ ShellRoot {
         interval: 2000
         running: true
         repeat: true
-        onTriggered: mediaProc.running = true
+        onTriggered: { if (!mediaProc.running) mediaProc.running = true }
     }
 
     Timer {
         id: mediaTicker
-        interval: 100
+        interval: 250
         running: root.mediaStatus === "Playing"
         repeat: true
         onTriggered: {
             if (root.mediaStatus === "Playing")
-                root.mediaPosMs = Math.min(root.mediaPosMs + 100, root.mediaLenMs)
+                root.mediaPosMs = Math.min(root.mediaPosMs + 250, root.mediaLenMs)
         }
         onRunningChanged: {
 
-            if (running) mediaProc.running = true
+            if (running && !mediaProc.running) mediaProc.running = true
         }
     }
 
@@ -995,10 +994,10 @@ mediaProc.running = true
 
         Timer {
             id: ocPoller
-            interval: 4000
+            interval: 8000
             running: true
             repeat: true
-            onTriggered: ocProc.running = true
+            onTriggered: { if (!ocProc.running) ocProc.running = true }
         }
 
         Component.onCompleted: Qt.callLater(() => ocProc.running = true)
@@ -1163,7 +1162,7 @@ mediaProc.running = true
         }
         Behavior on opacity { Anim { type: Anim.DefaultEffects } }
         Behavior on enterShift { Anim { type: Anim.Bouncy } }
-        layer.enabled: true
+        layer.enabled: Quickshell.env("QS_NO_SHADOW") !== "1"
         layer.effect: MultiEffect {
             shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
             shadowBlur: 0.7
@@ -1252,7 +1251,7 @@ mediaProc.running = true
         }
         Behavior on opacity { Anim { type: Anim.DefaultEffects } }
         Behavior on enterShift { Anim { type: Anim.Bouncy } }
-        layer.enabled: true
+        layer.enabled: Quickshell.env("QS_NO_SHADOW") !== "1"
         layer.effect: MultiEffect {
             shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
             shadowBlur: 0.7
@@ -1644,7 +1643,7 @@ mediaProc.running = true
         }
         Behavior on opacity { Anim { type: Anim.DefaultEffects } }
         Behavior on enterShift { Anim { type: Anim.Bouncy } }
-        layer.enabled: true
+        layer.enabled: Quickshell.env("QS_NO_SHADOW") !== "1"
         layer.effect: MultiEffect {
             shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
             shadowBlur: 0.7
@@ -2339,7 +2338,7 @@ function closeOverlays() {
                         }
                         Behavior on opacity { Anim { type: Anim.DefaultEffects } }
                         Behavior on enterShift { Anim { type: Anim.Bouncy } }
-                        layer.enabled: true
+                        layer.enabled: Quickshell.env("QS_NO_SHADOW") !== "1"
                         layer.effect: MultiEffect {
                             shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
                             shadowBlur: 0.7

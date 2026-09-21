@@ -46,7 +46,7 @@ Item {
     readonly property color errorColor: rootRef ? Qt.color(rootRef.colorOf("widget_error")) : "#e30000"
 
     readonly property string fontFamily: uiFont
-    readonly property string uiFont: "Geist"
+    readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Geist"
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
     readonly property string notesScript: Quickshell.shellDir + "/scripts/notes.py"
 
@@ -67,7 +67,7 @@ Item {
 
     property real animProgress: notes.active ? 1.0 : 0.0
     Behavior on animProgress {
-        Anim { type: Anim.Bouncy }
+        Anim { type: Anim.Bouncy; easing.overshoot: 3.2 }
     }
 
     readonly property int bottomMargin: 24
@@ -635,15 +635,18 @@ Item {
                     clip: true
 
                     move: Transition {
-                        Anim { property: "y"; type: Anim.BouncyFast }
+                        Anim { property: "x"; type: Anim.BouncyFast; easing.overshoot: 3.0 }
+                        Anim { property: "y"; type: Anim.BouncyFast; easing.overshoot: 3.0 }
                         Anim { property: "opacity"; to: 1; type: Anim.DefaultEffects }
                     }
                     displaced: Transition {
-                        Anim { property: "y"; type: Anim.BouncyFast }
+                        Anim { property: "x"; type: Anim.BouncyFast; easing.overshoot: 3.0 }
+                        Anim { property: "y"; type: Anim.BouncyFast; easing.overshoot: 3.0 }
                     }
                     add: Transition {
                         Anim { property: "opacity"; from: 0; to: 1; type: Anim.DefaultEffects }
-                        Anim { property: "scale"; from: 0.96; to: 1; type: Anim.BouncyFast }
+                        Anim { property: "scale"; from: 0.85; to: 1; type: Anim.BouncyFast; easing.overshoot: 3.5 }
+                        Anim { property: "y"; from: 18; to: 0; type: Anim.BouncyFast; easing.overshoot: 3.0 }
                     }
 
                     delegate: Item {

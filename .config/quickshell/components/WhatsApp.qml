@@ -41,7 +41,7 @@ Item {
     readonly property color selectedFg: accentText
     readonly property color errorColor: rootRef ? Qt.color(rootRef.colorOf("widget_error")) : "#e30000"
     readonly property string fontFamily: uiFont
-    readonly property string uiFont: "Geist"
+    readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Geist"
     readonly property string arabicFont: "SF Arabic"
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
     readonly property string homeDir: Quickshell.env("HOME")

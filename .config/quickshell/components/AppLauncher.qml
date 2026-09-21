@@ -46,7 +46,7 @@ Item {
     readonly property color descColor: rootRef ? rootRef.withAlpha(launcher.fg, 0.6) : "#888888"
 
     readonly property string fontFamily: uiFont
-    readonly property string uiFont: "Geist"
+    readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Geist"
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
     readonly property string terminalCommand: rootRef ? rootRef.terminalCommand : "kitty"
 

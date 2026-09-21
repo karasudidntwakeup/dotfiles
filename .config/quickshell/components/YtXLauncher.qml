@@ -20,7 +20,7 @@ Item {
     readonly property int visibleRows: 2
     readonly property int columns: Math.max(1, Math.min(4, Math.floor((cardWidth - pad * 2 + gridSpacing) / 180)))
     readonly property int gridSpacing: 12
-    readonly property real cellWidth: (cardWidth - pad * 2 + gridSpacing) / columns - gridSpacing
+    readonly property real cellWidth: Math.max(1, (cardWidth - pad * 2 + gridSpacing) / columns - gridSpacing)
     readonly property int cellInset: 5
     readonly property real thumbWidth: cellWidth - cellInset * 2
     readonly property int thumbHeight: Math.round(thumbWidth * 9 / 16)
@@ -45,7 +45,7 @@ Item {
     readonly property color selBg: Qt.darker(ytx.accent, 1.5)
     // Text/alpha helpers live on root (contrastColor/withAlpha).
     readonly property string fontFamily: uiFont
-    readonly property string uiFont: "Geist"
+    readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Geist"
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
     property real animProgress: ytx.active ? 1 : 0
     readonly property int bottomMargin: 24
@@ -61,11 +61,29 @@ Item {
     readonly property bool showingHome: !ytx.showingRecent && !ytx.searching && ytx.activeQuery.length === 0
     property var prefetched: ({
     })
+    // Manifest of thumbnails a batch actually downloaded. Image URLs embed
+    // thumbTicks, so bumping it re-sources every thumbnail — only do that
+    // when files really changed, never on a no-op run.
+    readonly property string dlManifest: ytx.thumbCache + "/downloaded.log"
+    property bool dlArmed: false
     Process {
         id: thumbProc
         onExited: () => {
-            ytx.thumbTicks++
+            ytx.dlArmed = true
+            dlFile.reload()
         }
+    }
+    FileView {
+        id: dlFile
+        path: ytx.dlManifest
+        watchChanges: false
+        blockLoading: true
+        onLoaded: {
+            if (!ytx.dlArmed) return
+            ytx.dlArmed = false
+            if (String(dlFile.text()).trim().length > 0) ytx.thumbTicks++
+        }
+        onLoadFailed: (error) => {}
     }
     Process {
         id: homeProc
@@ -112,13 +130,12 @@ Item {
             if (ytx.prefetched[v.vid])
                 continue;
             ytx.prefetched[v.vid] = true;
-            downloads.push("test -s '" + v.thumb + "' || { curl -sfL --max-time 10 " + "'https://i.ytimg.com/vi/" + v.vid + "/mqdefault.jpg' -o '" + v.thumb + ".part' && mv '" + v.thumb + ".part' '" + v.thumb + "'; }");
+            downloads.push("test -s '" + v.thumb + "' || { curl -sfL --max-time 10 " + "'https://i.ytimg.com/vi/" + v.vid + "/mqdefault.jpg' -o '" + v.thumb + ".part' && mv '" + v.thumb + ".part' '" + v.thumb + "' && echo '" + v.vid + "' >> '" + ytx.dlManifest + "'; }");
         }
         if (downloads.length === 0) {
-            ytx.thumbTicks++;
             return
         }
-        thumbProc.command = ["bash", "-c", "mkdir -p '" + ytx.thumbCache + "'\n" + downloads.join("\n")];
+        thumbProc.command = ["bash", "-c", "mkdir -p '" + ytx.thumbCache + "'\n: > '" + ytx.dlManifest + "'\n" + downloads.join("\n")];
         thumbProc.running = true;
     }
     function isSubsequence(sub, str) {
@@ -434,7 +451,7 @@ Item {
             id: contentColumn
             x: ytx.pad
             y: ytx.pad
-            width: ytx.cardWidth - ytx.pad * 2
+            width: Math.max(0, ytx.cardWidth - ytx.pad * 2)
             spacing: 12
             Rectangle {
                 id: searchBox
@@ -696,14 +713,18 @@ Item {
                 id: gridContainer
                 width: parent.width
                 height: ytx.gridHeight()
+                // The window can have no size for the first frames after it
+                // maps; with degenerate widths every cell would pile at the
+                // origin for a flash. Keep the grid hidden until sane.
+                visible: ytx.width > 64
                 GridView {
                     id: grid
                     anchors.left: parent.left
                     anchors.top: parent.top
-                    width: parent.width + ytx.gridSpacing
+                    width: Math.max(0, parent.width + ytx.gridSpacing)
                     height: parent.height
-                    model: listModel
-                    cellWidth: width / ytx.columns
+                    model: ytx.width > 64 ? listModel : null
+                    cellWidth: Math.max(1, width / ytx.columns)
                     cellHeight: ytx.cellHeight + ytx.gridSpacing
                     boundsBehavior: Flickable.StopAtBounds
                     clip: true
@@ -777,13 +798,14 @@ Item {
                                     fillMode: Image.PreserveAspectCrop
                                     asynchronous: true
                                     clip: true
-                                    // Thumbnails used to snap in abruptly when
-                                    // the async load finished — fade + spring
-                                    // instead so covers bounce into place.
+                                    // Thumbnails spring in with a bouncy pop + a
+                                    // slight straightening wobble.
                                     opacity: status === Image.Ready ? 1 : 0
                                     Behavior on opacity { Anim { type: Anim.DefaultEffects } }
-                                    scale: status === Image.Ready ? 1 : 0.9
-                                    Behavior on scale { Anim { type: Anim.BouncyFast; easing.overshoot: 2.0 } }
+                                    scale: status === Image.Ready ? 1 : 0.75
+                                    Behavior on scale { Anim { type: Anim.BouncyFast; easing.overshoot: 3.2 } }
+                                    rotation: status === Image.Ready ? 0 : -5
+                                    Behavior on rotation { Anim { type: Anim.BouncyFast; easing.overshoot: 2.5 } }
                                     transformOrigin: Item.Center
                                     onStatusChanged: {
                                         if (thumbImg.status === Image.Error && !cell.localFail)
