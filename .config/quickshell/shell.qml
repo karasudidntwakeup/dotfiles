@@ -1762,6 +1762,7 @@ function closeOverlays() {
         root.clipboardActive = false
         root.notesActive = false
         root.wallpaperActive = false
+        root.themeActive = false
         if (calPopup.visible) calPopup.close()
     }
 
@@ -1784,6 +1785,28 @@ function closeOverlays() {
         target: "wallpaper"
         function toggle(): void {
             root.toggleWallpaperPicker()
+        }
+    }
+
+    property bool themeActive: false
+
+    function openThemePicker() {
+        if (root.themeActive) return
+        root.closeOverlays()
+        root.themeActive = true
+    }
+    function closeThemePicker() {
+        root.themeActive = false
+    }
+    function toggleThemePicker() {
+        if (root.themeActive) closeThemePicker()
+        else openThemePicker()
+    }
+
+    IpcHandler {
+        target: "theme"
+        function toggle(): void {
+            root.toggleThemePicker()
         }
     }
 
@@ -2005,6 +2028,40 @@ function closeOverlays() {
         onVisibleChanged: {
             if (visible) {
                 pickerContent.triggerIndexer()
+            }
+        }
+    }
+
+    PanelWindow {
+        id: themePickerWin
+        visible: root.themeActive || themePickerContent.animProgress > 0.001
+        color: "transparent"
+        WlrLayershell.namespace: "theme-picker"
+        WlrLayershell.layer: WlrLayer.Overlay
+        WlrLayershell.keyboardFocus: root.themeActive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+        anchors.top: true
+        anchors.bottom: true
+        anchors.left: true
+        anchors.right: true
+
+        ThemePicker {
+            id: themePickerContent
+            anchors.fill: parent
+            visible_: root.themeActive
+            currentMode: root.qsLight ? "light" : "dark"
+
+            surfaceColor: "#17181c"
+            borderColor: Qt.color(root.colorOf("outline_variant"))
+            fgColor: "#ffffff"
+            accentColor: Qt.color(root.colorOf("primary"))
+            iconFont: root.iconFont
+            uiFont: root.uiFont
+            onRequestClose: root.themeActive = false
+        }
+
+        onVisibleChanged: {
+            if (visible) {
+                themePickerContent.triggerGenerator()
             }
         }
     }
