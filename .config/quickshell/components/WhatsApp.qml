@@ -578,9 +578,12 @@ Item {
                     }
                 }
 
-                Row { // tabs (android underline style)
+                Rectangle { // tabs (same color as top bar)
                     Layout.fillWidth: true
                     Layout.preferredHeight: 40
+                    color: wa.header
+                    Row {
+                        anchors.fill: parent
                     Repeater {
                         model: [{k: "chats", l: "Chats"}, {k: "groups", l: "Groups"}, {k: "channels", l: "Channels"}]
                         delegate: Item {
@@ -605,6 +608,7 @@ Item {
                                 }
                             }
                         }
+                    }
                     }
                 }
                 Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: wa.divider }
