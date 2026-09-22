@@ -515,7 +515,7 @@ Item {
                 anchors.fill: parent
                 spacing: 0
 
-                Rectangle { // header
+                Rectangle { // header with inline search
                     Layout.fillWidth: true
                     Layout.preferredHeight: 60
                     color: wa.header
@@ -533,49 +533,48 @@ Item {
                         Text {
                             text: "WhatsApp"; color: wa.fg
                             font.family: wa.uiFont; font.pixelSize: wa.fontSize + 3; font.weight: Font.Bold
-                            Layout.fillWidth: true
+                            Layout.alignment: Qt.AlignVCenter
                         }
+                        Item { Layout.fillWidth: true }
+                        Rectangle { // inline search
+                            Layout.preferredWidth: 220
+                            Layout.preferredHeight: 28
+                            Layout.alignment: Qt.AlignVCenter
+                            radius: 0; color: wa.field
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.leftMargin: 14; anchors.rightMargin: 6
+                                spacing: 8
+                                QIcon { source: Qt.resolvedUrl("../assets/icons/search.svg"); color: wa.muted; iconSize: 15 }
+                                CharField {
+                                    id: searchField
+                                    Layout.fillWidth: true; Layout.fillHeight: true
+                                    textColor: wa.fg; font.family: wa.uiFont; font.pixelSize: wa.fontSize
+                                    placeholderText: "Search"; placeholderTextColor: wa.muted
+                                    selectByMouse: true; verticalAlignment: Text.AlignVCenter
+                                    onTextEdited: wa.applyChatFilter(searchField.text)
+                                    Keys.onDownPressed: e => { if (chatModel.count > 0) chatList.incrementCurrentIndex(); e.accepted = true }
+                                    Keys.onUpPressed: e => { chatList.decrementCurrentIndex(); e.accepted = true }
+                                    Keys.onReturnPressed: e => {
+                                        if (chatList.currentIndex >= 0 && chatList.currentIndex < chatModel.count)
+                                            wa.selectChat(chatModel.get(chatList.currentIndex))
+                                        e.accepted = true
+                                    }
+                                }
+                                Item {
+                                    Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                                    visible: searchField.text.length > 0
+                                    QIcon { anchors.centerIn: parent; source: Qt.resolvedUrl("../assets/icons/close.svg"); color: wa.muted; iconSize: 13 }
+                                    MouseArea {
+                                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                        onClicked: { searchField.text = ""; wa.applyChatFilter("") }
+                                    }
+                                }
+                            }
+                        }
+                        Item { Layout.fillWidth: true }
                         IconBtn { icon: "refresh"; tip: "Refresh"; onClicked: wa.loadChats() }
-                        IconBtn { icon: "close"; tip: "Close"; onClicked: wa.requestClose() }
-                    }
-                }
 
-                Item { // search
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 52
-                    Rectangle {
-                        anchors.fill: parent; anchors.margins: 8
-                        radius: 26; color: wa.field
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.leftMargin: 14; anchors.rightMargin: 6
-                            spacing: 8
-                            QIcon { source: Qt.resolvedUrl("../assets/icons/search.svg"); color: wa.muted; iconSize: 15 }
-                            CharField {
-                                id: searchField
-                                Layout.fillWidth: true; Layout.fillHeight: true
-                                textColor: wa.fg; font.family: wa.uiFont; font.pixelSize: wa.fontSize
-                                placeholderText: "Search"; placeholderTextColor: wa.muted
-                                selectByMouse: true; verticalAlignment: Text.AlignVCenter
-                                onTextEdited: wa.applyChatFilter(searchField.text)
-                                Keys.onDownPressed: e => { if (chatModel.count > 0) chatList.incrementCurrentIndex(); e.accepted = true }
-                                Keys.onUpPressed: e => { chatList.decrementCurrentIndex(); e.accepted = true }
-                                Keys.onReturnPressed: e => {
-                                    if (chatList.currentIndex >= 0 && chatList.currentIndex < chatModel.count)
-                                        wa.selectChat(chatModel.get(chatList.currentIndex))
-                                    e.accepted = true
-                                }
-                            }
-                            Item {
-                                Layout.preferredWidth: 24; Layout.preferredHeight: 24
-                                visible: searchField.text.length > 0
-                                QIcon { anchors.centerIn: parent; source: Qt.resolvedUrl("../assets/icons/close.svg"); color: wa.muted; iconSize: 13 }
-                                MouseArea {
-                                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                                    onClicked: { searchField.text = ""; wa.applyChatFilter("") }
-                                }
-                            }
-                        }
                     }
                 }
 
@@ -674,7 +673,7 @@ Item {
                                         Rectangle { // unread badge
                                             visible: unreadCount > 0
                                             Layout.preferredWidth: Math.max(20, badgeText.implicitWidth + 12)
-                                            Layout.preferredHeight: 20; radius: 10
+                                            Layout.preferredHeight: 20; radius: 0
                                             color: wa.green
                                             Text {
                                                 id: badgeText; anchors.centerIn: parent
@@ -745,7 +744,7 @@ Item {
                             text: wa.sending ? "Sending…" : "Loading…"
                             color: wa.muted; font.family: wa.uiFont; font.pixelSize: Math.max(10, wa.fontSize - 2)
                         }
-                        IconBtn { icon: "close"; tip: "Close"; onClicked: wa.requestClose() }
+
                     }
                 }
                 Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: wa.divider }
@@ -794,7 +793,7 @@ Item {
                         Rectangle { // day divider chip
                             visible: isDay
                             anchors.centerIn: parent
-                            width: dayText.implicitWidth + 24; height: 24; radius: 12
+                            width: dayText.implicitWidth + 24; height: 24; radius: 0
                             color: wa.header
                             Text {
                                 id: dayText; anchors.centerIn: parent; text: label
@@ -819,7 +818,7 @@ Item {
                             }
                             Rectangle { // image thumb
                                 visible: isImage
-                                width: parent.width; height: 184; radius: 8; clip: true; color: wa.header
+                                width: parent.width; height: 184; radius: 0; clip: true; color: wa.header
                                 Image {
                                     anchors.fill: parent; source: isImage ? url : ""
                                     fillMode: Image.PreserveAspectCrop
@@ -832,7 +831,7 @@ Item {
                             }
                             Rectangle { // sticker
                                 visible: isSticker
-                                width: 160; height: 160; radius: 8; clip: true; color: "transparent"
+                                width: 160; height: 160; radius: 0; clip: true; color: "transparent"
                                 AnimatedImage {
                                     id: stickerImg; anchors.fill: parent
                                     source: isSticker ? url : ""
@@ -850,12 +849,12 @@ Item {
                             }
                             Rectangle { // audio row
                                 visible: isAudio
-                                width: parent.width; height: 44; radius: 8
+                                width: parent.width; height: 44; radius: 0
                                 color: fromMe ? wa.bubbleOut : wa.bubbleIn
                                 RowLayout {
                                     anchors.fill: parent; anchors.leftMargin: 6; anchors.rightMargin: 10; spacing: 8
                                     Rectangle {
-                                        Layout.preferredWidth: 30; Layout.preferredHeight: 30; radius: 15
+                                        Layout.preferredWidth: 30; Layout.preferredHeight: 30; radius: 0
                                         color: wa.green
                                         Text {
                                             anchors.centerIn: parent
@@ -882,10 +881,10 @@ Item {
                                 visible: body.length > 0
                                 width: parent.width
                                 implicitHeight: bubbleRow.implicitHeight + 12
-                                radius: 8
-                                // tail corner: flat on the side it points to
-                                topLeftRadius: fromMe ? 8 : 0
-                                topRightRadius: fromMe ? 0 : 8
+                                radius: 0
+                                // iOS: uniformly rounded, no tail corner
+                                topLeftRadius: 0
+                                topRightRadius: 0
                                 color: fromMe ? wa.bubbleOut : wa.bubbleIn
                                 RowLayout {
                                     id: bubbleRow
@@ -956,7 +955,7 @@ Item {
                         anchors.fill: parent
                         anchors.leftMargin: 10; anchors.rightMargin: 10; spacing: 8
                         Rectangle {
-                            Layout.fillWidth: true; Layout.preferredHeight: 46; radius: 23; color: wa.field
+                            Layout.fillWidth: true; Layout.preferredHeight: 46; radius: 0; color: wa.field
                             RowLayout {
                                 anchors.fill: parent
                                 anchors.leftMargin: 14; anchors.rightMargin: 6; spacing: 4
@@ -974,7 +973,7 @@ Item {
                             }
                         }
                         Rectangle { // round send FAB
-                            Layout.preferredWidth: 46; Layout.preferredHeight: 46; radius: 23
+                            Layout.preferredWidth: 46; Layout.preferredHeight: 46; radius: 0
                             color: sendField.text.length > 0 && wa.inChat ? wa.green : wa.field
                             opacity: (wa.inChat && !wa.sending && sendField.text.length > 0) ? 1 : 0.7
                             QIcon {
@@ -999,7 +998,7 @@ Item {
                 anchors.rightMargin: 16
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 74
-                width: 44; height: 44; radius: 22
+                width: 44; height: 44; radius: 0
                 color: wa.field
                 border.width: 1
                 border.color: wa.divider

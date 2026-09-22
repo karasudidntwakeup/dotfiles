@@ -5,6 +5,7 @@ import QtQuick.Effects
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
+// Android-style YouTube client: phone sheet, same Pura X layout as WhatsApp.
 Item {
     id: ytx
     property var rootRef: null
@@ -12,15 +13,36 @@ Item {
     property bool searching: false
     property bool searchFailed: false
     property string activeQuery: ""
+    property real animProgress: ytx.active ? 1 : 0
+    Behavior on animProgress { Anim { type: Anim.Bouncy; easing.overshoot: 3.2 } }
+
+    opacity: ytx.animProgress
+    visible: opacity > 0.01
+    transform: Translate { y: (1 - ytx.animProgress) * 8 }
+
+    Shortcut { sequence: "Ctrl+F"; enabled: ytx.active; onActivated: searchField.forceActiveFocus() }
+    Shortcut { sequence: "Escape"; enabled: ytx.active; onActivated: ytx.requestClose() }
+
+    // ---- Android roles from theme tokens (same source as WhatsApp) ----
+    readonly property color bg: rootRef ? Qt.color(rootRef.colorOf("surface")) : "#0b141a"
+    readonly property color header: rootRef ? Qt.color(rootRef.colorOf("surface_container")) : "#1f2c34"
+    readonly property color field: rootRef ? Qt.color(rootRef.colorOf("surface_container_high")) : "#2a3942"
+    readonly property color fg: ytx.waFg
+    readonly property color waFg: rootRef ? Qt.color(rootRef.colorOf("on_surface")) : "#e9edef"
+    readonly property color muted: rootRef ? Qt.color(rootRef.colorOf("on_surface_variant")) : "#8696a0"
+    readonly property color divider: rootRef ? rootRef.withAlpha(Qt.color(rootRef.colorOf("outline_variant")), 0.5) : "#222d34"
+    readonly property color green: rootRef ? Qt.color(rootRef.colorOf("primary")) : "#00a884"
+    readonly property bool noShadow: Quickshell.env("QS_NO_SHADOW") === "1"
+
     readonly property int cornerRadius: 0
     readonly property int pad: 14
-    readonly property int cardWidth: Math.min(640, Math.max(0, ytx.width - 32))
+    readonly property int cardWidth: Math.min(620, Math.max(0, ytx.width - 32))
     readonly property int searchHeight: 36
     readonly property int maxItems: 48
     readonly property int visibleRows: 2
-    readonly property int columns: Math.max(1, Math.min(4, Math.floor((cardWidth - pad * 2 + gridSpacing) / 180)))
+    readonly property int columns: Math.max(1, Math.min(3, Math.floor((cardWidth - 28 - pad * 2 + gridSpacing) / 180)))
     readonly property int gridSpacing: 12
-    readonly property real cellWidth: Math.max(1, (cardWidth - pad * 2 + gridSpacing) / columns - gridSpacing)
+    readonly property real cellWidth: Math.max(1, (cardWidth - 28 - pad * 2 + gridSpacing) / columns - gridSpacing)
     readonly property int cellInset: 5
     readonly property real thumbWidth: cellWidth - cellInset * 2
     readonly property int thumbHeight: Math.round(thumbWidth * 9 / 16)
@@ -35,8 +57,7 @@ Item {
             base = rootRef.mixColor(base, rootRef.colorOf("surface_container_highest"), 0.2)
         return Qt.darker(base, 1.2)
     }
-    readonly property color cardBorder: rootRef ? rootRef.withAlpha(rootRef.colorOf("widget_border"), rootRef.qsLight ? 0.7 : 0.5) : "#00000000"
-    readonly property color fg: rootRef ? rootRef.contrastColor(ytx.cardColor) : "#000000"
+    readonly property color cardBorder: ytx.divider
     readonly property color accent: rootRef
         ? Qt.color(rootRef.colorOf("widget_error"))
         : "#bf616a"
@@ -47,7 +68,6 @@ Item {
     readonly property string fontFamily: uiFont
     readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Geist"
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
-    property real animProgress: ytx.active ? 1 : 0
     readonly property int bottomMargin: 24
     readonly property string homeDir: Quickshell.env("HOME")
     readonly property string thumbCache: homeDir + "/.cache/rofi-youtube"
@@ -322,7 +342,6 @@ Item {
             rows = 1;
         return rows * ytx.cellHeight + (rows - 1) * ytx.gridSpacing;
     }
-    opacity: ytx.animProgress
     onActiveChanged: {
         if (ytx.active) {
             if (!ytx.initialized) {
@@ -421,21 +440,24 @@ Item {
         running: ytx.active && ytx.showingHome
         onTriggered: ytx.refreshFeed(false)
     }
+    // ---------- sheet (same Pura X phone sheet as WhatsApp) ----------
+    MouseArea { anchors.fill: parent; onClicked: ytx.requestClose() }
+
     Rectangle {
         id: card
-
-        width: ytx.cardWidth
+        // Wide foldable (Pura X 16:10-ish): broad phone, docked at bottom.
+        width: Math.min(620, parent.width - 32)
+        height: Math.min(740, Math.max(520, parent.height - 96))
         anchors.horizontalCenter: parent.horizontalCenter
-        y: Math.floor(parent.height - card.height - ytx.bottomMargin)
-        height: contentColumn.implicitHeight + ytx.pad * 2
-        radius: ytx.cornerRadius
-        color: ytx.cardColor
+        y: Math.floor(parent.height - card.height - 24)
+        radius: 0
+        color: ytx.bg
         border.width: 1
-        border.color: ytx.cardBorder
+        border.color: ytx.divider
         clip: true
-        layer.enabled: true
+        layer.enabled: !ytx.noShadow
         layer.effect: MultiEffect {
-            shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
+            shadowEnabled: !ytx.noShadow
             shadowBlur: 0.9
             blurMax: 28
             shadowHorizontalOffset: 5
@@ -444,145 +466,160 @@ Item {
             shadowOpacity: 0.95
         }
 
-        transform: Translate {
-            y: (1.0 - ytx.animProgress) * 8
+        Rectangle {
+            anchors.fill: parent
+            radius: 0
+            color: "transparent"
+            border.width: 1
+            border.color: Qt.rgba(0, 0, 0, 0.4)
+            z: 10
         }
-        Column {
+
+        ColumnLayout {
             id: contentColumn
-            x: ytx.pad
-            y: ytx.pad
-            width: Math.max(0, ytx.cardWidth - ytx.pad * 2)
-            spacing: 12
-            Rectangle {
-                id: searchBox
-                width: parent.width
-                height: ytx.searchHeight
-                radius: 0
-                color: rootRef.withAlpha(ytx.fg, 0.08)
-                border.width: 1
-                border.color: searchField.inputFocus ? rootRef.withAlpha(ytx.fg, 0.4) : rootRef.withAlpha(ytx.fg, 0.12)
+            anchors.fill: parent
+            spacing: 0
+            Rectangle { // header (android, like WhatsApp)
+                Layout.fillWidth: true
+                Layout.preferredHeight: 60
+                color: ytx.header
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 12
-                    anchors.rightMargin: 12
+                    anchors.leftMargin: 16; anchors.rightMargin: 8
                     spacing: 8
                     Image {
+                        Layout.preferredWidth: 28; Layout.preferredHeight: 20
                         Layout.alignment: Qt.AlignVCenter
-                        Layout.preferredWidth: 28
-                        Layout.preferredHeight: 20
                         fillMode: Image.PreserveAspectFit
-                        smooth: true
-                        mipmap: true
-                        asynchronous: true
+                        smooth: true; mipmap: true; asynchronous: true
                         source: Qt.resolvedUrl("../assets/youtube.svg")
                     }
-                    CharField {
-                        id: searchField
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        textColor: ytx.fg
-                        font.family: ytx.uiFont
-                        font.pixelSize: ytx.fontSize + 1
-                        font.weight: Font.Medium
-                        placeholderText: "Search YouTube"
-                        placeholderTextColor: rootRef.withAlpha(ytx.fg, 0.4)
-                        selectByMouse: true
-                        verticalAlignment: Text.AlignVCenter
-                        onTextEdited: {
-                            if (searchField.text.trim().length === 0 && ytx.activeQuery.length > 0)
-                                ytx.showRecent();
-                            else
-                                ytx.filter(searchField.text);
-                        }
-                        Keys.onDownPressed: (event) => {
-                            grid.moveCurrentIndexDown();
-                            event.accepted = true;
-                        }
-                        Keys.onUpPressed: (event) => {
-                            grid.moveCurrentIndexUp();
-                            event.accepted = true;
-                        }
-                        Keys.onRightPressed: (event) => {
-                            if (grid.currentIndex < listModel.count - 1)
-                                grid.currentIndex++;
-                            event.accepted = true;
-                        }
-                        Keys.onLeftPressed: (event) => {
-                            if (grid.currentIndex > 0)
-                                grid.currentIndex--;
-                            event.accepted = true;
-                        }
-                        Keys.onReturnPressed: (event) => {
-                            var q = searchField.text.trim();
-                            var asAudio = event.modifiers & Qt.AltModifier;
-                            if (q.length > 0 && q !== ytx.activeQuery && !ytx.searching)
-                                ytx.runSearch(q);
-                            else
-                                ytx.activate(asAudio);
-                            event.accepted = true;
-                        }
-                        Keys.onPressed: (event) => {
-                            if (event.key === Qt.Key_1 && (event.modifiers & Qt.AltModifier)) {
-                                ytx.ensureHome(false);
-                                searchField.text = "";
-                                searchField.forceActiveFocus();
-                                ytx.filter("");
-                                event.accepted = true;
-                                return ;
-                            }
-                            if (event.key === Qt.Key_P) {
-                                var q = searchField.text.trim();
-                                if (q.length > 0 && ytx.activeQuery.length === 0 && !ytx.searching)
-                                    ytx.runSearch(q);
-                                else if (listModel.count > 0)
-                                    ytx.playAll(false);
-                                event.accepted = true;
-                            }
-                        }
-                        Keys.onEscapePressed: (event) => {
-                            ytx.requestClose();
-                            event.accepted = true;
-                        }
+                    Text {
+                        text: "YouTube"; color: ytx.waFg
+                        font.family: ytx.uiFont; font.pixelSize: ytx.fontSize + 3; font.weight: Font.Bold
+                        Layout.alignment: Qt.AlignVCenter
                     }
-                    Rectangle {
-                        visible: searchField.text.length > 0
-                        Layout.preferredWidth: 22
-                        Layout.preferredHeight: 22
-                        radius: 0
-                        color: clearHover.containsMouse ? rootRef.withAlpha(ytx.fg, 0.25) : "transparent"
-                        QIcon {
-                            anchors.centerIn: parent
-                            source: Qt.resolvedUrl("../assets/icons/close.svg")
-                            color: ytx.fg
-                            iconSize: ytx.fontSize + 2
-                        }
-                        MouseArea {
-                            id: clearHover
+                    Item { Layout.fillWidth: true }
+                    Rectangle { // inline search
+                        Layout.preferredWidth: 220
+                        Layout.preferredHeight: 28
+                        Layout.alignment: Qt.AlignVCenter
+                        radius: 0; color: ytx.field
+                        RowLayout {
                             anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                searchField.text = "";
-                                searchField.forceActiveFocus();
-                                if (ytx.activeQuery.length > 0)
-                                    ytx.showRecent();
-                                else
-                                    ytx.filter("");
+                            anchors.leftMargin: 14; anchors.rightMargin: 6
+                            spacing: 8
+                            QIcon { source: Qt.resolvedUrl("../assets/icons/search.svg"); color: ytx.muted; iconSize: 15 }
+                            CharField {
+                                id: searchField
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                textColor: ytx.waFg
+                                font.family: ytx.uiFont
+                                font.pixelSize: ytx.fontSize
+                                font.weight: Font.Medium
+                                placeholderText: "Search YouTube"
+                                placeholderTextColor: ytx.muted
+                                selectByMouse: true
+                                verticalAlignment: Text.AlignVCenter
+                                onTextEdited: {
+                                    if (searchField.text.trim().length === 0 && ytx.activeQuery.length > 0)
+                                        ytx.showRecent();
+                                    else
+                                        ytx.filter(searchField.text);
+                                }
+                                Keys.onDownPressed: (event) => {
+                                    grid.moveCurrentIndexDown();
+                                    event.accepted = true;
+                                }
+                                Keys.onUpPressed: (event) => {
+                                    grid.moveCurrentIndexUp();
+                                    event.accepted = true;
+                                }
+                                Keys.onRightPressed: (event) => {
+                                    if (grid.currentIndex < listModel.count - 1)
+                                        grid.currentIndex++;
+                                    event.accepted = true;
+                                }
+                                Keys.onLeftPressed: (event) => {
+                                    if (grid.currentIndex > 0)
+                                        grid.currentIndex--;
+                                    event.accepted = true;
+                                }
+                                Keys.onReturnPressed: (event) => {
+                                    var q = searchField.text.trim();
+                                    var asAudio = event.modifiers & Qt.AltModifier;
+                                    if (q.length > 0 && q !== ytx.activeQuery && !ytx.searching)
+                                        ytx.runSearch(q);
+                                    else
+                                        ytx.activate(asAudio);
+                                    event.accepted = true;
+                                }
+                                Keys.onPressed: (event) => {
+                                    if (event.key === Qt.Key_1 && (event.modifiers & Qt.AltModifier)) {
+                                        ytx.ensureHome(false);
+                                        searchField.text = "";
+                                        searchField.forceActiveFocus();
+                                        ytx.filter("");
+                                        event.accepted = true;
+                                        return ;
+                                    }
+                                    if (event.key === Qt.Key_P) {
+                                        var q = searchField.text.trim();
+                                        if (q.length > 0 && ytx.activeQuery.length === 0 && !ytx.searching)
+                                            ytx.runSearch(q);
+                                        else if (listModel.count > 0)
+                                            ytx.playAll(false);
+                                        event.accepted = true;
+                                    }
+                                }
+                                Keys.onEscapePressed: (event) => {
+                                    ytx.requestClose();
+                                    event.accepted = true;
+                                }
+                            }
+                            Rectangle {
+                                visible: searchField.text.length > 0
+                                Layout.preferredWidth: 24
+                                Layout.preferredHeight: 24
+                                Layout.alignment: Qt.AlignVCenter
+                                radius: 0
+                                color: "transparent"
+                                QIcon {
+                                    anchors.centerIn: parent
+                                    source: Qt.resolvedUrl("../assets/icons/close.svg")
+                                    color: ytx.muted
+                                    iconSize: 13
+                                }
+                                MouseArea {
+                                    id: clearHover
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        searchField.text = "";
+                                        searchField.forceActiveFocus();
+                                        if (ytx.activeQuery.length > 0)
+                                            ytx.showRecent();
+                                        else
+                                            ytx.filter("");
+                                    }
+                                }
                             }
                         }
-                        Behavior on color {
-                            CAnim { type: CAnim.FastEffects }
-                        }
                     }
-                }
-                Behavior on border.color {
-                    CAnim { type: CAnim.FastEffects }
+                    Item { Layout.fillWidth: true }
+                    IconBtn { icon: "refresh"; tip: "Refresh"; onClicked: ytx.ensureHome(true) }
+
                 }
             }
+            Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: ytx.divider }
+            Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: ytx.divider }
             Item {
                 id: statusRow
-                width: parent.width
-                height: 22
+                Layout.fillWidth: true
+                Layout.preferredHeight: 34
+                Layout.leftMargin: 14; Layout.rightMargin: 14
                 visible: true
                 BusyIndicator {
                     anchors.left: parent.left
@@ -711,8 +748,10 @@ Item {
             }
             Item {
                 id: gridContainer
-                width: parent.width
-                height: ytx.gridHeight()
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.leftMargin: 14; Layout.rightMargin: 14
+                Layout.topMargin: 6; Layout.bottomMargin: 14
                 // The window can have no size for the first frames after it
                 // maps; with degenerate widths every cell would pile at the
                 // origin for a flash. Keep the grid hidden until sane.
@@ -866,7 +905,26 @@ Item {
             }
         }
     }
-    Behavior on animProgress {
-        Anim { type: Anim.Bouncy }
+
+    // ---------- small icon button (same as WhatsApp) ----------
+    component IconBtn: Item {
+        id: btn
+        property string icon: ""
+        property string tip: ""
+        property bool enabled: true
+        signal clicked()
+        implicitWidth: 34; implicitHeight: 34
+        opacity: btn.enabled ? 1 : 0.4
+        QIcon {
+            anchors.centerIn: parent
+            source: btn.icon === "refresh" ? Qt.resolvedUrl("../assets/icons/refresh.svg")
+                : Qt.resolvedUrl("../assets/icons/close.svg")
+            color: ytx.waFg; iconSize: 16
+        }
+        MouseArea {
+            anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+            enabled: btn.enabled
+            onClicked: btn.clicked()
+        }
     }
 }

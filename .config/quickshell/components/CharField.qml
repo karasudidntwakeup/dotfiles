@@ -24,6 +24,7 @@ Item {
     property alias selectByMouse: field.selectByMouse
     property alias readOnly: field.readOnly
     property alias verticalAlignment: field.verticalAlignment
+    property alias horizontalAlignment: field.horizontalAlignment
     property alias font: field.font
     property alias inputFocus: field.activeFocus
 
