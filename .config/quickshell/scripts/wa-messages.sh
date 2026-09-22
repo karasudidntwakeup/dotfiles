@@ -41,20 +41,29 @@ trap cleanup EXIT
 
 wacli --json messages list --chat "$JID" --limit 100 2>/dev/null >"$TMP" || exit 1
 
-MEDIA_IDS="$(jq -r '.data.messages[]? | select(.MediaType == "image" or .MediaType == "audio" or .MediaType == "sticker") | .MsgID' "$TMP" 2>/dev/null | awk '/^[A-Za-z0-9_=-]{1,128}$/ {print}' | head -n 16)"
+# id<TAB>filename rows for media needing download. wacli keeps the
+# original filename on download (e.g. wa-clip-*.png for clipboard sends),
+# so a message counts as cached under either name.
+MEDIA_ROWS="$(jq -r '.data.messages[]? | select(.MediaType == "image" or .MediaType == "audio" or .MediaType == "sticker") | [.MsgID, (.Filename // "")] | @tsv' "$TMP" 2>/dev/null | head -n 16)"
 
 attempt=0
-for id in $MEDIA_IDS; do
-    [ -n "$id" ] || continue
+while IFS="$(printf '\t')" read -r id fname; do
+    case "$id" in ''|*[!A-Za-z0-9_=-]*) continue ;; esac
+    [ "${#id}" -le 128 ] || continue
     if ls "$MDIR"/message-"$id".* >/dev/null 2>&1; then
         continue
     fi
+    case "$fname" in ''|*/*) ;;
+        *) [ -f "$MDIR/$fname" ] && continue ;;
+    esac
     if [ "$attempt" -ge 6 ]; then
         break
     fi
     attempt=$((attempt + 1))
-    timeout 60 wacli media download --read-only --chat "$JID" --id "$id" --output "$MDIR" >/dev/null 2>&1 || true
-done
+    timeout 30 wacli media download --read-only --chat "$JID" --id "$id" --output "$MDIR" >/dev/null 2>&1 || true
+done <<EOF
+$MEDIA_ROWS
+EOF
 
 python3 - "$TMP" "$MDIR" "$JID" <<'PY'
 import glob
@@ -76,6 +85,14 @@ for m in msgs:
         if not isinstance(mid, str) or not re.fullmatch(r"[A-Za-z0-9_=-]{1,128}", mid):
             continue
         hits = glob.glob(os.path.join(mdir, "message-" + mid + ".*"))
+        if not hits:
+            # wacli preserves the sender's filename (clipboard sends land
+            # as wa-clip-*.png); match on the reported basename instead.
+            fn = m.get("Filename", "")
+            if isinstance(fn, str) and fn and "/" not in fn and fn not in (".", ".."):
+                cand = os.path.join(mdir, fn)
+                if os.path.isfile(cand):
+                    hits = [cand]
         if hits:
             p = os.path.realpath(hits[0])
             if p.startswith(real_mdir + os.sep) and os.path.isfile(p):

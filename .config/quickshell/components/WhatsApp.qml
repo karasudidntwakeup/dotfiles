@@ -5,602 +5,486 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 
+// Android-style WhatsApp client: phone sheet, list -> conversation.
+// Android roles sourced from theme tokens (Matugen), fixed hex only as fallback.
+// Name/avatar tiles stay square.
 Item {
     id: wa
 
     property var rootRef: null
     property bool active: false
-    readonly property int cardWidth: 700
-    readonly property int leftWidth: Math.min(300, Math.max(0, (card.width - wa.pad * 2 - 10) * 0.34))
-    readonly property int chatRowHeight: 40
-    readonly property int maxChatRows: 7
-    readonly property int headerHeight: 36
-    readonly property int sendHeight: 36
-    readonly property int searchHeight: 36
-    readonly property int pad: 12
-    readonly property int cornerRadius: 0
-    readonly property int msgPad: 12
-    readonly property real bubbleMaxW: 300
-    readonly property int imgMaxW: 240
-    readonly property int imgMaxH: 190
-    property string activeTab: "chats"
-    property string playingAudioSrc: ""
-    readonly property string cardTile: "whatsapp_card"
-    // Muted green: whatsapp token mixed toward neutral surface so the
-    // background carries less color — text/borders follow via contrastColor.
-    readonly property color cardColor: {
-        var base = rootRef ? (rootRef.qsLight ? rootRef.pillColor(cardTile) : rootRef.colorOf(cardTile)) : "#f3dfd1"
-        if (rootRef && rootRef.mixColor && rootRef.colorOf)
-            base = rootRef.mixColor(base, rootRef.colorOf("surface_container_highest"), 0.2)
-        return Qt.darker(base, 1.2)
-    }
-    readonly property color cardBorder: rootRef ? rootRef.withAlpha(rootRef.colorOf("widget_border"), rootRef.qsLight ? 0.7 : 0.5) : "#00000000"
-    readonly property color fg: rootRef ? rootRef.contrastColor(wa.cardColor) : "#000000"
-    readonly property color accent: rootRef ? Qt.color(rootRef.colorOf("widget_accent")) : "#73737a"
-    readonly property color accentText: rootRef ? rootRef.contrastColor(wa.accent) : "#000000"
-    readonly property color selectedFg: accentText
-    readonly property color errorColor: rootRef ? Qt.color(rootRef.colorOf("widget_error")) : "#e30000"
-    readonly property string fontFamily: uiFont
+    property real animProgress: wa.active ? 1 : 0
+    Behavior on animProgress { Anim { type: Anim.Bouncy; easing.overshoot: 3.2 } }
+
+    signal requestClose()
+
+    // ---- Android roles from theme tokens ----
+    readonly property color bg: rootRef ? Qt.color(rootRef.colorOf("surface")) : "#0b141a"
+    readonly property color header: rootRef ? Qt.color(rootRef.colorOf("surface_container")) : "#1f2c34"
+    readonly property color bubbleIn: rootRef ? Qt.color(rootRef.colorOf("surface_container_high")) : "#1f2c34"
+    readonly property color bubbleOut: rootRef ? Qt.color(rootRef.colorOf("primary_container")) : "#005c4b"
+    readonly property color green: rootRef ? Qt.color(rootRef.colorOf("primary")) : "#00a884"
+    readonly property color fg: rootRef ? Qt.color(rootRef.colorOf("on_surface")) : "#e9edef"
+    readonly property color muted: rootRef ? Qt.color(rootRef.colorOf("on_surface_variant")) : "#8696a0"
+    readonly property color divider: rootRef ? rootRef.withAlpha(Qt.color(rootRef.colorOf("outline_variant")), 0.5) : "#222d34"
+    readonly property color field: rootRef ? Qt.color(rootRef.colorOf("surface_container_high")) : "#2a3942"
+    readonly property color err: rootRef ? Qt.color(rootRef.colorOf("error")) : "#f15c6d"
+    // Outgoing-ink follows the outgoing token for contrast on any theme.
+    readonly property color outFg: rootRef ? rootRef.contrastColor(wa.bubbleOut) : "#06281f"
+    readonly property color outTime: rootRef ? rootRef.withAlpha(wa.outFg, 0.7) : "#a8d5cc"
+
     readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Geist"
     readonly property string arabicFont: "SF Arabic"
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
     readonly property string homeDir: Quickshell.env("HOME")
-    property real animProgress: wa.active ? 1 : 0
-    readonly property int bottomMargin: 24
+    readonly property bool noShadow: Quickshell.env("QS_NO_SHADOW") === "1"
+
+
+
     property var rawChats: []
     property var currentChat: null
     property string currentJid: ""
+    property string activeTab: "chats"
     property bool chatsLoading: false
     property bool chatsFailed: false
     property bool msgsLoading: false
     property bool msgsFailed: false
-    readonly property bool sending: sendProc.running || sendFileProc.running
-    property var drafts: ({
-    })
-    property var scrollPositions: ({
-    })
     property string sendStatus: ""
     property bool sendFailed: false
-    property bool restoreScroll: false
-    property var pendingScroll: null
-    readonly property int stableBodyHeight: wa.chatRowHeight * wa.maxChatRows + 6 * (wa.maxChatRows - 1) + 20
+    property string playingAudioSrc: ""
+    readonly property bool sending: sendProc.running || sendFileProc.running
+    readonly property bool inChat: wa.currentJid.length > 0
+    property var drafts: ({})
+    property string _sendFileErr: ""
+    property string _msgSig: ""
+    property bool atEnd: true
+    // Set for explicit jumps (open chat / send); background polls never move the view.
+    // Only your own scrolling disarms it — fresh loads landing late still jump.
+    property bool jumpEnd: false
+    property bool _progScroll: false
 
-    signal requestClose()
+    opacity: wa.animProgress
+    visible: opacity > 0.01
+    transform: Translate { y: (1 - wa.animProgress) * 8 }
 
-    // Text/alpha helpers live on root (contrastColor/withAlpha).
-
-    function copyChat(chat) {
-        return chat ? {
-            "jid": String(chat.jid),
-            "name": String(chat.name),
-            "kind": String(chat.kind)
-        } : null;
-    }
-
-    function mediaPath(src) : string {
-        var path = String(src || "");
-        var prefix = wa.homeDir + "/.cache/quickshell/wa-media/";
-        if (path.indexOf(prefix) !== 0 || /[\\\\\x00-\x1f\x7f]/.test(path))
-            return "";
-
-        var parts = path.slice(prefix.length).split("/");
-        if (parts.length < 2 || parts.some(function(part) {
-            return !part || part === "." || part === "..";
-        }))
-            return "";
-
-        return path;
-    }
-
-    function mediaUrl(src) : string {
-        var path = wa.mediaPath(src);
-        return path ? "file://" + path.split("/").map(encodeURIComponent).join("/") : "";
-    }
-
-    function saveChatState() {
-        if (!wa.currentJid)
-            return ;
-
-        wa.drafts[wa.currentJid] = sendField.text;
-        if (!wa.restoreScroll && !wa.pendingScroll) {
-            wa.scrollPositions[wa.currentJid] = {
-                "y": msgList.contentY - msgList.originY,
-                "end": msgList.atYEnd
-            };
+    onActiveChanged: {
+        if (wa.active) {
+            wa.sendFailed = false
+            wa.sendStatus = ""
+            wa.loadChats()
+            if (wa.inChat) { wa.jumpEnd = true; wa.loadMessages() }
+            focusTimer.restart()
+        } else {
+            wa.saveDraft()
+            audioPlayer.running = false
         }
     }
 
-    function clearChat() {
-        wa.saveChatState();
-        wa.currentChat = null;
-        wa.currentJid = "";
-        wa.pendingScroll = null;
-        wa.msgsLoading = false;
-        messageModel.clear();
-        sendField.text = "";
-        audioPlayer.running = false;
+    Shortcut { sequence: "Ctrl+F"; enabled: wa.active && !wa.inChat; onActivated: searchField.forceActiveFocus() }
+    Shortcut {
+        sequence: "Escape"; enabled: wa.active
+        onActivated: {
+            if (wa.inChat) wa.backToList()
+            else wa.requestClose()
+        }
     }
 
-    function safeJid(jid: string) : string {
-        return String(jid).replace(/[^A-Za-z0-9]/g, "_");
+    ListModel { id: chatModel }
+    ListModel { id: messageModel }
+
+    // ---------- helpers ----------
+    function shortName(chat) {
+        var n = String((chat && chat.name) || "").trim()
+        if (n.length > 0) return n
+        var jid = String((chat && chat.jid) || "")
+        var m = jid.match(/^(\d+)/)
+        return m ? m[1] : jid
+    }
+    function initials(name) {
+        var n = String(name || "").trim()
+        if (!n.length) return "?"
+        var p = n.split(/\s+/)
+        if (p.length >= 2) return (p[0].charAt(0) + p[p.length - 1].charAt(0)).toUpperCase()
+        return n.charAt(0).toUpperCase()
+    }
+    function avatarColor(jid) {
+        var h = 0
+        var s = String(jid || "")
+        for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) & 0xffffff
+        // Hue family follows the theme's primary token; fallback is WA green.
+        var base = rootRef ? Qt.color(rootRef.colorOf("primary")).hslHue : 0.44
+        return Qt.hsla((base + (h % 8) * 0.04) % 1.0, 0.45, 0.32, 1)
+    }
+    function escapeHtml(s) {
+        return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    }
+    // Wrap http(s) URLs in anchors (trailing punctuation left outside).
+    // Link ink is passed in so it contrasts on both bubble sides.
+    function linkify(s, linkColor) {
+        var ink = linkColor || wa.green
+        return wa.escapeHtml(s).replace(/(https?:\/\/[^\s<>"']+)/g, function(url) {
+            var trail = ""
+            var m = url.match(/[.,!?;:)\]]+$/)
+            if (m) { trail = m[0]; url = url.slice(0, -trail.length) }
+            if (!url.length) return m ? m[0] : ""
+            return '<a href="' + url + '"><font color="' + ink + '">' + url + '</font></a>' + trail
+        })
+    }
+    function linkAtText(item, area, x, y) {
+        var p = item.mapFromItem(area, x, y)
+        return item.linkAt(p.x, p.y)
+    }
+    function copyLink(link) {
+        if (!link) return
+        Quickshell.execDetached(["sh", "-c", 'printf %s "$1" | wl-copy', "wa-copy", link])
+    }
+    function openLink(link) {
+        if (!link) return
+        Quickshell.execDetached(["xdg-open", link])
+    }
+    function safeJid(jid) { return String(jid).replace(/[^A-Za-z0-9]/g, "_") }
+    function mediaPath(src) {
+        var path = String(src || "")
+        var prefix = wa.homeDir + "/.cache/quickshell/wa-media/"
+        if (path.indexOf(prefix) !== 0 || path.indexOf("..") >= 0) return ""
+        return path
+    }
+    function mediaUrl(src) {
+        var p = wa.mediaPath(src)
+        return p ? "file://" + p.split("/").map(encodeURIComponent).join("/") : ""
+    }
+    function parseDate(iso) { var t = Date.parse(iso); return isNaN(t) ? null : new Date(t) }
+    function fmtTime(iso) {
+        var t = wa.parseDate(iso)
+        if (!t) return ""
+        var h = t.getHours(), m = t.getMinutes()
+        var hh = (h % 12 === 0 ? 12 : h % 12)
+        return hh + ":" + (m < 10 ? "0" : "") + m + (h < 12 ? " AM" : " PM")
+    }
+    function dayKey(iso) {
+        var t = wa.parseDate(iso)
+        return t ? (t.getFullYear() * 10000 + (t.getMonth() + 1) * 100 + t.getDate()) : -1
+    }
+    function dayLabel(iso) {
+        var t = wa.parseDate(iso)
+        if (!t) return ""
+        var now = new Date()
+        var dk = d => d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()
+        if (dk(t) === dk(now)) return "Today"
+        var y = new Date(now); y.setDate(now.getDate() - 1)
+        if (dk(t) === dk(y)) return "Yesterday"
+        return (t.getMonth() + 1) + "/" + t.getDate() + "/" + t.getFullYear()
+    }
+    function fmtListTime(iso) {
+        var t = wa.parseDate(iso)
+        if (!t) return ""
+        var now = new Date()
+        var dk = d => d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()
+        return dk(t) === dk(now) ? wa.fmtTime(iso) : (t.getMonth() + 1) + "/" + t.getDate() + "/" + String(t.getFullYear()).slice(2)
     }
 
-    function initials(name: string) : string {
-        var n = String(name || "").trim();
-        if (n.length === 0)
-            return "?";
-
-        var parts = n.split(/\s+/);
-        if (parts.length >= 2)
-            return parts[0].charAt(0) + parts[parts.length - 1].charAt(0);
-
-        return n.charAt(0);
-    }
-
-    function shortName(chat) : string {
-        var n = String(chat.name || "").trim();
-        if (n.length > 0)
-            return n;
-
-        var jid = String(chat.jid || "");
-        var m = jid.match(/^(\d+)/);
-        return m ? m[1] : jid;
-    }
-
-    function fmtTime(iso: string) : string {
-        var d = Date.parse(iso);
-        if (isNaN(d))
-            return "";
-
-        var t = new Date(d);
-        var h = t.getHours(), m = t.getMinutes();
-        var hh = (h % 12 === 0 ? 12 : h % 12);
-        return hh + ":" + (m < 10 ? "0" : "") + m + (h < 12 ? " AM" : " PM");
-    }
-
-    function fmtDate(iso: string) : string {
-        var d = Date.parse(iso);
-        if (isNaN(d))
-            return "";
-
-        var t = new Date(d);
-        var now = new Date();
-        var sameDay = t.toDateString() === now.toDateString();
-        return sameDay ? wa.fmtTime(iso) : (t.getMonth() + 1) + "/" + (t.getDate() < 10 ? "0" : "") + t.getDate() + " " + wa.fmtTime(iso);
-    }
-
+    // ---------- data ----------
     function loadChats() {
-        if (chatsFetchProc.running)
-            return ;
-
-        wa.chatsLoading = true;
-        chatsFetchProc.running = true;
+        if (chatsFetchProc.running || !wa.active) return
+        wa.chatsLoading = true
+        chatsFetchProc.running = true
     }
-
     function loadMessages() {
-        if (!wa.currentJid || messagesProc.running)
-            return ;
-
-        wa.msgsLoading = true;
-        messagesProc.jid = wa.currentJid;
-        messagesProc.command = ["timeout", "--kill-after=5s", "420s", "bash", Quickshell.shellDir + "/scripts/wa-messages.sh", wa.currentJid];
-        messagesProc.running = true;
+        if (!wa.inChat || messagesProc.running) return
+        wa.msgsLoading = true
+        messagesProc.jid = wa.currentJid
+        messagesProc.command = ["timeout", "--kill-after=5s", "60s", "bash",
+            Quickshell.shellDir + "/scripts/wa-messages.sh", wa.currentJid]
+        messagesProc.running = true
     }
-
     function onChatsData(obj) {
-        wa.chatsLoading = chatsFetchProc.running;
-        wa.chatsFailed = false;
-        if (!obj || !Array.isArray(obj.chats)) {
-            wa.chatsFailed = true;
-            return ;
-        }
-        wa.rawChats = obj.chats;
-        wa.applyChatFilter(searchField.text);
+        wa.chatsLoading = false
+        if (!obj || !Array.isArray(obj.chats)) { wa.chatsFailed = true; return }
+        wa.chatsFailed = false
+        // Skip rebuild when identical (poll churn -> scroll jumps otherwise).
+        var sig = obj.chats.length + "|" + obj.chats.slice(0, 12).map(c => (c.jid || "") + ":" + (c.unread_count || 0)).join(",")
+        if (sig === wa._chatsSig) return
+        wa._chatsSig = sig
+        wa.rawChats = obj.chats
+        wa.applyChatFilter(searchField.text)
     }
+    property string _chatsSig: ""
+
+    function tabKind() { return wa.activeTab === "groups" ? "group" : wa.activeTab === "channels" ? "newsletter" : "dm" }
 
     function applyChatFilter(text) {
-        var q = (text || "").toLowerCase();
-        var tab = wa.activeTab;
-        var previousIndex = chatList.currentIndex;
-        var selectedJid = previousIndex >= 0 && previousIndex < chatModel.count ? String(chatModel.get(previousIndex).jid) : wa.currentJid;
-        var oldY = chatList.contentY;
-        wa.currentChat = wa.copyChat(wa.currentChat);
-        chatModel.clear();
+        var q = (text || "").toLowerCase()
+        var want = wa.tabKind()
+        var sel = chatList.currentIndex >= 0 && chatList.currentIndex < chatModel.count
+            ? String(chatModel.get(chatList.currentIndex).jid) : wa.currentJid
+        chatModel.clear()
         for (var i = 0; i < wa.rawChats.length; i++) {
-            var c = wa.rawChats[i];
-            if (!c || !c.jid)
-                continue;
-
-            var kind = c.kind === "community" ? "group" : (c.kind || "dm");
-            var expectedKind = tab === "groups" ? "group" : tab === "channels" ? "newsletter" : "dm";
-            if (kind !== expectedKind)
-                continue;
-
-            var n = wa.shortName(c).toLowerCase();
-            if (q.length > 0 && n.indexOf(q) < 0)
-                continue;
-
+            var c = wa.rawChats[i]
+            if (!c || !c.jid) continue
+            var kind = c.kind === "community" ? "group" : (c.kind || "dm")
+            if (kind !== want) continue
+            var nm = wa.shortName(c)
+            if (q.length > 0 && nm.toLowerCase().indexOf(q) < 0) continue
             chatModel.append({
-                "jid": c.jid,
-                "name": wa.shortName(c),
-                "kind": kind,
-                "unread": c.unread === true,
-                "unreadCount": c.unread_count || 0,
-                "lastTs": c.last_message_ts || "",
-                "muted": c.muted_until !== undefined ? c.muted_until : 0
-            });
+                jid: String(c.jid), name: nm, kind: kind,
+                unread: c.unread === true, unreadCount: c.unread_count || 0,
+                lastTs: c.last_message_ts || "",
+                muted: (c.muted_until !== undefined && c.muted_until !== 0)
+            })
         }
-        var selectedIndex = -1;
-        for (var j = 0; j < chatModel.count; j++) {
-            var item = chatModel.get(j);
-            if (item.jid === selectedJid)
-                selectedIndex = j;
-
-            if (item.jid === wa.currentJid)
-                wa.currentChat = wa.copyChat(item);
-
-        }
-        chatList.currentIndex = selectedIndex >= 0 ? selectedIndex : Math.min(Math.max(0, previousIndex), chatModel.count - 1);
-        chatList.contentY = Math.max(chatList.originY, Math.min(oldY, chatList.originY + Math.max(0, chatList.contentHeight - chatList.height)));
+        var idx = -1
+        for (var j = 0; j < chatModel.count; j++)
+            if (String(chatModel.get(j).jid) === sel) { idx = j; break }
+        chatList.currentIndex = idx
     }
 
     function selectChat(chat) {
-        if (!chat || !chat.jid)
-            return ;
-
-        if (chat.jid === wa.currentJid) {
-            inputFocus.restart();
-            return ;
-        }
-        wa.saveChatState();
-        audioPlayer.running = false;
-        wa.currentChat = wa.copyChat(chat);
-        wa.currentJid = String(chat.jid);
-        wa.pendingScroll = null;
-        sendField.text = wa.drafts[wa.currentJid] || "";
-        wa.msgsFailed = false;
-        wa.restoreScroll = true;
-        messageModel.clear();
-        wa.msgsLoading = true;
-        messagesFile.path = wa.homeDir + "/.cache/quickshell/wa-messages-" + wa.safeJid(wa.currentJid) + ".json";
-        wa.loadMessages();
-        messagesFile.reload();
-        inputFocus.restart();
+        if (!chat || !chat.jid || String(chat.jid) === wa.currentJid) return
+        wa.saveDraft()
+        audioPlayer.running = false
+        wa.currentChat = { jid: String(chat.jid), name: String(chat.name), kind: String(chat.kind) }
+        wa.currentJid = String(chat.jid)
+        sendField.text = wa.drafts[wa.currentJid] || ""
+        wa.msgsFailed = false
+        wa.atEnd = true
+        wa.jumpEnd = true
+        wa._msgSig = ""
+        wa._progScroll = true
+        messageModel.clear()
+        wa._progScroll = false
+        messagesFile.path = wa.homeDir + "/.cache/quickshell/wa-messages-" + wa.safeJid(wa.currentJid) + ".json"
+        wa.loadMessages()
+        messagesFile.reload()
+        chatInputTimer.restart()
+    }
+    function backToList() {
+        wa.saveDraft()
+        audioPlayer.running = false
+        wa.currentChat = null
+        wa.currentJid = ""
+        wa._msgSig = ""
+        messageModel.clear()
+        messagesFile.path = ""
+    }
+    function saveDraft() {
+        if (wa.currentJid) wa.drafts[wa.currentJid] = sendField.text
     }
 
     function onMessagesData(obj) {
-        if (!wa.currentJid)
-            return ;
-
-        if (!obj || String(obj.jid || "") !== wa.currentJid)
-            return ;
-
-        if (!Array.isArray(obj.messages)) {
-            if (!wa.msgsLoading) wa.msgsFailed = true;
-            return ;
-        }
-        wa.msgsFailed = false;
-        var jid = wa.currentJid;
-        var oldScroll = wa.pendingScroll ? wa.pendingScroll.position
-            : wa.restoreScroll ? (wa.scrollPositions[jid] || { y: 0, end: true })
-            : { y: msgList.contentY - msgList.originY, end: msgList.atYEnd };
-        var update = { jid: jid, position: oldScroll };
-        wa.scrollPositions[jid] = oldScroll;
-        wa.pendingScroll = update;
-        wa.restoreScroll = false;
-        messageModel.clear();
+        if (!wa.inChat || !obj || String(obj.jid || "") !== wa.currentJid) return
+        if (!Array.isArray(obj.messages)) { if (!wa.msgsLoading) wa.msgsFailed = true; return }
+        wa.msgsFailed = false
+        // Skip rebuild when nothing changed (ids, media, text lengths):
+        // idle polls then can't disturb the view at all.
+        var sig = obj.messages.length + "|" + obj.messages.map(m =>
+            (m.MsgID || "") + ":" + (m.src || "") + ":"
+            + String(m.DisplayText || m.Text || m.MediaCaption || "").length).join(",")
+        if (sig === wa._msgSig) return
+        wa._msgSig = sig
+        var savedY = msgList.contentY - msgList.originY
+        var wantEnd = wa.jumpEnd
+        var jid = wa.currentJid
+        wa._progScroll = true
+        messageModel.clear()
+        var lastDay = -1
+        // wacli returns newest-first; iterate oldest-first for top-down view.
         for (var i = obj.messages.length - 1; i >= 0; i--) {
-            var m = obj.messages[i];
-            if (!m || !m.MsgID)
-                continue;
-
-            var body = String(m.MediaCaption || m.DisplayText || m.Text || "");
-            messageModel.append({
-                "fromMe": m.FromMe === true,
-                "sender": String(m.SenderName || (m.FromMe ? "You" : "")),
-                "text": body,
-                "mediaType": String(m.MediaType || ""),
-                "src": wa.mediaPath(m.src),
-                "time": wa.fmtDate(m.Timestamp)
-            });
-        }
-        Qt.callLater(function() {
-            if (wa.currentJid !== jid || wa.pendingScroll !== update) return;
-            msgList.forceLayout();
-            if (oldScroll.end) {
-                msgList.positionViewAtEnd();
-            } else {
-                msgList.contentY = msgList.originY + Math.max(0, Math.min(oldScroll.y, msgList.contentHeight - msgList.height));
+            var m = obj.messages[i]
+            if (!m || !m.MsgID) continue
+            var dk = wa.dayKey(m.Timestamp)
+            if (dk !== lastDay && dk >= 0) {
+                lastDay = dk
+                messageModel.append({ isDay: true, label: wa.dayLabel(m.Timestamp),
+                    fromMe: false, sender: "", text: "", mediaType: "", src: "", time: "" })
             }
-            wa.pendingScroll = null;
-        });
+            var body = String(m.MediaCaption || m.DisplayText || m.Text || "")
+            // Skip empty system rows (join/leave noise shows as "(message)").
+            if (!body && !m.MediaType) continue
+            messageModel.append({
+                isDay: false, label: "",
+                fromMe: m.FromMe === true,
+                sender: String(m.SenderName || (m.FromMe ? "You" : "")),
+                text: body, mediaType: String(m.MediaType || ""),
+                src: wa.mediaPath(m.src), time: wa.fmtTime(m.Timestamp)
+            })
+        }
+        Qt.callLater(() => {
+            if (wa.currentJid !== jid) { wa._progScroll = false; return }
+            msgList.forceLayout()
+            if (wantEnd) {
+                wa.jumpEnd = false
+                msgList.positionViewAtEnd()
+            } else {
+                // Poll refresh: restore exact position, never move the view.
+                msgList.contentY = msgList.originY
+                    + Math.max(0, Math.min(savedY, msgList.contentHeight - msgList.height))
+            }
+            wa._progScroll = false
+        })
     }
 
     function sendMessage() {
-        var text = sendField.text.trim();
-        if (text.length === 0 || wa.sending || !wa.currentJid)
-            return ;
-
-        var jid = wa.currentJid;
-        sendProc.targetJid = jid;
-        sendProc.targetName = wa.shortName(wa.currentChat || { jid: jid });
-        sendProc.pendingText = sendField.text;
-        wa.drafts[jid] = "";
-        wa.sendStatus = "";
-        wa.sendFailed = false;
-        sendField.text = "";
-        sendProc.command = ["timeout", "--kill-after=5s", "90s", "bash", Quickshell.shellDir + "/scripts/wa-send.sh", jid, text];
-        sendProc.running = true;
+        var text = sendField.text.trim()
+        if (!text.length || wa.sending || !wa.inChat) return
+        var jid = wa.currentJid
+        sendProc.targetJid = jid
+        sendProc.pendingText = sendField.text
+        wa.drafts[jid] = ""
+        wa.sendStatus = ""
+        wa.sendFailed = false
+        sendField.text = ""
+        wa.atEnd = true
+        wa.jumpEnd = true
+        sendProc.command = ["timeout", "--kill-after=5s", "60s", "bash",
+            Quickshell.shellDir + "/scripts/wa-send.sh", jid, text]
+        sendProc.running = true
     }
-
-    function sendFile() {
-        if (!wa.currentJid || wa.sending)
-            return ;
-
-        wa.sendStatus = "";
-        wa.sendFailed = false;
-        sendFileProc.command = ["bash", Quickshell.shellDir + "/scripts/wa-send-file.sh", wa.currentJid];
-        sendFileProc.running = true;
-    }
-
     function sendPaste() {
-        if (!wa.currentJid)
-            return ;
-
-        sendFileProc.command = ["bash", Quickshell.shellDir + "/scripts/wa-send-clip.sh", wa.currentJid];
-        sendFileProc.running = true;
+        if (!wa.currentJid || wa.sending) return
+        wa.sendStatus = "Sending photo…"; wa.sendFailed = false
+        sendFileProc.command = ["timeout", "--kill-after=5s", "120s", "bash",
+            Quickshell.shellDir + "/scripts/wa-send-clip.sh", wa.currentJid]
+        sendFileProc.running = true
+    }
+    function openMedia(src) {
+        if (!src) { wa.loadMessages(); return }
+        // swayimg if present, else xdg-open. Never hard-fail.
+        Quickshell.execDetached(["sh", "-c",
+            'if command -v swayimg >/dev/null 2>&1; then swayimg "$1"; else xdg-open "$1"; fi',
+            "wa-open", src])
+    }
+    function toggleAudio(src) {
+        if (!src.length) return
+        if (wa.playingAudioSrc === src) { audioPlayer.running = false; wa.playingAudioSrc = ""; return }
+        audioPlayer.running = false
+        audioPlayer.command = ["mpv", "--no-video", "--no-terminal", "--really-quiet", "--", src]
+        wa.playingAudioSrc = src
+        audioPlayer.running = true
     }
 
-    function toggleAudio(src: string) {
-        if (src.length === 0)
-            return ;
-
-        if (wa.playingAudioSrc === src) {
-            audioPlayer.running = false;
-            wa.playingAudioSrc = "";
-            return ;
-        }
-        audioPlayer.command = ["mpv", "--no-video", "--no-terminal", "--really-quiet", "--", src];
-        wa.playingAudioSrc = src;
-        audioPlayer.running = true;
-    }
-
-    function bodyHeight() : int {
-        return Math.max(0, Math.min(wa.stableBodyHeight, wa.height - 180));
-    }
-
-    opacity: wa.animProgress
-    onActiveChanged: {
-        if (wa.active) {
-            wa.loadChats();
-            if (wa.currentJid.length > 0)
-                wa.loadMessages();
-
-            wa.applyChatFilter(searchField.text);
-            focusRequest.restart();
-        } else {
-            wa.saveChatState();
-            audioPlayer.running = false;
-        }
-    }
-
-    Shortcut {
-        sequence: "Ctrl+F"
-        enabled: wa.active
-        onActivated: searchField.forceActiveFocus()
-    }
-
-    Shortcut {
-        sequence: "Escape"
-        enabled: wa.active
-        onActivated: wa.requestClose()
-    }
-
-    ListModel {
-        id: chatModel
-    }
-
-    ListModel {
-        id: messageModel
-    }
-
+    // ---------- backend ----------
     FileView {
         id: chatsFile
-
         path: wa.homeDir + "/.cache/quickshell/wa-chats.json"
         watchChanges: true
-        blockLoading: false
+        blockLoading: true
         onFileChanged: chatsFile.reload()
         onLoaded: {
-            try {
-                wa.onChatsData(JSON.parse(String(chatsFile.text())));
-            } catch (err) {
-                console.log("[wa] chats parse error:", err);
-                wa.chatsLoading = false;
-                wa.chatsFailed = true;
-            }
+            try { wa.onChatsData(JSON.parse(String(chatsFile.text()))) }
+            catch (e) { wa.chatsLoading = false; wa.chatsFailed = true }
         }
-        onLoadFailed: (error) => {
-            console.log("[wa] chats load failed:", error);
-            wa.chatsLoading = false;
-            wa.chatsFailed = true;
-        }
+        onLoadFailed: { wa.chatsLoading = false; wa.chatsFailed = true }
     }
-
     FileView {
         id: messagesFile
-
         path: ""
         watchChanges: true
         blockLoading: true
         onFileChanged: messagesFile.reload()
         onLoaded: {
-            if (!wa.currentJid)
-                return ;
-
-            try {
-                wa.onMessagesData(JSON.parse(String(messagesFile.text())));
-            } catch (err) {
-                if (!wa.msgsLoading) wa.msgsFailed = true;
-            }
+            if (!wa.inChat) return
+            try { wa.onMessagesData(JSON.parse(String(messagesFile.text()))) }
+            catch (e) { if (!wa.msgsLoading) wa.msgsFailed = true }
         }
-        onLoadFailed: (error) => {
-            if (!wa.currentJid)
-                return ;
-
-            if (!wa.msgsLoading) wa.msgsFailed = true;
-        }
+        onLoadFailed: { if (wa.inChat && !wa.msgsLoading) wa.msgsFailed = true }
     }
-
-    Process {
-        id: sendProc
-
-        property string targetJid: ""
-        property string targetName: ""
-        property string pendingText: ""
-
-        onExited: (code) => {
-            if (code === 0) {
-                wa.loadChats();
-                refreshTimer.restart();
-            } else {
-                wa.sendFailed = true;
-                wa.sendStatus = "Failed to send to " + targetName + " (" + targetJid + ")";
-                var draft = wa.currentJid === targetJid ? sendField.text : (wa.drafts[targetJid] || "");
-                if (draft.length === 0) {
-                    wa.drafts[targetJid] = pendingText;
-                    if (wa.currentJid === targetJid) sendField.text = pendingText;
-                }
-            }
-            pendingText = "";
-        }
-    }
-
-    Process {
-        id: sendFileProc
-
-        onExited: (code) => {
-            if (code !== 2) {
-                if (code === 0) {
-                    wa.sendStatus = "";
-                    wa.sendFailed = false;
-                    wa.loadChats();
-                    if (wa.currentJid)
-                        wa.loadMessages();
-
-                } else {
-                    wa.sendFailed = true;
-                    wa.sendStatus = "File send failed";
-                }
-            } else {
-                wa.sendStatus = "";
-                wa.sendFailed = false;
-            }
-            refreshTimer.restart();
-        }
-    }
-
     Process {
         id: chatsFetchProc
-
-        command: ["timeout", "--kill-after=5s", "60s", "bash", Quickshell.shellDir + "/scripts/wa-contacts.sh"]
-        onExited: (code) => {
-            wa.chatsLoading = false;
-            wa.chatsFailed = code !== 0;
-            if (code === 0) chatsFile.reload();
+        command: ["timeout", "--kill-after=5s", "30s", "bash", Quickshell.shellDir + "/scripts/wa-contacts.sh"]
+        onExited: code => {
+            wa.chatsLoading = false
+            if (code === 0) { wa.chatsFailed = false; chatsFile.reload() }
+            else if (chatModel.count === 0) wa.chatsFailed = true
         }
     }
-
     Process {
         id: messagesProc
-
         property string jid: ""
-
         onExited: code => {
-            if (wa.currentJid !== messagesProc.jid) {
-                wa.loadMessages();
-                return;
-            }
-            wa.msgsLoading = false;
-            wa.msgsFailed = code !== 0;
-            if (code === 0) messagesFile.reload();
+            // Switched chats mid-load: the new chat never started (guard
+            // saw a running proc) — start it now instead of stalling.
+            if (wa.currentJid !== messagesProc.jid) { wa.loadMessages(); return }
+            wa.msgsLoading = false
+            if (code === 0) { wa.msgsFailed = false; messagesFile.reload() }
+            else wa.msgsFailed = true
         }
     }
-
     Process {
-        id: audioPlayer
-
-        onExited: () => {
-            wa.playingAudioSrc = "";
+        id: sendProc
+        property string targetJid: ""
+        property string pendingText: ""
+        onExited: code => {
+            if (code === 0) {
+                wa.sendFailed = false; wa.sendStatus = ""
+                wa.loadChats()
+                wa.kickRefresh()
+            } else {
+                wa.sendFailed = true
+                wa.sendStatus = "Not sent — tap send to retry"
+                if (wa.currentJid === targetJid && !sendField.text.length)
+                    sendField.text = pendingText
+                wa.drafts[targetJid] = pendingText
+            }
+            pendingText = ""
         }
     }
-
-    Timer {
-        id: refreshTimer
-
-        interval: 1600
-        repeat: false
-        onTriggered: wa.loadMessages()
+    Process {
+        id: sendFileProc
+        stdout: SplitParser {
+            onRead: data => { if (data) wa._sendFileErr = data.trim().slice(0, 160) }
+        }
+        onExited: code => {
+            if (code === 2) { wa.sendStatus = ""; wa.sendFailed = false } // user cancelled picker
+            else if (code === 0) {
+                wa.sendStatus = ""; wa.sendFailed = false
+                wa.loadChats(); wa.kickRefresh()
+            } else {
+                wa.sendFailed = true
+                wa.sendStatus = wa._sendFileErr || "File send failed"
+            }
+        }
     }
+    Process { id: audioPlayer; onExited: wa.playingAudioSrc = "" }
 
+    // Fast polls right after a send so the new message/photo shows up
+    // quickly (sync + media fetch lag behind the upload). Self-stopping.
     Timer {
-        id: pollTimer
-
-        interval: 6000
+        id: sendRefresh
+        interval: 2500
         repeat: true
-        running: wa.active
+        property int left: 0
         onTriggered: {
-            wa.loadChats();
-            if (wa.currentJid)
-                wa.loadMessages();
-
+            if (wa.inChat) wa.loadMessages()
+            left--
+            if (left <= 0) sendRefresh.stop()
         }
     }
-
+    function kickRefresh() { sendRefresh.left = 4; sendRefresh.restart() }
     Timer {
-        id: focusRequest
-
-        interval: 40
-        repeat: false
-        onTriggered: searchField.forceActiveFocus()
+        id: chatPoll; interval: 10000; running: wa.active; repeat: true
+        onTriggered: { wa.loadChats(); if (wa.inChat) wa.loadMessages() }
     }
+    Timer { id: focusTimer; interval: 50; repeat: false; onTriggered: searchField.forceActiveFocus() }
+    Timer { id: chatInputTimer; interval: 80; repeat: false; onTriggered: sendField.forceActiveFocus() }
 
-    Timer {
-        id: inputFocus
-
-        interval: 60
-        repeat: false
-        onTriggered: sendField.forceActiveFocus()
-    }
-
-    Rectangle {
-        z: 0
-        anchors.fill: parent
-        color: "transparent"
-
-        MouseArea {
-            anchors.fill: parent
-            onClicked: wa.requestClose()
-        }
-
-    }
+    // ---------- sheet ----------
+    MouseArea { anchors.fill: parent; onClicked: wa.requestClose() }
 
     Rectangle {
         id: card
-
-        z: 1
-        width: Math.max(0, Math.min(wa.cardWidth, parent.width - 28))
+        // Wide foldable (Pura X 16:10-ish): broad phone, docked at bottom.
+        width: Math.min(620, parent.width - 32)
+        height: Math.min(740, Math.max(520, parent.height - 96))
         anchors.horizontalCenter: parent.horizontalCenter
-        y: Math.floor(parent.height - card.height - wa.bottomMargin)
-        height: contentColumn.implicitHeight + wa.pad * 2
-        radius: wa.cornerRadius
-        color: wa.cardColor
+        y: Math.floor(parent.height - card.height - 24)
+        radius: 0
+        color: wa.bg
         border.width: 1
-        border.color: wa.cardBorder
+        border.color: wa.divider
         clip: true
-        layer.enabled: true
+        layer.enabled: !wa.noShadow
         layer.effect: MultiEffect {
-            shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
+            shadowEnabled: !wa.noShadow
             shadowBlur: 0.9
             blurMax: 28
             shadowHorizontalOffset: 5
@@ -608,1104 +492,561 @@ Item {
             shadowColor: Qt.rgba(0, 0, 0, 0.9)
             shadowOpacity: 0.95
         }
+        // stacked pages: 0 = list, 1 = conversation (instant switch, no slop)
+        readonly property int page: wa.inChat ? 1 : 0
 
-        Column {
-            id: contentColumn
+        Rectangle {
+            anchors.fill: parent
+            radius: 0
+            color: "transparent"
+            border.width: 1
+            border.color: Qt.rgba(0, 0, 0, 0.4)
+            z: 10
+        }
 
-            x: wa.pad
-            y: wa.pad
-            width: card.width - wa.pad * 2
-            spacing: 10
+        // ===== page 0: chat list =====
+        Item {
+            id: listPage
+            anchors.fill: parent
+            visible: card.page === 0
+            enabled: card.page === 0
 
-            RowLayout {
-                width: parent.width
-                spacing: 6
+            ColumnLayout {
+                anchors.fill: parent
+                spacing: 0
 
-                Image {
-                    Layout.preferredWidth: 20
-                    Layout.preferredHeight: 20
-                    Layout.alignment: Qt.AlignVCenter
-                    asynchronous: true
-                    smooth: true
-                    mipmap: true
-                    source: Qt.resolvedUrl("../assets/whatsapp.png")
-                }
-
-                Text {
-                    textFormat: Text.PlainText
-                    text: "WhatsApp"
-                    color: wa.fg
-                    font.family: wa.fontFamily
-                    font.pixelSize: wa.fontSize + 1
-                    font.weight: Font.DemiBold
-                    verticalAlignment: Text.AlignVCenter
-                }
-
-                Item {
+                Rectangle { // header
                     Layout.fillWidth: true
-                    Layout.fillHeight: true
-                }
-
-                Text {
-                    visible: wa.currentJid.length > 0 && (wa.msgsLoading || wa.sending)
-                    text: wa.msgsLoading ? "Loading\u2026" : "Sending\u2026"
-                    color: rootRef.withAlpha(wa.fg, 0.7)
-                    font.family: wa.uiFont
-                    font.pixelSize: Math.max(10, wa.fontSize - 2)
-                }
-
-                Text {
-                    visible: wa.sendFailed
-                    text: wa.sendStatus
-                    textFormat: Text.PlainText
-                    color: wa.errorColor
-                    font.family: wa.uiFont
-                    font.pixelSize: Math.max(10, wa.fontSize - 2)
-                    font.weight: Font.Medium
-                }
-
-                Rectangle {
-                    Layout.preferredWidth: refreshText.implicitWidth + 20
-                    Layout.preferredHeight: 24
-                    radius: 0
-                    color: refreshHover.containsMouse ? rootRef.withAlpha(wa.fg, 0.2) : rootRef.withAlpha(wa.fg, 0.08)
-
-                    Row {
-                        id: refreshText
-                    
-                        anchors.centerIn: parent
-                        spacing: 5
-                    
-                        QIcon {
-                            anchors.verticalCenter: parent.verticalCenter
-                            source: Qt.resolvedUrl("../assets/icons/refresh.svg")
-                            color: wa.fg
-                            iconSize: Math.max(10, wa.fontSize)
-                        }
-                    
-                        Text {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: "Refresh"
-                            color: wa.fg
-                            font.family: wa.uiFont
-                            font.pixelSize: wa.fontSize - 1
-                            font.weight: Font.Medium
-                        }
-                    }
-
-                    MouseArea {
-                        id: refreshHover
-
+                    Layout.preferredHeight: 60
+                    color: wa.header
+                    RowLayout {
                         anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            wa.loadChats();
-                            if (wa.currentJid)
-                                wa.loadMessages();
-
+                        anchors.leftMargin: 16; anchors.rightMargin: 8
+                        spacing: 8
+                        Image {
+                            Layout.preferredWidth: 22; Layout.preferredHeight: 22
+                            Layout.alignment: Qt.AlignVCenter
+                            source: Qt.resolvedUrl("../assets/whatsapp.png")
+                            sourceSize.width: 44; sourceSize.height: 44
+                            asynchronous: true; smooth: true; mipmap: true
                         }
-                    }
-
-                    Behavior on color {
-                        CAnim { type: CAnim.FastEffects }
-
-                    }
-
-                }
-
-            }
-
-            Rectangle {
-                id: searchBox
-
-                width: parent.width
-                height: wa.searchHeight
-                radius: 0
-                color: rootRef.withAlpha(wa.fg, 0.08)
-                border.width: 1
-                border.color: searchField.inputFocus ? rootRef.withAlpha(wa.fg, 0.78) : rootRef.withAlpha(wa.fg, 0.12)
-
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.leftMargin: 16
-                    anchors.rightMargin: 6
-                    spacing: 8
-
-                    Image {
-                        Layout.preferredWidth: 18
-                        Layout.preferredHeight: 18
-                        source: "data:image/svg+xml;utf8," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='" + wa.fg.toString() + "' stroke-width='2' stroke-linecap='round'><circle cx='10.5' cy='10.5' r='6.5'/><path d='m16 16 5 5'/></svg>")
-                        opacity: 0.55
-                        smooth: true
-                    }
-
-                    CharField {
-                        id: searchField
-
-                        Layout.alignment: Qt.AlignHCenter
-                        Layout.preferredWidth: Math.min(360, searchBox.width - 96)
-                        Layout.fillHeight: true
-                        textColor: wa.fg
-                        font.family: wa.uiFont
-                        font.pixelSize: wa.fontSize + 1
-                        font.weight: Font.Medium
-                        placeholderText: "Search chats\u2026"
-                        placeholderTextColor: rootRef.withAlpha(wa.fg, 0.78)
-                        selectByMouse: true
-                        verticalAlignment: Text.AlignVCenter
-                        onTextEdited: wa.applyChatFilter(searchField.text)
-                        Keys.onDownPressed: (event) => {
-                            if (chatModel.count > 0)
-                                chatList.incrementCurrentIndex();
-
-                            event.accepted = true;
-                        }
-                        Keys.onUpPressed: (event) => {
-                            chatList.decrementCurrentIndex();
-                            event.accepted = true;
-                        }
-                        Keys.onReturnPressed: (event) => {
-                            if (chatModel.count > 0)
-                                wa.selectChat(chatModel.get(chatList.currentIndex));
-
-                            event.accepted = true;
-                        }
-                        Keys.onTabPressed: (event) => {
-                            if (wa.currentJid)
-                                sendField.forceActiveFocus();
-
-                            event.accepted = true;
-                        }
-                        Keys.onEscapePressed: (event) => {
-                            wa.requestClose();
-                            event.accepted = true;
-                        }
-
-                    }
-
-                    Rectangle {
-                        visible: searchField.text.length > 0
-                        Layout.preferredWidth: 22
-                        Layout.preferredHeight: 22
-                        Layout.alignment: Qt.AlignVCenter
-                        radius: 0
-                        color: clearHover.containsMouse ? rootRef.withAlpha(wa.fg, 0.25) : "transparent"
-
-                        QIcon {
-                            anchors.centerIn: parent
-                            source: Qt.resolvedUrl("../assets/icons/close.svg")
-                            color: wa.fg
-                            iconSize: wa.fontSize + 2
-                        }
-
-                        MouseArea {
-                            id: clearHover
-
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                searchField.text = "";
-                                wa.applyChatFilter("");
-                                searchField.forceActiveFocus();
-                            }
-                        }
-
-                    }
-
-                }
-
-                Behavior on border.color {
-                    CAnim { type: CAnim.FastEffects }
-
-                }
-
-            }
-
-            Rectangle {
-                width: Math.min(330, parent.width)
-                height: 30
-                anchors.horizontalCenter: parent.horizontalCenter
-                radius: 0
-                color: rootRef.withAlpha(wa.fg, 0.06)
-
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.margins: 3
-                    spacing: 4
-
-                    Item {
-                        Layout.preferredWidth: 1
-                        Layout.minimumWidth: 0
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-
-                        Rectangle {
-                            anchors.fill: parent
-                            radius: 0
-                            color: wa.activeTab === "chats" ? wa.accent : "transparent"
-
-                            Behavior on color {
-                                CAnim { type: CAnim.FastEffects }
-
-                            }
-
-                        }
-
-                        RowLayout {
-                            anchors.centerIn: parent
-                            spacing: 6
-
-                            Text {
-                                text: "Chats"
-                                color: wa.activeTab === "chats" ? wa.accentText : rootRef.withAlpha(wa.fg, 0.78)
-                                font.family: wa.uiFont
-                                font.pixelSize: wa.fontSize
-                                font.weight: Font.Bold
-                            }
-
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                wa.activeTab = "chats";
-                                wa.applyChatFilter(searchField.text);
-                            }
-                        }
-
-                    }
-
-                    Item {
-                        Layout.preferredWidth: 1
-                        Layout.minimumWidth: 0
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-
-                        Rectangle {
-                            anchors.fill: parent
-                            radius: 0
-                            color: wa.activeTab === "groups" ? wa.accent : "transparent"
-
-                            Behavior on color {
-                                CAnim { type: CAnim.FastEffects }
-
-                            }
-
-                        }
-
-                        RowLayout {
-                            anchors.centerIn: parent
-                            spacing: 6
-
-                            Text {
-                                text: "Groups"
-                                color: wa.activeTab === "groups" ? wa.accentText : rootRef.withAlpha(wa.fg, 0.78)
-                                font.family: wa.uiFont
-                                font.pixelSize: wa.fontSize
-                                font.weight: Font.Bold
-                            }
-
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                wa.activeTab = "groups";
-                                wa.applyChatFilter(searchField.text);
-                            }
-                        }
-
-                    }
-
-                    Repeater {
-                        model: [{key: "channels", label: "Channels"}]
-
-                        delegate: Rectangle {
-                            required property var modelData
+                        Text {
+                            text: "WhatsApp"; color: wa.fg
+                            font.family: wa.uiFont; font.pixelSize: wa.fontSize + 3; font.weight: Font.Bold
                             Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            Layout.preferredWidth: 1
-                            Layout.minimumWidth: 0
-                            radius: 0
-                            color: wa.activeTab === modelData.key ? wa.accent : "transparent"
-
-                            Text {
-                                id: tabLabel
-                                anchors.centerIn: parent
-                                text: modelData.label
-                                color: wa.activeTab === modelData.key ? wa.accentText : rootRef.withAlpha(wa.fg, 0.78)
-                                font.family: wa.uiFont
-                                font.pixelSize: wa.fontSize
-                                font.weight: Font.Bold
-                            }
-
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    wa.activeTab = modelData.key;
-                                    wa.applyChatFilter(searchField.text);
-                                }
-                            }
                         }
+                        IconBtn { icon: "refresh"; tip: "Refresh"; onClicked: wa.loadChats() }
+                        IconBtn { icon: "close"; tip: "Close"; onClicked: wa.requestClose() }
                     }
-
                 }
 
-            }
-
-            Row {
-                width: parent.width
-                spacing: 10
-
-                Item {
-                    width: wa.leftWidth
-                    height: wa.bodyHeight()
-
+                Item { // search
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 52
                     Rectangle {
-                        id: chatBox
-
-                        anchors.fill: parent
-                        radius: 0
-                        color: rootRef.withAlpha(wa.fg, 0.05)
-                        clip: true
-
-                        ListView {
-                            id: chatList
-
+                        anchors.fill: parent; anchors.margins: 8
+                        radius: 26; color: wa.field
+                        RowLayout {
                             anchors.fill: parent
-                            anchors.margins: 4
-                            model: chatModel
-                            spacing: 6
-                            currentIndex: 0
-                            boundsBehavior: Flickable.StopAtBounds
-                            clip: true
-                            keyNavigationWraps: true
-
-                            // Springy chat list motion.
-                            move: Transition {
-                                Anim { property: "y"; type: Anim.BouncyFast }
-                                Anim { property: "opacity"; to: 1; type: Anim.DefaultEffects }
-                            }
-                            displaced: Transition {
-                                Anim { property: "y"; type: Anim.BouncyFast }
-                            }
-                            add: Transition {
-                                Anim { property: "opacity"; from: 0; to: 1; type: Anim.DefaultEffects }
-                            }
-
-                            Rectangle {
-                                id: chatMorph
-
-                                readonly property real targetY: (chatList.currentIndex >= 0 && chatList.currentItem !== null) ? chatList.currentItem.y : 0
-
-                                parent: chatList.contentItem
-                                z: 0
-                                visible: chatModel.count > 0 && chatList.currentIndex >= 0 && chatList.currentItem !== null
-                                width: chatList.width
-                                height: wa.chatRowHeight
-                                radius: 0
-                                color: wa.accent
-                                y: targetY
-
-                                Behavior on y {
-                                    Anim { type: Anim.BouncyFast }
+                            anchors.leftMargin: 14; anchors.rightMargin: 6
+                            spacing: 8
+                            QIcon { source: Qt.resolvedUrl("../assets/icons/search.svg"); color: wa.muted; iconSize: 15 }
+                            CharField {
+                                id: searchField
+                                Layout.fillWidth: true; Layout.fillHeight: true
+                                textColor: wa.fg; font.family: wa.uiFont; font.pixelSize: wa.fontSize
+                                placeholderText: "Search"; placeholderTextColor: wa.muted
+                                selectByMouse: true; verticalAlignment: Text.AlignVCenter
+                                onTextEdited: wa.applyChatFilter(searchField.text)
+                                Keys.onDownPressed: e => { if (chatModel.count > 0) chatList.incrementCurrentIndex(); e.accepted = true }
+                                Keys.onUpPressed: e => { chatList.decrementCurrentIndex(); e.accepted = true }
+                                Keys.onReturnPressed: e => {
+                                    if (chatList.currentIndex >= 0 && chatList.currentIndex < chatModel.count)
+                                        wa.selectChat(chatModel.get(chatList.currentIndex))
+                                    e.accepted = true
                                 }
-
                             }
-
-                            delegate: Item {
-                                required property int index
-                                required property string jid
-                                required property string name
-                                required property string kind
-                                required property bool unread
-                                required property int unreadCount
-                                required property string lastTs
-                                required property int muted
-                                readonly property bool isMuted: kind === "group" && muted !== 0
-                                readonly property bool isSelected: chatList.currentIndex === index
-
-                                width: chatList.width
-                                height: wa.chatRowHeight
-                                z: 1
-
-                                RowLayout {
-                                    anchors.fill: parent
-                                    anchors.leftMargin: 8
-                                    anchors.rightMargin: 8
-                                    spacing: 10
-
-                                    Item {
-                                        Layout.preferredWidth: 40
-                                        Layout.preferredHeight: 40
-                                        Layout.alignment: Qt.AlignVCenter
-
-                                        Rectangle {
-                                            anchors.fill: parent
-                                            radius: 0
-                                            color: isSelected ? rootRef.withAlpha(wa.accent, 0.28) : rootRef.withAlpha(wa.fg, 0.1)
-
-                                            Text {
-                                                anchors.centerIn: parent
-                                                text: wa.initials(name)
-                                                color: isSelected ? wa.selectedFg : wa.fg
-                                                font.family: wa.arabicFont
-                                                font.pixelSize: wa.fontSize + 2
-                                                font.weight: Font.Bold
-                                            }
-
-                                            Behavior on color {
-                                                CAnim { type: CAnim.FastEffects }
-
-                                            }
-
-                                        }
-
-                                    }
-
-                                    Column {
-                                        Layout.fillWidth: true
-                                        Layout.alignment: Qt.AlignVCenter
-                                        spacing: 2
-
-                                        Text {
-                                            width: parent.width
-                                            textFormat: Text.PlainText
-                                            text: name
-                                            elide: Text.ElideRight
-                                            color: isSelected ? wa.selectedFg : wa.fg
-                                            font.family: wa.arabicFont
-                                            font.pixelSize: wa.fontSize
-                                            font.weight: Font.Medium
-                                            maximumLineCount: 1
-                                        }
-
-                                        Text {
-                                            width: parent.width
-                                            visible: unreadCount > 0
-                                            text: (unreadCount === 1 ? "1 unread" : unreadCount + " unread")
-                                            elide: Text.ElideRight
-                                            color: isSelected ? rootRef.withAlpha(wa.selectedFg, 0.8) : rootRef.withAlpha(wa.fg, 0.75)
-                                            font.family: wa.uiFont
-                                            font.pixelSize: Math.max(9, wa.fontSize - 3)
-                                        }
-
-                                    }
-
-                                    Rectangle {
-                                        Layout.preferredWidth: 20
-                                        Layout.preferredHeight: 20
-                                        Layout.alignment: Qt.AlignVCenter
-                                        radius: 0
-                                        visible: unread && unreadCount === 0
-                                        color: isSelected ? wa.accentText : wa.accent
-                                    }
-
-                                    QIcon {
-                                        Layout.alignment: Qt.AlignVCenter
-                                        visible: isMuted
-                                        source: Qt.resolvedUrl("../assets/icons/bell-off.svg")
-                                        color: isSelected ? rootRef.withAlpha(wa.selectedFg, 0.7) : rootRef.withAlpha(wa.fg, 0.75)
-                                        iconSize: Math.max(12, wa.fontSize + 1)
-                                    }
-
-                                    Text {
-                                        Layout.preferredWidth: 54
-                                        Layout.alignment: Qt.AlignVCenter
-                                        text: wa.fmtTime(lastTs)
-                                        horizontalAlignment: Text.AlignRight
-                                        elide: Text.ElideRight
-                                        color: isSelected ? rootRef.withAlpha(wa.selectedFg, 0.7) : rootRef.withAlpha(wa.fg, 0.65)
-                                        font.family: wa.uiFont
-                                        font.pixelSize: Math.max(9, wa.fontSize - 3)
-                                    }
-
-                                }
-
+                            Item {
+                                Layout.preferredWidth: 24; Layout.preferredHeight: 24
+                                visible: searchField.text.length > 0
+                                QIcon { anchors.centerIn: parent; source: Qt.resolvedUrl("../assets/icons/close.svg"); color: wa.muted; iconSize: 13 }
                                 MouseArea {
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        chatList.currentIndex = index;
-                                        wa.selectChat(chatModel.get(index));
-                                    }
+                                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                    onClicked: { searchField.text = ""; wa.applyChatFilter("") }
                                 }
-
                             }
-
                         }
-
-                        Text {
-                            anchors.centerIn: parent
-                            visible: chatModel.count === 0 && !wa.chatsLoading && !wa.chatsFailed
-                            text: "No chats"
-                            color: rootRef.withAlpha(wa.fg, 0.7)
-                            font.family: wa.uiFont
-                            font.pixelSize: wa.fontSize - 1
-                        }
-
-                        Text {
-                            anchors.centerIn: parent
-                            visible: wa.chatsFailed
-                            text: "Not authenticated.\nOpen a terminal and run:\n  wacli auth"
-                            horizontalAlignment: Text.AlignHCenter
-                            color: wa.errorColor
-                            font.family: wa.uiFont
-                            font.pixelSize: wa.fontSize - 1
-                            lineHeight: 1.4
-                        }
-
                     }
-
                 }
 
-                Item {
-                    width: card.width - wa.pad * 2 - wa.leftWidth - 10
-                    height: wa.bodyHeight()
+                Row { // tabs (android underline style)
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 40
+                    Repeater {
+                        model: [{k: "chats", l: "Chats"}, {k: "groups", l: "Groups"}, {k: "channels", l: "Channels"}]
+                        delegate: Item {
+                            required property var modelData
+                            width: card.width / 3; height: 40
+                            Column {
+                                anchors.fill: parent; spacing: 0
+                                Item { width: parent.width; height: 36
+                                    Text {
+                                        anchors.centerIn: parent; text: modelData.l
+                                        color: wa.activeTab === modelData.k ? wa.green : wa.muted
+                                        font.family: wa.uiFont; font.pixelSize: wa.fontSize; font.weight: Font.Bold
+                                    }
+                                    MouseArea {
+                                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                        onClicked: { wa.activeTab = modelData.k; wa.applyChatFilter(searchField.text) }
+                                    }
+                                }
+                                Rectangle {
+                                    width: parent.width; height: 3
+                                    color: wa.activeTab === modelData.k ? wa.green : "transparent"
+                                }
+                            }
+                        }
+                    }
+                }
+                Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: wa.divider }
 
-                    Rectangle {
-                        id: msgBox
+                ListView {
+                    id: chatList
+                    Layout.fillWidth: true; Layout.fillHeight: true
+                    model: chatModel; clip: true
+                    boundsBehavior: Flickable.StopAtBounds
+                    delegate: Item {
+                        required property int index
+                        required property string jid
+                        required property string name
+                        required property bool unread
+                        required property int unreadCount
+                        required property string lastTs
+                        required property bool muted
+                        width: chatList.width; height: 68
+                        Rectangle {
+                            anchors.fill: parent
+                            color: chatRowHover.containsMouse ? wa.field
+                                : chatList.currentIndex === index ? wa.field : "transparent"
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.leftMargin: 12; anchors.rightMargin: 12
+                                spacing: 12
+                                Rectangle {
+                                    Layout.preferredWidth: 46; Layout.preferredHeight: 46
+                                    radius: 0; color: wa.avatarColor(jid)
+                                    Text {
+                                        anchors.centerIn: parent;                                         text: wa.initials(name)
+                                        color: "#ffffff"; font.family: wa.uiFont
+                                        font.pixelSize: wa.fontSize + 3; font.weight: Font.Bold
+                                    }
+                                }
+                                ColumnLayout {
+                                    Layout.fillWidth: true; spacing: 3
+                                    RowLayout {
+                                        Layout.fillWidth: true; spacing: 6
+                                        Text {
+                                            Layout.fillWidth: true; text: name; textFormat: Text.PlainText
+                                            elide: Text.ElideRight; maximumLineCount: 1
+                                            color: wa.fg; font.family: wa.arabicFont; font.pixelSize: wa.fontSize
+                                            font.weight: unread && unreadCount > 0 ? Font.Bold : Font.Medium
+                                        }
+                                        Text {
+                                            text: wa.fmtListTime(lastTs); color: unread && unreadCount > 0 ? wa.green : wa.muted
+                                            font.family: wa.uiFont; font.pixelSize: Math.max(10, wa.fontSize - 3)
+                                        }
+                                    }
+                                    RowLayout {
+                                        Layout.fillWidth: true; spacing: 6
+                                        Text {
+                                            Layout.fillWidth: true
+                                            text: unreadCount > 1 ? unreadCount + " new messages"
+                                                : unreadCount === 1 ? "1 new message"
+                                                : muted ? "Muted" : ""
+                                            visible: text.length > 0
+                                            elide: Text.ElideRight; maximumLineCount: 1
+                                            color: wa.muted; font.family: wa.uiFont; font.pixelSize: Math.max(10, wa.fontSize - 2)
+                                        }
+                                        QIcon {
+                                            visible: muted; source: Qt.resolvedUrl("../assets/icons/bell-off.svg")
+                                            color: wa.muted; iconSize: 13
+                                        }
+                                        Rectangle { // unread badge
+                                            visible: unreadCount > 0
+                                            Layout.preferredWidth: Math.max(20, badgeText.implicitWidth + 12)
+                                            Layout.preferredHeight: 20; radius: 10
+                                            color: wa.green
+                                            Text {
+                                                id: badgeText; anchors.centerIn: parent
+                                                text: unreadCount > 99 ? "99+" : String(unreadCount)
+                                                color: wa.outFg; font.family: wa.uiFont
+                                                font.pixelSize: Math.max(9, wa.fontSize - 3); font.weight: Font.Bold
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        MouseArea {
+                            id: chatRowHover
+                            anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                            onClicked: { chatList.currentIndex = index; wa.selectChat(chatModel.get(index)) }
+                        }
+                    }
+                }
 
+                Item { // status footer
+                    Layout.fillWidth: true; Layout.preferredHeight: 30
+                    visible: wa.chatsLoading || wa.chatsFailed || chatModel.count === 0
+                    Text {
+                        anchors.centerIn: parent
+                        text: wa.chatsLoading ? "Loading…" : wa.chatsFailed ? "Not authenticated — run: wacli auth" : "No chats"
+                        color: wa.chatsFailed ? wa.err : wa.muted
+                        font.family: wa.uiFont; font.pixelSize: Math.max(10, wa.fontSize - 2)
+                    }
+                }
+            }
+        }
+
+        // ===== page 1: conversation =====
+        Item {
+            id: chatPage
+            anchors.fill: parent
+            visible: card.page === 1
+            enabled: card.page === 1
+
+            ColumnLayout {
+                anchors.fill: parent; spacing: 0
+                Rectangle { // convo header
+                    Layout.fillWidth: true; Layout.preferredHeight: 60; color: wa.header
+                    RowLayout {
                         anchors.fill: parent
-                        radius: 0
-                        color: rootRef.withAlpha(wa.fg, 0.05)
-                        clip: true
+                        anchors.leftMargin: 4; anchors.rightMargin: 8; spacing: 4
+                        IconBtn { icon: "back"; tip: "Back"; onClicked: wa.backToList() }
+                        Rectangle {
+                            Layout.preferredWidth: 38; Layout.preferredHeight: 38
+                            radius: 0; color: wa.avatarColor(wa.currentJid)
+                            Text {
+                                anchors.centerIn: parent
+                                text: wa.initials(wa.currentChat ? wa.currentChat.name : "")
+                                color: "#fff"; font.family: wa.uiFont
+                                font.pixelSize: wa.fontSize + 1; font.weight: Font.Bold
+                            }
+                        }
+                        Text {
+                            Layout.fillWidth: true; textFormat: Text.PlainText
+                            text: wa.currentChat ? wa.shortName(wa.currentChat) : ""
+                            elide: Text.ElideRight; maximumLineCount: 1
+                            color: wa.fg; font.family: wa.arabicFont
+                            font.pixelSize: wa.fontSize; font.weight: Font.Bold
+                        }
+                        Text {
+                            visible: wa.msgsLoading || wa.sending
+                            text: wa.sending ? "Sending…" : "Loading…"
+                            color: wa.muted; font.family: wa.uiFont; font.pixelSize: Math.max(10, wa.fontSize - 2)
+                        }
+                        IconBtn { icon: "close"; tip: "Close"; onClicked: wa.requestClose() }
+                    }
+                }
+                Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: wa.divider }
+
+                Text { // send error strip
+                    Layout.fillWidth: true; leftPadding: 12; rightPadding: 12; topPadding: 6; bottomPadding: 2
+                    visible: wa.sendFailed; text: wa.sendStatus; textFormat: Text.PlainText
+                    color: wa.err; font.family: wa.uiFont; font.pixelSize: Math.max(10, wa.fontSize - 2)
+                    wrapMode: Text.Wrap
+                }
+
+                ListView {
+                    id: msgList
+                    Layout.fillWidth: true; Layout.fillHeight: true
+                    leftMargin: 10; rightMargin: 10; topMargin: 8; bottomMargin: 8
+                    model: messageModel; clip: true; spacing: 4
+                    boundsBehavior: Flickable.StopAtBounds
+                    onAtYEndChanged: wa.atEnd = atYEnd
+                    onContentYChanged: {
+                        wa.atEnd = atYEnd
+                        // Your own scroll takes control; programmatic moves don't.
+                        if (!wa._progScroll) wa.jumpEnd = false
+                    }
+                    delegate: Item {
+                        required property int index
+                        required property bool isDay
+                        required property string label
+                        required property bool fromMe
+                        required property string sender
+                        required property string text
+                        required property string mediaType
+                        required property string src
+                        required property string time
+                        readonly property bool isImage: mediaType === "image" && src !== ""
+                        readonly property bool isSticker: mediaType === "sticker" && src !== ""
+                        readonly property bool isAudio: mediaType === "audio" && src !== ""
+                        readonly property string url: wa.mediaUrl(src)
+                        readonly property string body: text
+                        readonly property string stamp: time
+                        readonly property string who: sender
+                        width: msgList.width - 20
+                        // Content-measured height: fixed estimates overflowed
+                        // wrapped text/captions into neighboring rows.
+                        height: isDay ? 30 : bubbleCol.implicitHeight + 8
+
+                        Rectangle { // day divider chip
+                            visible: isDay
+                            anchors.centerIn: parent
+                            width: dayText.implicitWidth + 24; height: 24; radius: 12
+                            color: wa.header
+                            Text {
+                                id: dayText; anchors.centerIn: parent; text: label
+                                color: wa.muted; font.family: wa.uiFont
+                                font.pixelSize: Math.max(10, wa.fontSize - 2); font.weight: Font.Bold
+                            }
+                        }
 
                         Column {
-                            anchors.fill: parent
-                            anchors.margins: 8
-                            spacing: 8
-
-                            Rectangle {
-                                width: parent.width
-                                height: wa.headerHeight
-                                radius: 0
-                                color: rootRef.withAlpha(wa.fg, 0.06)
-
+                            id: bubbleCol
+                            visible: !isDay
+                            anchors.left: fromMe ? undefined : parent.left
+                            anchors.right: fromMe ? parent.right : undefined
+                            width: isSticker ? 160 : parent.width * 0.5
+                            spacing: 2
+                            Text { // group sender
+                                visible: who.length > 0 && !fromMe && (wa.currentChat ? wa.currentChat.kind === "group" : false)
+                                width: parent.width; textFormat: Text.PlainText; text: who
+                                elide: Text.ElideRight; maximumLineCount: 1
+                                color: wa.green; font.family: wa.uiFont
+                                font.pixelSize: Math.max(10, wa.fontSize - 2); font.weight: Font.Bold
+                            }
+                            Rectangle { // image thumb
+                                visible: isImage
+                                width: parent.width; height: 184; radius: 8; clip: true; color: wa.header
+                                Image {
+                                    anchors.fill: parent; source: isImage ? url : ""
+                                    fillMode: Image.PreserveAspectCrop
+                                    // Cap decode size: a 12MP photo at 184px tall
+                                    // needs no more than this in RAM.
+                                    sourceSize.width: 480; sourceSize.height: 480
+                                    asynchronous: true; smooth: true; mipmap: true
+                                }
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: wa.openMedia(src) }
+                            }
+                            Rectangle { // sticker
+                                visible: isSticker
+                                width: 160; height: 160; radius: 8; clip: true; color: "transparent"
+                                AnimatedImage {
+                                    id: stickerImg; anchors.fill: parent
+                                    source: isSticker ? url : ""
+                                    playing: wa.active && visible
+                                    sourceSize.width: 320; sourceSize.height: 320
+                                    fillMode: Image.PreserveAspectFit; asynchronous: true; smooth: true
+                                }
+                                Image {
+                                    anchors.fill: parent; visible: stickerImg.status === Image.Error
+                                    source: isSticker && visible ? url : ""
+                                    sourceSize.width: 320; sourceSize.height: 320
+                                    fillMode: Image.PreserveAspectFit; asynchronous: true
+                                }
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: wa.openMedia(src) }
+                            }
+                            Rectangle { // audio row
+                                visible: isAudio
+                                width: parent.width; height: 44; radius: 8
+                                color: fromMe ? wa.bubbleOut : wa.bubbleIn
                                 RowLayout {
-                                    anchors.fill: parent
-                                    anchors.leftMargin: 12
-                                    anchors.rightMargin: 12
-
-                                    Text {
-                                        textFormat: Text.PlainText
-                                        text: wa.currentJid ? wa.shortName(wa.currentChat || {
-                                        }) : "Select a chat"
-                                        elide: Text.ElideRight
-                                        color: wa.currentJid ? wa.fg : rootRef.withAlpha(wa.fg, 0.78)
-                                        font.family: wa.arabicFont
-                                        font.pixelSize: wa.fontSize
-                                        font.weight: Font.DemiBold
-                                        Layout.fillWidth: true
-                                    }
-
-                                    Text {
-                                        visible: wa.currentJid.length > 0 && (wa.msgsLoading || wa.sending)
-                                        text: wa.msgsLoading ? "Loading\u2026" : "Sending\u2026"
-                                        color: rootRef.withAlpha(wa.fg, 0.7)
-                                        font.family: wa.uiFont
-                                        font.pixelSize: Math.max(10, wa.fontSize - 2)
-                                    }
-
-                                    Text {
-                                        visible: wa.currentJid.length > 0 && wa.sendFailed
-                                        text: wa.sendStatus
-                                        textFormat: Text.PlainText
-                                        color: wa.errorColor
-                                        font.family: wa.uiFont
-                                        font.pixelSize: Math.max(10, wa.fontSize - 2)
-                                        font.weight: Font.Medium
-                                    }
-
+                                    anchors.fill: parent; anchors.leftMargin: 6; anchors.rightMargin: 10; spacing: 8
                                     Rectangle {
-                                        Layout.preferredWidth: 20
-                                        Layout.preferredHeight: 20
-                                        radius: 0
-                                        visible: wa.currentJid
-                                        color: backHover.containsMouse ? rootRef.withAlpha(wa.fg, 0.25) : rootRef.withAlpha(wa.fg, 0.1)
-
-                                        QIcon {
+                                        Layout.preferredWidth: 30; Layout.preferredHeight: 30; radius: 15
+                                        color: wa.green
+                                        Text {
                                             anchors.centerIn: parent
-                                            source: Qt.resolvedUrl("../assets/icons/close.svg")
-                                            color: wa.fg
-                                            iconSize: Math.max(11, wa.fontSize - 1)
+                                            text: wa.playingAudioSrc === src ? "❚❚" : "▶"
+                                            color: wa.outFg; font.pixelSize: 12; font.weight: Font.Bold
                                         }
-
-                                        MouseArea {
-                                            id: backHover
-
-                                            anchors.fill: parent
-                                            hoverEnabled: true
-                                            cursorShape: Qt.PointingHandCursor
-                                            onClicked: {
-                                                wa.clearChat();
-                                                searchField.forceActiveFocus();
-                                            }
-                                        }
-
                                     }
-
+                                    Text {
+                                        Layout.fillWidth: true; text: "Voice message"
+                                        elide: Text.ElideRight; maximumLineCount: 1; clip: true
+                                        color: fromMe ? wa.outFg : wa.fg
+                                        font.family: wa.uiFont; font.pixelSize: Math.max(10, wa.fontSize - 2)
+                                    }
+                                    Text {
+                                        text: time
+                                        color: fromMe ? wa.outTime : wa.muted
+                                        font.family: wa.uiFont; font.pixelSize: 10
+                                    }
                                 }
-
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: wa.toggleAudio(src) }
                             }
-
-                            Item {
+                            Rectangle { // text bubble
+                                id: bubble
+                                visible: body.length > 0
                                 width: parent.width
-                                height: Math.max(0, wa.bodyHeight() - 16 - wa.headerHeight - 16 - wa.sendHeight)
-                                clip: true
-
-                                ListView {
-                                    id: msgList
-
-                                    anchors.fill: parent
-                                    model: messageModel
-                                    spacing: 4
-                                    boundsBehavior: Flickable.StopAtBounds
-                                    clip: true
-
-                                    // Incoming messages spring in.
-                                    add: Transition {
-                                        Anim { property: "opacity"; from: 0; to: 1; type: Anim.DefaultEffects }
-                                        Anim { property: "y"; from: 14; type: Anim.BouncyFast }
-                                    }
-                                    displaced: Transition {
-                                        Anim { property: "y"; type: Anim.BouncyFast }
-                                    }
-
-                                    delegate: Item {
-                                        id: msgItem
-
-required property int index
-                                        required property bool fromMe
-                                        required property string sender
-                                        required property string text
-                                        required property string time
-                                        required property string mediaType
-                                        required property string src
-                                        readonly property bool isImage: mediaType === "image" && src !== ""
-                                        readonly property bool isSticker: mediaType === "sticker" && src !== ""
-                                        readonly property bool isAudio: mediaType === "audio" && src !== ""
-                                        readonly property bool isAnimated: /\.(webp|gif)$/i.test(src)
-                                        readonly property string mediaSource: wa.mediaUrl(src)
-
-                                        width: msgList.width
-                                        height: bubbleCol.implicitHeight + 8
-
-                                        Column {
-                                            id: bubbleCol
-
-                                            anchors.top: parent.top
-                                            anchors.topMargin: 4
-                                            anchors.bottom: parent.bottom
-                                            anchors.bottomMargin: 4
-                                            anchors.left: fromMe ? undefined : parent.left
-                                            anchors.right: fromMe ? parent.right : undefined
-                                            anchors.leftMargin: 4
-                                            anchors.rightMargin: 4
-                                            width: msgList.width - 8
-                                            spacing: 2
-
-                                            Rectangle {
-                                                id: imageBubble
-
-                                                visible: msgItem.isImage
-                                                width: Math.min(wa.imgMaxW, Math.max(60, bubbleCol.width - 8))
-                                                height: wa.imgMaxH
-                                                radius: 0
-                                                clip: true
-                                                color: rootRef.withAlpha(wa.fg, 0.08)
-
-                                                AnimatedImage {
-                                                    id: imageItem
-
-                                                    anchors.fill: parent
-                                                    visible: msgItem.isAnimated && status !== Image.Error
-                                                    playing: wa.active && visible
-                                                    source: msgItem.isImage && msgItem.isAnimated ? msgItem.mediaSource : ""
-                                                    fillMode: Image.PreserveAspectFit
-                                                    asynchronous: true
-                                                    smooth: true
-                                                }
-
-                                                Image {
-                                                    id: staticImage
-
-                                                    anchors.fill: imageItem.parent
-                                                    visible: !msgItem.isAnimated || imageItem.status === Image.Error
-                                                    source: visible ? msgItem.mediaSource : ""
-                                                    fillMode: Image.PreserveAspectFit
-                                                    asynchronous: true
-                                                    smooth: true
-                                                }
-
-                                                MouseArea {
-                                                    anchors.fill: parent
-                                                    hoverEnabled: true
-                                                    cursorShape: Qt.PointingHandCursor
-                                                    onClicked: {
-                                                        if (msgItem.src.length === 0) {
-                                                            wa.loadMessages();
-                                                            return ;
-                                                        }
-                                                        Quickshell.execDetached(["swayimg", msgItem.src]);
-                                                    }
-                                                }
-
-                                                Text {
-                                                    visible: msgItem.text.length === 0
-                                                    anchors.right: parent.right
-                                                    anchors.bottom: parent.bottom
-                                                    anchors.margins: 6
-                                                    text: msgItem.time
-                                                    color: "#dddddd"
-                                                    font.family: wa.uiFont
-                                                    font.pixelSize: Math.max(8, wa.fontSize - 3)
-                                                }
-
-                                            }
-
-                                            Rectangle {
-                                                id: stickerBubble
-
-                                                visible: msgItem.isSticker
-                                                width: 160
-                                                height: 160
-                                                radius: 0
-                                                clip: true
-                                                color: "transparent"
-
-                                                AnimatedImage {
-                                                    id: stickerImage
-
-                                                    anchors.fill: parent
-                                                    visible: status !== Image.Error
-                                                    playing: wa.active && stickerBubble.visible && visible
-                                                    source: msgItem.isSticker ? msgItem.mediaSource : ""
-                                                    fillMode: Image.PreserveAspectFit
-                                                    asynchronous: true
-                                                    smooth: true
-                                                }
-
-                                                Image {
-                                                    anchors.fill: parent
-                                                    visible: stickerImage.status === Image.Error
-                                                    source: msgItem.isSticker && visible ? msgItem.mediaSource : ""
-                                                    fillMode: Image.PreserveAspectFit
-                                                    asynchronous: true
-                                                    smooth: true
-                                                }
-
-                                                Text {
-                                                    visible: msgItem.text.length === 0
-                                                    anchors.right: parent.right
-                                                    anchors.bottom: parent.bottom
-                                                    anchors.margins: 6
-                                                    text: msgItem.time
-                                                    color: wa.fg
-                                                    font.family: wa.uiFont
-                                                    font.pixelSize: Math.max(8, wa.fontSize - 3)
-                                                }
-
-                                            }
-
-                                            Rectangle {
-                                                id: audioBubble
-
-                                                visible: msgItem.isAudio
-                                                width: Math.min(230, bubbleCol.width - 8)
-                                                height: 40
-                                                radius: 0
-                                                color: fromMe ? wa.accent : rootRef.withAlpha(wa.fg, 0.1)
-
-                                                MouseArea {
-                                                    anchors.fill: parent
-                                                    cursorShape: Qt.PointingHandCursor
-                                                    onClicked: wa.toggleAudio(msgItem.src)
-                                                }
-
-                                                Item {
-                                                    anchors.fill: parent
-                                                    anchors.leftMargin: 8
-                                                    anchors.rightMargin: 10
-
-                                                    Rectangle {
-                                                        id: playBtn
-
-                                                        anchors.verticalCenter: parent.verticalCenter
-                                                        width: 26
-                                                        height: 26
-                                                        radius: 0
-                                                        color: rootRef.withAlpha("#ffffff", 0.25)
-
-                                                        Text {
-                                                            anchors.centerIn: parent
-                                                            text: wa.playingAudioSrc === msgItem.src ? "II" : "▶"
-                                                            color: wa.accentText
-                                                            font.pixelSize: Math.max(9, wa.fontSize - 1)
-                                                        }
-
-                                                    }
-
-                                                    Text {
-                                                        id: audioTimeText
-
-                                                        anchors.right: parent.right
-                                                        anchors.verticalCenter: parent.verticalCenter
-                                                        text: msgItem.time
-                                                        color: rootRef.withAlpha(wa.accentText, 0.7)
-                                                        font.family: wa.uiFont
-                                                        font.pixelSize: Math.max(8, wa.fontSize - 3)
-                                                    }
-
-                                                }
-
-                                                Behavior on color {
-                                                    CAnim { type: CAnim.FastEffects }
-
-                                                }
-
-                                            }
-
-                                            Rectangle {
-                                                id: textBubble
-
-                                                readonly property real textWidth: Math.min(bubbleText.implicitWidth, wa.bubbleMaxW)
-                                                readonly property real availableWidth: bubbleCol.width > 0 ? bubbleCol.width : 9999
-
-                                                visible: msgItem.text.length > 0
-                                                width: Math.min(textBubble.textWidth + timeText.implicitWidth + 6 + wa.msgPad * 2, textBubble.availableWidth)
-                                                height: Math.max(bubbleText.implicitHeight, timeText.implicitHeight) + 6
-                                                radius: 0
-                                                color: fromMe ? wa.accent : rootRef.withAlpha(wa.fg, 0.1)
-
-                                                RowLayout {
-                                                    anchors.fill: parent
-                                                    anchors.leftMargin: wa.msgPad
-                                                    anchors.rightMargin: wa.msgPad
-                                                    anchors.topMargin: 3
-                                                    anchors.bottomMargin: 3
-                                                    spacing: 6
-
-                                                    Text {
-                                                        id: bubbleText
-
-                                                        textFormat: Text.PlainText
-                                                        Layout.preferredWidth: Math.min(bubbleText.implicitWidth, wa.bubbleMaxW)
-                                                        Layout.alignment: Qt.AlignVCenter
-                                                        text: msgItem.text
-                                                        color: fromMe ? wa.accentText : wa.fg
-                                                        font.family: wa.arabicFont
-                                                        font.pixelSize: wa.fontSize
-                                                        wrapMode: Text.Wrap
-                                                        lineHeight: 1.25
-                                                    }
-
-                                                    Text {
-                                                        id: timeText
-
-                                                        Layout.alignment: Qt.AlignBottom
-                                                        text: msgItem.time
-                                                        color: fromMe ? rootRef.withAlpha(wa.accentText, 0.7) : rootRef.withAlpha(wa.fg, 0.7)
-                                                        font.family: wa.uiFont
-                                                        font.pixelSize: Math.max(8, wa.fontSize - 3)
-                                                    }
-
-                                                }
-
-                                                Behavior on color {
-                                                    CAnim { type: CAnim.FastEffects }
-
-                                                }
-
-                                            }
-
-                                            Text {
-                                                textFormat: Text.PlainText
-                                                visible: msgItem.sender.length > 0 && !msgItem.fromMe
-                                                text: msgItem.sender
-                                                color: rootRef.withAlpha(wa.fg, 0.65)
-                                                font.family: wa.uiFont
-                                                font.pixelSize: Math.max(9, wa.fontSize - 3)
-                                            }
-
-                                        }
-
-                                    }
-
-                                }
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    visible: messageModel.count === 0
-                                    text: wa.msgsLoading ? "Loading messages\u2026" : wa.msgsFailed ? "Failed to load messages" : wa.currentJid ? "No messages yet" : ""
-                                    color: rootRef.withAlpha(wa.fg, 0.7)
-                                    font.family: wa.uiFont
-                                    font.pixelSize: wa.fontSize - 1
-                                }
-
-                            }
-
-                            Rectangle {
-                                id: sendBox
-
-                                width: parent.width
-                                height: wa.sendHeight
-                                radius: 0
-                                color: rootRef.withAlpha(wa.fg, 0.06)
-                                border.width: 1
-                                border.color: sendField.inputFocus ? rootRef.withAlpha(wa.fg, 0.35) : rootRef.withAlpha(wa.fg, 0.1)
-
+                                implicitHeight: bubbleRow.implicitHeight + 12
+                                radius: 8
+                                // tail corner: flat on the side it points to
+                                topLeftRadius: fromMe ? 8 : 0
+                                topRightRadius: fromMe ? 0 : 8
+                                color: fromMe ? wa.bubbleOut : wa.bubbleIn
                                 RowLayout {
+                                    id: bubbleRow
                                     anchors.fill: parent
-                                    anchors.leftMargin: 14
-                                    anchors.rightMargin: 6
-                                    spacing: 8
-
-                                    CharField {
-                                        id: sendField
-
-                                        Layout.fillWidth: true
-                                        Layout.fillHeight: true
-                                        textColor: wa.fg
-                                        font.family: wa.arabicFont
-                                        font.pixelSize: wa.fontSize
-                                        selectByMouse: true
-                                        verticalAlignment: Text.AlignVCenter
-                                        placeholderText: wa.currentJid ? "Type a message\u2026" : "Select a chat first"
-                                        placeholderTextColor: rootRef.withAlpha(wa.fg, 0.35)
-                                        readOnly: wa.currentJid.length === 0
-                                        enabled: wa.currentJid.length > 0
-                                        onAccepted: wa.sendMessage()
-                                        Keys.onEscapePressed: (event) => {
-                                            searchField.forceActiveFocus();
-                                            event.accepted = true;
-                                        }
-
+                                    anchors.leftMargin: 10; anchors.rightMargin: 8
+                                    anchors.topMargin: 6; anchors.bottomMargin: 6
+                                    spacing: 6
+                                    Text {
+                                        id: bubbleText
+                                        Layout.fillWidth: true; textFormat: Text.RichText
+                                        text: wa.linkify(body, fromMe ? wa.outFg : wa.green)
+                                        color: fromMe ? wa.outFg : wa.fg
+                                        font.family: wa.arabicFont; font.pixelSize: wa.fontSize
+                                        wrapMode: Text.Wrap; lineHeight: 1.25
                                     }
-
-                                    Rectangle {
-                                        Layout.preferredWidth: 30
-                                        Layout.preferredHeight: 30
-                                        radius: 0
-                                        color: pasteHover.containsMouse ? rootRef.withAlpha(wa.fg, 0.14) : rootRef.withAlpha(wa.fg, 0.06)
-                                        enabled: wa.currentJid.length > 0 && !wa.sending
-                                        opacity: enabled ? 1 : 0.4
-
-                                        Image {
-                                            anchors.centerIn: parent
-                                            width: 15
-                                            height: 15
-                                            source: "data:image/svg+xml;utf8," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='" + wa.accent.toString() + "'><path d='M19,2h-4.18C14.4,0.84 13.3,0 12,0S9.6,0.84 9.18,2H5C3.9,2 3,2.9 3,4v16c0,1.1 0.9,2 2,2h14c1.1,0 2,-0.9 2,-2V4C21,2.9 20.1,2 19,2zM12,2c0.55,0 1,0.45 1,1s-0.45,1 -1,1 -1,-0.45 -1,-1 0.45,-1 1,-1zM19,20H5V4h2v3h10V4h2V20z'/></svg>")
-                                        }
-
-                                        MouseArea {
-                                            id: pasteHover
-
-                                            anchors.fill: parent
-                                            hoverEnabled: true
-                                            cursorShape: Qt.PointingHandCursor
-                                            onClicked: wa.sendPaste()
-                                        }
-
-                                        Behavior on color {
-                                            CAnim { type: CAnim.FastEffects }
-
-                                        }
-
+                                    Text {
+                                        Layout.alignment: Qt.AlignBottom; text: stamp
+                                        color: fromMe ? wa.outTime : wa.muted
+                                        font.family: wa.uiFont; font.pixelSize: 10
                                     }
-
-                                    Rectangle {
-                                        Layout.preferredWidth: 30
-                                        Layout.preferredHeight: 30
-                                        radius: 0
-                                        color: photoHover.containsMouse ? rootRef.withAlpha(wa.fg, 0.14) : rootRef.withAlpha(wa.fg, 0.06)
-                                        enabled: wa.currentJid.length > 0 && !wa.sending
-                                        opacity: enabled ? 1 : 0.4
-
-                                        Image {
-                                            anchors.centerIn: parent
-                                            width: 15
-                                            height: 15
-                                            source: "data:image/svg+xml;utf8," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='" + rootRef.withAlpha(wa.fg, 0.7).toString() + "'><path d='M21,19V5c0,-1.1 -0.9,-2 -2,-2H5C3.9,3 3,3.9 3,5v14c0,1.1 0.9,2 2,2h14c1.1,0 2,-0.9 2,-2zM8.5,13.5l2.5,3.01L14.5,12l4.5,6H5l3.5,-4.5z'/></svg>")
-                                        }
-
-                                        MouseArea {
-                                            id: photoHover
-
-                                            anchors.fill: parent
-                                            hoverEnabled: true
-                                            cursorShape: Qt.PointingHandCursor
-                                            onClicked: wa.sendFile()
-                                        }
-
-                                        Behavior on color {
-                                            CAnim { type: CAnim.FastEffects }
-
-                                        }
-
-                                    }
-
-                                    Rectangle {
-                                        Layout.preferredWidth: 30
-                                        Layout.preferredHeight: 30
-                                        radius: 0
-                                        color: sendHover.containsMouse || sendField.text.length > 0 ? wa.accent : rootRef.withAlpha(wa.fg, 0.15)
-                                        enabled: wa.currentJid.length > 0 && !wa.sending && sendField.text.length > 0
-                                        opacity: enabled ? 1 : 0.4
-
-                                        QIcon {
-                                            anchors.centerIn: parent
-                                            source: Qt.resolvedUrl("../assets/icons/send.svg")
-                                            color: sendField.text.length > 0 ? wa.accentText : rootRef.withAlpha(wa.fg, 0.7)
-                                            iconSize: wa.fontSize + 3
-                                        }
-
-                                        MouseArea {
-                                            id: sendHover
-
-                                            anchors.fill: parent
-                                            hoverEnabled: true
-                                            cursorShape: Qt.PointingHandCursor
-                                            onClicked: wa.sendMessage()
-                                        }
-
-                                        Behavior on color {
-                                            CAnim { type: CAnim.FastEffects }
-
-                                        }
-
-                                    }
-
                                 }
 
+                                // Single tap opens a link, double tap copies it.
+                                // The delay keeps a double tap from opening first.
+                                Timer {
+                                    id: openTimer
+                                    interval: 260
+                                    repeat: false
+                                    property string pendingLink: ""
+                                    onTriggered: wa.openLink(pendingLink)
+                                }
+                                MouseArea {
+                                    id: bubbleMouse
+                                    anchors.fill: parent
+                                    acceptedButtons: Qt.LeftButton
+                                    hoverEnabled: true
+                                    cursorShape: Qt.ArrowCursor
+                                    onClicked: e => {
+                                        openTimer.pendingLink = wa.linkAtText(bubbleText, bubbleMouse, e.x, e.y)
+                                        if (openTimer.pendingLink) openTimer.restart()
+                                    }
+                                    onDoubleClicked: e => {
+                                        openTimer.stop()
+                                        wa.copyLink(wa.linkAtText(bubbleText, bubbleMouse, e.x, e.y))
+                                    }
+                                    onPositionChanged: e => {
+                                        bubbleMouse.cursorShape =
+                                            wa.linkAtText(bubbleText, bubbleMouse, e.x, e.y)
+                                            ? Qt.PointingHandCursor : Qt.ArrowCursor
+                                    }
+                                }
                             }
-
                         }
-
                     }
-
                 }
 
+                Text {
+                    Layout.fillWidth: true; horizontalAlignment: Text.AlignHCenter
+                    visible: messageModel.count === 0
+                    topPadding: 12; bottomPadding: 4
+                    text: wa.msgsLoading ? "Loading messages…" : wa.msgsFailed ? "Couldn't load — pull to retry below" : "No messages yet"
+                    color: wa.muted; font.family: wa.uiFont; font.pixelSize: Math.max(10, wa.fontSize - 2)
+                }
+
+                Rectangle { // input bar
+                    Layout.fillWidth: true; Layout.preferredHeight: 62; color: "transparent"
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 10; anchors.rightMargin: 10; spacing: 8
+                        Rectangle {
+                            Layout.fillWidth: true; Layout.preferredHeight: 46; radius: 23; color: wa.field
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.leftMargin: 14; anchors.rightMargin: 6; spacing: 4
+                                CharField {
+                                    id: sendField
+                                    Layout.fillWidth: true; Layout.fillHeight: true
+                                    textColor: wa.fg; font.family: wa.arabicFont; font.pixelSize: wa.fontSize
+                                    selectByMouse: true; verticalAlignment: Text.AlignVCenter
+                                    placeholderText: "Message"; placeholderTextColor: wa.muted
+                                    enabled: wa.inChat
+                                    onAccepted: wa.sendMessage()
+                                    Keys.onEscapePressed: e => { wa.backToList(); e.accepted = true }
+                                }
+                                IconBtn { icon: "photo"; tip: "Photo"; enabled: wa.inChat && !wa.sending; onClicked: wa.sendPaste() }
+                            }
+                        }
+                        Rectangle { // round send FAB
+                            Layout.preferredWidth: 46; Layout.preferredHeight: 46; radius: 23
+                            color: sendField.text.length > 0 && wa.inChat ? wa.green : wa.field
+                            opacity: (wa.inChat && !wa.sending && sendField.text.length > 0) ? 1 : 0.7
+                            QIcon {
+                                anchors.centerIn: parent
+                                source: Qt.resolvedUrl("../assets/icons/send.svg")
+                                color: sendField.text.length > 0 ? wa.outFg : wa.muted
+                                iconSize: 18
+                            }
+                            MouseArea {
+                                anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                onClicked: wa.sendMessage()
+                            }
+                        }
+                    }
+                }
             }
 
-        }
-
-        transform: Translate {
-            y: (1 - wa.animProgress) * 8
+            // Jump-to-latest: auto-hides while already at the end.
+            Rectangle {
+                id: jumpBtn
+                anchors.right: parent.right
+                anchors.rightMargin: 16
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 74
+                width: 44; height: 44; radius: 22
+                color: wa.field
+                border.width: 1
+                border.color: wa.divider
+                opacity: (card.page === 1 && !wa.atEnd && messageModel.count > 0) ? 1 : 0
+                visible: opacity > 0.01
+                Behavior on opacity { Anim { type: Anim.DefaultEffects } }
+                Text {
+                    anchors.centerIn: parent
+                    text: "↓"
+                    color: wa.fg
+                    font.family: wa.uiFont
+                    font.pixelSize: 20
+                    font.weight: Font.Bold
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    enabled: jumpBtn.visible
+                    onClicked: msgList.positionViewAtEnd()
+                }
+            }
         }
 
     }
 
-    Behavior on animProgress {
-        Anim { type: Anim.Bouncy }
+    // ---------- small icon button ----------
+    component IconBtn: Item {
+        id: btn
+        property string icon: ""
+        property string tip: ""
+        property bool enabled: true
+        signal clicked()
+        implicitWidth: 34; implicitHeight: 34
+        opacity: btn.enabled ? 1 : 0.4
+        QIcon {
+            anchors.centerIn: parent
+            source: btn.icon === "back" ? Qt.resolvedUrl("../assets/icons/chev-left.svg")
+                : btn.icon === "refresh" ? Qt.resolvedUrl("../assets/icons/refresh.svg")
+                : btn.icon === "clip" ? Qt.resolvedUrl("../assets/icons/clipboard.svg")
+                : btn.icon === "photo" ? Qt.resolvedUrl("../assets/icons/photo.svg")
+                : Qt.resolvedUrl("../assets/icons/close.svg")
+            color: wa.fg; iconSize: 16
+        }
+        MouseArea {
+            anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+            enabled: btn.enabled
+            onClicked: btn.clicked()
+        }
     }
-
 }

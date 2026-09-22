@@ -20,6 +20,7 @@ HOST = "127.0.0.1"
 PORT = 51828
 MAX_BODY = 256 * 1024
 DIRECT_JID = re.compile(r"[0-9]{1,32}@(s\.whatsapp\.net|lid)")
+GROUP_JID = re.compile(r"[0-9]{1,32}(-[0-9]{1,32})?@g\.us")
 
 
 if "go/bin" not in os.environ.get("PATH", ""):
@@ -134,7 +135,7 @@ class Handler(BaseHTTPRequestHandler):
         if not msg or msg.get("FromMe") is True:
             return
         chat = msg.get("Chat") or ""
-        if not DIRECT_JID.fullmatch(chat):
+        if not (DIRECT_JID.fullmatch(chat) or GROUP_JID.fullmatch(chat)):
             return
         text = (msg.get("Text") or "").strip()
         if not text:

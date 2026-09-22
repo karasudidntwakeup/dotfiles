@@ -13,8 +13,8 @@ mkdir -p "$CACHE" || exit 1
 TMP="$(mktemp "$OUT.tmp.XXXXXX")" || exit 1
 trap 'rm -f -- "$TMP"' EXIT
 
-chmod 600 "$OUT" 2>/dev/null
+chmod 600 "$TMP" 2>/dev/null
 
 wacli --read-only --json chats list --limit 150 2>/dev/null \
     | jq -ce '{chats: (.data // [])}' >"$TMP" \
-    && mv "$TMP" "$OUT"
+    && chmod 600 "$TMP" && mv "$TMP" "$OUT"
