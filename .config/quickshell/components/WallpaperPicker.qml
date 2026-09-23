@@ -292,9 +292,9 @@ Item {
 
         model: window.displayModel
         currentIndex: -1
-        // Cache well past the viewport so thumbnails don't decode/reload
-        // mid-scroll (the old 2-item buffer caused visible popping).
-        cacheBuffer: Math.max(view.width, window.itemWidth * 6)
+        // Small buffer so off-screen thumbs are freed quickly.
+        // Old itemWidth*6 kept ~7+ full thumbs decoded = high RSS.
+        cacheBuffer: Math.max(view.width * 0.5, window.itemWidth * 2)
         highlightMoveDuration: 220
         highlightResizeDuration: 220
 

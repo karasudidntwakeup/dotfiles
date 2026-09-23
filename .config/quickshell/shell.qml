@@ -1225,14 +1225,18 @@ mediaProc.running = true
         id: dc
         property int padX: 14
         property int iconSize: root.fontSize + 2
-        // Pill stays a neutral surface tone — wifi strength is shown by the
-        // live arcs inside, not by re-tinting the whole pill. Red only offline.
-        readonly property color tint: root.networkConnected ? root.pillColor("surface_container_high") : root.pillColor("error")
+        // Auto static fallback when RAM is high or QS_NO_DYNAMIC=1.
+        // Stops smoothing + shadows (the expensive parts), keeps text.
+        readonly property bool staticMode: Quickshell.env("QS_NO_DYNAMIC") === "1" || root.memPercent >= 85
+        // Pill gets its own `wifi` token (peach) — wifi strength is also
+        // shown by the live arcs inside. Red only offline.
+        readonly property color tint: root.networkConnected ? root.pillColor("wifi") : root.pillColor("error")
         readonly property color pillTextColor: root.pillForeground(dc.color)
         readonly property bool hovering: dcArea.containsMouse || dcArea.pressed
         // Smoothed signal so arcs animate live instead of jumping.
+        // Disabled in staticMode: direct assignment, no animation churn.
         property real liveSignal: root.networkSignal
-        Behavior on liveSignal { Anim { type: Anim.StandardLarge } }
+        Behavior on liveSignal { enabled: !dc.staticMode; Anim { type: Anim.StandardLarge } }
 
         implicitHeight: root.pillHeight
         radius: root.pillRadius
@@ -1251,9 +1255,9 @@ mediaProc.running = true
         }
         Behavior on opacity { Anim { type: Anim.DefaultEffects } }
         Behavior on enterShift { Anim { type: Anim.Bouncy } }
-        layer.enabled: Quickshell.env("QS_NO_SHADOW") !== "1"
+        layer.enabled: !dc.staticMode && Quickshell.env("QS_NO_SHADOW") !== "1"
         layer.effect: MultiEffect {
-            shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
+            shadowEnabled: !dc.staticMode && Quickshell.env("QS_NO_SHADOW") !== "1"
             shadowBlur: 0.7
             blurMax: 16
             shadowHorizontalOffset: 3
@@ -1263,11 +1267,11 @@ mediaProc.running = true
         }
 
         implicitWidth: dcRow.implicitWidth + dc.padX
-        Behavior on implicitWidth { Anim { type: Anim.BouncyFast } }
+        Behavior on implicitWidth { enabled: !dc.staticMode; Anim { type: Anim.BouncyFast } }
         Behavior on color { CAnim { } }
 
-        scale: dcArea.pressed ? 0.94 : dcArea.containsMouse ? 1.06 : 1.0
-        Behavior on scale { Anim { type: Anim.BouncyFast } }
+        scale: dc.staticMode ? 1.0 : (dcArea.pressed ? 0.94 : dcArea.containsMouse ? 1.06 : 1.0)
+        Behavior on scale { enabled: !dc.staticMode; Anim { type: Anim.BouncyFast } }
 
         Row {
             id: dcRow
@@ -2022,10 +2026,27 @@ function closeOverlays() {
             iconFont: root.iconFont
             uiFont: root.uiFont
             onRequestClose: root.wallpaperActive = false
+            // Free thumbs after close (fade first, then clear).
+            onVisible_Changed: if (!visible_) wallClearTimer.restart()
+        }
+
+        // Fired after fade-out: drops the 735-item models + Images,
+        // reopening repopulates via triggerIndexer below.
+        Timer {
+            id: wallClearTimer
+            interval: 500
+            repeat: false
+            onTriggered: {
+                if (!root.wallpaperActive) {
+                    pickerContent.wallpaperModel = []
+                    pickerContent.displayModel = []
+                }
+            }
         }
 
         onVisibleChanged: {
             if (visible) {
+                wallClearTimer.stop()
                 pickerContent.triggerIndexer()
             }
         }
@@ -2187,7 +2208,9 @@ function closeOverlays() {
                     //  sky info   → blue   primary_fixed_dim      (weather)
                     //  faith      → yellow `prayer` token         (prayer)
                     //  devices    → green  secondary_fixed_dim    (bluetooth)
-                    //  chrome     → neutral surface_container_high (keyboard, net/battery)
+                    //  chrome     → neutral surface_container_high (volume base)
+                    //  net        → peach `wifi` token            (net/battery)
+                    //  input      → mauve `keymap` token          (keyboard)
                     //  audio      → grey→blue volTint, red on mute (volume)
                     //  pressure   → green→yellow→red memTint      (memory)
                     //  anchors    → sapphire primary_container    (workspaces)
@@ -2227,7 +2250,7 @@ function closeOverlays() {
                         enterOrder: 2
                         iconSource: kbIconSource
                         label: root.shortLayout(mangoIpc.keyboardLayoutName.length > 0 ? mangoIpc.keyboardLayoutName : niriIpc.keyboardLayoutName)
-                        tint: root.pillColor("surface_container_high")
+                        tint: root.pillColor("keymap")
 
                         Component {
                             id: kbIconSource
@@ -2336,11 +2359,11 @@ function closeOverlays() {
                             repeat: false
                             onTriggered: { clockPill.opacity = 1; clockPill.enterShift = 0 }
                         }
-                        Behavior on opacity { Anim { type: Anim.DefaultEffects } }
-                        Behavior on enterShift { Anim { type: Anim.Bouncy } }
-                        layer.enabled: Quickshell.env("QS_NO_SHADOW") !== "1"
-                        layer.effect: MultiEffect {
-                            shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
+        Behavior on opacity { Anim { type: Anim.DefaultEffects } }
+        Behavior on enterShift { Anim { type: Anim.Bouncy } }
+        layer.enabled: Quickshell.env("QS_NO_SHADOW") !== "1"
+        layer.effect: MultiEffect {
+            shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
                             shadowBlur: 0.7
                             blurMax: 16
                             shadowHorizontalOffset: 3

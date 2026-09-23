@@ -213,6 +213,14 @@ var prayer = "{{colors.secondary_container.default.hex}}"
 
 var prayer_light = "{{colors.secondary_container.light.hex}}"
 
+var keymap = "{{colors.inverse_primary.default.hex}}"
+
+var keymap_light = "{{colors.inverse_primary.light.hex}}"
+
+var wifi = "{{colors.tertiary.default.hex}}"
+
+var wifi_light = "{{colors.tertiary.light.hex}}"
+
 /* Widget colors: each quickshell component gets its own distinct hue.
    launcher  -> primary_container   (sapphire/blue)
    ytx       -> tertiary_container  (pink)
@@ -220,7 +228,9 @@ var prayer_light = "{{colors.secondary_container.light.hex}}"
    notes     -> primary_fixed_dim   (blue, distinct from launcher sapphire)
    whatsapp  -> secondary_fixed_dim (green)
    notif     -> tertiary_fixed      (rose, distinct from ytx pink)
-   prayer    -> secondary_container (yellow) */
+   prayer    -> secondary_container (yellow)
+   keymap    -> inverse_primary     (mauve)
+   wifi      -> tertiary            (peach) */
 var ytx_card = "{{colors.tertiary_container.default.hex}}"
 
 var ytx_card_light = "{{colors.tertiary_container.light.hex}}"
