@@ -478,7 +478,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         y: Math.floor(parent.height - card.height - 24)
         radius: 0
-        color: wa.bg
+        color: wa.header
         border.width: 1
         border.color: wa.divider
         clip: true
@@ -578,41 +578,6 @@ Item {
                     }
                 }
 
-                Rectangle { // tabs (same color as top bar)
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 40
-                    color: wa.header
-                    Row {
-                        anchors.fill: parent
-                    Repeater {
-                        model: [{k: "chats", l: "Chats"}, {k: "groups", l: "Groups"}, {k: "channels", l: "Channels"}]
-                        delegate: Item {
-                            required property var modelData
-                            width: card.width / 3; height: 40
-                            Column {
-                                anchors.fill: parent; spacing: 0
-                                Item { width: parent.width; height: 36
-                                    Text {
-                                        anchors.centerIn: parent; text: modelData.l
-                                        color: wa.activeTab === modelData.k ? wa.green : wa.muted
-                                        font.family: wa.uiFont; font.pixelSize: wa.fontSize; font.weight: Font.Bold
-                                    }
-                                    MouseArea {
-                                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                                        onClicked: { wa.activeTab = modelData.k; wa.applyChatFilter(searchField.text) }
-                                    }
-                                }
-                                Rectangle {
-                                    width: parent.width; height: 3
-                                    color: wa.activeTab === modelData.k ? wa.green : "transparent"
-                                }
-                            }
-                        }
-                    }
-                    }
-                }
-                Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: wa.divider }
-
                 ListView {
                     id: chatList
                     Layout.fillWidth: true; Layout.fillHeight: true
@@ -708,6 +673,30 @@ Item {
                         font.family: wa.uiFont; font.pixelSize: Math.max(10, wa.fontSize - 2)
                     }
                 }
+                Rectangle { // bottom tab bar (iOS-style, tonal, square)
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 56
+                    color: wa.header
+                    Row {
+                        anchors.fill: parent
+                        Repeater {
+                            model: [{k: "chats", l: "Chats"}, {k: "groups", l: "Groups"}, {k: "channels", l: "Channels"}]
+                            delegate: Item {
+                                required property var modelData
+                                width: card.width / 3; height: 56
+                                Text {
+                                    anchors.centerIn: parent; text: modelData.l
+                                    color: wa.activeTab === modelData.k ? wa.green : wa.muted
+                                    font.family: wa.uiFont; font.pixelSize: wa.fontSize; font.weight: Font.Bold
+                                }
+                                MouseArea {
+                                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                    onClicked: { wa.activeTab = modelData.k; wa.applyChatFilter(searchField.text) }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -751,7 +740,6 @@ Item {
 
                     }
                 }
-                Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: wa.divider }
 
                 Text { // send error strip
                     Layout.fillWidth: true; leftPadding: 12; rightPadding: 12; topPadding: 6; bottomPadding: 2

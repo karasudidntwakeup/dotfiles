@@ -451,7 +451,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         y: Math.floor(parent.height - card.height - 24)
         radius: 0
-        color: ytx.bg
+        color: ytx.header
         border.width: 1
         border.color: ytx.divider
         clip: true
@@ -613,8 +613,6 @@ Item {
 
                 }
             }
-            Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: ytx.divider }
-            Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: ytx.divider }
             Item {
                 id: statusRow
                 Layout.fillWidth: true
