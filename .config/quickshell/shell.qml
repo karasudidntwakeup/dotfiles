@@ -892,6 +892,29 @@ ShellRoot {
             repeat: false
             onTriggered: { if (mango.available) kbWatchProc.running = true }
         }
+
+        // Overview has no IPC flag; it shows up as active_tags [0].
+        property bool overviewOpen: false
+
+        Process {
+            command: ["sh", "-c", "exec mmsg watch all-monitors 2>/dev/null"]
+            running: mango.available
+            stdout: SplitParser {
+                onRead: data => {
+                    if (!data) return
+                    try {
+                        var o = JSON.parse(data)
+                        var list = o.monitors instanceof Array ? o.monitors : [o]
+                        for (var i = 0; i < list.length; i++)
+                            if ((list[i].active_tags || []).indexOf(0) >= 0) {
+                                mango.overviewOpen = true
+                                return
+                            }
+                        mango.overviewOpen = false
+                    } catch (e) {}
+                }
+            }
+        }
     }
 
     MangoIpc {
@@ -2014,6 +2037,28 @@ function closeOverlays() {
                     //              pink tertiary_container        (clock)
                     //
                     //  Reading order: glance → faith → input → devices → navigate → sound → meters → time.
+                    QIcon {
+                        anchors.verticalCenter: parent.verticalCenter
+                        opacity: (mangoIpc.available && mangoIpc.overviewOpen) ? 1 : 0
+                        Behavior on opacity { Anim { type: Anim.DefaultEffects } }
+                        source: Qt.resolvedUrl("./assets/icons/y2k-starburst.svg")
+                        color: "#ffffff"
+                        iconSize: 22
+                        layer.enabled: true
+                        layer.effect: MultiEffect {
+                            shadowEnabled: true
+                            shadowBlur: 0.6
+                            blurMax: 12
+                            shadowColor: Qt.rgba(0, 0, 0, 0.9)
+                            shadowOpacity: 0.9
+                        }
+                    }
+
+                    Item {
+                        width: 48
+                        height: 1
+                    }
+
                     Module {
                         id: weatherPill
                         enterOrder: 0
