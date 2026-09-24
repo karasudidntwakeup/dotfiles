@@ -16,6 +16,11 @@ Item {
     property real animProgress: wa.active ? 1 : 0
     Behavior on animProgress { Anim { type: Anim.Bouncy; easing.overshoot: 3.2 } }
 
+    // Smooth opacity ramp decoupled from the bouncy slide: OutBack
+    // finishes ~95% in the first 150ms, which reads as a pop.
+    property real fadeProgress: wa.active ? 1 : 0
+    Behavior on fadeProgress { Anim { type: Anim.SlowEffects } }
+
     signal requestClose()
 
     // ---- Android roles from theme tokens ----
@@ -63,7 +68,7 @@ Item {
     property bool jumpEnd: false
     property bool _progScroll: false
 
-    opacity: wa.animProgress
+    opacity: wa.fadeProgress
     visible: opacity > 0.01
     transform: Translate { y: (1 - wa.animProgress) * 8 }
 

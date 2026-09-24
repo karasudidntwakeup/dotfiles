@@ -16,7 +16,12 @@ Item {
     property real animProgress: ytx.active ? 1 : 0
     Behavior on animProgress { Anim { type: Anim.Bouncy; easing.overshoot: 3.2 } }
 
-    opacity: ytx.animProgress
+    // Smooth opacity ramp decoupled from the bouncy slide: OutBack
+    // finishes ~95% in the first 150ms, which reads as a pop.
+    property real fadeProgress: ytx.active ? 1 : 0
+    Behavior on fadeProgress { Anim { type: Anim.SlowEffects } }
+
+    opacity: ytx.fadeProgress
     visible: opacity > 0.01
     transform: Translate { y: (1 - ytx.animProgress) * 8 }
 

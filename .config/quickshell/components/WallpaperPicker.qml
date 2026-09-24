@@ -25,7 +25,11 @@ Item {
     // animates instead of vanishing. Transform-only: no layout work per frame.
     property real animProgress: visible_ ? 1.0 : 0.0
     Behavior on animProgress { Anim { type: Anim.Bouncy } }
-    opacity: animProgress
+    // Smooth opacity ramp decoupled from the bouncy slide: OutBack
+    // finishes ~95% in the first 150ms, which reads as a pop.
+    property real fadeProgress: visible_ ? 1.0 : 0.0
+    Behavior on fadeProgress { Anim { type: Anim.SlowEffects } }
+    opacity: fadeProgress
     transform: Translate { y: (1.0 - animProgress) * 24 }
     property string currentPath: ""
 

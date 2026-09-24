@@ -70,8 +70,13 @@ Item {
         Anim { type: Anim.Bouncy; easing.overshoot: 3.2 }
     }
 
+    // Smooth opacity ramp decoupled from the bouncy slide: OutBack
+    // finishes ~95% in the first 150ms, which reads as a pop.
+    property real fadeProgress: notes.active ? 1.0 : 0.0
+    Behavior on fadeProgress { Anim { type: Anim.SlowEffects } }
+
     readonly property int bottomMargin: 24
-    opacity: notes.animProgress
+    opacity: notes.fadeProgress
 
     property var allNotes: []
     ListModel { id: gridModel }

@@ -36,6 +36,11 @@ Item {
     property bool lockedOut: false
     property real blurAmount: 1.0
 
+    onLockedChanged: {
+        // Free the wallpaper texture after unlock; re-queried on next lock.
+        if (!locked) wallpaper.source = ""
+    }
+
     // Guesses 1-4 free; then escalating waits. Capped at 1h (Android goes
     // to years/permanent — unsafe for a desktop, where a reboot is the
     // only recovery).
@@ -154,7 +159,9 @@ Item {
         }
     }
     Timer {
-        interval: 1000; running: true; repeat: false; triggeredOnStart: true
+        // Gated on locked: no wallpaper decode at idle. Fires on lock
+        // (triggeredOnStart) so the backdrop is ready behind the blur.
+        interval: 1000; running: lockRoot.locked; repeat: false; triggeredOnStart: true
         onTriggered: wpQuery.running = true
     }
     MultiEffect {
@@ -300,7 +307,9 @@ Item {
     }
 
     Image {
-        source: lockRoot.assetDir + "globe-3d.png"
+        // Gated on locked: the 2944px art decodes to ~33MB; keep it
+        // out of idle RAM and load it only while the lock is shown.
+        source: lockRoot.locked ? lockRoot.assetDir + "globe-3d.png" : ""
         width: 110; height: 110
         x: 30
         anchors.bottom: parent.bottom

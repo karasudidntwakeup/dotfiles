@@ -192,11 +192,9 @@ ShellRoot {
 
     property string memText: ""
     property int memPercent: 0
-    property string memTotalText: ""
 
     property var mountedDisks: []
     property var removableDrives: []
-    property string removableError: ""
 
     function refreshRemovable() {
         if (!removableProc.running) removableProc.running = true
@@ -249,14 +247,13 @@ ShellRoot {
                         // the NotifCenter repeater doesn't rebuild every poll.
                         if (JSON.stringify(arr) !== JSON.stringify(root.removableDrives))
                             root.removableDrives = arr
-                        root.removableError = ""
                     }
                 } catch (e) {
-                    root.removableError = "Could not read drives"
+                    console.log("[removable] parse error:", e)
                 }
             }
         }
-        onExited: code => { if (code !== 0) root.removableError = "Could not read drives" }
+        onExited: code => { if (code !== 0) console.log("[removable] script failed:", code) }
     }
 
     Process {
@@ -378,8 +375,6 @@ ShellRoot {
                 var used = parts[0] || ""
                 root.memText = used ? used + "G" : ""
                 root.memPercent = parseInt(parts[1] || "0", 10) || 0
-                var total = parts[2] || ""
-                root.memTotalText = total ? total + "G" : ""
             }
         }
     }
@@ -433,12 +428,8 @@ ShellRoot {
         onTriggered: { if (!weatherProc.running) weatherProc.running = true }
     }
 
-    Timer {
-        interval: 1800000
-        running: true
-        repeat: true
-        onTriggered: { if (!weatherWeekProc.running) weatherWeekProc.running = true }
-    }
+    // NOTE: weatherWeekProc has no timer — the week strip lives in the
+    // notification center, which triggers a fetch on open (see below).
 
     Timer {
         interval: 600000
@@ -477,12 +468,8 @@ ShellRoot {
         onTriggered: { if (!memProc.running) memProc.running = true }
     }
 
-    Timer {
-        interval: 300000
-        running: true
-        repeat: true
-        onTriggered: { if (!mountedDisksProc.running) mountedDisksProc.running = true }
-    }
+    // NOTE: mountedDisksProc has no timer — the disk cards live in the
+    // notification center, which triggers a fetch on open (see below).
 
     property int volumePercent: 0
     property bool muted: false
@@ -537,13 +524,6 @@ ShellRoot {
         return name
     }
 
-    // Workspace click router: mango tags when available, niri otherwise.
-    function focusTag(idx) {
-        if (mangoIpc.available) mangoIpc.focusWorkspace(idx)
-        else niriIpc.focusWorkspace(idx)
-    }
-
-    property string networkText: ""
     property string networkIp: ""
     property bool networkConnected: false
     property int networkSignal: 0
@@ -564,7 +544,6 @@ ShellRoot {
                     try {
                         var d = JSON.parse(data.trim())
                         root.networkConnected = d.connected === true
-                        root.networkText = d.ssid || ""
                         root.networkIp = d.ip || ""
                         root.networkSignal = parseInt(d.signal) || 0
                         root.networkDown = parseInt(d.down) || 0
@@ -611,10 +590,22 @@ ShellRoot {
     }
 
     Timer {
+        id: btPoll
         interval: 10000
         running: true
         repeat: true
-        onTriggered: { if (!btProc.running) btProc.running = true }
+        // Idle backoff: radio off → re-check every 6th tick (60s).
+        property int idleTicks: 0
+        onTriggered: {
+            if (root.bluetoothStatus === "off") {
+                btPoll.idleTicks++
+                if (btPoll.idleTicks < 6) return
+                btPoll.idleTicks = 0
+            } else {
+                btPoll.idleTicks = 0
+            }
+            if (!btProc.running) btProc.running = true
+        }
     }
 
     property string mediaStatus: "none"
@@ -677,13 +668,27 @@ ShellRoot {
         interval: 2000
         running: true
         repeat: true
-        onTriggered: { if (!mediaProc.running) mediaProc.running = true }
+        // Media lives in the notification center: no polling at all while
+        // it's closed. While open, back off to every 5th tick (10s) when
+        // nothing is playing.
+        property int idleTicks: 0
+        onTriggered: {
+            if (!notifSvc.centerOpen) return
+            if (root.mediaStatus === "none") {
+                mediaSync.idleTicks++
+                if (mediaSync.idleTicks < 5) return
+                mediaSync.idleTicks = 0
+            } else {
+                mediaSync.idleTicks = 0
+            }
+            if (!mediaProc.running) mediaProc.running = true
+        }
     }
 
     Timer {
         id: mediaTicker
         interval: 250
-        running: root.mediaStatus === "Playing"
+        running: root.mediaStatus === "Playing" && notifSvc.centerOpen
         repeat: true
         onTriggered: {
             if (root.mediaStatus === "Playing")
@@ -707,10 +712,33 @@ ShellRoot {
     function openCalendarForOutput(outputName) {
         var entry = root.calRegistry[outputName]
         if (!entry) return
-        calPopup.anchorItem = entry.anchor || null
-        calPopup.anchorWin = entry.win || null
-        if (entry.screen) calPopup.screen = entry.screen
-        calPopup.open()
+        // Toggle when already open.
+        if (calLoader.item && calLoader.item.visible) {
+            root.closeCalendar()
+            return
+        }
+        root.calPendingEntry = entry
+        root.calDemand = true
+        // Loader instantiates synchronously; if ready, apply anchors + open now
+        // (onLoaded below covers the async path).
+        if (calLoader.item && !calLoader.item.visible) {
+            var it = calLoader.item
+            it.anchorItem = entry.anchor || null
+            it.anchorWin = entry.win || null
+            if (entry.screen) it.screen = entry.screen
+            root.calPendingEntry = null
+            it.open()
+        }
+    }
+
+    // Timer restarted FIRST so the Loader hold is established before
+    // calDemand clears; the item can never be destroyed mid-fade.
+    function closeCalendar() {
+        if (calLoader.item) {
+            calUnload.restart()
+            calLoader.item.close()
+        }
+        root.calDemand = false
     }
 
     readonly property int defaultTimerMs: 25 * 60000
@@ -793,265 +821,50 @@ ShellRoot {
         running: true
     }
 
+    // Startup sequencer: spreads the initial process spawns over ~2s
+    // instead of a 9-way fork stampede, so first paint isn't janked.
+    // Bar-visible pills first, slow network fetchers last.
+    property var startupQueue: []
+    Timer {
+        id: startupSeq
+        interval: 200
+        repeat: true
+        onTriggered: {
+            if (root.startupQueue.length === 0) {
+                startupSeq.stop()
+                return
+            }
+            var job = root.startupQueue[0]
+            root.startupQueue = root.startupQueue.slice(1)
+            job()
+        }
+    }
+
     Component.onCompleted: {
         Quickshell.execDetached(["mkdir", "-p", Quickshell.env("HOME") + "/.cache/quickshell"])
         var _now = new Date()
         root.clockText = Qt.formatDateTime(_now, "hh:mm AP")
         root.clockDateText = Qt.formatDateTime(_now, "ddd MMM d")
-        weatherProc.running = true
-        weatherWeekProc.running = true
-        prayerProc.running = true
-        memProc.running = true
-        mountedDisksProc.running = true
-        root.refreshRemovable()
-        netProc.running = true
-        btProc.running = true
-mediaProc.running = true
+        root.startupQueue = [
+            () => { memProc.running = true },
+            () => { netProc.running = true },
+            () => { btProc.running = true },
+            () => { weatherProc.running = true },
+            () => { prayerProc.running = true }
+        ]
+        startupSeq.start()
     }
 
-    component NiriIpc: Item {
-        id: niri
 
-        readonly property string socketPath: (function() {
-            var p = Quickshell.env("NIRI_SOCKET")
-            if (p) return p
-            var rt = Quickshell.env("XDG_RUNTIME_DIR")
-            var wd = Quickshell.env("WAYLAND_DISPLAY")
-            return rt && wd ? rt + "/niri-ipc-" + wd + ".sock" : ""
-        })()
-
-        property var layoutNames: []
-        property int layoutIdx: -1
-        property string keyboardLayoutName: ""
-
-        property var workspaces: []
-
-        signal workspacesUpdated()
-        signal outputsUpdated()
-
-        function refreshLayoutName() {
-            var name = ""
-            if (niri.layoutIdx >= 0 && niri.layoutIdx < niri.layoutNames.length)
-                name = niri.layoutNames[niri.layoutIdx]
-            if (name !== niri.keyboardLayoutName)
-                niri.keyboardLayoutName = name
-        }
-
-        function setWorkspaces(list) {
-            var occMap = {}
-            for (var k = 0; k < niri.workspaces.length; k++)
-                if (niri.workspaces[k].occupied) occMap[niri.workspaces[k].id] = true
-            var out = []
-            for (var i = 0; i < list.length; i++) {
-                var w = list[i]
-                out.push({
-                    id: w.id,
-                    idx: w.idx,
-                    name: w.name,
-                    output: w.output,
-                    active: w.is_active,
-                    focused: w.is_focused,
-                    urgent: w.is_urgent,
-                    occupied: !!occMap[w.id]
-                })
-            }
-            niri.workspaces = out
-            niri.workspacesUpdated()
-            niri.outputsUpdated()
-        }
-
-        function patchWorkspace(id, patch) {
-            var list = niri.workspaces
-            for (var i = 0; i < list.length; i++) {
-                if (list[i].id !== id) continue
-                var copy = list.slice()
-                copy[i] = Object.assign({}, copy[i], patch)
-                niri.workspaces = copy
-                niri.workspacesUpdated()
-                return
-            }
-        }
-
-        function handleMessage(obj) {
-            if (obj.Ok === "Handled" || obj.Err !== undefined) return
-            if (obj.WorkspacesChanged) {
-                niri.setWorkspaces(obj.WorkspacesChanged.workspaces || [])
-            } else if (obj.WorkspaceActivated) {
-                var act = obj.WorkspaceActivated
-                if (act.focused) {
-                    var list = niri.workspaces
-                    var out = []
-                    for (var i = 0; i < list.length; i++) {
-                        var w = list[i]
-                        out.push({
-                            id: w.id, idx: w.idx, name: w.name, output: w.output,
-                            active: w.id === act.id,
-                            focused: w.id === act.id,
-                            urgent: w.urgent,
-                            occupied: w.occupied
-                        })
-                    }
-                    niri.workspaces = out
-                    niri.workspacesUpdated()
-                } else {
-                    niri.patchWorkspace(act.id, { active: true })
-                }
-            } else if (obj.WorkspaceUrgencyChanged) {
-                var urg = obj.WorkspaceUrgencyChanged
-                niri.patchWorkspace(urg.id, { urgent: urg.urgent })
-            } else if (obj.KeyboardLayoutsChanged) {
-                var layouts = obj.KeyboardLayoutsChanged.keyboard_layouts
-                niri.layoutNames = layouts && layouts.names ? layouts.names : []
-                niri.layoutIdx = layouts && layouts.current_idx !== undefined ? layouts.current_idx : -1
-                niri.refreshLayoutName()
-            } else if (obj.KeyboardLayoutSwitched) {
-                niri.layoutIdx = obj.KeyboardLayoutSwitched.idx
-                niri.refreshLayoutName()
-            }
-        }
-
-        function focusWorkspace(idx) {
-            var msg = '{"Action":{"FocusWorkspace":{"reference":{"Index":' + idx + '}}}}\n'
-            if (actionSock.connected) {
-                actionSock.write(msg)
-                actionSock.flush()
-            } else if (niri.socketPath.length > 0) {
-                niri.pendingAction = msg
-                actionSock.path = niri.socketPath
-                actionSock.connected = true
-            }
-        }
-
-        property string pendingAction: ""
-
-        Socket {
-            id: streamSock
-            path: niri.socketPath
-            connected: niri.socketPath.length > 0
-            parser: SplitParser {
-                onRead: data => {
-                    if (!data) return
-                    var obj
-                    try { obj = JSON.parse(data) } catch (e) { return }
-                    niri.handleMessage(obj)
-                }
-            }
-            onConnectionStateChanged: {
-                if (connected) {
-                    streamSock.write('"EventStream"\n')
-                    streamSock.flush()
-                }
-            }
-            onError: error => console.log("[niri] event stream error:", error)
-        }
-
-        Socket {
-            id: actionSock
-            parser: SplitParser {
-                onRead: data => {
-                    if (data && data.indexOf('"Err"') >= 0) console.log("[niri] action error:", data)
-                }
-            }
-            onConnectionStateChanged: {
-                if (connected && niri.pendingAction.length > 0) {
-                    actionSock.write(niri.pendingAction)
-                    actionSock.flush()
-                    niri.pendingAction = ""
-                }
-            }
-            onError: error => console.log("[niri] action socket error:", error)
-        }
-
-        function refreshOccupied() {
-            var occ = {}
-            var wins = ocProc.queue
-            for (var i = 0; i < wins.length; i++) {
-                var win = wins[i]
-                if (win.workspace_id !== undefined && win.workspace_id !== null)
-                    occ[win.workspace_id] = true
-            }
-            var list = niri.workspaces
-            var out = list.slice()
-            for (var j = 0; j < out.length; j++) {
-                out[j].occupied = !!occ[out[j].id]
-            }
-            niri.workspaces = out
-            niri.workspacesUpdated()
-        }
-
-        Process {
-            id: ocProc
-            property var queue: []
-            command: ["sh", "-c", "niri msg -j windows 2>/dev/null"]
-            stdout: SplitParser {
-                onRead: data => {
-                    if (!data) return
-                    try { ocProc.queue = JSON.parse(data) } catch (e) { ocProc.queue = [] }
-                    niri.refreshOccupied()
-                }
-            }
-        }
-
-        Timer {
-            id: ocPoller
-            interval: 8000
-            running: true
-            repeat: true
-            onTriggered: { if (!ocProc.running) ocProc.running = true }
-        }
-
-        Component.onCompleted: Qt.callLater(() => ocProc.running = true)
-    }
-
-    // Mango tag source (mmsg). Idle unless running under mango
-    // (MANGO_INSTANCE_SIGNATURE set by the compositor). Niri path untouched.
+    // Mango keyboard-layout source (mmsg). Idle unless running under mango
+    // (MANGO_INSTANCE_SIGNATURE set by the compositor).
     component MangoIpc: Item {
         id: mango
 
         readonly property bool available: (Quickshell.env("MANGO_INSTANCE_SIGNATURE") || "").length > 0
 
-        // Same shape as NiriIpc.workspaces so bar/widgets need no changes:
-        // {id, idx (0-based), name, output, active, focused, urgent, occupied}
-        property var workspaces: []
-
-        // Keyboard layout via `mmsg watch keyboardlayout`
-        // (niri path uses niriIpc.keyboardLayoutName; mango has no niri socket).
+        // Keyboard layout via `mmsg watch keyboardlayout`.
         property string keyboardLayoutName: ""
-
-        signal workspacesUpdated()
-
-        function applyPayload(text) {
-            var list = []
-            try {
-                var obj = JSON.parse(text)
-                var groups = obj.all_tags || []
-                for (var g = 0; g < groups.length; g++) {
-                    var mon = groups[g].monitor || ""
-                    var tags = groups[g].tags || []
-                    for (var t = 0; t < tags.length; t++) {
-                        var tg = tags[t]
-                        var num = parseInt(tg.index) || 0
-                        if (num <= 0) continue
-                        list.push({
-                            id: mon + ":" + num,
-                            idx: num - 1,
-                            name: String(num),
-                            output: mon,
-                            active: tg.is_active === true,
-                            focused: tg.is_active === true,
-                            urgent: tg.is_urgent === true,
-                            occupied: (parseInt(tg.client_count) || 0) > 0
-                        })
-                    }
-                }
-            } catch (e) { return }
-            mango.workspaces = list
-            mango.workspacesUpdated()
-        }
-
-        function focusWorkspace(idx) {
-            Quickshell.execDetached(["mmsg", "dispatch", "comboview," + (idx + 1)])
-        }
 
         function applyKbLayout(text) {
             try {
@@ -1059,36 +872,6 @@ mediaProc.running = true
                 if (obj.layout && obj.layout !== mango.keyboardLayoutName)
                     mango.keyboardLayoutName = obj.layout
             } catch (e) { return }
-        }
-
-        function refreshOnce() {
-            if (!mango.available || getProc.running) return
-            getProc.running = true
-        }
-
-        Process {
-            id: getProc
-            command: ["sh", "-c", "mmsg get all-tags 2>/dev/null"]
-            stdout: SplitParser {
-                onRead: data => { if (data) mango.applyPayload(data) }
-            }
-        }
-
-        Process {
-            id: watchProc
-            command: ["sh", "-c", "exec mmsg watch all-tags 2>/dev/null"]
-            running: mango.available
-            stdout: SplitParser {
-                onRead: data => { if (data) mango.applyPayload(data) }
-            }
-            onExited: watchRestart.restart()
-        }
-
-        Timer {
-            id: watchRestart
-            interval: 5000
-            repeat: false
-            onTriggered: { if (mango.available) watchProc.running = true }
         }
 
         // Streams {"layout":"English (US)"} / {"layout":"Arabic"}; emits
@@ -1109,20 +892,6 @@ mediaProc.running = true
             repeat: false
             onTriggered: { if (mango.available) kbWatchProc.running = true }
         }
-
-        Timer {
-            id: tagPoller
-            interval: 10000
-            running: mango.available
-            repeat: true
-            onTriggered: mango.refreshOnce()
-        }
-
-        Component.onCompleted: Qt.callLater(() => mango.refreshOnce())
-    }
-
-    NiriIpc {
-        id: niriIpc
     }
 
     MangoIpc {
@@ -1377,7 +1146,7 @@ mediaProc.running = true
             Text {
                 id: infoText
                 anchors.verticalCenter: parent.verticalCenter
-                text: root.networkConnected ? (root.networkIp + "  ↓  " + root.formatSpeed(root.networkDown) || root.networkText) : "No net"
+                text: root.networkConnected ? (root.networkIp + "  ↓  " + root.formatSpeed(root.networkDown)) : "No net"
                 color: dc.pillTextColor
                 font.family: root.fontFamily
                 font.pixelSize: root.fontSize
@@ -1606,119 +1375,6 @@ mediaProc.running = true
         }
     }
 
-    component Workspaces: Rectangle {
-        id: wsWidget
-        property var workspaces: []
-        readonly property int count: workspaces.length
-        readonly property int activeIndex: (function() {
-            for (var i = 0; i < workspaces.length; i++)
-                if (workspaces[i].focused) return i
-            for (var j = 0; j < workspaces.length; j++)
-                if (workspaces[j].active) return j
-            return -1
-        })()
-        readonly property real dotW: 11
-        readonly property real activeW: 22
-        readonly property real dotH: 10
-        readonly property real dotSpacing: 4
-        readonly property real pillPad: 6
-        readonly property real dotRadius: 0
-        readonly property color accent: root.pillColor("primary")
-
-        function contentWidth() {
-            return (count - 1) * dotW + activeW + dotSpacing * (count - 1)
-        }
-
-        width: contentWidth() + pillPad * 2
-        height: root.pillHeight
-        radius: root.pillRadius
-        color: root.tonalPillColor(root.pillColor("primary_container"))
-        border.width: 1
-        border.color: Qt.rgba(1, 1, 1, 0.12)
-        property int enterOrder: 0
-        property real enterShift: 10
-        opacity: 0
-        transform: Translate { y: wsWidget.enterShift }
-        Timer {
-            interval: 120 + wsWidget.enterOrder * 55
-            running: true
-            repeat: false
-            onTriggered: { wsWidget.opacity = 1; wsWidget.enterShift = 0 }
-        }
-        Behavior on opacity { Anim { type: Anim.DefaultEffects } }
-        Behavior on enterShift { Anim { type: Anim.Bouncy } }
-        layer.enabled: Quickshell.env("QS_NO_SHADOW") !== "1"
-        layer.effect: MultiEffect {
-            shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
-            shadowBlur: 0.7
-            blurMax: 16
-            shadowHorizontalOffset: 3
-            shadowVerticalOffset: 5
-            shadowColor: Qt.rgba(0, 0, 0, 0.9)
-            shadowOpacity: 0.9
-        }
-
-        Row {
-            id: wsDotRow
-            x: wsWidget.pillPad
-            anchors.verticalCenter: parent.verticalCenter
-            spacing: wsWidget.dotSpacing
-
-            Repeater {
-                model: wsWidget.workspaces
-delegate: Item {
-                            readonly property int idx: index
-                            readonly property bool focused: wsWidget.activeIndex === idx
-                            readonly property bool occupied: !!modelData.occupied
-                            property bool hovered: false
-
-                            width: focused ? wsWidget.activeW : wsWidget.dotW
-                            height: wsWidget.dotH
-                            anchors.verticalCenter: parent.verticalCenter
-                            scale: hovered ? 1.1 : 1.0
-                            Behavior on width { Anim { type: Anim.BouncyFast } }
-                            Behavior on scale { Anim { type: Anim.BouncyFast } }
-
-                            Rectangle {
-                                anchors.fill: parent
-                                radius: 0
-                                color: focused ? wsWidget.accent : root.pillForeground(wsWidget.color)
-                                opacity: focused ? 1.0 : (occupied ? 0.5 : 0.18)
-                                Behavior on color { CAnim { } }
-                            }
-
-                            MouseArea {
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onEntered: parent.hovered = true
-                                onExited: parent.hovered = false
-                                onClicked: {
-                                    if (modelData) root.focusTag(modelData.idx)
-                                }
-                            }
-                        }
-            }
-        }
-
-        function switchDelta(delta) {
-            if (wsWidget.count === 0) return
-            var i = wsWidget.activeIndex
-            if (i < 0) i = 0
-            var next = (i + delta + wsWidget.count) % wsWidget.count
-            var ws = wsWidget.workspaces[next]
-            if (ws) root.focusTag(ws.idx)
-        }
-
-        MouseArea {
-            anchors.fill: parent
-            acceptedButtons: Qt.NoButton
-            onWheel: event => {
-                wsWidget.switchDelta(event.angleDelta.y > 0 ? -1 : 1)
-                event.accepted = true
-            }
-        }
-    }
 
     property bool lockActive: false
 
@@ -1758,15 +1414,15 @@ delegate: Item {
     }
 
 function closeOverlays() {
-        notifSvc.closeCenter()
-        root.launcherActive = false
-        root.ytxActive = false
-        root.whatsappActive = false
-        root.clipboardActive = false
-        root.notesActive = false
-        root.wallpaperActive = false
-        root.themeActive = false
-        if (calPopup.visible) calPopup.close()
+        root.closeNotifCenter()
+        root.closeAppLauncher()
+        root.closeYtx()
+        root.closeWhatsApp()
+        root.closeClipboard()
+        root.closeNotes()
+        root.closeWallpaperPicker()
+        root.closeThemePicker()
+        root.closeCalendar()
     }
 
     property bool wallpaperActive: false
@@ -1777,6 +1433,7 @@ function closeOverlays() {
         root.wallpaperActive = true
     }
     function closeWallpaperPicker() {
+        if (wallpaperLoader.item) wallpaperUnload.restart()
         root.wallpaperActive = false
     }
     function toggleWallpaperPicker() {
@@ -1799,6 +1456,7 @@ function closeOverlays() {
         root.themeActive = true
     }
     function closeThemePicker() {
+        if (themePickerLoader.item) themeUnload.restart()
         root.themeActive = false
     }
     function toggleThemePicker() {
@@ -1816,7 +1474,7 @@ function closeOverlays() {
     property bool launcherActive: false
 
     function openAppLauncher() { root.closeOverlays(); root.launcherActive = true }
-    function closeAppLauncher() { root.launcherActive = false }
+    function closeAppLauncher() { if (appLauncherLoader.item) appLauncherUnload.restart(); root.launcherActive = false }
     function toggleAppLauncher() {
         if (root.launcherActive) root.closeAppLauncher()
         else root.openAppLauncher()
@@ -1831,7 +1489,8 @@ function closeOverlays() {
 
     PanelWindow {
         id: appLauncherWin
-        visible: root.launcherActive || appLauncherContent.animProgress > 0.001
+        // Lazy: content loads on first open, unloads after close fade.
+        visible: root.launcherActive || (appLauncherLoader.item ? appLauncherLoader.item.fadeProgress > 0.001 : false)
         color: "transparent"
         WlrLayershell.namespace: "app-launcher"
         WlrLayershell.layer: WlrLayer.Overlay
@@ -1844,19 +1503,40 @@ function closeOverlays() {
         anchors.left: true
         anchors.right: true
 
-        AppLauncher {
-            id: appLauncherContent
+        Timer {
+            id: appLauncherUnload
+            interval: 700
+            repeat: false
+        }
+
+        Loader {
+            id: appLauncherLoader
             anchors.fill: parent
-            rootRef: root
-            active: root.launcherActive
-            onRequestClose: root.launcherActive = false
+            // Held loaded through the close fade by the timer above, then
+            // unloads the whole tree + icons from idle RAM. The timer is
+            // restarted synchronously inside closeAppLauncher() BEFORE the
+            // flag clears, so the item can never be destroyed early.
+            active: root.launcherActive || appLauncherUnload.running
+            // Gates the content's active flag so a freshly loaded instance
+            // starts at animProgress 0 and fades in instead of popping.
+            property bool itemReady: false
+            onStatusChanged: { if (status === Loader.Null) itemReady = false }
+            sourceComponent: Component {
+                AppLauncher {
+                    anchors.fill: parent
+                    rootRef: root
+                    active: root.launcherActive && appLauncherLoader.itemReady
+                    onRequestClose: root.closeAppLauncher()
+                }
+            }
+            onLoaded: Qt.callLater(() => appLauncherLoader.itemReady = true)
         }
     }
 
     property bool ytxActive: false
 
     function openYtx() { root.closeOverlays(); root.ytxActive = true }
-    function closeYtx() { root.ytxActive = false }
+    function closeYtx() { if (ytxLoader.item) ytxUnload.restart(); root.ytxActive = false }
     function toggleYtx() {
         if (root.ytxActive) root.closeYtx()
         else root.openYtx()
@@ -1871,7 +1551,8 @@ function closeOverlays() {
 
     PanelWindow {
         id: ytxWin
-        visible: root.ytxActive || ytxContent.animProgress > 0.001
+        // Lazy: content loads on first open, unloads after close fade.
+        visible: root.ytxActive || (ytxLoader.item ? ytxLoader.item.fadeProgress > 0.001 : false)
         color: "transparent"
         WlrLayershell.namespace: "ytx-picker"
         WlrLayershell.layer: WlrLayer.Overlay
@@ -1881,19 +1562,38 @@ function closeOverlays() {
         anchors.left: true
         anchors.right: true
 
-        YtXLauncher {
-            id: ytxContent
+        Loader {
+            id: ytxLoader
             anchors.fill: parent
-            rootRef: root
-            active: root.ytxActive
-            onRequestClose: root.ytxActive = false
+            // Self-sustaining: stays loaded until the close fade reaches 0,
+            // then unloads the whole tree from idle RAM.
+            active: root.ytxActive || ytxUnload.running
+            // Gates the content's active flag so a freshly loaded instance
+            // starts at animProgress 0 and fades in instead of popping.
+            property bool itemReady: false
+            onStatusChanged: { if (status === Loader.Null) itemReady = false }
+            sourceComponent: Component {
+                YtXLauncher {
+                    anchors.fill: parent
+                    rootRef: root
+                    active: root.ytxActive && ytxLoader.itemReady
+                    onRequestClose: root.closeYtx()
+                }
+            }
+            onLoaded: Qt.callLater(() => ytxLoader.itemReady = true)
+        }
+
+        Timer {
+            id: ytxUnload
+            interval: 700
+            repeat: false
         }
     }
 
     property bool whatsappActive: false
 
     function openWhatsApp() { root.closeOverlays(); root.whatsappActive = true }
-    function closeWhatsApp() { root.whatsappActive = false }
+    function closeWhatsApp() { if (waLoader.item) waUnload.restart(); root.whatsappActive = false }
     function toggleWhatsApp() {
         if (root.whatsappActive) root.closeWhatsApp()
         else root.openWhatsApp()
@@ -1908,7 +1608,8 @@ function closeOverlays() {
 
     PanelWindow {
         id: whatsappWin
-        visible: root.whatsappActive || waContent.animProgress > 0.001
+        // Lazy: content loads on first open, unloads after close fade.
+        visible: root.whatsappActive || (waLoader.item ? waLoader.item.fadeProgress > 0.001 : false)
         color: "transparent"
         WlrLayershell.namespace: "whatsapp-picker"
         WlrLayershell.layer: WlrLayer.Overlay
@@ -1918,19 +1619,38 @@ function closeOverlays() {
         anchors.left: true
         anchors.right: true
 
-        WhatsApp {
-            id: waContent
+        Loader {
+            id: waLoader
             anchors.fill: parent
-            rootRef: root
-            active: root.whatsappActive
-            onRequestClose: root.whatsappActive = false
+            // Self-sustaining: stays loaded until the close fade reaches 0,
+            // then unloads the whole tree from idle RAM.
+            active: root.whatsappActive || waUnload.running
+            // Gates the content's active flag so a freshly loaded instance
+            // starts at animProgress 0 and fades in instead of popping.
+            property bool itemReady: false
+            onStatusChanged: { if (status === Loader.Null) itemReady = false }
+            sourceComponent: Component {
+                WhatsApp {
+                    anchors.fill: parent
+                    rootRef: root
+                    active: root.whatsappActive && waLoader.itemReady
+                    onRequestClose: root.closeWhatsApp()
+                }
+            }
+            onLoaded: Qt.callLater(() => waLoader.itemReady = true)
+        }
+
+        Timer {
+            id: waUnload
+            interval: 700
+            repeat: false
         }
     }
 
     property bool clipboardActive: false
 
     function openClipboard() { root.closeOverlays(); root.clipboardActive = true }
-    function closeClipboard() { root.clipboardActive = false }
+    function closeClipboard() { if (clipLoader.item) clipUnload.restart(); root.clipboardActive = false }
     function toggleClipboard() {
         if (root.clipboardActive) root.closeClipboard()
         else root.openClipboard()
@@ -1945,7 +1665,8 @@ function closeOverlays() {
 
     PanelWindow {
         id: clipWin
-        visible: root.clipboardActive || clipContent.animProgress > 0.001
+        // Lazy: content loads on first open, unloads after close fade.
+        visible: root.clipboardActive || (clipLoader.item ? clipLoader.item.fadeProgress > 0.001 : false)
         color: "transparent"
         WlrLayershell.namespace: "clipboard-picker"
         WlrLayershell.layer: WlrLayer.Overlay
@@ -1955,19 +1676,38 @@ function closeOverlays() {
         anchors.left: true
         anchors.right: true
 
-        Clipboard {
-            id: clipContent
+        Loader {
+            id: clipLoader
             anchors.fill: parent
-            rootRef: root
-            active: root.clipboardActive
-            onRequestClose: root.clipboardActive = false
+            // Self-sustaining: stays loaded until the close fade reaches 0,
+            // then unloads the whole tree from idle RAM.
+            active: root.clipboardActive || clipUnload.running
+            // Gates the content's active flag so a freshly loaded instance
+            // starts at animProgress 0 and fades in instead of popping.
+            property bool itemReady: false
+            onStatusChanged: { if (status === Loader.Null) itemReady = false }
+            sourceComponent: Component {
+                Clipboard {
+                    anchors.fill: parent
+                    rootRef: root
+                    active: root.clipboardActive && clipLoader.itemReady
+                    onRequestClose: root.closeClipboard()
+                }
+            }
+            onLoaded: Qt.callLater(() => clipLoader.itemReady = true)
+        }
+
+        Timer {
+            id: clipUnload
+            interval: 700
+            repeat: false
         }
     }
 
     property bool notesActive: false
 
     function openNotes() { root.closeOverlays(); root.notesActive = true }
-    function closeNotes() { root.notesActive = false }
+    function closeNotes() { if (notesLoader.item) notesUnload.restart(); root.notesActive = false }
     function toggleNotes() {
         if (root.notesActive) root.closeNotes()
         else root.openNotes()
@@ -1982,7 +1722,8 @@ function closeOverlays() {
 
     PanelWindow {
         id: notesWin
-        visible: root.notesActive || notesContent.animProgress > 0.001
+        // Lazy: content loads on first open, unloads after close fade.
+        visible: root.notesActive || (notesLoader.item ? notesLoader.item.fadeProgress > 0.001 : false)
         color: "transparent"
         WlrLayershell.namespace: "notes-picker"
         WlrLayershell.layer: WlrLayer.Overlay
@@ -1992,18 +1733,38 @@ function closeOverlays() {
         anchors.left: true
         anchors.right: true
 
-        Notes {
-            id: notesContent
+        Loader {
+            id: notesLoader
             anchors.fill: parent
-            rootRef: root
-            active: root.notesActive
-            onRequestClose: root.notesActive = false
+            // Self-sustaining: stays loaded until the close fade reaches 0,
+            // then unloads the whole tree from idle RAM.
+            active: root.notesActive || notesUnload.running
+            // Gates the content's active flag so a freshly loaded instance
+            // starts at animProgress 0 and fades in instead of popping.
+            property bool itemReady: false
+            onStatusChanged: { if (status === Loader.Null) itemReady = false }
+            sourceComponent: Component {
+                Notes {
+                    anchors.fill: parent
+                    rootRef: root
+                    active: root.notesActive && notesLoader.itemReady
+                    onRequestClose: root.closeNotes()
+                }
+            }
+            onLoaded: Qt.callLater(() => notesLoader.itemReady = true)
+        }
+
+        Timer {
+            id: notesUnload
+            interval: 700
+            repeat: false
         }
     }
 
     PanelWindow {
         id: wallPicker
-        visible: root.wallpaperActive || pickerContent.animProgress > 0.001
+        // Lazy: content loads on first open, unloads after close fade.
+        visible: root.wallpaperActive || (wallpaperLoader.item ? wallpaperLoader.item.fadeProgress > 0.001 : false)
         color: "transparent"
         WlrLayershell.namespace: "wallpaper-picker"
         WlrLayershell.layer: WlrLayer.Overlay
@@ -2013,48 +1774,55 @@ function closeOverlays() {
         anchors.left: true
         anchors.right: true
 
-        WallpaperPicker {
-            id: pickerContent
+        Loader {
+            id: wallpaperLoader
             anchors.fill: parent
-            visible_: root.wallpaperActive
-            currentMode: root.qsLight ? "light" : "dark"
+            // Self-sustaining: stays loaded until the close fade reaches 0,
+            // freeing models + thumbnail Images from idle RAM.
+            active: root.wallpaperActive || wallpaperUnload.running
+            // Gates visible_ so a freshly loaded instance starts at
+            // animProgress 0 and fades in instead of popping.
+            property bool itemReady: false
+            onStatusChanged: { if (status === Loader.Null) itemReady = false }
+            sourceComponent: Component {
+                WallpaperPicker {
+                    anchors.fill: parent
+                    visible_: root.wallpaperActive && wallpaperLoader.itemReady
+                    currentMode: root.qsLight ? "light" : "dark"
 
-            surfaceColor: "#17181c"
-            borderColor: Qt.color(root.colorOf("outline_variant"))
-            fgColor: "#ffffff"
-            accentColor: Qt.color(root.colorOf("primary"))
-            iconFont: root.iconFont
-            uiFont: root.uiFont
-            onRequestClose: root.wallpaperActive = false
-            // Free thumbs after close (fade first, then clear).
-            onVisible_Changed: if (!visible_) wallClearTimer.restart()
-        }
-
-        // Fired after fade-out: drops the 735-item models + Images,
-        // reopening repopulates via triggerIndexer below.
-        Timer {
-            id: wallClearTimer
-            interval: 500
-            repeat: false
-            onTriggered: {
-                if (!root.wallpaperActive) {
-                    pickerContent.wallpaperModel = []
-                    pickerContent.displayModel = []
+                    surfaceColor: "#17181c"
+                    borderColor: Qt.color(root.colorOf("outline_variant"))
+                    fgColor: "#ffffff"
+                    accentColor: Qt.color(root.colorOf("primary"))
+                    iconFont: root.iconFont
+                    uiFont: root.uiFont
+                    onRequestClose: root.closeWallpaperPicker()
                 }
+            }
+            onLoaded: {
+                // Populate thumbs on open (item starts empty after unload).
+                item.triggerIndexer()
+                Qt.callLater(() => wallpaperLoader.itemReady = true)
             }
         }
 
+        Timer {
+            id: wallpaperUnload
+            interval: 700
+            repeat: false
+        }
+
         onVisibleChanged: {
-            if (visible) {
-                wallClearTimer.stop()
-                pickerContent.triggerIndexer()
+            if (visible && wallpaperLoader.item) {
+                wallpaperLoader.item.triggerIndexer()
             }
         }
     }
 
     PanelWindow {
         id: themePickerWin
-        visible: root.themeActive || themePickerContent.animProgress > 0.001
+        // Lazy: content loads on first open, unloads after close fade.
+        visible: root.themeActive || (themePickerLoader.item ? themePickerLoader.item.fadeProgress > 0.001 : false)
         color: "transparent"
         WlrLayershell.namespace: "theme-picker"
         WlrLayershell.layer: WlrLayer.Overlay
@@ -2064,24 +1832,46 @@ function closeOverlays() {
         anchors.left: true
         anchors.right: true
 
-        ThemePicker {
-            id: themePickerContent
+        Loader {
+            id: themePickerLoader
             anchors.fill: parent
-            visible_: root.themeActive
-            currentMode: root.qsLight ? "light" : "dark"
+            // Self-sustaining: stays loaded until the close fade reaches 0,
+            // then unloads the whole tree from idle RAM.
+            active: root.themeActive || themeUnload.running
+            // Gates visible_ so a freshly loaded instance starts at
+            // animProgress 0 and fades in instead of popping.
+            property bool itemReady: false
+            onStatusChanged: { if (status === Loader.Null) itemReady = false }
+            sourceComponent: Component {
+                ThemePicker {
+                    anchors.fill: parent
+                    visible_: root.themeActive && themePickerLoader.itemReady
+                    currentMode: root.qsLight ? "light" : "dark"
 
-            surfaceColor: "#17181c"
-            borderColor: Qt.color(root.colorOf("outline_variant"))
-            fgColor: "#ffffff"
-            accentColor: Qt.color(root.colorOf("primary"))
-            iconFont: root.iconFont
-            uiFont: root.uiFont
-            onRequestClose: root.themeActive = false
+                    surfaceColor: "#17181c"
+                    borderColor: Qt.color(root.colorOf("outline_variant"))
+                    fgColor: "#ffffff"
+                    accentColor: Qt.color(root.colorOf("primary"))
+                    iconFont: root.iconFont
+                    uiFont: root.uiFont
+                    onRequestClose: root.closeThemePicker()
+                }
+            }
+            onLoaded: {
+                item.triggerGenerator()
+                Qt.callLater(() => themePickerLoader.itemReady = true)
+            }
+        }
+
+        Timer {
+            id: themeUnload
+            interval: 700
+            repeat: false
         }
 
         onVisibleChanged: {
-            if (visible) {
-                themePickerContent.triggerGenerator()
+            if (visible && themePickerLoader.item) {
+                themePickerLoader.item.triggerGenerator()
             }
         }
     }
@@ -2098,11 +1888,18 @@ function closeOverlays() {
 
     function toggleNotifCenter() {
         if (notifSvc.centerOpen) {
-            notifSvc.closeCenter()
+            root.closeNotifCenter()
         } else {
             root.closeOverlays()
             notifSvc.openCenter()
         }
+    }
+
+    // Timer restarted FIRST so the Loader hold is established before
+    // centerOpen clears; the item can never be destroyed mid-fade.
+    function closeNotifCenter() {
+        if (notifCenterLoader.item) notifCenterUnload.restart()
+        notifSvc.closeCenter()
     }
 
     IpcHandler {
@@ -2114,7 +1911,8 @@ function closeOverlays() {
 
     PanelWindow {
         id: notifCenterWin
-        visible: notifSvc.centerOpen || notifCenterContent.animProgress > 0.001
+        // Lazy: content loads on first open, unloads after close fade.
+        visible: notifSvc.centerOpen || (notifCenterLoader.item ? notifCenterLoader.item.fadeProgress > 0.001 : false)
         color: "transparent"
         WlrLayershell.namespace: "notification-center"
         WlrLayershell.layer: WlrLayer.Overlay
@@ -2124,15 +1922,37 @@ function closeOverlays() {
         anchors.left: true
         anchors.right: true
 
-        NotifCenter {
-            id: notifCenterContent
+        Loader {
+            id: notifCenterLoader
             anchors.fill: parent
-            rootRef: root
-            svc: notifSvc
+            // Held loaded through the close fade by the timer below, then
+            // unloads the whole tree from idle RAM. The timer is restarted
+            // synchronously inside closeNotifCenter() BEFORE centerOpen
+            // clears, so the item can never be destroyed early.
+            active: notifSvc.centerOpen || notifCenterUnload.running
+            sourceComponent: Component {
+                NotifCenter {
+                    anchors.fill: parent
+                    rootRef: root
+                    svc: notifSvc
+                }
+            }
+        }
+
+        Timer {
+            id: notifCenterUnload
+            interval: 700
+            repeat: false
         }
 
         onVisibleChanged: {
-            if (visible) Qt.callLater(() => notifCenterContent.forceActiveFocus())
+            if (!visible) return
+            // Center-only data: fetch on open instead of polling at idle.
+            if (!mediaProc.running) mediaProc.running = true
+            if (!weatherWeekProc.running) weatherWeekProc.running = true
+            if (!mountedDisksProc.running) mountedDisksProc.running = true
+            root.refreshRemovable()
+            if (notifCenterLoader.item) Qt.callLater(() => notifCenterLoader.item.forceActiveFocus())
         }
     }
 
@@ -2164,31 +1984,8 @@ function closeOverlays() {
             }
 
             readonly property string outputName: modelData ? modelData.name : ""
-            property var workspaceList: []
-
-            function refreshWorkspaces() {
-                var list = []
-                var src = (mangoIpc.available && mangoIpc.workspaces.length > 0)
-                    ? mangoIpc.workspaces : niriIpc.workspaces
-                for (const ws of src) {
-                    if (ws.output === outputName) list.push(ws)
-                }
-                list.sort((a, b) => a.idx - b.idx)
-                workspaceList = list
-            }
-
-            Connections {
-                target: niriIpc
-                function onWorkspacesUpdated() { bar.refreshWorkspaces() }
-            }
-
-            Connections {
-                target: mangoIpc
-                function onWorkspacesUpdated() { bar.refreshWorkspaces() }
-            }
 
             Component.onCompleted: {
-                refreshWorkspaces()
                 root.registerCalendarAnchor(outputName, clockPill, modelData, bar)
             }
 
@@ -2249,7 +2046,7 @@ function closeOverlays() {
                         id: kbPill
                         enterOrder: 2
                         iconSource: kbIconSource
-                        label: root.shortLayout(mangoIpc.keyboardLayoutName.length > 0 ? mangoIpc.keyboardLayoutName : niriIpc.keyboardLayoutName)
+                        label: root.shortLayout(mangoIpc.keyboardLayoutName)
                         tint: root.pillColor("keymap")
 
                         Component {
@@ -2276,15 +2073,6 @@ function closeOverlays() {
                             btCmd.running = true
                             btProc.running = true
                         }
-                    }
-
-                    Workspaces {
-                        id: wsWidget
-                        enterOrder: 4
-                        workspaces: bar.workspaceList
-                        anchors.verticalCenter: parent.verticalCenter
-                        // mango has tags, not workspaces: hide under mango, keep under niri
-                        visible: !mangoIpc.available
                     }
 
                     Module {
@@ -2338,7 +2126,7 @@ function closeOverlays() {
                     Rectangle {
                         id: clockPill
                         property int enterOrder: 8
-                        property color tint: calPopup.visible
+                        property color tint: (calLoader.item ? calLoader.item.visible : false)
                             ? root.mixColor(root.pillColor("tertiary_container"), "#ffffff", 0.3)
                             : root.pillColor("tertiary_container")
                         readonly property color pillTextColor: root.pillForeground(clockPill.color)
@@ -2498,8 +2286,37 @@ function closeOverlays() {
             }
     }
 
-    Calendar {
-        id: calPopup
-        rootRef: root
+    // Calendar is lazy-loaded: nothing (notes FileView, timers, day grid)
+    // exists until first open; unloads after the close fade.
+    property bool calDemand: false
+    property var calPendingEntry: null
+    Loader {
+        id: calLoader
+        // Held loaded through the close fade by calUnload, then unloads
+        // notes FileView, timers and the day grid from idle RAM. The timer
+        // is restarted synchronously inside closeCalendar() BEFORE calDemand
+        // clears, so the item can never be destroyed early.
+        active: root.calDemand || calUnload.running
+        sourceComponent: Component {
+            Calendar {
+                rootRef: root
+            }
+        }
+        onLoaded: {
+            if (root.calPendingEntry) {
+                var e = root.calPendingEntry
+                root.calPendingEntry = null
+                item.anchorItem = e.anchor || null
+                item.anchorWin = e.win || null
+                if (e.screen) item.screen = e.screen
+            }
+            item.open()
+        }
+    }
+
+    Timer {
+        id: calUnload
+        interval: 700
+        repeat: false
     }
 }

@@ -127,13 +127,24 @@ Item {
                 center.rootRef.refreshRemovable()
         }
     }
-    property real animProgress: svc && svc.centerOpen ? 1.0 : 0.0
+    property real animProgress: (svc && svc.centerOpen && ready) ? 1.0 : 0.0
     Behavior on animProgress {
         Anim { type: Anim.Bouncy }
     }
 
+    // Smooth opacity ramp decoupled from the bouncy slide: OutBack
+    // finishes ~95% in the first 150ms, which reads as a pop.
+    property real fadeProgress: (svc && svc.centerOpen && ready) ? 1.0 : 0.0
+    Behavior on fadeProgress { Anim { type: Anim.SlowEffects } }
+
+    // Starts false so a freshly loaded instance fades in (animProgress
+    // would otherwise initialize straight to 1 with no transition).
+    property bool ready: false
+    Component.onCompleted: Qt.callLater(() => center.ready = true)
+
     Keys.onEscapePressed: event => {
-        if (svc) svc.closeCenter()
+        if (center.rootRef && center.rootRef.closeNotifCenter) center.rootRef.closeNotifCenter()
+        else if (svc) svc.closeCenter()
         event.accepted = true
     }
     Keys.onDownPressed: event => {
@@ -153,7 +164,10 @@ Item {
     MouseArea {
         id: backdropArea
         anchors.fill: parent
-        onClicked: { if (svc) svc.closeCenter() }
+        onClicked: {
+            if (center.rootRef && center.rootRef.closeNotifCenter) center.rootRef.closeNotifCenter()
+            else if (svc) svc.closeCenter()
+        }
     }
 
     Rectangle {
@@ -182,7 +196,7 @@ Item {
         }
 
 
-        opacity: Math.min(1, center.animProgress * 3)
+        opacity: center.fadeProgress
         transform: Translate { x: (1 - center.animProgress) * (panel.width + panel.anchors.rightMargin) }
 
         MouseArea { anchors.fill: parent }

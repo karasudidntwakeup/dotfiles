@@ -55,9 +55,14 @@ Item {
         Anim { type: Anim.Bouncy }
     }
 
+    // Smooth opacity ramp decoupled from the bouncy slide: OutBack
+    // finishes ~95% in the first 150ms, which reads as a pop.
+    property real fadeProgress: launcher.active ? 1.0 : 0.0
+    Behavior on fadeProgress { Anim { type: Anim.SlowEffects } }
+
     readonly property int bottomMargin: 24
 
-    opacity: launcher.animProgress
+    opacity: launcher.fadeProgress
 
     property var apps: []
     ListModel {

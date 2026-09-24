@@ -61,6 +61,11 @@ PanelWindow {
     property real popProgress: 0
     property real baseTop: 0
 
+    // Smooth opacity ramp decoupled from the bouncy pop: OutBack
+    // finishes ~95% in the first 150ms, which reads as a pop.
+    property real fadeProgress: 0
+    Behavior on fadeProgress { Anim { type: Anim.SlowEffects } }
+
     property real editorProgress: calPopup.selectedKey.length > 0 ? 1 : 0
     Behavior on editorProgress {
         Anim { type: Anim.BouncyFast }
@@ -118,8 +123,8 @@ PanelWindow {
         Anim { type: Anim.Bouncy }
     }
 
-    onPopProgressChanged: {
-        if (popProgress <= 0.001 && closingBySelf) calPopup.visible = false
+    onFadeProgressChanged: {
+        if (fadeProgress <= 0.001 && closingBySelf) calPopup.visible = false
     }
 
     function open() {
@@ -136,6 +141,7 @@ PanelWindow {
         calPopup.closingBySelf = true
         timerSection.playCloseAnim()
         calPopup.popProgress = 0
+        calPopup.fadeProgress = 0
     }
 
     // Pill position is computed analytically: cross-window
@@ -374,6 +380,7 @@ PanelWindow {
                 if (calPopup.visible && !calPopup.closingBySelf) timerPopupIn.restart()
             })
             calPopup.popProgress = 1
+            calPopup.fadeProgress = 1
         } else {
             timerPopupIn.stop()
             calPopup.closingBySelf = false
@@ -391,13 +398,19 @@ PanelWindow {
         id: calPopupContent
         focus: true
         anchors.fill: parent
-        Keys.onEscapePressed: calPopup.close()
+        Keys.onEscapePressed: {
+            if (calPopup.rootRef && calPopup.rootRef.closeCalendar) calPopup.rootRef.closeCalendar()
+            else calPopup.close()
+        }
 
         MouseArea {
             id: calDismiss
             anchors.fill: parent
             cursorShape: Qt.ArrowCursor
-            onClicked: calPopup.close()
+            onClicked: {
+                if (calPopup.rootRef && calPopup.rootRef.closeCalendar) calPopup.rootRef.closeCalendar()
+                else calPopup.close()
+            }
         }
 
         Rectangle {
@@ -433,7 +446,7 @@ PanelWindow {
             shadowOpacity: 0.95
         }
 
-        opacity: calPopup.popProgress
+        opacity: calPopup.fadeProgress
         transform: Translate { y: (1 - calPopup.popProgress) * 8 }
 
         ColumnLayout {
