@@ -622,7 +622,7 @@ Item {
                         tintName: "tertiary_container"
                         title: modelData.pct + "%"
                         subtitle: modelData.free + "G free of " + modelData.total + "G"
-                        caption: modelData.mount
+                        caption: modelData.mount === "/" ? "System /" : modelData.mount
                         glyph: ""
                         isY2kMoon: false
                         progress: Math.max(0, Math.min(1, (modelData.pct || 0) / 100))
