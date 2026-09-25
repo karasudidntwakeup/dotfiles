@@ -192,12 +192,22 @@ Item {
     // Live stage reported by wallpaper_apply.sh (@@stage lines on stdout).
     property string applyStatus: ""
 
-    function openPanel(index) {
+    // No confirmation step: picking a wallpaper applies it immediately.
+    // showPanel now only drives the progress/error overlay.
+    function applyWallpaper(index) {
         if (window.isApplying || window.showPanel || index < 0 || index >= window.displayModel.length) return
         window.selectedItem = window.displayModel[index]
         window.applyError = ""
-        window.applyStatus = ""
+        window.applyStatus = "Starting…"
+        window.isApplying = true
         window.showPanel = true
+        // Non-empty initial command so the QStringList binding never sees [undefined].
+        window.applyArgs = ["bash", window.scriptDir + "/wallpaper_apply.sh",
+                            window.selectedItem.filePath, "auto"]
+        // Restart cleanly on the next tick so the command binding (applyArgs)
+        // has propagated before the process spawns.
+        applyProc.running = false
+        Qt.callLater(function() { applyProc.running = true })
     }
 
     function parseApplyStage(line) {
@@ -210,18 +220,6 @@ Item {
 
     // Non-empty initial command so the QStringList binding never sees [undefined].
     property var applyArgs: ["true"]
-    function confirmApply() {
-        if (!window.selectedItem || window.isApplying) return
-        window.applyError = ""
-        window.applyStatus = "Starting…"
-        window.isApplying = true
-        window.applyArgs = ["bash", window.scriptDir + "/wallpaper_apply.sh",
-                            window.selectedItem.filePath, "auto"]
-        // Restart cleanly on the next tick so the command binding (applyArgs)
-        // has propagated before the process spawns.
-        applyProc.running = false
-        Qt.callLater(function() { applyProc.running = true })
-    }
 
     Process {
         id: applyProc
@@ -345,7 +343,7 @@ Item {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
                         view.currentIndex = index
-                        window.openPanel(index)
+                        window.applyWallpaper(index)
                     }
                 }
 
@@ -550,6 +548,15 @@ Item {
             }
 
             Text {
+                visible: window.isApplying
+                text: window.applyStatus !== "" ? window.applyStatus : "Applying…"
+                width: parent.width
+                color: window.textColor
+                font.family: window.uiFont
+                font.pixelSize: window.u * 11
+            }
+
+            Text {
                 visible: window.applyError !== ""
                 text: window.applyError
                 width: parent.width
@@ -560,53 +567,33 @@ Item {
             }
 
             Row {
+                visible: !window.isApplying
                 anchors.horizontalCenter: parent.horizontalCenter
                 spacing: window.u * 10
 
                 Rectangle {
-                    width: cancelLabel.implicitWidth + window.u * 28
+                    width: closeLabel.implicitWidth + window.u * 28
                     height: window.u * 32
                     radius: 0
-                    color: cancelHov.containsMouse ? window.surface1 : "transparent"
+                    color: closeHov.containsMouse ? window.surface1 : "transparent"
                     Text {
-                        id: cancelLabel
+                        id: closeLabel
                         anchors.centerIn: parent
-                        text: "Cancel"
+                        text: "Close"
                         color: window.subtextColor
                         font.family: window.uiFont
                         font.pixelSize: window.u * 12
                     }
                     MouseArea {
-                        id: cancelHov
+                        id: closeHov
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         enabled: !window.isApplying
-                        onClicked: window.showPanel = false
-                    }
-                }
-
-                Rectangle {
-                    width: applyLabel.implicitWidth + window.u * 28
-                    height: window.u * 32
-                    radius: 0
-                    color: window.blue
-                    Text {
-                        id: applyLabel
-                        anchors.centerIn: parent
-                        text: window.isApplying ? (window.applyStatus !== "" ? window.applyStatus : "Applying…") : "Apply"
-                        color: "#000000"
-                        font.family: window.uiFont
-                        font.pixelSize: window.u * 12
-                        font.bold: true
-                    }
-                    MouseArea {
-                        id: applyHov
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        enabled: !window.isApplying
-                        onClicked: window.confirmApply()
+                        onClicked: {
+                            window.showPanel = false
+                            window.applyError = ""
+                        }
                     }
                 }
             }
@@ -643,8 +630,7 @@ Item {
     Shortcut {
         sequence: "Return"; enabled: window.visible_ && !window.isApplying
         onActivated: {
-            if (window.showPanel) window.confirmApply()
-            else window.openPanel(view.currentIndex)
+            if (!window.showPanel) window.applyWallpaper(view.currentIndex)
         }
     }
     Shortcut {

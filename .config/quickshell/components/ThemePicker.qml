@@ -222,12 +222,30 @@ Item {
         return "Mode · " + (window.swatchIsLight(item.colors[0]) ? "Light" : "Dark") + " (from scheme)"
     }
 
-    function openPanel(index) {
+    // Non-empty initial command so the QStringList binding never sees [undefined].
+    property var applyArgs: ["true"]
+    // No confirmation step: picking a scheme applies it immediately.
+    // showPanel now only drives the progress/error overlay.
+    function applyScheme(index) {
         if (window.isApplying || window.showPanel || index < 0 || index >= window.displayModel.length) return
         window.selectedItem = window.displayModel[index]
+        if (!window.wallpaperPath) {
+            window.applyError = "No wallpaper found in ~/wallpaper."
+            window.applyStatus = ""
+            window.showPanel = true
+            return
+        }
         window.applyError = ""
-        window.applyStatus = ""
+        window.applyStatus = "Starting…"
+        window.isApplying = true
         window.showPanel = true
+        window.applyArgs = ["bash", window.scriptDir + "/wallpaper_apply.sh",
+                            window.wallpaperPath, "auto",
+                            window.selectedItem.key, "", "1"]
+        // Restart cleanly on the next tick so the command binding (applyArgs)
+        // has propagated before the process spawns.
+        applyProc.running = false
+        Qt.callLater(function() { applyProc.running = true })
     }
 
     function parseApplyStage(line) {
@@ -236,26 +254,6 @@ Item {
         var stage = t.substring(8)
         if (stage === "wallpaper") window.applyStatus = "Setting wallpaper…"
         else if (stage === "theme") window.applyStatus = "Generating theme…"
-    }
-
-    // Non-empty initial command so the QStringList binding never sees [undefined].
-    property var applyArgs: ["true"]
-    function confirmApply() {
-        if (!window.selectedItem || window.isApplying) return
-        if (!window.wallpaperPath) {
-            window.applyError = "No wallpaper found in ~/wallpaper."
-            return
-        }
-        window.applyError = ""
-        window.applyStatus = "Starting…"
-        window.isApplying = true
-        window.applyArgs = ["bash", window.scriptDir + "/wallpaper_apply.sh",
-                            window.wallpaperPath, "auto",
-                            window.selectedItem.key, "", "1"]
-        // Restart cleanly on the next tick so the command binding (applyArgs)
-        // has propagated before the process spawns.
-        applyProc.running = false
-        Qt.callLater(function() { applyProc.running = true })
     }
 
     Process {
@@ -374,7 +372,7 @@ Item {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
                         view.currentIndex = index
-                        window.openPanel(index)
+                        window.applyScheme(index)
                     }
                 }
 
@@ -659,6 +657,15 @@ Item {
             }
 
             Text {
+                visible: window.isApplying
+                text: window.applyStatus !== "" ? window.applyStatus : "Applying…"
+                width: parent.width
+                color: window.textColor
+                font.family: window.uiFont
+                font.pixelSize: window.u * 11
+            }
+
+            Text {
                 visible: window.applyError !== ""
                 text: window.applyError
                 width: parent.width
@@ -669,53 +676,33 @@ Item {
             }
 
             Row {
+                visible: !window.isApplying
                 anchors.horizontalCenter: parent.horizontalCenter
                 spacing: window.u * 10
 
                 Rectangle {
-                    width: cancelLabel.implicitWidth + window.u * 28
+                    width: closeLabel.implicitWidth + window.u * 28
                     height: window.u * 32
                     radius: 0
-                    color: cancelHov.containsMouse ? window.surface1 : "transparent"
+                    color: closeHov.containsMouse ? window.surface1 : "transparent"
                     Text {
-                        id: cancelLabel
+                        id: closeLabel
                         anchors.centerIn: parent
-                        text: "Cancel"
+                        text: "Close"
                         color: window.subtextColor
                         font.family: window.uiFont
                         font.pixelSize: window.u * 12
                     }
                     MouseArea {
-                        id: cancelHov
+                        id: closeHov
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         enabled: !window.isApplying
-                        onClicked: window.showPanel = false
-                    }
-                }
-
-                Rectangle {
-                    width: applyLabel.implicitWidth + window.u * 28
-                    height: window.u * 32
-                    radius: 0
-                    color: window.blue
-                    Text {
-                        id: applyLabel
-                        anchors.centerIn: parent
-                        text: window.isApplying ? (window.applyStatus !== "" ? window.applyStatus : "Applying…") : "Apply"
-                        color: "#000000"
-                        font.family: window.uiFont
-                        font.pixelSize: window.u * 12
-                        font.bold: true
-                    }
-                    MouseArea {
-                        id: applyHov
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        enabled: !window.isApplying
-                        onClicked: window.confirmApply()
+                        onClicked: {
+                            window.showPanel = false
+                            window.applyError = ""
+                        }
                     }
                 }
             }
@@ -752,8 +739,7 @@ Item {
     Shortcut {
         sequence: "Return"; enabled: window.visible_ && !window.isApplying
         onActivated: {
-            if (window.showPanel) window.confirmApply()
-            else window.openPanel(view.currentIndex)
+            if (!window.showPanel) window.applyScheme(view.currentIndex)
         }
     }
     Shortcut {
