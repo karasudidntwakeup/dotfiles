@@ -115,6 +115,16 @@ SCHEMES = [
     ("gold_rush", "Gold Rush"),
     ("event_horizon", "Event Horizon"),
     ("lasthorizon", "Lasthorizon"),
+    ("flexoki_light", "Flexoki Light"),
+    ("white", "White"),
+    ("snow", "Snow"),
+    ("pissarro", "Pissarro"),
+    ("whitegold", "White Gold"),
+    ("kanagawa_lotus", "Kanagawa Lotus"),
+    ("milkmatcha_light", "Milky Matcha"),
+    ("ochre_light", "Ochre Light"),
+    ("delta_light", "Delta Light"),
+    ("dayfox", "Dayfox"),
 ]
 
 # scheme key -> preset flavor, from wallpaper_apply.sh's case statement.

@@ -806,6 +806,107 @@ p = {
     "green": "#f7d1ab", "red": "#d75450", "mauve": "#c6a49f",
     "pink": "#e9dad8", "yellow": "#f5c498", "maroon": "#ec9997",
   },
+  # ---- Best light themes from omarchy.gallery (light, by stars) ----
+  # Upstream: basecamp/omarchy flexoki-light (official, 10 stars).
+  "flexoki_light": {
+    "base": "#FFFCF0", "mantle": "#f2efe4", "crust": "#e5e2d8",
+    "surface0": "#f2efe4", "surface1": "#e5e2d8", "surface2": "#d7d2c3",
+    "overlay0": "#B7B5AC", "overlay1": "#403E3C", "overlay2": "#100F0F",
+    "text": "#100F0F", "subtext0": "#B7B5AC", "subtext1": "#403E3C",
+    "blue": "#205EA6", "sapphire": "#3AA99F", "peach": "#d0772b",
+    "green": "#879A39", "red": "#D14D41", "mauve": "#8B7EC8",
+    "pink": "#CE5D97", "yellow": "#D0A215", "maroon": "#AF3029",
+  },
+  # Upstream: basecamp/omarchy white (official).
+  "white": {
+    "base": "#ffffff", "mantle": "#f5f5f5", "crust": "#e8e8e8",
+    "surface0": "#f5f5f5", "surface1": "#e8e8e8", "surface2": "#d6d6d6",
+    "overlay0": "#808080", "overlay1": "#000000", "overlay2": "#000000",
+    "text": "#000000", "subtext0": "#808080", "subtext1": "#000000",
+    "blue": "#1a1a1a", "sapphire": "#3e3e3e", "peach": "#4a4a4a",
+    "green": "#3a3a3a", "red": "#2a2a2a", "mauve": "#2e2e2e",
+    "pink": "#2e2e2e", "yellow": "#4a4a4a", "maroon": "#2a2a2a",
+  },
+  # Upstream: bjarneo/omarchy-snow-theme (17 stars).
+  "snow": {
+    "base": "#ffffff", "mantle": "#f2f2f2", "crust": "#e6e6e6",
+    "surface0": "#f2f2f2", "surface1": "#e6e6e6", "surface2": "#d4d4d4",
+    "overlay0": "#919191", "overlay1": "#000000", "overlay2": "#0a0a0a",
+    "text": "#0a0a0a", "subtext0": "#919191", "subtext1": "#000000",
+    "blue": "#0a0a0a", "sapphire": "#0a0a0a", "peach": "#606060",
+    "green": "#0a0a0a", "red": "#0a0a0a", "mauve": "#0a0a0a",
+    "pink": "#0a0a0a", "yellow": "#0a0a0a", "maroon": "#606060",
+  },
+  # Upstream: mattbbia/pissarro (13 stars, alacritty).
+  "pissarro": {
+    "base": "#f1f3ea", "mantle": "#e8ecdd", "crust": "#e0e4d0",
+    "surface0": "#d5dbc0", "surface1": "#cad2b0", "surface2": "#bdc69c",
+    "overlay0": "#83847d", "overlay1": "#50523e", "overlay2": "#1a1d05",
+    "text": "#1a1d05", "subtext0": "#83847d", "subtext1": "#50523e",
+    "blue": "#68559b", "sapphire": "#8252ba", "peach": "#687013",
+    "green": "#50419a", "red": "#585000", "mauve": "#527100",
+    "pink": "#719800", "yellow": "#687013", "maroon": "#7a7300",
+  },
+  # Upstream: HANCORE-linux/omarchy-whitegold-theme (13 stars, alacritty).
+  "whitegold": {
+    "base": "#DEDBC8", "mantle": "#d6d3bb", "crust": "#cfcaae",
+    "surface0": "#c5c09f", "surface1": "#bcb58f", "surface2": "#b0a97b",
+    "overlay0": "#9a9078", "overlay1": "#404041", "overlay2": "#0c0c14",
+    "text": "#0c0c14", "subtext0": "#9a9078", "subtext1": "#404041",
+    "blue": "#005C32", "sapphire": "#3B3B3B", "peach": "#91760d",
+    "green": "#725c0a", "red": "#4B0304", "mauve": "#762b2f",
+    "pink": "#762b2f", "yellow": "#91760d", "maroon": "#4B0304",
+  },
+  # Upstream: bjarneo/omarchy-kanagawa-lotus-theme (11 stars).
+  "kanagawa_lotus": {
+    "base": "#f1e9d2", "mantle": "#e6dcc0", "crust": "#d8cdb0",
+    "surface0": "#e6dcc0", "surface1": "#d8cdb0", "surface2": "#ccbe98",
+    "overlay0": "#8a8980", "overlay1": "#6f6f7c", "overlay2": "#545464",
+    "text": "#545464", "subtext0": "#8a8980", "subtext1": "#6f6f7c",
+    "blue": "#4d699b", "sapphire": "#597b75", "peach": "#cc6d00",
+    "green": "#6f894e", "red": "#c84053", "mauve": "#624c83",
+    "pink": "#b35b79", "yellow": "#77713f", "maroon": "#8a5a3b",
+  },
+  # Upstream: hipsterusername/omarchy-milkmatcha-light-theme (9 stars, alacritty).
+  "milkmatcha_light": {
+    "base": "#f4f1e8", "mantle": "#ede9da", "crust": "#e7e0cc",
+    "surface0": "#dfd6bb", "surface1": "#d6cbaa", "surface2": "#ccbf95",
+    "overlay0": "#7a8670", "overlay1": "#828c78", "overlay2": "#5c6a53",
+    "text": "#5c6a53", "subtext0": "#7a8670", "subtext1": "#828c78",
+    "blue": "#7a92a5", "sapphire": "#6fa695", "peach": "#d4a574",
+    "green": "#7a9461", "red": "#c65f5f", "mauve": "#a17a8f",
+    "pink": "#b892a5", "yellow": "#d4a574", "maroon": "#b85252",
+  },
+  # Upstream: bjarneo/omarchy-ochre-light-theme (7 stars).
+  "ochre_light": {
+    "base": "#f0e4c8", "mantle": "#e6d4b0", "crust": "#d4c4a0",
+    "surface0": "#e6d4b0", "surface1": "#d4c4a0", "surface2": "#c9b587",
+    "overlay0": "#8a7860", "overlay1": "#3a2e22", "overlay2": "#2a1f17",
+    "text": "#2a1f17", "subtext0": "#8a7860", "subtext1": "#3a2e22",
+    "blue": "#4a6a6e", "sapphire": "#7a7438", "peach": "#b85a1e",
+    "green": "#6a7a30", "red": "#a8341e", "mauve": "#8a4a3e",
+    "pink": "#b86a5e", "yellow": "#a87420", "maroon": "#6e4628",
+  },
+  # Upstream: AlexZeitler/omarchy-delta-light-theme (6 stars).
+  "delta_light": {
+    "base": "#ffffff", "mantle": "#f0f4f9", "crust": "#e3eaf2",
+    "surface0": "#f0f4f9", "surface1": "#e3eaf2", "surface2": "#cbd8e7",
+    "overlay0": "#5f6f85", "overlay1": "#243a5e", "overlay2": "#0a1f42",
+    "text": "#0a1f42", "subtext0": "#5f6f85", "subtext1": "#243a5e",
+    "blue": "#002f6c", "sapphire": "#2b8fd0", "peach": "#a01a2c",
+    "green": "#1a6ba8", "red": "#c8102e", "mauve": "#7a1030",
+    "pink": "#7a1030", "yellow": "#46607f", "maroon": "#5c1520",
+  },
+  # Upstream: defer/omarchy-dayfox-theme (5 stars, alacritty via nightfox).
+  "dayfox": {
+    "base": "#f6f2ee", "mantle": "#efe8e1", "crust": "#e8ded3",
+    "surface0": "#dfd1c3", "surface1": "#d6c4b2", "surface2": "#ccb59e",
+    "overlay0": "#534c45", "overlay1": "#6b5d7f", "overlay2": "#3d2b5a",
+    "text": "#3d2b5a", "subtext0": "#534c45", "subtext1": "#6b5d7f",
+    "blue": "#2848a9", "sapphire": "#287980", "peach": "#b86e28",
+    "green": "#396847", "red": "#a5222f", "mauve": "#6e33ce",
+    "pink": "#8452d5", "yellow": "#ac5402", "maroon": "#b3434e",
+  },
 }
 
 try:
@@ -982,6 +1083,17 @@ case "$SCHEME" in
   gold_rush|gold-rush)              PRESET="gold_rush" ;;
   event_horizon|event-horizon)      PRESET="event_horizon" ;;
   lasthorizon)                      PRESET="lasthorizon" ;;
+  # Best light themes from omarchy.gallery (light, by stars)
+  flexoki_light|flexoki-light)      PRESET="flexoki_light" ;;
+  white)                            PRESET="white" ;;
+  snow)                             PRESET="snow" ;;
+  pissarro)                         PRESET="pissarro" ;;
+  whitegold|white-gold)             PRESET="whitegold" ;;
+  kanagawa_lotus|kanagawa-lotus)    PRESET="kanagawa_lotus" ;;
+  milkmatcha_light|milkmatcha-light|milky_matcha|milky-matcha) PRESET="milkmatcha_light" ;;
+  ochre_light|ochre-light)          PRESET="ochre_light" ;;
+  delta_light|delta-light)          PRESET="delta_light" ;;
+  dayfox)                           PRESET="dayfox" ;;
   bw|blackwhite|black_white)         PRESET="bw" ;;
   # NvChad base46 themes (nvim), stored in nvim_themes.json
   nv_*)                              PRESET="${SCHEME#nv_}"
