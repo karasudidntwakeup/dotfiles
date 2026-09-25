@@ -34,14 +34,13 @@ Item {
     }
     readonly property int listMaxHeight: Math.max(64, center.panelMaxHeight - center.pad * 2 - 30 - 40 - center.mountedDisksHeight - center.removableHeight - (center.weekOn ? center.weekHeight + 10 : 0) - (center.mediaOn ? 224 + 10 : 0))
     readonly property bool mediaOn: rootRef && rootRef.mediaStatus !== "none"
-    readonly property string cardTile: "notif_card"
-    // Same shading as the bar pills so the background matches them.
-    readonly property color panelColor: rootRef
-        ? rootRef.tonalPillColor(rootRef.pillColor(cardTile))
-        : "#15161a"
-    readonly property color panelBorder: rootRef ? rootRef.withAlpha(Qt.color(rootRef.colorOf("widget_border")), rootRef.qsLight ? 0.7 : 0.5) : "#ffffff33"
-    readonly property color fg: rootRef ? rootRef.contrastColor(center.panelColor) : "#ffffff"
-    readonly property color muteFg: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.72)
+    // YtX-style Android roles: flat surface card, theme text tokens.
+    readonly property color panelColor: rootRef ? Qt.color(rootRef.colorOf("surface_container")) : "#1f2c34"
+    readonly property color panelBorder: rootRef
+        ? rootRef.withAlpha(Qt.color(rootRef.colorOf("outline_variant")), 0.5)
+        : "#222d34"
+    readonly property color fg: rootRef ? Qt.color(rootRef.colorOf("on_surface")) : "#e9edef"
+    readonly property color muteFg: rootRef ? Qt.color(rootRef.colorOf("on_surface_variant")) : "#8696a0"
     readonly property color accent: rootRef ? Qt.color(rootRef.colorOf("widget_accent")) : "#ff8fb2"
     readonly property color signalAccent: "#ffffff"
     readonly property string iconFont: rootRef && rootRef.iconFont ? rootRef.iconFont : "Symbols Nerd Font"
