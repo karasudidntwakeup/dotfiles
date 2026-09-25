@@ -20,25 +20,15 @@ Item {
     readonly property int cornerRadius: 0
     readonly property int searchHeight: 38
 
-    readonly property string cardTile: "notes_card"
-    readonly property color cardColor: {
-        var base = rootRef
-            ? (rootRef.qsLight
-                ? rootRef.pillColor(cardTile)
-                : rootRef.colorOf(cardTile))
-            : "#f3dfd1"
-        if (rootRef && rootRef.mixColor && rootRef.colorOf)
-            base = rootRef.mixColor(base, rootRef.colorOf("surface_container_highest"), 0.2)
-        return Qt.darker(base, 1.2)
-    }
+    // YtX-style Android roles: flat surface card, theme text tokens.
+    readonly property color cardColor: rootRef ? Qt.color(rootRef.colorOf("surface_container")) : "#1f2c34"
+    readonly property color fieldColor: rootRef ? Qt.color(rootRef.colorOf("surface_container_high")) : "#2a3942"
     readonly property color cardBorder: rootRef
-        ? rootRef.withAlpha(rootRef.colorOf("widget_border"),
-            rootRef.qsLight ? 0.7 : 0.5)
-        : "#00000000"
+        ? rootRef.withAlpha(Qt.color(rootRef.colorOf("outline_variant")), 0.5)
+        : "#222d34"
 
-    readonly property color fg: rootRef
-        ? rootRef.contrastColor(notes.cardColor)
-        : "#000000"
+    readonly property color fg: rootRef ? Qt.color(rootRef.colorOf("on_surface")) : "#e9edef"
+    readonly property color muted: rootRef ? Qt.color(rootRef.colorOf("on_surface_variant")) : "#8696a0"
     readonly property color accent: rootRef
         ? Qt.color(rootRef.colorOf("secondary_container"))
         : "#ebcb8b"
@@ -327,7 +317,7 @@ Item {
                 }
                 Text {
                     text: notes.headerStats()
-                    color: rootRef.withAlpha(notes.fg, 0.5)
+                    color: notes.muted
                     font.family: notes.uiFont
                     font.pixelSize: notes.fontSize - 2
                     verticalAlignment: Text.AlignVCenter
@@ -423,7 +413,7 @@ Item {
                         spacing: 8
                         Text {
                             text: notes.editingId.length > 0 ? "Editing note" : "New note"
-                            color: rootRef.withAlpha(notes.fg, 0.65)
+                            color: notes.muted
                             font.family: notes.uiFont
                             font.pixelSize: notes.fontSize - 1
                             font.weight: Font.DemiBold
@@ -432,7 +422,7 @@ Item {
                         Text {
                             visible: notes.editingId.length > 0
                             text: "Cancel"
-                            color: rootRef.withAlpha(notes.fg, 0.7)
+                            color: notes.muted
                             font.family: notes.uiFont
                             font.pixelSize: notes.fontSize - 1
                             font.underline: true
@@ -504,7 +494,7 @@ Item {
                                 var n = bodyArea.text.length
                                 return n > 0 ? n + (n === 1 ? " char" : " chars") : ""
                             }
-                            color: rootRef.withAlpha(notes.fg, 0.45)
+                            color: notes.muted
                             font.family: notes.uiFont
                             font.pixelSize: notes.fontSize - 2
                             Layout.alignment: Qt.AlignVCenter
@@ -553,11 +543,11 @@ Item {
                 width: parent.width
                 height: notes.searchHeight
                 radius: 0
-                color: rootRef.withAlpha(notes.fg, 0.08)
+                color: notes.fieldColor
                 border.width: 1
                 border.color: searchField.inputFocus
                     ? rootRef.withAlpha(notes.fg, 0.6)
-                    : rootRef.withAlpha(notes.fg, 0.12)
+                    : notes.cardBorder
                 Behavior on border.color { CAnim { type: CAnim.FastEffects } }
                 RowLayout {
                     anchors.fill: parent
@@ -566,7 +556,7 @@ Item {
                     spacing: 8
                     QIcon {
                         source: Qt.resolvedUrl("../assets/icons/search.svg")
-                        color: rootRef.withAlpha(notes.fg, 0.75)
+                        color: notes.muted
                         iconSize: notes.fontSize + 3
                         Layout.alignment: Qt.AlignVCenter
                     }
@@ -579,7 +569,7 @@ Item {
                         font.pixelSize: notes.fontSize
                         font.weight: Font.Medium
                         placeholderText: "Search notes"
-                        placeholderTextColor: rootRef.withAlpha(notes.fg, 0.55)
+                        placeholderTextColor: notes.muted
                         selectByMouse: true
                         verticalAlignment: Text.AlignVCenter
                         onTextEdited: notes.applyFilter(searchField.text)
@@ -861,7 +851,7 @@ Item {
                         QIcon {
                             anchors.horizontalCenter: parent.horizontalCenter
                             source: Qt.resolvedUrl("../assets/icons/y2k-star-4.svg")
-                            color: rootRef.withAlpha(notes.fg, 0.5)
+                            color: notes.muted
                             iconSize: notes.fontSize + 14
                         }
                         Text {
@@ -869,7 +859,7 @@ Item {
                             text: searchField.text.length > 0
                                 ? "No matching stickies"
                                 : "Board is empty — write the first one above"
-                            color: rootRef.withAlpha(notes.fg, 0.75)
+                            color: notes.muted
                             font.family: notes.uiFont
                             font.pixelSize: notes.fontSize
                         }
@@ -881,7 +871,7 @@ Item {
                 width: parent.width
                 visible: gridModel.count > 0
                 text: "Click a sticky to edit  •  dots recolor it  •  star to pin  •  Ctrl+Enter saves"
-                color: rootRef.withAlpha(notes.fg, 0.4)
+                color: notes.muted
                 font.family: notes.uiFont
                 font.pixelSize: notes.fontSize - 3
             }

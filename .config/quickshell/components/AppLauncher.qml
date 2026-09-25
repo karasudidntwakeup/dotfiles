@@ -21,29 +21,19 @@ Item {
     readonly property int cornerRadius: 0
     readonly property int listSpacing: 4
 
-    readonly property string cardTile: "launcher_card"
-    readonly property color cardColor: {
-        var base = rootRef
-            ? (rootRef.qsLight
-                ? rootRef.pillColor(cardTile)
-                : rootRef.colorOf(cardTile))
-            : "#f3dfd1"
-        if (rootRef && rootRef.mixColor && rootRef.colorOf)
-            base = rootRef.mixColor(base, rootRef.colorOf("surface_container_highest"), 0.2)
-        return Qt.darker(base, 1.2)
-    }
+    // YtX-style Android roles: flat surface card, theme text tokens.
+    readonly property color cardColor: rootRef ? Qt.color(rootRef.colorOf("surface_container")) : "#1f2c34"
+    readonly property color fieldColor: rootRef ? Qt.color(rootRef.colorOf("surface_container_high")) : "#2a3942"
     readonly property color cardBorder: rootRef
-        ? rootRef.withAlpha(rootRef.colorOf("widget_border"),
-            rootRef.qsLight ? 0.7 : 0.5)
-        : "#00000000"
+        ? rootRef.withAlpha(Qt.color(rootRef.colorOf("outline_variant")), 0.5)
+        : "#222d34"
 
-    readonly property color fg: rootRef
-        ? rootRef.contrastColor(launcher.cardColor)
-        : "#000000"
+    readonly property color fg: rootRef ? Qt.color(rootRef.colorOf("on_surface")) : "#e9edef"
+    readonly property color muted: rootRef ? Qt.color(rootRef.colorOf("on_surface_variant")) : "#8696a0"
     // Caelestia selection is a subtle on-surface overlay, not an accent block.
     readonly property color highlight: rootRef ? rootRef.withAlpha(launcher.fg, 0.08) : "#00000014"
     readonly property color hoverFill: rootRef ? rootRef.withAlpha(launcher.fg, 0.05) : "#0000000d"
-    readonly property color descColor: rootRef ? rootRef.withAlpha(launcher.fg, 0.6) : "#888888"
+    readonly property color descColor: launcher.muted
 
     readonly property string fontFamily: uiFont
     readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Geist"
@@ -570,11 +560,11 @@ Item {
                 scale: searchField.inputFocus ? 1.02 : 1.0
                 Behavior on scale { Anim { type: Anim.BouncyFast } }
                 transformOrigin: Item.Center
-                color: rootRef.withAlpha(launcher.fg, 0.08)
+                color: launcher.fieldColor
                 border.width: 1
                 border.color: searchField.inputFocus
                     ? rootRef.withAlpha(launcher.fg, 0.4)
-                    : rootRef.withAlpha(launcher.fg, 0.12)
+                    : launcher.cardBorder
                 Behavior on border.color { CAnim { type: CAnim.FastEffects } }
 
                 RowLayout {
@@ -586,7 +576,7 @@ Item {
                     QIcon {
                         Layout.alignment: Qt.AlignVCenter
                         source: Qt.resolvedUrl("../assets/icons/search.svg")
-                        color: rootRef.withAlpha(launcher.fg, 0.55)
+                        color: launcher.muted
                         iconSize: launcher.fontSize + 3
                     }
 
@@ -599,7 +589,7 @@ Item {
                         font.pixelSize: launcher.fontSize + 1
                         font.weight: Font.Medium
                         placeholderText: "Type \">\" for commands"
-                        placeholderTextColor: rootRef.withAlpha(launcher.fg, 0.6)
+                        placeholderTextColor: launcher.muted
                         selectByMouse: true
                         verticalAlignment: Text.AlignVCenter
 

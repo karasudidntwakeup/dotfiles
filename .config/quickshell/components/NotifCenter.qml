@@ -35,14 +35,10 @@ Item {
     readonly property int listMaxHeight: Math.max(64, center.panelMaxHeight - center.pad * 2 - 30 - 40 - center.mountedDisksHeight - center.removableHeight - (center.weekOn ? center.weekHeight + 10 : 0) - (center.mediaOn ? 224 + 10 : 0))
     readonly property bool mediaOn: rootRef && rootRef.mediaStatus !== "none"
     readonly property string cardTile: "notif_card"
-    readonly property color panelColor: {
-        var base = rootRef
-            ? (rootRef.qsLight ? rootRef.pillColor(cardTile) : rootRef.colorOf(cardTile))
-            : "#15161a"
-        if (rootRef && rootRef.mixColor && rootRef.colorOf)
-            base = rootRef.mixColor(base, rootRef.colorOf("surface_container_highest"), 0.1)
-        return Qt.darker(base, 1.2)
-    }
+    // Same shading as the bar pills so the background matches them.
+    readonly property color panelColor: rootRef
+        ? rootRef.tonalPillColor(rootRef.pillColor(cardTile))
+        : "#15161a"
     readonly property color panelBorder: rootRef ? rootRef.withAlpha(Qt.color(rootRef.colorOf("widget_border")), rootRef.qsLight ? 0.7 : 0.5) : "#ffffff33"
     readonly property color fg: rootRef ? rootRef.contrastColor(center.panelColor) : "#ffffff"
     readonly property color muteFg: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.72)

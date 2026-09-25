@@ -27,14 +27,12 @@ PanelWindow {
     property var anchorItem: null
     property var anchorWin: null
 
-    readonly property color calColor: {
-        var base = rootRef
-            ? (rootRef.qsLight ? rootRef.pillColor("tertiary_container") : rootRef.colorOf("tertiary_container"))
-            : Qt.rgba(0.08, 0.08, 0.08, 0.85)
-        return Qt.darker(base, 1.1)
-    }
+    // Same shading as the bar pills: soft tint instead of saturated red.
+    readonly property color calColor: rootRef
+        ? (rootRef.tonalPillColor ? rootRef.tonalPillColor(rootRef.pillColor("tertiary_container")) : rootRef.colorOf("tertiary_container"))
+        : Qt.rgba(0.08, 0.08, 0.08, 0.85)
     readonly property color popupFg: rootRef
-        ? (rootRef.luminance(Qt.color(calColor)) > 0.45 ? "#000000" : "#ffffff")
+        ? rootRef.contrastColor(calColor)
         : "#ffffff"
 
     readonly property color accentCol: rootRef

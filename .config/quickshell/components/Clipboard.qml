@@ -20,25 +20,15 @@ Item {
     readonly property int pad: 14
     readonly property int cornerRadius: 0
 
-    readonly property string cardTile: "widget_card"
-    readonly property color cardColor: {
-        var base = rootRef
-            ? (rootRef.qsLight
-                ? rootRef.pillColor(cardTile)
-                : rootRef.colorOf(cardTile))
-            : "#f3dfd1"
-        if (rootRef && rootRef.mixColor && rootRef.colorOf)
-            base = rootRef.mixColor(base, rootRef.colorOf("surface_container_highest"), 0.75)
-        return Qt.darker(base, 1.2)
-    }
+    // YtX-style Android roles: flat surface card, theme text tokens.
+    readonly property color cardColor: rootRef ? Qt.color(rootRef.colorOf("surface_container")) : "#1f2c34"
+    readonly property color fieldColor: rootRef ? Qt.color(rootRef.colorOf("surface_container_high")) : "#2a3942"
     readonly property color cardBorder: rootRef
-        ? rootRef.withAlpha(rootRef.colorOf("widget_border"),
-            rootRef.qsLight ? 0.7 : 0.5)
-        : "#00000000"
+        ? rootRef.withAlpha(Qt.color(rootRef.colorOf("outline_variant")), 0.5)
+        : "#222d34"
 
-    readonly property color fg: rootRef
-        ? rootRef.contrastColor(clipMgr.cardColor)
-        : "#000000"
+    readonly property color fg: rootRef ? Qt.color(rootRef.colorOf("on_surface")) : "#e9edef"
+    readonly property color muted: rootRef ? Qt.color(rootRef.colorOf("on_surface_variant")) : "#8696a0"
     readonly property color selectedFg: clipMgr.fg
     readonly property color errorColor: rootRef ? Qt.color(rootRef.colorOf("widget_error")) : "#e30000"
 
@@ -260,14 +250,14 @@ Item {
 
                 QIcon {
                     source: Qt.resolvedUrl("../assets/icons/y2k-sparkle.svg")
-                    color: rootRef.withAlpha(clipMgr.fg, 0.55)
+                    color: clipMgr.muted
                     iconSize: clipMgr.fontSize + 1
                     Layout.alignment: Qt.AlignVCenter
                 }
 
                 Text {
                     text: clipMgr.totalCount + (clipMgr.totalCount === 1 ? " item" : " items")
-                    color: rootRef.withAlpha(clipMgr.fg, 0.5)
+                    color: clipMgr.muted
                     font.family: clipMgr.uiFont
                     font.pixelSize: clipMgr.fontSize - 2
                     font.letterSpacing: 1.5
@@ -360,11 +350,11 @@ Item {
                 width: parent.width
                 height: clipMgr.searchHeight
                 radius: 0
-                color: rootRef.withAlpha(clipMgr.fg, 0.06)
+                color: clipMgr.fieldColor
                 border.width: 1
                 border.color: searchField.inputFocus
                     ? rootRef.withAlpha(clipMgr.fg, 0.5)
-                    : rootRef.withAlpha(clipMgr.fg, 0.16)
+                    : clipMgr.cardBorder
                 Behavior on border.color { CAnim { type: CAnim.FastEffects } }
 
                 RowLayout {
@@ -375,7 +365,7 @@ Item {
 
                     QIcon {
                         source: Qt.resolvedUrl("../assets/icons/search.svg")
-                        color: rootRef.withAlpha(clipMgr.fg, 0.75)
+                        color: clipMgr.muted
                         iconSize: clipMgr.fontSize + 4
                         Layout.alignment: Qt.AlignVCenter
                     }
@@ -389,7 +379,7 @@ Item {
                         font.pixelSize: clipMgr.fontSize + 1
                         font.weight: Font.Medium
                         placeholderText: "Search history"
-                        placeholderTextColor: rootRef.withAlpha(clipMgr.fg, 0.6)
+                        placeholderTextColor: clipMgr.muted
                         selectByMouse: true
                         verticalAlignment: Text.AlignVCenter
 
@@ -676,7 +666,7 @@ Item {
                         QIcon {
                             anchors.horizontalCenter: parent.horizontalCenter
                             source: Qt.resolvedUrl("../assets/icons/y2k-glitter.svg")
-                            color: rootRef.withAlpha(clipMgr.fg, 0.5)
+                            color: clipMgr.muted
                             iconSize: clipMgr.fontSize + 14
                         }
 
@@ -685,7 +675,7 @@ Item {
                             text: searchField.text.length > 0
                                 ? "No matches"
                                 : "Clipboard is empty"
-                            color: rootRef.withAlpha(clipMgr.fg, 0.75)
+                            color: clipMgr.muted
                             font.family: clipMgr.uiFont
                             font.pixelSize: clipMgr.fontSize
                         }
