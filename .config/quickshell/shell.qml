@@ -29,7 +29,15 @@ ShellRoot {
         }
     }
 
+    // Mode-aware lookup: base vars hold the DARK scheme, *_light vars
+    // the LIGHT scheme (see the matugen template), so colors.js carries
+    // both modes no matter which --mode generated it. In light mode prefer
+    // the light twin; fall back to base when a role has no light variant.
     function colorOf(name) {
+        if (root.qsLight) {
+            var l = colorFile.paletteMap[name + "_light"]
+            if (l !== undefined) return l
+        }
         var v = colorFile.paletteMap[name]
         return v === undefined ? "#808080" : v
     }
@@ -53,21 +61,25 @@ ShellRoot {
         }
     }
 
-    readonly property bool qsLight: qsThemeFile.qsTheme["mode"] === "light"
+    // Bar is always light: colorOf() permanently prefers the *_light
+    // roles from colors.js (which carries both modes). The system
+    // dark/light (qs-theme.json) still drives GTK/apps via
+    // wallpaper_apply.sh; the shell just doesn't follow it.
+    readonly property bool qsLight: true
 
     readonly property color qsPillFallbackBg: "#1a1b1e"
 
     function pillColor(name) {
-        if (!root.qsLight) return colorOf(name)
-        var v = colorFile.paletteMap[name + "_light"]
-        return v === undefined ? root.qsPillFallbackBg : v
+        return colorOf(name)
     }
 
     function tonalPillColor(accent) {
         var color = Qt.color(accent)
+        // Tonal pills follow the mode: light pills on light mode, dark
+        // pills on dark mode, so text picked by contrastColor stays readable.
         var lightness = root.qsLight
-            ? Math.min(color.hslLightness, 0.24)
-            : Math.max(color.hslLightness, 0.76)
+            ? Math.max(color.hslLightness, 0.76)
+            : Math.min(color.hslLightness, 0.24)
         return Qt.hsla(Math.max(0, color.hslHue), color.hslSaturation, lightness, 1)
     }
 
@@ -1811,7 +1823,6 @@ function closeOverlays() {
                 WallpaperPicker {
                     anchors.fill: parent
                     visible_: root.wallpaperActive && wallpaperLoader.itemReady
-                    currentMode: root.qsLight ? "light" : "dark"
 
                     surfaceColor: "#17181c"
                     borderColor: Qt.color(root.colorOf("outline_variant"))
@@ -1869,7 +1880,6 @@ function closeOverlays() {
                 ThemePicker {
                     anchors.fill: parent
                     visible_: root.themeActive && themePickerLoader.itemReady
-                    currentMode: root.qsLight ? "light" : "dark"
 
                     surfaceColor: "#17181c"
                     borderColor: Qt.color(root.colorOf("outline_variant"))

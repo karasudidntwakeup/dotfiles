@@ -199,16 +199,32 @@ Item {
 
     property bool showPanel: false
     property var selectedItem: null
-    property string currentMode: "dark"
-    property string applyMode: currentMode
     property string applyError: ""
     // Live stage reported by wallpaper_apply.sh (@@stage lines on stdout).
     property string applyStatus: ""
 
+    // Relative luminance of a #rrggbb swatch; >= 0.40 counts as light.
+    // Mirrors derive_mode_from_scheme() in wallpaper_apply.sh.
+    function swatchIsLight(hex) {
+        var h = String(hex || "").replace("#", "")
+        if (h.length < 6) return false
+        var r = parseInt(h.substr(0, 2), 16) / 255
+        var g = parseInt(h.substr(2, 2), 16) / 255
+        var b = parseInt(h.substr(4, 2), 16) / 255
+        if (isNaN(r) || isNaN(g) || isNaN(b)) return false
+        var f = function(c) { return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4) }
+        return (0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b)) >= 0.40
+    }
+
+    function derivedModeText(item) {
+        if (!item || !item.colors || item.colors.length === 0)
+            return "Mode · Auto (from wallpaper)"
+        return "Mode · " + (window.swatchIsLight(item.colors[0]) ? "Light" : "Dark") + " (from scheme)"
+    }
+
     function openPanel(index) {
         if (window.isApplying || window.showPanel || index < 0 || index >= window.displayModel.length) return
         window.selectedItem = window.displayModel[index]
-        window.applyMode = window.currentMode
         window.applyError = ""
         window.applyStatus = ""
         window.showPanel = true
@@ -234,7 +250,7 @@ Item {
         window.applyStatus = "Starting…"
         window.isApplying = true
         window.applyArgs = ["bash", window.scriptDir + "/wallpaper_apply.sh",
-                            window.wallpaperPath, window.applyMode,
+                            window.wallpaperPath, "auto",
                             window.selectedItem.key, "", "1"]
         // Restart cleanly on the next tick so the command binding (applyArgs)
         // has propagated before the process spawns.
@@ -632,48 +648,14 @@ Item {
                 elide: Text.ElideMiddle
             }
 
-            Row {
-                spacing: window.u * 6
-                Text {
-                    text: "Mode"
-                    color: window.subtextColor
-                    font.family: window.uiFont
-                    font.pixelSize: window.u * 11
-                    anchors.verticalCenter: parent.verticalCenter
-                }
-                Repeater {
-                    model: [
-                        { key: "dark",  label: "Dark" },
-                        { key: "light", label: "Light" }
-                    ]
-                    delegate: Rectangle {
-                        required property var modelData
-                        width: modeLabel.implicitWidth + window.u * 20
-                        height: window.u * 28
-                        radius: 0
-                        color: window.applyMode === modelData.key ? window.surface2
-                             : (modeHover.containsMouse ? window.surface1 : window.surface0)
-                        border.color: window.applyMode === modelData.key ? window.textColor : window.borderColor
-                        border.width: window.applyMode === modelData.key ? (window.u === 1 ? 1.5 : 1) : 1
-                        Behavior on color { CAnim { } }
-                        Text {
-                            id: modeLabel
-                            anchors.centerIn: parent
-                            text: modelData.label
-                            color: window.applyMode === modelData.key ? window.textColor : window.subtextColor
-                            font.family: window.uiFont
-                            font.pixelSize: window.u * 11
-                            font.weight: window.applyMode === modelData.key ? Font.Bold : Font.Normal
-                        }
-                        MouseArea {
-                            id: modeHover
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: window.applyMode = modelData.key
-                        }
-                    }
-                }
+            // Single mode: the scheme decides. Light schemes apply the light
+            // system, dark schemes the dark system (from palette base color,
+            // or the wallpaper itself for Auto schemes).
+            Text {
+                text: window.derivedModeText(window.selectedItem)
+                color: window.subtextColor
+                font.family: window.uiFont
+                font.pixelSize: window.u * 11
             }
 
             Text {

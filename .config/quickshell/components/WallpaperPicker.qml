@@ -188,8 +188,6 @@ Item {
 
     property bool showPanel: false
     property var selectedItem: null
-    property string currentMode: "dark"
-    property string applyMode: currentMode
     property string applyError: ""
     // Live stage reported by wallpaper_apply.sh (@@stage lines on stdout).
     property string applyStatus: ""
@@ -197,7 +195,6 @@ Item {
     function openPanel(index) {
         if (window.isApplying || window.showPanel || index < 0 || index >= window.displayModel.length) return
         window.selectedItem = window.displayModel[index]
-        window.applyMode = window.currentMode
         window.applyError = ""
         window.applyStatus = ""
         window.showPanel = true
@@ -219,7 +216,7 @@ Item {
         window.applyStatus = "Starting…"
         window.isApplying = true
         window.applyArgs = ["bash", window.scriptDir + "/wallpaper_apply.sh",
-                            window.selectedItem.filePath, window.applyMode]
+                            window.selectedItem.filePath, "auto"]
         // Restart cleanly on the next tick so the command binding (applyArgs)
         // has propagated before the process spawns.
         applyProc.running = false
@@ -544,48 +541,12 @@ Item {
                 elide: Text.ElideMiddle
             }
 
-            Row {
-                spacing: window.u * 6
-                Text {
-                    text: "Mode"
-                    color: window.subtextColor
-                    font.family: window.uiFont
-                    font.pixelSize: window.u * 11
-                    anchors.verticalCenter: parent.verticalCenter
-                }
-                Repeater {
-                    model: [
-                        { key: "dark",  label: "Dark" },
-                        { key: "light", label: "Light" }
-                    ]
-                    delegate: Rectangle {
-                        required property var modelData
-                        width: modeLabel.implicitWidth + window.u * 20
-                        height: window.u * 28
-                        radius: 0
-                        color: window.applyMode === modelData.key ? window.surface2
-                             : (modeHover.containsMouse ? window.surface1 : window.surface0)
-                        border.color: window.applyMode === modelData.key ? window.textColor : window.borderColor
-                        border.width: window.applyMode === modelData.key ? (window.u === 1 ? 1.5 : 1) : 1
-                        Behavior on color { CAnim { } }
-                        Text {
-                            id: modeLabel
-                            anchors.centerIn: parent
-                            text: modelData.label
-                            color: window.applyMode === modelData.key ? window.textColor : window.subtextColor
-                            font.family: window.uiFont
-                            font.pixelSize: window.u * 11
-                            font.weight: window.applyMode === modelData.key ? Font.Bold : Font.Normal
-                        }
-                        MouseArea {
-                            id: modeHover
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: window.applyMode = modelData.key
-                        }
-                    }
-                }
+            // Single mode: derived from the wallpaper itself at apply time.
+            Text {
+                text: "Mode · Auto (from wallpaper)"
+                color: window.subtextColor
+                font.family: window.uiFont
+                font.pixelSize: window.u * 11
             }
 
             Text {

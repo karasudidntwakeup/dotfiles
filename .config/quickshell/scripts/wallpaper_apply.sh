@@ -3,9 +3,11 @@
 # for ~/.config/rofi/wallpaper-changer/launcher.sh.
 #
 # usage:
-#   wallpaper_apply.sh <image_path> <mode:dark|light> <scheme> [hex]=RRGGBB [pin_widgets=0|1]
+#   wallpaper_apply.sh <image_path> [ignored] <scheme> [hex]=RRGGBB [pin_widgets=0|1]
 #
-# mode:   dark | light         (matugen --prefer + QuickShell qs-theme.json)
+# Single mode, derived from the scheme: light schemes -> light system
+# (matugen --prefer lightness + QuickShell qs-theme.json + system GTK/icons),
+# dark schemes -> dark system. The old manual dark|light arg is ignored.
 # scheme: tonal_spot|content|fidelity|vibrant|neutral|monochrome|rainbow
 #         (fixed presets) serpantinum|catppuccin_frappe|catppuccin_macchiato|catppuccin_latte|
 #         nord|tokyo|dracula|gruvbox|rosepine|kanagawa
@@ -16,7 +18,9 @@
 set -e
 
 IMG="$1"
-MODE="${2:-dark}"
+# One mode: $2 (old manual dark|light) is ignored — light/dark is derived
+# from the scheme itself below (derive_mode_from_scheme).
+MODE_OVERRIDE="$2"
 SCHEME="${3:-}"
 HEX="${4:-}"
 PIN_WIDGETS="${5:-0}"
@@ -36,11 +40,8 @@ if [ -z "$SCHEME" ] && [ -f "$CACHE/scheme.txt" ]; then
 fi
 SCHEME="${SCHEME:-tonal_spot}"
 
-# matugen prefer
-case "$MODE" in
-  light|Light) MODE="light"; PREFER="lightness"; QUICK='{"mode": "light"}'; ;;
-  *)           MODE="dark"; PREFER="darkness"; QUICK='{"mode": "dark"}'; ;;
-esac
+# MODE/PREFER/QUICK are set by derive_mode_from_scheme() after the scheme
+# resolves (light schemes -> light system, dark schemes -> dark system).
 
 # Build a full Material-3 palette from a serpantinum/(Catppuccin) preset and
 # feed it to `matugen json`, mirroring how serpantinum maps their palette to
@@ -994,9 +995,71 @@ import json, sys
 sys.exit(0 if sys.argv[1] in json.load(open(sys.argv[2])) else 1)
 PY
      then PRESET="$SCHEME"
-     else TYPE="scheme-tonal-spot"
-     fi ;;
+      else TYPE="scheme-tonal-spot"
+      fi ;;
 esac
+
+# One mode: derive light/dark from the scheme itself.
+# - fixed/nvim presets: relative luminance of the palette's base color
+# - wallpaper_color: luminance of the chosen hex
+# - auto (wallpaper-derived): mean luminance of the wallpaper image
+# Light schemes -> light system, dark schemes -> dark system.
+derive_mode_from_scheme() {
+  local base=""
+  if [ -n "${PRESET:-}" ]; then
+    base="$(python3 - "$PRESET" "$EXTRA_PALETTES" "$0" <<'PY'
+import json, sys
+flavor, extra, script = sys.argv[1:4]
+base = ""
+try:
+    body = open(script).read().split("<<'PY'", 1)[1].split("\nPY", 1)[0]
+    ns, argv = {}, sys.argv
+    sys.argv = ["_", "mocha", "/tmp/derive_mode_dummy.json", extra]
+    try:
+        exec(body, ns)
+    finally:
+        sys.argv = argv
+    base = (ns.get("p", {}).get(flavor) or {}).get("base", "")
+except Exception:
+    pass
+if not base:
+    try:
+        base = (json.load(open(extra)).get(flavor) or {}).get("base", "")
+    except Exception:
+        pass
+print(base)
+PY
+)"
+  else
+    case "${SCHEME:-}" in
+      wallpaper_color|wallpaper-color|color) base="#${HEX//#/}" ;;
+    esac
+  fi
+  local lum=""
+  if [ -n "$base" ]; then
+    lum="$(python3 - "$base" <<'PY'
+import sys
+hx = sys.argv[1].lstrip("#")
+try:
+    r, g, b = [int(hx[i:i + 2], 16) / 255.0 for i in (0, 2, 4)]
+    f = lambda c: c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+    print(f(r) * 0.2126 + f(g) * 0.7152 + f(b) * 0.0722)
+except Exception:
+    pass
+PY
+)"
+  elif [ -f "${IMG:-}" ]; then
+    lum="$(magick "$IMG" -auto-orient -thumbnail '64x64>' -format '%[fx:mean]' info: 2>/dev/null)" || lum=""
+  fi
+  if [ -n "$lum" ] && python3 -c "import sys; sys.exit(0 if float(sys.argv[1]) >= 0.40 else 1)" "$lum" 2>/dev/null; then
+    MODE="light"; PREFER="lightness"; QUICK='{"mode": "light"}'
+  else
+    MODE="dark"; PREFER="darkness"; QUICK='{"mode": "dark"}'
+  fi
+  echo "@@stage mode-$MODE"
+}
+
+derive_mode_from_scheme
 
 if [ -n "$PRESET" ]; then
   MATUGEN=(json "$(apply_preset "$PRESET")")
@@ -1036,7 +1099,7 @@ if [ "$PIN_WIDGETS" = "1" ] && [ -f "$COLOR_JS" ]; then
   widget_snapshot="$(python3 - "$COLOR_JS" <<'PY'
 import re, sys
 content = open(sys.argv[1]).read()
-keys = ["ytx_card","ytx_card_light","widget_card","widget_card_light","launcher_card","launcher_card_light","notes_card","notes_card_light","whatsapp_card","whatsapp_card_light","notif_card","notif_card_light","widget_accent","widget_border","widget_error"]
+keys = ["ytx_card","ytx_card_light","widget_card","widget_card_light","launcher_card","launcher_card_light","notes_card","notes_card_light","whatsapp_card","whatsapp_card_light","notif_card","notif_card_light","widget_accent","widget_accent_light","widget_border","widget_border_light","widget_error","widget_error_light"]
 lines = []
 for k in keys:
     m = re.findall(r'var\s+%s\s*=\s*"([^"]*)"' % k, content)
@@ -1146,10 +1209,54 @@ fi
 # Wallpaper was already set (fast fade) before theming — nothing left to do
 # here except remember the selection.
 
+# System light/dark: GTK + icons + portal color-scheme + terminal + Qt.
+# matugen only recolors its own templates; the desktop itself follows these
+# settings, so the picker mode drives the whole system, not just wallpaper
+# apps. LibreWolf/Electron follow the portal automatically (no hardcoded
+# prefs); Qt/GTK2/Xwayland read the config files below.
+apply_system_theme() {
+  local mode="$1" # light | dark
+  local gtk_theme icon_theme color_scheme prefer_dark wm_theme qt_scheme foot_sig foot_init
+  if [ "$mode" = "light" ]; then
+    gtk_theme="adw-gtk3"; icon_theme="MacTahoe-light"; color_scheme="prefer-light"
+    prefer_dark=0; wm_theme="Adwaita"; qt_scheme="airy.conf"
+    foot_sig="-USR2"; foot_init="light"
+  else
+    gtk_theme="adw-gtk3-dark"; icon_theme="MacTahoe-dark"; color_scheme="prefer-dark"
+    prefer_dark=1; wm_theme="Adwaita-dark"; qt_scheme="darker.conf"
+    foot_sig="-USR1"; foot_init="dark"
+  fi
+  # Live settings: running GTK apps + xdg-desktop-portal read these.
+  gsettings set org.gnome.desktop.interface gtk-theme "$gtk_theme" 2>/dev/null || true
+  gsettings set org.gnome.desktop.interface icon-theme "$icon_theme" 2>/dev/null || true
+  gsettings set org.gnome.desktop.interface color-scheme "$color_scheme" 2>/dev/null || true
+  gsettings set org.gnome.desktop.wm.preferences theme "$wm_theme" 2>/dev/null || true
+  # On-disk settings for new launches.
+  for f in "$HOME/.config/gtk-3.0/settings.ini" "$HOME/.config/gtk-4.0/settings.ini"; do
+    [ -f "$f" ] || continue
+    sed -i "s/^gtk-theme-name=.*/gtk-theme-name=$gtk_theme/" "$f" || true
+    sed -i "s/^gtk-icon-theme-name=.*/gtk-icon-theme-name=$icon_theme/" "$f" || true
+    sed -i "s/^gtk-application-prefer-dark-theme=.*/gtk-application-prefer-dark-theme=$prefer_dark/" "$f" || true
+  done
+  # XSETTINGS (Xwayland) + GTK2 (pcmanfm).
+  [ -f "$HOME/.config/xsettingsd/xsettingsd.conf" ] && sed -i "s/^Net\/ThemeName .*/Net\/ThemeName \"$gtk_theme\"/" "$HOME/.config/xsettingsd/xsettingsd.conf" || true
+  [ -f "$HOME/.config/xsettingsd/xsettingsd.conf" ] && sed -i "s/^Net\/IconThemeName .*/Net\/IconThemeName \"$icon_theme\"/" "$HOME/.config/xsettingsd/xsettingsd.conf" || true
+  [ -f "$HOME/.gtkrc-2.0" ] && sed -i "s/^gtk-theme-name=.*/gtk-theme-name=\"$gtk_theme\"/" "$HOME/.gtkrc-2.0" || true
+  [ -f "$HOME/.gtkrc-2.0" ] && sed -i "s/^gtk-icon-theme-name=.*/gtk-icon-theme-name=\"$icon_theme\"/" "$HOME/.gtkrc-2.0" || true
+  # Qt5ct palette.
+  [ -f "$HOME/.config/qt5ct/qt5ct.conf" ] && sed -i "s|^color_scheme_path=.*|color_scheme_path=/usr/share/qt5ct/colors/$qt_scheme|" "$HOME/.config/qt5ct/qt5ct.conf" || true
+  # Foot: default for new windows + live-switch running ones.
+  [ -f "$HOME/.config/foot/foot.ini" ] && sed -i "s/^initial-color-theme=.*/initial-color-theme=$foot_init/" "$HOME/.config/foot/foot.ini" || true
+  pkill "$foot_sig" foot 2>/dev/null || true
+}
+
 # QuickShell only: write the chosen light/dark mode for the bar to read.
 # Matugen stays dark/light per PREFER but qs-theme only affects QuickShell's
 # pill coloring (the rest of the system follows the matugen run above).
 printf '%s\n' "$QUICK" > "$QUICK_THEME_FILE"
+
+echo "@@stage system"
+apply_system_theme "$MODE"
 
 # Remember the last applied wallpaper so the picker can preselect it.
 printf '%s\n' "$IMG" > "$CACHE/current.txt"
