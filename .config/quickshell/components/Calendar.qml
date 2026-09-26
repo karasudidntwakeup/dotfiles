@@ -38,6 +38,14 @@ PanelWindow {
     readonly property color accentCol: rootRef
         ? (rootRef.pillColor ? rootRef.pillColor("primary") : (rootRef.primary || "#4a9eff"))
         : "#4a9eff"
+
+    // Done-task green: theme's green token pulled 60% toward black.
+    // The raw token is neon (≈2:1 on the light card); this lands near
+    // #296629, ≈7:1 against the pastel popup, so dots and text stay
+    // legible instead of washing out.
+    readonly property color doneGreen: rootRef && rootRef.mixColor
+        ? rootRef.mixColor(rootRef.colorOf("green"), "#000000", 0.6)
+        : "#2e7d32"
     readonly property color accentFg: rootRef
         ? (rootRef.luminance(Qt.color(accentCol)) > 0.45 ? "#000000" : "#ffffff")
         : "#ffffff"
@@ -48,6 +56,25 @@ PanelWindow {
 
     property var notes: ({})
     property string selectedKey: ""
+
+    // tmn73.calendar ideas: Monday-first grid with Sunday toggle,
+    // ISO week numbers, always-6-row fixed grid.
+    // 1 = Monday, 0 = Sunday (JS Date.getDay() convention).
+    property int weekStart: 1
+    // Real events from ~/.local/state/omarchy/calendar-events.json
+    // (written by tmn73.calendar sync or any writer following the
+    // same contract: {version:1, events:[{id,dateKey,start,end,
+    // allDay,title,color,meetingUrl,eventUrl,responseStatus,...}]}).
+    property var realEvents: ({})
+    property var realEventList: []
+    property string eventsSyncInfo: ""
+    property date nowTick: new Date()
+    // True while the grid shows the current month — the top date shows
+    // today then, otherwise it shows the month being browsed.
+    readonly property bool viewingCurrentMonth: {
+        var n = calPopup.nowTick
+        return calPopup.shownYear === n.getFullYear() && calPopup.shownMonth === n.getMonth()
+    }
 
     property var entries: []
     property int selectedEntryId: -1
@@ -109,6 +136,25 @@ PanelWindow {
             id: notesAdapter
             property var notes: ({})
         }
+    }
+
+    // Watches the tmn73.calendar events file; any writer following the
+    // contract (Google sync, khal, vdirsyncer, ICS script) lights up here.
+    FileView {
+        id: realEventsFile
+        path: (Quickshell.env("HOME") || "") + "/.local/state/omarchy/calendar-events.json"
+        watchChanges: true
+        printErrors: false
+        onLoaded: calPopup.applyRealEvents(text())
+        onLoadFailed: calPopup.applyRealEvents("")
+        onFileChanged: realEventsFile.reload()
+    }
+
+    Timer {
+        interval: 60000
+        running: true
+        repeat: true
+        onTriggered: calPopup.nowTick = new Date()
     }
 
     Component.onCompleted: {
@@ -179,35 +225,228 @@ PanelWindow {
         return true
     }
 
-    function monthName(m) {
-        var names = ["January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December"]
-        return names[m]
-    }
-
+    // Always 42 cells (6x7) so the popup never jumps height between
+    // months. Out-of-month days are kept dimmed but selectable.
     function rebuildModel() {
         calDays.clear()
-        var first = new Date(calPopup.shownYear, calPopup.shownMonth, 1).getDay()
-        var days = new Date(calPopup.shownYear, calPopup.shownMonth + 1, 0).getDate()
-        for (var i = 0; i < first; i++) calDays.append({ day: 0 })
-        for (var d = 1; d <= days; d++) calDays.append({ day: d })
+        var y = calPopup.shownYear
+        var m = calPopup.shownMonth
+        var leading = (new Date(y, m, 1).getDay() - calPopup.weekStart + 7) % 7
+        for (var i = 0; i < 42; i++) {
+            var dt = new Date(y, m, 1 - leading + i)
+            var cy = dt.getFullYear()
+            var cm = dt.getMonth()
+            var cd = dt.getDate()
+            calDays.append({
+                day: cd,
+                inMonth: (cm === m && cy === y) ? 1 : 0,
+                cellY: cy,
+                cellM: cm,
+                week: calPopup.isoWeekFor(new Date(cy, cm, cd))
+            })
+        }
+    }
+
+    function toggleWeekStart() {
+        calPopup.weekStart = calPopup.weekStart === 1 ? 0 : 1
+        calPopup.rebuildModel()
+    }
+
+    function goToToday() {
+        var n = new Date()
+        calPopup.shownYear = n.getFullYear()
+        calPopup.shownMonth = n.getMonth()
+        calPopup.rebuildModel()
+    }
+
+    function weekdayOrder() {
+        var names = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
+        var out = []
+        for (var i = 0; i < 7; i++) out.push(names[(calPopup.weekStart + i) % 7])
+        return out
+    }
+
+    // ISO-8601 week number: week owning the Thursday.
+    function isoWeekFor(dt) {
+        var d = new Date(Date.UTC(dt.getFullYear(), dt.getMonth(), dt.getDate()))
+        var wd = d.getUTCDay() || 7
+        d.setUTCDate(d.getUTCDate() + 4 - wd)
+        var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1))
+        return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
+    }
+
+    function rowWeekNumber(row) {
+        // Thursday of this grid row defines the ISO week.
+        var thursdayIdx = (4 - calPopup.weekStart + 7) % 7
+        var idx = row * 7 + thursdayIdx
+        if (idx < 0 || idx >= calDays.count) return ""
+        var c = calDays.get(idx)
+        return calPopup.isoWeekFor(new Date(c.cellY, c.cellM, c.day))
+    }
+
+    // True while a text field owns focus, so month-step keys never fire
+    // mid-edit (a single-line field lets Up/Down propagate).
+    function navGuard() {
+        var f = calPopup.activeFocusItem
+        return !(f instanceof TextField) && !(f instanceof TextInput) && !(f instanceof TextArea)
     }
 
     function shiftMonth(amount) {
-        calPopup.shownMonth += amount
-        if (calPopup.shownMonth < 0) {
-            calPopup.shownMonth = 11
-            calPopup.shownYear--
-        } else if (calPopup.shownMonth > 11) {
-            calPopup.shownMonth = 0
-            calPopup.shownYear++
-        }
+        // Total-months math so ±12 (year steps) lands on the same month.
+        var total = calPopup.shownYear * 12 + calPopup.shownMonth + amount
+        var m = total % 12
+        if (m < 0) m += 12
+        calPopup.shownYear = Math.floor((total - m) / 12)
+        calPopup.shownMonth = m
         calPopup.rebuildModel()
     }
 
     function dateKey(y, m, d) {
         function pad(n) { return n < 10 ? "0" + n : "" + n }
         return y + "-" + pad(m + 1) + "-" + pad(d)
+    }
+
+    // ---- Real events (tmn73.calendar contract) ----
+    function applyRealEvents(raw) {
+        var index = {}
+        var list = []
+        var info = ""
+        if (raw) {
+            try {
+                var doc = JSON.parse(raw)
+                if (doc && doc.version === 1 && doc.events instanceof Array) {
+                    var evs = doc.events
+                    for (var i = 0; i < evs.length; i++) {
+                        var e = evs[i]
+                        if (!e || !e.dateKey) continue
+                        // Hide working-location markers + declined, like the plugin.
+                        if (String(e.eventType || "") === "workingLocation") continue
+                        if (String(e.responseStatus || "") === "declined") continue
+                        list.push(e)
+                        if (!index[e.dateKey]) index[e.dateKey] = []
+                        index[e.dateKey].push(e)
+                    }
+                    for (var k in index) {
+                        index[k].sort((a, b) => {
+                            var as = a.allDay ? "1" : "0"
+                            var bs = b.allDay ? "1" : "0"
+                            if (as !== bs) return as < bs ? -1 : 1
+                            return String(a.start || "") < String(b.start || "") ? -1 : 1
+                        })
+                    }
+                    var n = evs.length
+                    var when = ""
+                    if (doc.syncedAt) {
+                        var mins = Math.max(0, Math.round((Date.now() - Date.parse(doc.syncedAt)) / 60000))
+                        when = mins < 1 ? "just now" : mins < 60 ? mins + "m ago" : Math.floor(mins / 60) + "h ago"
+                    }
+                    info = n + (n === 1 ? " event" : " events") + (when ? " · " + when : "")
+                } else if (doc && doc.version !== undefined) {
+                    info = "events file v" + doc.version + " unsupported"
+                }
+            } catch (e2) { info = "" }
+        }
+        calPopup.realEvents = index
+        calPopup.realEventList = list
+        calPopup.eventsSyncInfo = info
+    }
+
+    function eventDots(key) {
+        var arr = calPopup.realEvents[key]
+        if (!arr) return []
+        var colors = []
+        for (var i = 0; i < arr.length && colors.length < 3; i++) {
+            var c = arr[i].color || ""
+            if (c && colors.indexOf(c) < 0) colors.push(c)
+        }
+        return colors
+    }
+
+    // One entry per task (max 3): true = done (green dot), false = open.
+    function taskDots(key) {
+        var arr = calPopup.notes[key]
+        if (!arr || !arr.length) return []
+        var out = []
+        for (var i = 0; i < arr.length && out.length < 3; i++)
+            out.push(!!arr[i].done)
+        return out
+    }
+
+    function fmtClock(iso) {
+        var ms = Date.parse(iso)
+        if (isNaN(ms)) return ""
+        return Qt.formatDateTime(new Date(ms), "HH:mm")
+    }
+
+    function eventPhase(e) {
+        if (!e || e.allDay) return "later"
+        var now = calPopup.nowTick.getTime()
+        var s = Date.parse(e.start)
+        var en = Date.parse(e.end)
+        if (isNaN(s)) return "later"
+        if (isNaN(en) || en < s) en = s
+        if (en <= now) return "past"
+        if (s <= now) return "now"
+        return "later"
+    }
+
+    function formatCountdown(ms) {
+        if (ms === null || ms === undefined || isNaN(ms) || ms < 0) return ""
+        if (ms >= 86400000) return ""
+        if (ms < 60000) return "now"
+        var mins = Math.floor(ms / 60000)
+        if (mins < 60) return "in " + mins + "min"
+        var h = Math.floor(mins / 60)
+        var r = mins % 60
+        return r === 0 ? "in " + h + "h" : "in " + h + "h " + r + "min"
+    }
+
+    function nextCountdownToday() {
+        var key = calPopup.dateKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate())
+        var arr = calPopup.realEvents[key] || []
+        var now = calPopup.nowTick.getTime()
+        var best = -1
+        var bestMs = 0
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i].allDay) continue
+            var s = Date.parse(arr[i].start)
+            if (isNaN(s) || s < now) continue
+            if (best < 0 || s < bestMs) { best = i; bestMs = s }
+        }
+        if (best < 0) return ""
+        return calPopup.formatCountdown(bestMs - now)
+    }
+
+    function safeHttps(url) {
+        var t = String(url || "").trim()
+        if (t.indexOf("https://") !== 0) return ""
+        if (/[\s"'<>]/.test(t)) return ""
+        return t
+    }
+
+    function isJoinable(e) {
+        var m = calPopup.safeHttps(e && e.meetingUrl)
+        if (!m) return false
+        if (e.allDay) {
+            var k = calPopup.dateKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate())
+            return e.dateKey === k
+        }
+        var now = calPopup.nowTick.getTime()
+        var s = Date.parse(e.start)
+        var en = Date.parse(e.end)
+        if (isNaN(s)) return false
+        if (isNaN(en) || en < s) en = s
+        return now >= s - 15 * 60000 && now <= en + 15 * 60000
+    }
+
+    function openRealEvent(e) {
+        var u = calPopup.safeHttps(e && (e.eventUrl || e.meetingUrl))
+        if (u) Quickshell.execDetached(["xdg-open", u])
+    }
+
+    function joinMeeting(e) {
+        var u = calPopup.safeHttps(e && e.meetingUrl)
+        if (u) Quickshell.execDetached(["xdg-open", u])
     }
 
     function toEntryList(v) {
@@ -400,6 +639,20 @@ PanelWindow {
             if (calPopup.rootRef && calPopup.rootRef.closeCalendar) calPopup.rootRef.closeCalendar()
             else calPopup.close()
         }
+        // Keyboard month stepping, like the plugin: arrows move months
+        // (up/down = year), t = today, w = week start, [ ] = month.
+        Keys.onLeftPressed: event => { if (calPopup.navGuard()) calPopup.shiftMonth(-1) }
+        Keys.onRightPressed: event => { if (calPopup.navGuard()) calPopup.shiftMonth(1) }
+        Keys.onUpPressed: event => { if (calPopup.navGuard()) calPopup.shiftMonth(-12) }
+        Keys.onDownPressed: event => { if (calPopup.navGuard()) calPopup.shiftMonth(12) }
+        Keys.onPressed: event => {
+            if (!calPopup.navGuard()) return
+            var t = event.text || ""
+            if (t === "[") { calPopup.shiftMonth(-1); event.accepted = true }
+            else if (t === "]") { calPopup.shiftMonth(1); event.accepted = true }
+            else if (t === "t" || t === "T") { calPopup.goToToday(); event.accepted = true }
+            else if (t === "w" || t === "W") { calPopup.toggleWeekStart(); event.accepted = true }
+        }
 
         MouseArea {
             id: calDismiss
@@ -413,7 +666,7 @@ PanelWindow {
 
         Rectangle {
             id: calPopupBody
-            width: 320
+            width: 372
             anchors.top: calPopupContent.top
             anchors.right: calPopupContent.right
             // Size follows content like the other popup cards (no hardcoded override).
@@ -461,6 +714,7 @@ PanelWindow {
                 Rectangle {
                     Layout.preferredWidth: 26
                     Layout.preferredHeight: 26
+                    Layout.alignment: Qt.AlignVCenter
                     radius: 0
                     color: calPrevHover.containsMouse ? rootRef.withAlpha(calPopup.popupFg, 0.15) : "transparent"
 
@@ -480,15 +734,50 @@ PanelWindow {
                     }
                 }
 
-                Text {
+                // Top-center date, styled like every other popup header:
+                // +1 DemiBold title with a dimmed secondary tail.
+                Item {
                     Layout.fillWidth: true
-                    text: calPopup.monthName(calPopup.shownMonth) + " " + calPopup.shownYear
-                    color: calPopup.popupFg
-                    font.family: rootRef.uiFont
-                    font.pixelSize: rootRef.fontSize + 1
-                    font.weight: Font.DemiBold
-                    horizontalAlignment: Text.AlignHCenter
-                    elide: Text.ElideRight
+                    Layout.preferredHeight: 26
+
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: 6
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: calPopup.viewingCurrentMonth
+                                ? Qt.formatDate(calPopup.nowTick, "MMM d")
+                                : Qt.formatDate(new Date(calPopup.shownYear, calPopup.shownMonth, 1), "MMM yyyy")
+                            color: heroMouse.containsMouse ? calPopup.accentCol : calPopup.popupFg
+                            font.family: rootRef.uiFont
+                            font.pixelSize: rootRef.fontSize + 1
+                            font.weight: Font.DemiBold
+                        }
+
+                        Text {
+                            visible: calPopup.viewingCurrentMonth
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: {
+                                var s = Qt.formatDate(calPopup.nowTick, "dddd")
+                                var cd = calPopup.nextCountdownToday()
+                                return "·  " + (cd ? s + "  ·  " + cd : s)
+                            }
+                            color: calPopup.popupFg
+                            opacity: 0.62
+                            font.family: rootRef.uiFont
+                            font.pixelSize: rootRef.fontSize - 1
+                            font.weight: Font.Medium
+                        }
+                    }
+
+                    MouseArea {
+                        id: heroMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: calPopup.goToToday()
+                    }
                 }
 
                 Rectangle {
@@ -538,35 +827,37 @@ PanelWindow {
 
             Row {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 22
-                Layout.bottomMargin: 16
-                spacing: 6
-
-                QIcon {
-                    anchors.verticalCenter: parent.verticalCenter
-                    source: Qt.resolvedUrl("../assets/icons/history.svg")
-                    color: calPopup.popupFg
-                    iconSize: rootRef.fontSize + 5
-                }
-
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: Qt.formatDate(new Date(), "dddd, MMMM d, yyyy")
-                    color: calPopup.popupFg
-                    font.family: rootRef.uiFont
-                    font.pixelSize: rootRef.fontSize
-                    font.weight: Font.Medium
-                }
-            }
-
-            Row {
-                Layout.fillWidth: true
                 Layout.preferredHeight: 18
+                spacing: 0
+
+                // "W" toggles Monday/Sunday week start.
+                Text {
+                    width: 28
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    text: "W"
+                    color: wToggleHover.containsMouse ? calPopup.accentCol : calPopup.popupFg
+                    opacity: wToggleHover.containsMouse ? 1.0 : 0.45
+                    font.family: rootRef.uiFont
+                    font.pixelSize: rootRef.fontSize - 2
+                    font.weight: Font.Bold
+
+                    MouseArea {
+                        id: wToggleHover
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: calPopup.toggleWeekStart()
+                    }
+                }
+
+                Item { width: 8; height: 1 }
 
                 Repeater {
-                    model: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
+                    model: calPopup.weekdayOrder()
                     delegate: Text {
-                        width: (calPopupBody.width - 24) / 7
+                        required property string modelData
+                        width: (calPopupBody.width - 24 - 36) / 7
                         horizontalAlignment: Text.AlignHCenter
                         text: modelData
                         color: calPopup.popupFg
@@ -578,79 +869,270 @@ PanelWindow {
                 }
             }
 
-            Grid {
-                id: calGrid
+            Row {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 190
-                columns: 7
-                columnSpacing: 0
-                rowSpacing: 2
+                Layout.preferredHeight: 192
+                spacing: 0
+
+                // Scroll on the grid steps months, like the plugin.
+                WheelHandler {
+                    onWheel: function(event) {
+                        if (event.angleDelta.y === 0) return
+                        calPopup.shiftMonth(event.angleDelta.y > 0 ? -1 : 1)
+                        event.accepted = true
+                    }
+                }
+
+                // ISO week numbers gutter.
+                Column {
+                    width: 28
+                    spacing: 0
+                    Repeater {
+                        model: 6
+                        delegate: Text {
+                            required property int index
+                            width: 28
+                            height: 32
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                            text: calPopup.rowWeekNumber(index)
+                            color: calPopup.popupFg
+                            opacity: 0.4
+                            font.family: rootRef.uiFont
+                            font.pixelSize: rootRef.fontSize - 2
+                        }
+                    }
+                }
+
+                Item { width: 8; height: 1 }
+
+                Grid {
+                    id: calGrid
+                    width: parent.width - 36
+                    height: 192
+                    columns: 7
+                    columnSpacing: 0
+                    rowSpacing: 2
+
+                    Repeater {
+                        model: ListModel { id: calDays }
+
+                        delegate: Item {
+                            required property int day
+                            required property int inMonth
+                            required property int cellY
+                            required property int cellM
+
+                            readonly property string key: calPopup.dateKey(cellY, cellM, day)
+                            readonly property bool isToday: {
+                                var t = new Date(cellY, cellM, day)
+                                var n = new Date()
+                                return t.getFullYear() === n.getFullYear()
+                                    && t.getMonth() === n.getMonth()
+                                    && t.getDate() === n.getDate()
+                            }
+                            readonly property bool isSelected: calPopup.selectedKey === key
+                            readonly property bool hasNote: calPopup.notes[key] !== undefined
+                            readonly property var dots: calPopup.eventDots(key)
+                            readonly property var taskDots: calPopup.taskDots(key)
+                            readonly property bool hasDots: dots.length > 0 || taskDots.length > 0
+
+                            width: (calPopupBody.width - 24 - 36) / 7
+                            height: 30
+
+                            Rectangle {
+                                anchors.fill: parent
+                                anchors.margins: 2
+                                radius: 0
+                                border.width: isToday && !isSelected ? 1 : 0
+                                border.color: rootRef ? rootRef.withAlpha(calPopup.accentCol, 0.55) : "transparent"
+                                color: isSelected
+                                    ? calPopup.accentCol
+                                    : dayHover.containsMouse
+                                        ? rootRef.withAlpha(calPopup.popupFg, 0.18)
+                                        : isToday ? (rootRef ? rootRef.withAlpha(calPopup.accentCol, 0.35) : "transparent") : "transparent"
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    anchors.verticalCenterOffset: hasDots ? -3 : 0
+                                    text: day
+                                    color: isSelected ? calPopup.accentFg : calPopup.popupFg
+                                    opacity: inMonth ? 1.0 : 0.35
+                                    font.family: rootRef.uiFont
+                                    font.pixelSize: rootRef.fontSize
+                                    font.weight: isToday || isSelected ? Font.Bold : Font.Normal
+                                }
+
+                                // Real-event colour dots (max 3) + one dot per
+                                // task (max 3): green = done, accent = open.
+                                Row {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    anchors.bottom: parent.bottom
+                                    anchors.bottomMargin: 3
+                                    spacing: 2
+                                    visible: hasDots
+
+                                    Repeater {
+                                        model: dots
+                                        delegate: Rectangle {
+                                            required property var modelData
+                                            width: 4
+                                            height: 4
+                                            radius: 2
+                                            color: modelData
+                                            opacity: inMonth ? 0.9 : 0.4
+                                        }
+                                    }
+
+                                    Repeater {
+                                        model: taskDots
+                                        delegate: Rectangle {
+                                            required property bool modelData
+                                            width: 4
+                                            height: 4
+                                            radius: 2
+                                            color: modelData ? calPopup.doneGreen
+                                                : (isSelected ? calPopup.accentFg : calPopup.accentCol)
+                                            opacity: inMonth ? 0.9 : 0.4
+                                        }
+                                    }
+                                }
+
+                                MouseArea {
+                                    id: dayHover
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: calPopup.selectDay(key)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Sync state line (event count + age), like the plugin's
+            // Sync row. The next-event countdown lives under the hero.
+            Text {
+                Layout.fillWidth: true
+                visible: text.length > 0
+                text: calPopup.eventsSyncInfo
+                color: calPopup.popupFg
+                opacity: 0.5
+                font.family: rootRef.uiFont
+                font.pixelSize: rootRef.fontSize - 2
+                horizontalAlignment: Text.AlignHCenter
+                elide: Text.ElideRight
+            }
+
+            // Selected day's real agenda (tmn73.calendar): timeline rows with
+            // past faded, in-progress highlighted, countdown on the next one,
+            // and a Join button while a meeting is live.
+            ColumnLayout {
+                id: agendaBox
+                Layout.fillWidth: true
+                visible: (calPopup.realEvents[calPopup.selectedKey.length > 0
+                    ? calPopup.selectedKey
+                    : calPopup.dateKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate())] || []).length > 0
+                spacing: 4
+
+                readonly property string agendaKey: calPopup.selectedKey.length > 0
+                    ? calPopup.selectedKey
+                    : calPopup.dateKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate())
+                readonly property var agendaEvents: calPopup.realEvents[agendaBox.agendaKey] || []
 
                 Repeater {
-                    model: ListModel { id: calDays }
-
-                    delegate: Item {
-                        required property int day
-
-                        readonly property string key: day > 0
-                            ? calPopup.dateKey(calPopup.shownYear, calPopup.shownMonth, day)
-                            : ""
-                        readonly property bool isToday: {
-                            if (day === 0) return false
-                            var t = new Date(calPopup.shownYear, calPopup.shownMonth, day)
-                            var n = new Date()
-                            return t.getFullYear() === n.getFullYear()
-                                && t.getMonth() === n.getMonth()
-                                && t.getDate() === n.getDate()
-                        }
-                        readonly property bool isSelected: key.length > 0 && calPopup.selectedKey === key
-                        readonly property bool hasNote: key.length > 0 && calPopup.notes[key] !== undefined
-
-                        width: (calPopupBody.width - 24) / 7
-                        height: 30
+                    model: agendaBox.agendaEvents
+                    delegate: RowLayout {
+                        required property var modelData
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 24
+                        spacing: 6
+                        opacity: calPopup.eventPhase(modelData) === "past" ? 0.45 : 1.0
 
                         Rectangle {
-                            anchors.fill: parent
-                            anchors.margins: 2
+                            Layout.preferredWidth: 3
+                            Layout.fillHeight: true
                             radius: 0
-                            visible: day > 0
-                            border.width: isToday && !isSelected ? 1 : 0
-                            border.color: rootRef ? rootRef.withAlpha(calPopup.accentCol, 0.55) : "transparent"
-                            color: isSelected
-                                ? calPopup.accentCol
-                                : dayHover.containsMouse
-                                    ? rootRef.withAlpha(calPopup.popupFg, 0.18)
-                                    : isToday ? (rootRef ? rootRef.withAlpha(calPopup.accentCol, 0.35) : "transparent") : "transparent"
+                            color: modelData.color || calPopup.accentCol
+                        }
+
+                        Text {
+                            Layout.preferredWidth: 44
+                            text: modelData.allDay ? "all day" : calPopup.fmtClock(modelData.start)
+                            color: calPopup.eventPhase(modelData) === "now" ? calPopup.accentCol : calPopup.popupFg
+                            opacity: modelData.allDay ? 0.6 : 1.0
+                            font.family: rootRef.uiFont
+                            font.pixelSize: rootRef.fontSize - 2
+                            font.weight: calPopup.eventPhase(modelData) === "now" ? Font.Bold : Font.Normal
+                            elide: Text.ElideRight
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: {
+                                var t = modelData.title || "(no title)"
+                                if (calPopup.eventPhase(modelData) !== "now") return t
+                                var left = modelData.end ? Date.parse(modelData.end) - calPopup.nowTick.getTime() : NaN
+                                if (!isNaN(left) && left > 0 && left < 3600000)
+                                    return t + " · " + Math.ceil(left / 60000) + "min left"
+                                return t
+                            }
+                            color: calPopup.eventPhase(modelData) === "now" ? calPopup.accentCol : calPopup.popupFg
+                            font.family: rootRef.uiFont
+                            font.pixelSize: rootRef.fontSize - 1
+                            font.weight: calPopup.eventPhase(modelData) === "now" ? Font.Bold : Font.Normal
+                            elide: Text.ElideRight
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        Text {
+                            visible: {
+                                if (modelData.allDay || calPopup.eventPhase(modelData) !== "later") return false
+                                var s = Date.parse(modelData.start)
+                                return !isNaN(s) && s >= calPopup.nowTick.getTime()
+                            }
+                            text: calPopup.formatCountdown(Date.parse(modelData.start) - calPopup.nowTick.getTime())
+                            color: calPopup.popupFg
+                            opacity: 0.6
+                            font.family: rootRef.uiFont
+                            font.pixelSize: rootRef.fontSize - 2
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        Rectangle {
+                            visible: calPopup.isJoinable(modelData)
+                            z: 2
+                            Layout.preferredWidth: 44
+                            Layout.preferredHeight: 20
+                            radius: 0
+                            color: joinHover.containsMouse
+                                ? rootRef.withAlpha(calPopup.accentCol, 0.85)
+                                : calPopup.accentCol
 
                             Text {
                                 anchors.centerIn: parent
-                                visible: day > 0
-                                text: day
-                                color: isSelected ? calPopup.accentFg : calPopup.popupFg
+                                text: "Join"
+                                color: calPopup.accentFg
                                 font.family: rootRef.uiFont
-                                font.pixelSize: rootRef.fontSize
-                                font.weight: isToday || isSelected ? Font.Bold : Font.Normal
-                            }
-
-                            Rectangle {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                anchors.bottom: parent.bottom
-                                anchors.bottomMargin: 3
-                                visible: hasNote
-                                width: 4
-                                height: 4
-                                radius: 0
-                                color: isSelected ? calPopup.accentFg : calPopup.accentCol
+                                font.pixelSize: rootRef.fontSize - 2
+                                font.weight: Font.Bold
                             }
 
                             MouseArea {
-                                id: dayHover
+                                id: joinHover
                                 anchors.fill: parent
-                                visible: day > 0
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: calPopup.selectDay(key)
+                                onClicked: calPopup.joinMeeting(modelData)
                             }
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: modelData.eventUrl || modelData.meetingUrl ? Qt.PointingHandCursor : Qt.ArrowCursor
+                            onClicked: calPopup.openRealEvent(modelData)
                         }
                     }
                 }
@@ -886,7 +1368,7 @@ PanelWindow {
                                         Layout.fillWidth: true
                                         Layout.fillHeight: true
                                         text: entryText
-                                        color: calPopup.popupFg
+                                        color: entryDone ? calPopup.doneGreen : calPopup.popupFg
                                         font.family: rootRef.uiFont
                                         font.pixelSize: rootRef.fontSize
                                         font.strikeout: entryDone

@@ -16,7 +16,7 @@ Item {
     readonly property int pad: 14
     readonly property int panelMaxHeight: Math.max(120, Math.round(center.height - 40))
     readonly property bool weekOn: rootRef && rootRef.weatherWeek && rootRef.weatherWeek.length > 0
-    readonly property int weekHeight: 288
+    readonly property int weekHeight: 202
     readonly property int mountedDiskCount: rootRef && rootRef.mountedDisks ? rootRef.mountedDisks.length : 0
     readonly property int mountedDisksHeight: Math.ceil(center.mountedDiskCount / 2) * 106
     readonly property var removableList: rootRef && rootRef.removableDrives ? rootRef.removableDrives : []
@@ -477,13 +477,13 @@ Item {
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 12
-                    spacing: 6
+                    anchors.margins: 8
+                    spacing: 3
 
                     RowLayout {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 26
-                        spacing: 8
+                        Layout.preferredHeight: 20
+                        spacing: 6
 
                         Text {
                             visible: rootRef ? !rootRef.weatherIsY2kMoon() : false
@@ -491,7 +491,7 @@ Item {
                             text: rootRef ? rootRef.weatherGlyph() : ""
                             color: weekWidget.wfg
                             font.family: center.iconFont
-                            font.pixelSize: center.fontSize + 6
+                            font.pixelSize: center.fontSize + 2
                         }
 
                         QIcon {
@@ -499,7 +499,7 @@ Item {
                             Layout.alignment: Qt.AlignVCenter
                             source: Qt.resolvedUrl("../assets/icons/y2k-moon-star.svg")
                             color: weekWidget.wfg
-                            iconSize: center.fontSize + 6
+                            iconSize: center.fontSize + 2
                         }
 
                         Text {
@@ -507,14 +507,14 @@ Item {
                             text: rootRef ? rootRef.weatherText : ""
                             color: weekWidget.wfg
                             font.family: center.uiFont
-                            font.pixelSize: center.fontSize + 4
+                            font.pixelSize: center.fontSize + 1
                             font.weight: Font.Bold
                             elide: Text.ElideRight
                         }
 
                         Rectangle {
-                            Layout.preferredWidth: 24
-                            Layout.preferredHeight: 24
+                            Layout.preferredWidth: 20
+                            Layout.preferredHeight: 20
                             radius: 0
                             color: weekRefreshHover.containsMouse ? Qt.rgba(weekWidget.wfg.r, weekWidget.wfg.g, weekWidget.wfg.b, 0.15) : "transparent"
 
@@ -522,7 +522,7 @@ Item {
                                 anchors.centerIn: parent
                                 source: Qt.resolvedUrl("../assets/icons/refresh.svg")
                                 color: weekWidget.wfg
-                                iconSize: center.fontSize + 2
+                                iconSize: center.fontSize - 1
                             }
 
                             MouseArea {
@@ -541,38 +541,38 @@ Item {
                             required property var modelData
                             required property int index
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 28
-                            spacing: 8
+                            Layout.preferredHeight: 20
+                            spacing: 6
 
                             Text {
-                                Layout.preferredWidth: 52
+                                Layout.preferredWidth: 44
                                 text: modelData.day
                                 color: weekWidget.wfg
                                 opacity: index === 0 ? 1.0 : 0.7
                                 font.family: center.uiFont
-                                font.pixelSize: center.fontSize
+                                font.pixelSize: center.fontSize - 1
                                 font.weight: index === 0 ? Font.Bold : Font.Normal
                                 elide: Text.ElideRight
                             }
                             Text {
-                                Layout.preferredWidth: 22
+                                Layout.preferredWidth: 18
                                 horizontalAlignment: Text.AlignHCenter
                                 text: center.weekGlyph(modelData.key)
                                 color: weekWidget.wfg
                                 font.family: center.iconFont
-                                font.pixelSize: center.fontSize + 4
+                                font.pixelSize: center.fontSize + 1
                             }
                             Text {
-                                Layout.preferredWidth: 34
+                                Layout.preferredWidth: 28
                                 horizontalAlignment: Text.AlignRight
                                 text: modelData.min + "°"
                                 color: weekWidget.wdim
                                 font.family: center.uiFont
-                                font.pixelSize: center.fontSize
+                                font.pixelSize: center.fontSize - 1
                             }
                             Item {
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 4
+                                Layout.preferredHeight: 3
 
                                 Rectangle {
                                     anchors.fill: parent
@@ -580,7 +580,7 @@ Item {
                                     color: Qt.rgba(weekWidget.wfg.r, weekWidget.wfg.g, weekWidget.wfg.b, 0.18)
                                 }
                                 Rectangle {
-                                    height: 4
+                                    height: 3
                                     radius: 0
                                     color: weekWidget.wfg
                                     width: parent.width * center.weekFrac(modelData.min, modelData.max)[1]
@@ -588,11 +588,11 @@ Item {
                                 }
                             }
                             Text {
-                                Layout.preferredWidth: 34
+                                Layout.preferredWidth: 28
                                 text: modelData.max + "°"
                                 color: weekWidget.wfg
                                 font.family: center.uiFont
-                                font.pixelSize: center.fontSize
+                                font.pixelSize: center.fontSize - 1
                                 font.weight: Font.DemiBold
                             }
                         }
