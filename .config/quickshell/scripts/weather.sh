@@ -27,7 +27,7 @@ if not lat or not lon:
     lat, lon, city = 30.0444, 31.2357, "Cairo"  # Cairo fallback
 
 url = (f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}"
-       f"&current=temperature_2m,apparent_temperature,weather_code,is_day&timezone=auto")
+       f"&current=temperature_2m,apparent_temperature,weather_code,is_day,is_day&timezone=auto")
 data = get(url, 15)
 c = data.get("current") or {}
 t, code, day = c.get("temperature_2m"), c.get("weather_code"), c.get("is_day", 1)
