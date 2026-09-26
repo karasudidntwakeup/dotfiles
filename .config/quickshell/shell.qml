@@ -77,6 +77,8 @@ ShellRoot {
         var color = Qt.color(accent)
         // Tonal pills follow the mode: light pills on light mode, dark
         // pills on dark mode, so text picked by contrastColor stays readable.
+        // Tonal pills follow the mode: light pills on light mode, dark
+        // pills on dark mode, so text picked by contrastColor stays readable.
         var lightness = root.qsLight
             ? Math.max(color.hslLightness, 0.76)
             : Math.min(color.hslLightness, 0.24)
@@ -1034,7 +1036,7 @@ ShellRoot {
         readonly property bool staticMode: Quickshell.env("QS_NO_DYNAMIC") === "1" || root.memPercent >= 85
         // Pill gets its own `wifi` token (peach) — wifi strength is also
         // shown by the live arcs inside. Red only offline.
-        readonly property color tint: root.networkConnected ? root.pillColor("wifi") : root.pillColor("error")
+        readonly property color tint: root.networkConnected ? root.pillColor("keymap") : root.pillColor("error")
         readonly property color pillTextColor: root.pillForeground(dc.color)
         readonly property bool hovering: dcArea.containsMouse || dcArea.pressed
         // Smoothed signal so arcs animate live instead of jumping.
@@ -2076,7 +2078,7 @@ function closeOverlays() {
                         iconSource: root.weatherIsY2kMoon() ? y2kMoonSource : null
                         iconSize: root.fontSize + 11
                         label: root.weatherText
-                        tint: root.pillColor("primary_fixed_dim")
+                        tint: root.pillColor("mauve")
                         visible: root.weatherText.length > 0
 
                         Component {
@@ -2093,7 +2095,7 @@ function closeOverlays() {
                         id: prayerPill
                         enterOrder: 1
                         label: root.prayerText
-                        tint: root.pillColor("prayer")
+                        tint: root.memTint(root.memPercent)
                         visible: root.prayerText.length > 0
                     }
 
@@ -2189,10 +2191,10 @@ function closeOverlays() {
 
                         implicitWidth: clockRow.implicitWidth + 20
                         implicitHeight: root.pillHeight
-                        radius: root.pillRadius
-                        color: root.tonalPillColor(tint)
-                        border.width: 1
-                        border.color: Qt.rgba(1, 1, 1, 0.12)
+        radius: root.pillRadius
+        color: root.tonalPillColor(tint)
+        border.width: 1
+        border.color: Qt.rgba(1, 1, 1, 0.12)
                         property real enterShift: 10
                         opacity: 0
                         transform: Translate { y: clockPill.enterShift }

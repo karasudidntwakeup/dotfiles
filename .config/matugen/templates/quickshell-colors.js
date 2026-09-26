@@ -3,108 +3,110 @@
  * Generated with Matugen
  */
 
-/* Base scheme colors used by the shell */
+/* Base scheme colors used by the shell (always the DARK scheme;
+   light variants live in the *_light roles below, so colors.js carries
+   both modes no matter which --mode matugen ran with). */
 
-var primary = "{{colors.primary.default.hex}}"
+var primary = "{{colors.primary.dark.hex}}"
 
-var on_primary = "{{colors.on_primary.default.hex}}"
+var on_primary = "{{colors.on_primary.dark.hex}}"
 
-var primary_container = "{{colors.primary_container.default.hex}}"
+var primary_container = "{{colors.primary_container.dark.hex}}"
 
-var on_primary_container = "{{colors.on_primary_container.default.hex}}"
+var on_primary_container = "{{colors.on_primary_container.dark.hex}}"
 
-var inverse_primary = "{{colors.inverse_primary.default.hex}}"
+var inverse_primary = "{{colors.inverse_primary.dark.hex}}"
 
-var primary_fixed = "{{colors.primary_fixed.default.hex}}"
+var primary_fixed = "{{colors.primary_fixed.dark.hex}}"
 
-var primary_fixed_dim = "{{colors.primary_fixed_dim.default.hex}}"
+var primary_fixed_dim = "{{colors.primary_fixed_dim.dark.hex}}"
 
-var on_primary_fixed = "{{colors.on_primary_fixed.default.hex}}"
+var on_primary_fixed = "{{colors.on_primary_fixed.dark.hex}}"
 
-var on_primary_fixed_variant = "{{colors.on_primary_fixed_variant.default.hex}}"
+var on_primary_fixed_variant = "{{colors.on_primary_fixed_variant.dark.hex}}"
 
-var secondary = "{{colors.secondary.default.hex}}"
+var secondary = "{{colors.secondary.dark.hex}}"
 
-var on_secondary = "{{colors.on_secondary.default.hex}}"
+var on_secondary = "{{colors.on_secondary.dark.hex}}"
 
-var secondary_container = "{{colors.secondary_container.default.hex}}"
+var secondary_container = "{{colors.secondary_container.dark.hex}}"
 
-var on_secondary_container = "{{colors.on_secondary_container.default.hex}}"
+var on_secondary_container = "{{colors.on_secondary_container.dark.hex}}"
 
-var secondary_fixed = "{{colors.secondary_fixed.default.hex}}"
+var secondary_fixed = "{{colors.secondary_fixed.dark.hex}}"
 
-var secondary_fixed_dim = "{{colors.secondary_fixed_dim.default.hex}}"
+var secondary_fixed_dim = "{{colors.secondary_fixed_dim.dark.hex}}"
 
-var on_secondary_fixed = "{{colors.on_secondary_fixed.default.hex}}"
+var on_secondary_fixed = "{{colors.on_secondary_fixed.dark.hex}}"
 
-var on_secondary_fixed_variant = "{{colors.on_secondary_fixed_variant.default.hex}}"
+var on_secondary_fixed_variant = "{{colors.on_secondary_fixed_variant.dark.hex}}"
 
-var tertiary = "{{colors.tertiary.default.hex}}"
+var tertiary = "{{colors.tertiary.dark.hex}}"
 
-var on_tertiary = "{{colors.on_tertiary.default.hex}}"
+var on_tertiary = "{{colors.on_tertiary.dark.hex}}"
 
-var tertiary_container = "{{colors.tertiary_container.default.hex}}"
+var tertiary_container = "{{colors.tertiary_container.dark.hex}}"
 
-var on_tertiary_container = "{{colors.on_tertiary_container.default.hex}}"
+var on_tertiary_container = "{{colors.on_tertiary_container.dark.hex}}"
 
-var tertiary_fixed = "{{colors.tertiary_fixed.default.hex}}"
+var tertiary_fixed = "{{colors.tertiary_fixed.dark.hex}}"
 
-var tertiary_fixed_dim = "{{colors.tertiary_fixed_dim.default.hex}}"
+var tertiary_fixed_dim = "{{colors.tertiary_fixed_dim.dark.hex}}"
 
-var on_tertiary_fixed = "{{colors.on_tertiary_fixed.default.hex}}"
+var on_tertiary_fixed = "{{colors.on_tertiary_fixed.dark.hex}}"
 
-var on_tertiary_fixed_variant = "{{colors.on_tertiary_fixed_variant.default.hex}}"
+var on_tertiary_fixed_variant = "{{colors.on_tertiary_fixed_variant.dark.hex}}"
 
-var error = "{{colors.error.default.hex}}"
+var error = "{{colors.error.dark.hex}}"
 
-var on_error = "{{colors.on_error.default.hex}}"
+var on_error = "{{colors.on_error.dark.hex}}"
 
-var error_container = "{{colors.error_container.default.hex}}"
+var error_container = "{{colors.error_container.dark.hex}}"
 
-var on_error_container = "{{colors.on_error_container.default.hex}}"
+var on_error_container = "{{colors.on_error_container.dark.hex}}"
 
-var background = "{{colors.background.default.hex}}"
+var background = "{{colors.background.dark.hex}}"
 
-var on_background = "{{colors.on_background.default.hex}}"
+var on_background = "{{colors.on_background.dark.hex}}"
 
 var surface = "{{colors.surface.dark.hex}}"
 
-var on_surface = "{{colors.on_surface.default.hex}}"
+var on_surface = "{{colors.on_surface.dark.hex}}"
 
-var surface_variant = "{{colors.surface_variant.default.hex}}"
+var surface_variant = "{{colors.surface_variant.dark.hex}}"
 
-var on_surface_variant = "{{colors.on_surface_variant.default.hex}}"
+var on_surface_variant = "{{colors.on_surface_variant.dark.hex}}"
 
-var surface_dim = "{{colors.surface_dim.default.hex}}"
+var surface_dim = "{{colors.surface_dim.dark.hex}}"
 
-var surface_bright = "{{colors.surface_bright.default.hex}}"
+var surface_bright = "{{colors.surface_bright.dark.hex}}"
 
-var surface_tint = "{{colors.surface_tint.default.hex}}"
+var surface_tint = "{{colors.surface_tint.dark.hex}}"
 
-var inverse_surface = "{{colors.inverse_surface.default.hex}}"
+var inverse_surface = "{{colors.inverse_surface.dark.hex}}"
 
-var inverse_on_surface = "{{colors.inverse_on_surface.default.hex}}"
+var inverse_on_surface = "{{colors.inverse_on_surface.dark.hex}}"
 
-var outline = "{{colors.outline.default.hex}}"
+var outline = "{{colors.outline.dark.hex}}"
 
-var outline_variant = "{{colors.outline_variant.default.hex}}"
+var outline_variant = "{{colors.outline_variant.dark.hex}}"
 
-var scrim = "{{colors.scrim.default.hex}}"
+var scrim = "{{colors.scrim.dark.hex}}"
 
-var shadow = "{{colors.shadow.default.hex}}"
+var shadow = "{{colors.shadow.dark.hex}}"
 
-var source = "{{colors.source_color.default.hex}}"
+var source = "{{colors.source_color.dark.hex}}"
 
 /* Popup surface tones: neutral + raised variants used by popups. */
-var surface_container_lowest = "{{colors.surface_container_lowest.default.hex}}"
+var surface_container_lowest = "{{colors.surface_container_lowest.dark.hex}}"
 
-var surface_container_low = "{{colors.surface_container_low.default.hex}}"
+var surface_container_low = "{{colors.surface_container_low.dark.hex}}"
 
-var surface_container = "{{colors.surface_container.default.hex}}"
+var surface_container = "{{colors.surface_container.dark.hex}}"
 
-var surface_container_high = "{{colors.surface_container_high.default.hex}}"
+var surface_container_high = "{{colors.surface_container_high.dark.hex}}"
 
-var surface_container_highest = "{{colors.surface_container_highest.default.hex}}"
+var surface_container_highest = "{{colors.surface_container_highest.dark.hex}}"
 
 /* Light scheme variants (QS "Light" mode pill backgrounds) */
 
@@ -209,15 +211,15 @@ var surface_container_high_light = "{{colors.surface_container_high.light.hex}}"
 var surface_container_highest_light = "{{colors.surface_container_highest.light.hex}}"
 
 /* Custom widget colors */
-var prayer = "{{colors.secondary_container.default.hex}}"
+var prayer = "{{colors.secondary_container.dark.hex}}"
 
 var prayer_light = "{{colors.secondary_container.light.hex}}"
 
-var keymap = "{{colors.inverse_primary.default.hex}}"
+var keymap = "{{colors.inverse_primary.dark.hex}}"
 
 var keymap_light = "{{colors.inverse_primary.light.hex}}"
 
-var wifi = "{{colors.tertiary.default.hex}}"
+var wifi = "{{colors.tertiary.dark.hex}}"
 
 var wifi_light = "{{colors.tertiary.light.hex}}"
 
@@ -231,32 +233,38 @@ var wifi_light = "{{colors.tertiary.light.hex}}"
    prayer    -> secondary_container (yellow)
    keymap    -> inverse_primary     (mauve)
    wifi      -> tertiary            (peach) */
-var ytx_card = "{{colors.tertiary_container.default.hex}}"
+var ytx_card = "{{colors.tertiary_container.dark.hex}}"
 
 var ytx_card_light = "{{colors.tertiary_container.light.hex}}"
 
-var widget_card = "{{colors.tertiary_fixed_dim.default.hex}}"
+var widget_card = "{{colors.tertiary_fixed_dim.dark.hex}}"
 
 var widget_card_light = "{{colors.tertiary_fixed_dim.light.hex}}"
 
-var launcher_card = "{{colors.primary_container.default.hex}}"
+var launcher_card = "{{colors.primary_container.dark.hex}}"
 
 var launcher_card_light = "{{colors.primary_container.light.hex}}"
 
-var notes_card = "{{colors.primary_fixed_dim.default.hex}}"
+var notes_card = "{{colors.primary_fixed_dim.dark.hex}}"
 
 var notes_card_light = "{{colors.primary_fixed_dim.light.hex}}"
 
-var whatsapp_card = "{{colors.secondary_fixed_dim.default.hex}}"
+var whatsapp_card = "{{colors.secondary_fixed_dim.dark.hex}}"
 
 var whatsapp_card_light = "{{colors.secondary_fixed_dim.light.hex}}"
 
-var notif_card = "{{colors.tertiary_fixed.default.hex}}"
+var notif_card = "{{colors.tertiary_fixed.dark.hex}}"
 
 var notif_card_light = "{{colors.tertiary_fixed.light.hex}}"
 
-var widget_accent = "{{colors.primary.default.hex}}"
+var widget_accent = "{{colors.primary.dark.hex}}"
 
-var widget_border = "{{colors.outline_variant.default.hex}}"
+var widget_accent_light = "{{colors.primary.light.hex}}"
 
-var widget_error = "{{colors.error.default.hex}}"
+var widget_border = "{{colors.outline_variant.dark.hex}}"
+
+var widget_border_light = "{{colors.outline_variant.light.hex}}"
+
+var widget_error = "{{colors.error.dark.hex}}"
+
+var widget_error_light = "{{colors.error.light.hex}}"

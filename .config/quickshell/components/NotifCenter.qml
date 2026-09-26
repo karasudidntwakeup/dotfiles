@@ -468,7 +468,7 @@ Item {
                 Layout.minimumHeight: center.weekHeight
                 visible: center.weekOn
                 radius: 0
-                color: rootRef ? rootRef.tonalPillColor(rootRef.pillColor("primary_fixed_dim")) : "#1a1b1e"
+                color: rootRef ? rootRef.tonalPillColor(rootRef.pillColor("mauve")) : "#1a1b1e"
                 border.width: 0
                 clip: true
 
