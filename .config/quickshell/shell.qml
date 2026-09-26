@@ -1028,7 +1028,7 @@ ShellRoot {
                 Layout.alignment: Qt.AlignVCenter
                 font.family: root.fontFamily
                 font.pixelSize: root.fontSize
-                font.weight: Font.DemiBold
+                font.weight: Font.Normal
             }
         }
 
@@ -1204,7 +1204,7 @@ ShellRoot {
                 color: dc.pillTextColor
                 font.family: root.fontFamily
                 font.pixelSize: root.fontSize
-                font.weight: Font.DemiBold
+                font.weight: Font.Normal
             }
         }
 
@@ -1229,7 +1229,7 @@ ShellRoot {
                 color: !root.charging && root.batteryPercent < 15 ? root.pillColor("error") : "#ffffff"
                 font.family: root.fontFamily
                 font.pixelSize: root.fontSize - 1
-                font.weight: Font.DemiBold
+                font.weight: Font.Normal
             }
         }
 
@@ -2281,7 +2281,7 @@ function closeOverlays() {
                                 color: clockPill.pillTextColor
                                 font.family: root.fontFamily
                                 font.pixelSize: root.fontSize
-                                font.weight: Font.DemiBold
+                                font.weight: Font.Normal
                             }
 
                             Rectangle {
