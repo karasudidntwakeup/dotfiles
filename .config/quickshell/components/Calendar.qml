@@ -39,10 +39,7 @@ PanelWindow {
         ? (rootRef.pillColor ? rootRef.pillColor("primary") : (rootRef.primary || "#4a9eff"))
         : "#4a9eff"
 
-    // Done-task green: theme's green token pulled 60% toward black.
-    // The raw token is neon (≈2:1 on the light card); this lands near
-    // #296629, ≈7:1 against the pastel popup, so dots and text stay
-    // legible instead of washing out.
+    // Done green: theme token pulled 60% to black (≈7:1 on the card).
     readonly property color doneGreen: rootRef && rootRef.mixColor
         ? rootRef.mixColor(rootRef.colorOf("green"), "#000000", 0.6)
         : "#2e7d32"
@@ -57,20 +54,17 @@ PanelWindow {
     property var notes: ({})
     property string selectedKey: ""
 
-    // tmn73.calendar ideas: Monday-first grid with Sunday toggle,
-    // ISO week numbers, always-6-row fixed grid.
-    // 1 = Monday, 0 = Sunday (JS Date.getDay() convention).
+    // Monday-first grid (0 = Sunday toggle), ISO weeks, fixed 6 rows.
     property int weekStart: 1
-    // Real events from ~/.local/state/omarchy/calendar-events.json
-    // (written by tmn73.calendar sync or any writer following the
-    // same contract: {version:1, events:[{id,dateKey,start,end,
-    // allDay,title,color,meetingUrl,eventUrl,responseStatus,...}]}).
+    // Real events: ~/.local/state/omarchy/calendar-events.json, version 1.
     property var realEvents: ({})
-    property var realEventList: []
     property string eventsSyncInfo: ""
     property date nowTick: new Date()
-    // True while the grid shows the current month — the top date shows
-    // today then, otherwise it shows the month being browsed.
+    readonly property string todayKey: {
+        var n = calPopup.nowTick
+        return calPopup.dateKey(n.getFullYear(), n.getMonth(), n.getDate())
+    }
+    // Grid shows the current month: top date shows today, else the month.
     readonly property bool viewingCurrentMonth: {
         var n = calPopup.nowTick
         return calPopup.shownYear === n.getFullYear() && calPopup.shownMonth === n.getMonth()
@@ -138,8 +132,7 @@ PanelWindow {
         }
     }
 
-    // Watches the tmn73.calendar events file; any writer following the
-    // contract (Google sync, khal, vdirsyncer, ICS script) lights up here.
+    // Any events-file writer (sync, khal, vdirsyncer, ICS script) lands here.
     FileView {
         id: realEventsFile
         path: (Quickshell.env("HOME") || "") + "/.local/state/omarchy/calendar-events.json"
@@ -284,8 +277,7 @@ PanelWindow {
         return calPopup.isoWeekFor(new Date(c.cellY, c.cellM, c.day))
     }
 
-    // True while a text field owns focus, so month-step keys never fire
-    // mid-edit (a single-line field lets Up/Down propagate).
+    // False while a text field owns focus, so nav keys never fire mid-edit.
     function navGuard() {
         var f = calPopup.activeFocusItem
         return !(f instanceof TextField) && !(f instanceof TextInput) && !(f instanceof TextArea)
@@ -309,7 +301,6 @@ PanelWindow {
     // ---- Real events (tmn73.calendar contract) ----
     function applyRealEvents(raw) {
         var index = {}
-        var list = []
         var info = ""
         if (raw) {
             try {
@@ -322,7 +313,6 @@ PanelWindow {
                         // Hide working-location markers + declined, like the plugin.
                         if (String(e.eventType || "") === "workingLocation") continue
                         if (String(e.responseStatus || "") === "declined") continue
-                        list.push(e)
                         if (!index[e.dateKey]) index[e.dateKey] = []
                         index[e.dateKey].push(e)
                     }
@@ -347,28 +337,22 @@ PanelWindow {
             } catch (e2) { info = "" }
         }
         calPopup.realEvents = index
-        calPopup.realEventList = list
         calPopup.eventsSyncInfo = info
     }
 
-    function eventDots(key) {
-        var arr = calPopup.realEvents[key]
-        if (!arr) return []
-        var colors = []
-        for (var i = 0; i < arr.length && colors.length < 3; i++) {
-            var c = arr[i].color || ""
-            if (c && colors.indexOf(c) < 0) colors.push(c)
-        }
-        return colors
-    }
-
-    // One entry per task (max 3): true = done (green dot), false = open.
-    function taskDots(key) {
-        var arr = calPopup.notes[key]
-        if (!arr || !arr.length) return []
+    // Whole dot strip in one call: deduped event colors + one dot per
+    // task (doneGreen = done, accent = open). Single Repeater downstream.
+    function dayDots(key, selected) {
         var out = []
-        for (var i = 0; i < arr.length && out.length < 3; i++)
-            out.push(!!arr[i].done)
+        var evs = calPopup.realEvents[key] || []
+        for (var i = 0; i < evs.length && out.length < 3; i++) {
+            var c = evs[i].color || ""
+            if (c && out.indexOf(c) < 0) out.push(c)
+        }
+        var tasks = calPopup.notes[key] || []
+        var open = String(selected ? calPopup.accentFg : calPopup.accentCol)
+        for (var j = 0; j < tasks.length && out.length < 6; j++)
+            out.push(tasks[j].done ? String(calPopup.doneGreen) : open)
         return out
     }
 
@@ -402,8 +386,7 @@ PanelWindow {
     }
 
     function nextCountdownToday() {
-        var key = calPopup.dateKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate())
-        var arr = calPopup.realEvents[key] || []
+        var arr = calPopup.realEvents[calPopup.todayKey] || []
         var now = calPopup.nowTick.getTime()
         var best = -1
         var bestMs = 0
@@ -427,10 +410,7 @@ PanelWindow {
     function isJoinable(e) {
         var m = calPopup.safeHttps(e && e.meetingUrl)
         if (!m) return false
-        if (e.allDay) {
-            var k = calPopup.dateKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate())
-            return e.dateKey === k
-        }
+        if (e.allDay) return e.dateKey === calPopup.todayKey
         var now = calPopup.nowTick.getTime()
         var s = Date.parse(e.start)
         var en = Date.parse(e.end)
@@ -439,13 +419,8 @@ PanelWindow {
         return now >= s - 15 * 60000 && now <= en + 15 * 60000
     }
 
-    function openRealEvent(e) {
-        var u = calPopup.safeHttps(e && (e.eventUrl || e.meetingUrl))
-        if (u) Quickshell.execDetached(["xdg-open", u])
-    }
-
-    function joinMeeting(e) {
-        var u = calPopup.safeHttps(e && e.meetingUrl)
+    function openHttps(url) {
+        var u = calPopup.safeHttps(url)
         if (u) Quickshell.execDetached(["xdg-open", u])
     }
 
@@ -639,8 +614,7 @@ PanelWindow {
             if (calPopup.rootRef && calPopup.rootRef.closeCalendar) calPopup.rootRef.closeCalendar()
             else calPopup.close()
         }
-        // Keyboard month stepping, like the plugin: arrows move months
-        // (up/down = year), t = today, w = week start, [ ] = month.
+        // Arrows = months (up/down = year); t = today, w = week start, [ ] = month.
         Keys.onLeftPressed: event => { if (calPopup.navGuard()) calPopup.shiftMonth(-1) }
         Keys.onRightPressed: event => { if (calPopup.navGuard()) calPopup.shiftMonth(1) }
         Keys.onUpPressed: event => { if (calPopup.navGuard()) calPopup.shiftMonth(-12) }
@@ -734,8 +708,7 @@ PanelWindow {
                     }
                 }
 
-                // Top-center date, styled like every other popup header:
-                // +1 DemiBold title with a dimmed secondary tail.
+                // Top-center date in the house header style (+1 DemiBold).
                 Item {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 26
@@ -924,18 +897,9 @@ PanelWindow {
                             required property int cellM
 
                             readonly property string key: calPopup.dateKey(cellY, cellM, day)
-                            readonly property bool isToday: {
-                                var t = new Date(cellY, cellM, day)
-                                var n = new Date()
-                                return t.getFullYear() === n.getFullYear()
-                                    && t.getMonth() === n.getMonth()
-                                    && t.getDate() === n.getDate()
-                            }
+                            readonly property bool isToday: calPopup.todayKey === key
                             readonly property bool isSelected: calPopup.selectedKey === key
-                            readonly property bool hasNote: calPopup.notes[key] !== undefined
-                            readonly property var dots: calPopup.eventDots(key)
-                            readonly property var taskDots: calPopup.taskDots(key)
-                            readonly property bool hasDots: dots.length > 0 || taskDots.length > 0
+                            readonly property var dots: calPopup.dayDots(key, isSelected)
 
                             width: (calPopupBody.width - 24 - 36) / 7
                             height: 30
@@ -954,7 +918,7 @@ PanelWindow {
 
                                 Text {
                                     anchors.centerIn: parent
-                                    anchors.verticalCenterOffset: hasDots ? -3 : 0
+                                    anchors.verticalCenterOffset: dots.length > 0 ? -3 : 0
                                     text: day
                                     color: isSelected ? calPopup.accentFg : calPopup.popupFg
                                     opacity: inMonth ? 1.0 : 0.35
@@ -963,14 +927,12 @@ PanelWindow {
                                     font.weight: isToday || isSelected ? Font.Bold : Font.Normal
                                 }
 
-                                // Real-event colour dots (max 3) + one dot per
-                                // task (max 3): green = done, accent = open.
                                 Row {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     anchors.bottom: parent.bottom
                                     anchors.bottomMargin: 3
                                     spacing: 2
-                                    visible: hasDots
+                                    visible: dots.length > 0
 
                                     Repeater {
                                         model: dots
@@ -980,19 +942,6 @@ PanelWindow {
                                             height: 4
                                             radius: 2
                                             color: modelData
-                                            opacity: inMonth ? 0.9 : 0.4
-                                        }
-                                    }
-
-                                    Repeater {
-                                        model: taskDots
-                                        delegate: Rectangle {
-                                            required property bool modelData
-                                            width: 4
-                                            height: 4
-                                            radius: 2
-                                            color: modelData ? calPopup.doneGreen
-                                                : (isSelected ? calPopup.accentFg : calPopup.accentCol)
                                             opacity: inMonth ? 0.9 : 0.4
                                         }
                                     }
@@ -1011,8 +960,7 @@ PanelWindow {
                 }
             }
 
-            // Sync state line (event count + age), like the plugin's
-            // Sync row. The next-event countdown lives under the hero.
+            // Sync state: event count + age. Countdown lives by the top date.
             Text {
                 Layout.fillWidth: true
                 visible: text.length > 0
@@ -1025,30 +973,26 @@ PanelWindow {
                 elide: Text.ElideRight
             }
 
-            // Selected day's real agenda (tmn73.calendar): timeline rows with
-            // past faded, in-progress highlighted, countdown on the next one,
-            // and a Join button while a meeting is live.
+            // Selected day's agenda: past faded, live highlighted + Join button.
             ColumnLayout {
                 id: agendaBox
                 Layout.fillWidth: true
-                visible: (calPopup.realEvents[calPopup.selectedKey.length > 0
-                    ? calPopup.selectedKey
-                    : calPopup.dateKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate())] || []).length > 0
+                visible: (calPopup.realEvents[calPopup.selectedKey.length > 0 ? calPopup.selectedKey : calPopup.todayKey] || []).length > 0
                 spacing: 4
 
-                readonly property string agendaKey: calPopup.selectedKey.length > 0
-                    ? calPopup.selectedKey
-                    : calPopup.dateKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate())
+                readonly property string agendaKey: calPopup.selectedKey.length > 0 ? calPopup.selectedKey : calPopup.todayKey
                 readonly property var agendaEvents: calPopup.realEvents[agendaBox.agendaKey] || []
 
                 Repeater {
                     model: agendaBox.agendaEvents
                     delegate: RowLayout {
                         required property var modelData
+                        readonly property string phase: calPopup.eventPhase(modelData)
+                        readonly property real startMs: modelData.allDay ? NaN : Date.parse(modelData.start)
                         Layout.fillWidth: true
                         Layout.preferredHeight: 24
                         spacing: 6
-                        opacity: calPopup.eventPhase(modelData) === "past" ? 0.45 : 1.0
+                        opacity: phase === "past" ? 0.45 : 1.0
 
                         Rectangle {
                             Layout.preferredWidth: 3
@@ -1060,11 +1004,11 @@ PanelWindow {
                         Text {
                             Layout.preferredWidth: 44
                             text: modelData.allDay ? "all day" : calPopup.fmtClock(modelData.start)
-                            color: calPopup.eventPhase(modelData) === "now" ? calPopup.accentCol : calPopup.popupFg
+                            color: phase === "now" ? calPopup.accentCol : calPopup.popupFg
                             opacity: modelData.allDay ? 0.6 : 1.0
                             font.family: rootRef.uiFont
                             font.pixelSize: rootRef.fontSize - 2
-                            font.weight: calPopup.eventPhase(modelData) === "now" ? Font.Bold : Font.Normal
+                            font.weight: phase === "now" ? Font.Bold : Font.Normal
                             elide: Text.ElideRight
                         }
 
@@ -1072,27 +1016,23 @@ PanelWindow {
                             Layout.fillWidth: true
                             text: {
                                 var t = modelData.title || "(no title)"
-                                if (calPopup.eventPhase(modelData) !== "now") return t
+                                if (phase !== "now") return t
                                 var left = modelData.end ? Date.parse(modelData.end) - calPopup.nowTick.getTime() : NaN
                                 if (!isNaN(left) && left > 0 && left < 3600000)
                                     return t + " · " + Math.ceil(left / 60000) + "min left"
                                 return t
                             }
-                            color: calPopup.eventPhase(modelData) === "now" ? calPopup.accentCol : calPopup.popupFg
+                            color: phase === "now" ? calPopup.accentCol : calPopup.popupFg
                             font.family: rootRef.uiFont
                             font.pixelSize: rootRef.fontSize - 1
-                            font.weight: calPopup.eventPhase(modelData) === "now" ? Font.Bold : Font.Normal
+                            font.weight: phase === "now" ? Font.Bold : Font.Normal
                             elide: Text.ElideRight
                             verticalAlignment: Text.AlignVCenter
                         }
 
                         Text {
-                            visible: {
-                                if (modelData.allDay || calPopup.eventPhase(modelData) !== "later") return false
-                                var s = Date.parse(modelData.start)
-                                return !isNaN(s) && s >= calPopup.nowTick.getTime()
-                            }
-                            text: calPopup.formatCountdown(Date.parse(modelData.start) - calPopup.nowTick.getTime())
+                            visible: !modelData.allDay && phase === "later" && !isNaN(startMs) && startMs >= calPopup.nowTick.getTime()
+                            text: calPopup.formatCountdown(startMs - calPopup.nowTick.getTime())
                             color: calPopup.popupFg
                             opacity: 0.6
                             font.family: rootRef.uiFont
@@ -1124,7 +1064,7 @@ PanelWindow {
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: calPopup.joinMeeting(modelData)
+                                onClicked: calPopup.openHttps(modelData.meetingUrl)
                             }
                         }
 
@@ -1132,7 +1072,7 @@ PanelWindow {
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: modelData.eventUrl || modelData.meetingUrl ? Qt.PointingHandCursor : Qt.ArrowCursor
-                            onClicked: calPopup.openRealEvent(modelData)
+                            onClicked: calPopup.openHttps(modelData.eventUrl || modelData.meetingUrl)
                         }
                     }
                 }
