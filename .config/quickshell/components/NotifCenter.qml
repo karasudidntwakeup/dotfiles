@@ -13,26 +13,26 @@ Item {
     focus: svc ? svc.centerOpen : false
 
     readonly property int panelWidth: 440
-    readonly property int pad: 14
+    readonly property int pad: 12
     readonly property int panelMaxHeight: Math.max(120, Math.round(center.height - 40))
     readonly property bool weekOn: rootRef && rootRef.weatherWeek && rootRef.weatherWeek.length > 0
     readonly property int weekHeight: 202
     readonly property int mountedDiskCount: rootRef && rootRef.mountedDisks ? rootRef.mountedDisks.length : 0
-    readonly property int mountedDisksHeight: Math.ceil(center.mountedDiskCount / 2) * 106
+    readonly property int mountedDisksHeight: Math.ceil(center.mountedDiskCount / 2) * 84
     readonly property var removableList: rootRef && rootRef.removableDrives ? rootRef.removableDrives : []
     readonly property int removableCount: center.removableList.length
-    // Header (~30) + per-drive card (~64 + 40/volume), + spacing.
+    // Header (24) + per-drive card (~50 + 30/volume), + spacing.
     readonly property int removableHeight: {
         if (center.removableCount === 0) return 0
-        var h = 38
+        var h = 30
         for (var i = 0; i < center.removableList.length; i++) {
             var d = center.removableList[i]
             var vols = (d && d.volumes) ? d.volumes.length : 0
-            h += 72 + Math.max(1, vols) * 40 + 8
+            h += 56 + Math.max(1, vols) * 34
         }
         return h
     }
-    readonly property int listMaxHeight: Math.max(64, center.panelMaxHeight - center.pad * 2 - 30 - 40 - center.mountedDisksHeight - center.removableHeight - (center.weekOn ? center.weekHeight + 10 : 0) - (center.mediaOn ? 224 + 10 : 0))
+    readonly property int listMaxHeight: Math.max(64, center.panelMaxHeight - center.pad * 2 - 24 - 40 - center.mountedDisksHeight - center.removableHeight - (center.weekOn ? center.weekHeight + 8 : 0) - (center.mediaOn ? 168 + 8 : 0))
     readonly property bool mediaOn: rootRef && rootRef.mediaStatus !== "none"
     // YtX-style Android roles: flat surface card, theme text tokens.
     readonly property color panelColor: rootRef ? Qt.color(rootRef.colorOf("surface_container")) : "#1f2c34"
@@ -203,13 +203,13 @@ Item {
             anchors.rightMargin: center.pad
             anchors.topMargin: center.pad
             anchors.bottomMargin: center.pad
-            spacing: 10
+            spacing: 8
 
             Rectangle {
                 id: mediaCard
                 Layout.fillWidth: true
-                Layout.preferredHeight: 224
-                Layout.minimumHeight: 224
+                Layout.preferredHeight: 168
+                Layout.minimumHeight: 168
                 visible: rootRef && rootRef.mediaStatus !== "none"
                 radius: 0
                 clip: true
@@ -277,13 +277,13 @@ Item {
                     visible: !mediaCard.hasArt
                     source: Qt.resolvedUrl("../assets/icons/music.svg")
                     color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.75)
-                    iconSize: 40
+                    iconSize: 32
                 }
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 14
-                    spacing: 10
+                    anchors.margins: 10
+                    spacing: 6
 
                     Item { Layout.fillHeight: true }
 
@@ -316,7 +316,7 @@ Item {
 
                     Item {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 16
+                        Layout.preferredHeight: 12
 
                             Canvas {
                                 id: waveCanvas
@@ -430,26 +430,26 @@ Item {
                     }
 
                     RowLayout {
-                        spacing: 16
+                        spacing: 12
                         Layout.alignment: Qt.AlignVCenter
 
                         Item { Layout.fillWidth: true; Layout.preferredHeight: 1 }
 
                         MediaBtn {
-                            btnSize: 30
+                            btnSize: 26
                             iconSource: Qt.resolvedUrl("../assets/icons/prev.svg")
                             onTapped: rootRef ? Quickshell.execDetached(["playerctl", "previous"]) : {}
                         }
 
                         MediaBtn {
-                            btnSize: 44
+                            btnSize: 36
                             iconSource: rootRef && rootRef.mediaStatus === "Playing" ? Qt.resolvedUrl("../assets/icons/pause.svg") : Qt.resolvedUrl("../assets/icons/play.svg")
                             accent: false
                             onTapped: rootRef ? Quickshell.execDetached(["playerctl", "play-pause"]) : {}
                         }
 
                         MediaBtn {
-                            btnSize: 30
+                            btnSize: 26
                             iconSource: Qt.resolvedUrl("../assets/icons/next.svg")
                             onTapped: rootRef ? Quickshell.execDetached(["playerctl", "next"]) : {}
                         }
@@ -605,14 +605,14 @@ Item {
                 Layout.fillWidth: true
                 visible: center.mountedDiskCount > 0
                 columns: 2
-                rowSpacing: 10
+                rowSpacing: 8
                 columnSpacing: 8
 
                 Repeater {
                     model: rootRef && rootRef.mountedDisks ? rootRef.mountedDisks : []
                     delegate: InfoWidget {
                         width: Math.round((center.panelWidth - center.pad * 2 - 8) / 2)
-                        height: 96
+                        height: 76
                         visible: true
                         tintName: "tertiary_container"
                         title: modelData.pct + "%"
@@ -630,17 +630,17 @@ Item {
             ColumnLayout {
                 Layout.fillWidth: true
                 visible: center.removableCount > 0
-                spacing: 8
+                spacing: 6
 
                 RowLayout {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 30
-                    spacing: 8
+                    Layout.preferredHeight: 24
+                    spacing: 6
 
                     QIcon {
                         source: Qt.resolvedUrl("../assets/icons/y2k-folder.svg")
                         color: center.muteFg
-                        iconSize: center.fontSize + 4
+                        iconSize: center.fontSize + 2
                         Layout.alignment: Qt.AlignVCenter
                     }
 
@@ -680,12 +680,12 @@ Item {
                             anchors.left: parent.left
                             anchors.right: parent.right
                             anchors.top: parent.top
-                            anchors.margins: 10
-                            spacing: 6
+                            anchors.margins: 8
+                            spacing: 4
 
                             RowLayout {
                                 Layout.fillWidth: true
-                                spacing: 8
+                                spacing: 6
 
                                 ColumnLayout {
                                     Layout.fillWidth: true
@@ -696,7 +696,7 @@ Item {
                                         text: center.driveName(drive)
                                         color: center.fg
                                         font.family: center.uiFont
-                                        font.pixelSize: center.fontSize + 1
+                                        font.pixelSize: center.fontSize
                                         font.weight: Font.Bold
                                         elide: Text.ElideRight
                                         maximumLineCount: 1
@@ -793,14 +793,14 @@ Item {
             // Notifications header: sits directly above the list.
             RowLayout {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 30
-                Layout.minimumHeight: 30
-                spacing: 8
+                Layout.preferredHeight: 24
+                Layout.minimumHeight: 24
+                spacing: 6
 
                 QIcon {
                     source: Qt.resolvedUrl("../assets/icons/bell.svg")
                     color: center.fg
-                    iconSize: center.fontSize + 5
+                    iconSize: center.fontSize + 3
                     Layout.alignment: Qt.AlignVCenter
                 }
 
@@ -808,7 +808,7 @@ Item {
                     text: "Notifications"
                     color: center.fg
                     font.family: center.uiFont
-                    font.pixelSize: center.fontSize + 2
+                    font.pixelSize: center.fontSize + 1
                     font.weight: Font.DemiBold
                     Layout.fillWidth: true
                     verticalAlignment: Text.AlignVCenter
@@ -816,7 +816,7 @@ Item {
 
                 Rectangle {
                     visible: svc && svc.unreadCount > 0
-                    Layout.preferredHeight: 20
+                    Layout.preferredHeight: 18
                     implicitWidth: unreadLabel.implicitWidth + 12
                     radius: 0
                     color: center.accent
@@ -851,7 +851,7 @@ Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 Layout.minimumHeight: 64
-                Layout.preferredHeight: Math.min(centerList.contentHeight, center.listMaxHeight) + 16
+                Layout.preferredHeight: Math.min(centerList.contentHeight, center.listMaxHeight) + 10
                 visible: centerList.count > 0
                 radius: 0
                 color: "transparent"
@@ -862,10 +862,10 @@ Item {
             ListView {
                 id: centerList
                 anchors.fill: parent
-                anchors.margins: 8
-                anchors.rightMargin: 18
+                anchors.margins: 6
+                anchors.rightMargin: 16
                 model: svc ? svc.history : []
-                spacing: 10
+                spacing: 8
                 boundsBehavior: Flickable.StopAtBounds
 
                 add: Transition {
@@ -934,7 +934,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     source: Qt.resolvedUrl("../assets/icons/y2k-moon-star.svg")
                     color: center.fg
-                    iconSize: center.fontSize + 8
+                    iconSize: center.fontSize + 4
                 }
 
                 Text {
@@ -998,8 +998,8 @@ Item {
         property bool enabled_: true
         signal tapped()
 
-        Layout.preferredWidth: 30
-        Layout.preferredHeight: 30
+        Layout.preferredWidth: 26
+        Layout.preferredHeight: 26
 
         Rectangle {
             anchors.fill: parent
@@ -1036,9 +1036,9 @@ Item {
         property bool accent: false
         signal tapped()
 
-        Layout.preferredHeight: 26
-        Layout.minimumWidth: 58
-        implicitWidth: Math.max(58, dbtnLabel.implicitWidth + 20)
+        Layout.preferredHeight: 24
+        Layout.minimumWidth: 54
+        implicitWidth: Math.max(54, dbtnLabel.implicitWidth + 16)
 
         Rectangle {
             anchors.fill: parent
@@ -1083,7 +1083,7 @@ Item {
         // 0..1 usage bar at the card bottom; negative hides it.
         property real progress: -1
 
-        Layout.preferredHeight: 96
+        Layout.preferredHeight: 76
         Layout.fillHeight: false
         radius: 0
         color: rootRef ? rootRef.tonalPillColor(rootRef.pillColor(widget.tintName)) : "#1a1b1e"
@@ -1095,11 +1095,11 @@ Item {
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 12
-            anchors.rightMargin: 12
-            anchors.topMargin: 10
-            anchors.bottomMargin: 22
-            spacing: 10
+            anchors.leftMargin: 10
+            anchors.rightMargin: 10
+            anchors.topMargin: 8
+            anchors.bottomMargin: 16
+            spacing: 8
 
             ColumnLayout {
                 Layout.fillWidth: true
@@ -1124,7 +1124,7 @@ Item {
                     text: widget.title
                     color: widget.widgetFg
                     font.family: center.uiFont
-                    font.pixelSize: center.fontSize + 9
+                    font.pixelSize: center.fontSize + 5
                     font.weight: Font.Bold
                     elide: Text.ElideRight
                     maximumLineCount: 1
@@ -1150,7 +1150,7 @@ Item {
                 text: widget.glyph
                 color: widget.widgetFg
                 font.family: center.iconFont
-                font.pixelSize: 30
+                font.pixelSize: 24
             }
 
             QIcon {
@@ -1158,7 +1158,7 @@ Item {
                 Layout.alignment: Qt.AlignVCenter
                 source: Qt.resolvedUrl("../assets/icons/y2k-moon-star.svg")
                 color: widget.widgetFg
-                iconSize: 32
+                iconSize: 26
             }
         }
 
@@ -1168,10 +1168,10 @@ Item {
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.bottom: parent.bottom
-            anchors.leftMargin: 12
-            anchors.rightMargin: 12
-            anchors.bottomMargin: 10
-            height: 6
+            anchors.leftMargin: 10
+            anchors.rightMargin: 10
+            anchors.bottomMargin: 8
+            height: 4
             radius: 0
             color: Qt.rgba(widget.widgetFg.r, widget.widgetFg.g, widget.widgetFg.b, 0.18)
             clip: true
