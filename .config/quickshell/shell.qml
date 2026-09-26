@@ -154,6 +154,10 @@ ShellRoot {
     property string weatherKey: "cloud"
     property bool weatherIsDay: true
     property var weatherWeek: []
+    property string weatherFeels: ""
+    property string weatherCity: ""
+    property var weatherHours: []
+    property string weatherUpdatedText: ""
 
     function updateWeatherDayNight() {
         var h = new Date().getHours()
@@ -165,8 +169,13 @@ ShellRoot {
     // codepoints verified present in the installed font).
     // Picks a glyph from both the condition and the time of day.
     function weatherGlyph() {
-        var day = weatherIsDay
-        switch (weatherKey) {
+        return root.hourGlyph(weatherKey, weatherIsDay)
+    }
+
+    // Same set, but per-entry day flag — for the hourly strip, whose
+    // hours each carry their own day/night.
+    function hourGlyph(key, day) {
+        switch (key) {
         case "sun": return day ? "\ue30d" : "\ue32b"
         case "partly": return day ? "\ue302" : "\ue32e"
         case "cloud": return "\ue312"
@@ -339,15 +348,22 @@ ShellRoot {
                             updateWeatherDayNight()
                         }
                         weatherText = parts[1].trim()
+                        weatherFeels = parts.length >= 4 ? parts[3].trim() : ""
+                        weatherCity = parts.length >= 5 ? parts[4].trim() : ""
+                        weatherUpdatedText = "updated " + Qt.formatDateTime(new Date(), "HH:mm")
                     } else {
                         weatherText = ""
+                        weatherFeels = ""
+                        weatherCity = ""
                     }
                 } else {
                     weatherText = ""
+                    weatherFeels = ""
+                    weatherCity = ""
                 }
             }
         }
-        onExited: code => { if (code !== 0) weatherText = "" }
+        onExited: code => { if (code !== 0) { weatherText = ""; weatherFeels = ""; weatherCity = "" } }
     }
 
     Process {
@@ -428,8 +444,9 @@ ShellRoot {
             onRead: data => {
                 if (!data) return
                 try {
-                    var arr = JSON.parse(data.trim())
-                    if (arr instanceof Array) root.weatherWeek = arr
+                    var v = JSON.parse(data.trim())
+                    if (v instanceof Array) root.weatherWeek = v
+                    else if (v && v.hours instanceof Array) root.weatherHours = v.hours
                 } catch (e) {}
             }
         }
@@ -2080,6 +2097,7 @@ function closeOverlays() {
                         label: root.weatherText
                         tint: root.pillColor("mauve")
                         visible: root.weatherText.length > 0
+                        clickArea.onClicked: root.toggleNotifCenter()
 
                         Component {
                             id: y2kMoonSource

@@ -16,7 +16,7 @@ Item {
     readonly property int pad: 12
     readonly property int panelMaxHeight: Math.max(120, Math.round(center.height - 40))
     readonly property bool weekOn: rootRef && rootRef.weatherWeek && rootRef.weatherWeek.length > 0
-    readonly property int weekHeight: 202
+    readonly property int weekHeight: 252
     readonly property int mountedDiskCount: rootRef && rootRef.mountedDisks ? rootRef.mountedDisks.length : 0
     readonly property int mountedDisksHeight: Math.ceil(center.mountedDiskCount / 2) * 84
     readonly property var removableList: rootRef && rootRef.removableDrives ? rootRef.removableDrives : []
@@ -47,18 +47,6 @@ Item {
     readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Geist"
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
 
-    function weekGlyph(key) {
-        switch (key) {
-        case "sun": return ""
-        case "partly": return ""
-        case "cloud": return ""
-        case "rain": return ""
-        case "storm": return ""
-        case "snow": return ""
-        case "fog": return ""
-        default: return ""
-        }
-    }
 
     readonly property int weekLo: {
         var days = rootRef ? rootRef.weatherWeek : []
@@ -78,7 +66,6 @@ Item {
         var span = Math.max(1, center.weekHi - center.weekLo)
         return [(min - center.weekLo) / span, Math.max(0.06, (max - min) / span)]
     }
-
     // Removable-drive helpers (port of wian47.removable-drives, simple scope:
     // mount / open / unmount / safely eject USB sticks, SD cards, ext. drives).
     function fmtSizeGB(gb) {
@@ -459,8 +446,8 @@ Item {
                 }
             }
 
-            // Week forecast widget: tinted like the weather tile,
-            // with day rows and min/max range bars.
+            // Mauve like the bar pill; ramp pulled 75% to card text so
+            // every step stays ≥4.5:1 on the tint (cold 4.9, warm 6.3).
             Rectangle {
                 id: weekWidget
                 Layout.fillWidth: true
@@ -473,17 +460,21 @@ Item {
                 clip: true
 
                 readonly property color wfg: rootRef ? rootRef.pillForeground(weekWidget.color) : center.fg
-                readonly property color wdim: Qt.rgba(wfg.r, wfg.g, wfg.b, 0.68)
+                readonly property color wdim: Qt.rgba(wfg.r, wfg.g, wfg.b, 0.72)
+                readonly property color coldCol: rootRef ? rootRef.mixColor(rootRef.pillColor("primary"), weekWidget.wfg, 0.75) : center.fg
+                readonly property color warmCol: rootRef ? rootRef.mixColor(rootRef.pillColor("error"), weekWidget.wfg, 0.75) : center.fg
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 8
-                    spacing: 3
+                    anchors.margins: 6
+                    spacing: 2
 
+                    // Big current weather: large glyph + temp, details and
+                    // refresh folded in so no footer row is needed.
                     RowLayout {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 20
-                        spacing: 6
+                        Layout.preferredHeight: 60
+                        spacing: 8
 
                         Text {
                             visible: rootRef ? !rootRef.weatherIsY2kMoon() : false
@@ -491,7 +482,7 @@ Item {
                             text: rootRef ? rootRef.weatherGlyph() : ""
                             color: weekWidget.wfg
                             font.family: center.iconFont
-                            font.pixelSize: center.fontSize + 2
+                            font.pixelSize: center.fontSize + 22
                         }
 
                         QIcon {
@@ -499,22 +490,47 @@ Item {
                             Layout.alignment: Qt.AlignVCenter
                             source: Qt.resolvedUrl("../assets/icons/y2k-moon-star.svg")
                             color: weekWidget.wfg
-                            iconSize: center.fontSize + 2
+                            iconSize: center.fontSize + 20
                         }
 
-                        Text {
+                        ColumnLayout {
                             Layout.fillWidth: true
-                            text: rootRef ? rootRef.weatherText : ""
-                            color: weekWidget.wfg
-                            font.family: center.uiFont
-                            font.pixelSize: center.fontSize + 1
-                            font.weight: Font.Bold
-                            elide: Text.ElideRight
+                            Layout.alignment: Qt.AlignVCenter
+                            spacing: 0
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: rootRef ? rootRef.weatherText : ""
+                                color: weekWidget.wfg
+                                font.family: center.uiFont
+                                font.pixelSize: center.fontSize + 16
+                                font.weight: Font.Bold
+                                elide: Text.ElideRight
+                                maximumLineCount: 1
+                            }
+
+                            Text {
+                                visible: text.length > 0
+                                Layout.fillWidth: true
+                                text: {
+                                    var bits = []
+                                    if (rootRef && rootRef.weatherFeels) bits.push("Feels " + rootRef.weatherFeels)
+                                    if (rootRef && rootRef.weatherCity) bits.push(rootRef.weatherCity)
+                                    if (rootRef && rootRef.weatherUpdatedText) bits.push(rootRef.weatherUpdatedText)
+                                    return bits.join(" · ")
+                                }
+                                color: weekWidget.wdim
+                                font.family: center.uiFont
+                                font.pixelSize: center.fontSize - 1
+                                elide: Text.ElideRight
+                                maximumLineCount: 1
+                            }
                         }
 
                         Rectangle {
                             Layout.preferredWidth: 20
                             Layout.preferredHeight: 20
+                            Layout.alignment: Qt.AlignVCenter
                             radius: 0
                             color: weekRefreshHover.containsMouse ? Qt.rgba(weekWidget.wfg.r, weekWidget.wfg.g, weekWidget.wfg.b, 0.15) : "transparent"
 
@@ -535,8 +551,69 @@ Item {
                         }
                     }
 
+                    // Next 12 hours, temps tinted cold→warm by week's range.
+                    Flickable {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 46
+                        visible: rootRef && rootRef.weatherHours && rootRef.weatherHours.length > 0
+                        contentWidth: hourRow.width
+                        contentHeight: 46
+                        clip: true
+                        boundsBehavior: Flickable.StopAtBounds
+                        flickableDirection: Flickable.HorizontalFlick
+
+                        Row {
+                            id: hourRow
+                            height: 46
+
+                            Repeater {
+                                model: rootRef ? rootRef.weatherHours : []
+                                delegate: Column {
+                                    required property var modelData
+                                    required property int index
+                                    width: 40
+                                    topPadding: 2
+                                    spacing: 1
+
+                                    Text {
+                                        width: 40
+                                        horizontalAlignment: Text.AlignHCenter
+                                        text: index === 0 ? "Now" : modelData.t
+                                        color: weekWidget.wdim
+                                        font.family: center.uiFont
+                                        font.pixelSize: center.fontSize - 2
+                                    }
+
+                                    Text {
+                                        width: 40
+                                        horizontalAlignment: Text.AlignHCenter
+                                        text: rootRef ? rootRef.hourGlyph(modelData.key, modelData.day) : ""
+                                        color: weekWidget.wfg
+                                        font.family: center.iconFont
+                                        font.pixelSize: center.fontSize + 1
+                                    }
+
+                                    Text {
+                                        width: 40
+                                        horizontalAlignment: Text.AlignHCenter
+                                        text: modelData.temp + "°"
+                                        color: {
+                                            var span = Math.max(1, center.weekHi - center.weekLo)
+                                            var f = Math.max(0, Math.min(1, (modelData.temp - center.weekLo) / span))
+                                            return rootRef.mixColor(weekWidget.coldCol, weekWidget.warmCol, f)
+                                        }
+                                        font.family: center.uiFont
+                                        font.pixelSize: center.fontSize - 1
+                                        font.weight: Font.DemiBold
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Six days: today + next five, with min/max range bars.
                     Repeater {
-                        model: rootRef ? rootRef.weatherWeek : []
+                        model: rootRef ? rootRef.weatherWeek.slice(0, 6) : []
                         delegate: RowLayout {
                             required property var modelData
                             required property int index
@@ -557,7 +634,7 @@ Item {
                             Text {
                                 Layout.preferredWidth: 18
                                 horizontalAlignment: Text.AlignHCenter
-                                text: center.weekGlyph(modelData.key)
+                                text: rootRef ? rootRef.hourGlyph(modelData.key, true) : ""
                                 color: weekWidget.wfg
                                 font.family: center.iconFont
                                 font.pixelSize: center.fontSize + 1
@@ -597,6 +674,7 @@ Item {
                             }
                         }
                     }
+
                 }
             }
 

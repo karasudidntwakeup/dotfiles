@@ -1,6 +1,7 @@
 #!/bin/sh
 # Weekly forecast backend (Open-Meteo, no API key).
-# Output: JSON array [{day,max,min,key}...] for 7 days.
+# Output: two JSON lines — [{day,max,min,key}...] for 7 days, then
+# {"hours":[{t,temp,key,day}...]} with the next 12 hours from now.
 # Location: WX_LAT/WX_LON env override, else IP geolocation, else Cairo.
 export WX_LAT="${WX_LAT:-}" WX_LON="${WX_LON:-}"
 python3 - <<'EOF' || exit 1
@@ -38,7 +39,8 @@ def key_of(code):
     return "rain"
 
 url = (f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}"
-       "&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=7")
+       "&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=7"
+       "&hourly=temperature_2m,weather_code,is_day&forecast_days=7")
 data = get(url, 15)
 d = data.get("daily") or {}
 times = d.get("time") or []
@@ -58,4 +60,26 @@ for i in range(min(7, len(times))):
         "key": key_of(int(codes[i])) if i < len(codes) and codes[i] is not None else "cloud",
     })
 print(json.dumps(out))
+
+h = data.get("hourly") or {}
+ht, htemp, hcode, hday = h.get("time") or [], h.get("temperature_2m") or [], \
+    h.get("weather_code") or [], h.get("is_day") or []
+now = datetime.now().replace(minute=0, second=0, microsecond=0)
+hours = []
+for i in range(len(ht)):
+    try:
+        dt = datetime.strptime(ht[i], "%Y-%m-%dT%H:%M")
+    except Exception:
+        continue
+    if dt < now:
+        continue
+    if len(hours) >= 12:
+        break
+    hours.append({
+        "t": dt.strftime("%H"),
+        "temp": round(float(htemp[i])) if i < len(htemp) and htemp[i] is not None else 0,
+        "key": key_of(int(hcode[i])) if i < len(hcode) and hcode[i] is not None else "cloud",
+        "day": bool(hday[i]) if i < len(hday) else True,
+    })
+print(json.dumps({"hours": hours}))
 EOF
