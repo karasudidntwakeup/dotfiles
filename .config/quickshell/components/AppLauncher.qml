@@ -38,7 +38,7 @@ Item {
     readonly property string fontFamily: uiFont
     readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Geist"
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
-    readonly property string terminalCommand: rootRef ? rootRef.terminalCommand : "kitty"
+    readonly property string terminalCommand: rootRef ? rootRef.terminalCommand : "foot"
 
     property real animProgress: launcher.active ? 1.0 : 0.0
     Behavior on animProgress {

@@ -116,7 +116,7 @@ ShellRoot {
     readonly property int pillRadius: 10
     readonly property int groupSpacing: 8
 
-    readonly property string terminalCommand: "kitty"
+    readonly property string terminalCommand: "foot"
 
     function luminance(color) {
         return 0.299 * color.r + 0.587 * color.g + 0.114 * color.b

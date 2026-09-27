@@ -25,17 +25,12 @@ Item {
 
     signal requestClose()
     property bool visible_: false
-    // Fade/slide driven by visible_ (same animProgress pattern as the other
-    // pickers). The PanelWindow stays alive until this reaches ~0 so close
-    // animates instead of vanishing. Transform-only: no layout work per frame.
+    // No open/close animation: the picker snaps in/out instantly.
+    // (Behaviors on progress properties kept the PanelWindow alive for
+    // the outro; without them visible_ toggles apply immediately.)
     property real animProgress: visible_ ? 1.0 : 0.0
-    Behavior on animProgress { Anim { type: Anim.Bouncy } }
-    // Smooth opacity ramp decoupled from the bouncy slide: OutBack
-    // finishes ~95% in the first 150ms, which reads as a pop.
     property real fadeProgress: visible_ ? 1.0 : 0.0
-    Behavior on fadeProgress { Anim { type: Anim.SlowEffects } }
     opacity: fadeProgress
-    transform: Translate { y: (1.0 - animProgress) * 24 }
     property string currentPath: ""
 
     property color surfaceColor: "#101013"
@@ -202,13 +197,43 @@ Item {
     // Live stage reported by wallpaper_apply.sh (@@stage lines on stdout).
     property string applyStatus: ""
 
+    // skwd-wall-inspired transition FX (runs through awww's engine;
+    // see the preset map in wallpaper_apply.sh). Grouped like skwd-wall's
+    // families: fade / wipe / warp, plus shuffle.
+    property string transitionType: "fade"
+    readonly property var transitionModel: [
+        { name: "fade", label: "Fade", hint: "smooth crossfade" },
+        { name: "fade-fast", label: "Fade fast", hint: "quick 0.4s blend" },
+        { name: "fade-slow", label: "Fade slow", hint: "cinematic 2.2s blend" },
+        { name: "simple", label: "Simple", hint: "instant blend" },
+        { name: "wipe", label: "Wipe", hint: "angled sweep" },
+        { name: "wipe-h", label: "Wipe H", hint: "horizontal sweep" },
+        { name: "wipe-v", label: "Wipe V", hint: "vertical sweep" },
+        { name: "wipe-diag", label: "Wipe diag", hint: "diagonal sweep" },
+        { name: "wave", label: "Wave", hint: "wavy sweep" },
+        { name: "wave-big", label: "Wave big", hint: "wide rolling sweep" },
+        { name: "wave-steep", label: "Wave steep", hint: "tight vertical sweep" },
+        { name: "slide-left", label: "Slide L", hint: "slide from left" },
+        { name: "slide-right", label: "Slide R", hint: "slide from right" },
+        { name: "slide-up", label: "Slide up", hint: "slide from top" },
+        { name: "slide-down", label: "Slide down", hint: "slide from bottom" },
+        { name: "grow", label: "Grow", hint: "expanding circle" },
+        { name: "grow-corner", label: "Grow corner", hint: "bloom from corner" },
+        { name: "grow-top", label: "Grow top", hint: "bloom from top" },
+        { name: "iris", label: "Iris", hint: "grow from center" },
+        { name: "any", label: "Anywhere", hint: "grow from random point" },
+        { name: "implode", label: "Implode", hint: "shrinking circle" },
+        { name: "ripple", label: "Ripple", hint: "sink to corner" },
+        { name: "random", label: "Random", hint: "surprise me" }
+    ]
+
     // No confirmation step: picking a wallpaper applies it immediately.
     // showPanel now only drives the progress/error overlay.
     function applyWallpaper(index) {
         if (window.isApplying || window.showPanel || index < 0 || index >= window.displayModel.length) return
         window.selectedItem = window.displayModel[index]
         window.applyError = ""
-        window.applyStatus = "Starting…"
+        window.applyStatus = "Starting " + window.transitionType + "…"
         window.isApplying = true
         window.showPanel = true
         // Non-empty initial command so the QStringList binding never sees [undefined].
@@ -224,12 +249,34 @@ Item {
         var t = String(line || "").trim()
         if (t.indexOf("@@stage ") !== 0) return
         var stage = t.substring(8)
-        if (stage === "wallpaper") window.applyStatus = "Setting wallpaper…"
+        if (stage === "wallpaper") window.applyStatus = "Setting wallpaper · " + window.transitionType + "…"
         else if (stage === "theme") window.applyStatus = "Generating theme…"
+    }
+
+    function refreshTransition() {
+        if (transReader.running) return
+        transReader.running = true
+    }
+
+    function setTransition(name) {
+        if (window.isApplying || window.showPanel || window.transitionType === name) return
+        window.transitionType = name
+        window.transWriteArgs = ["sh", "-c", "printf '%s\\n' '" + name + "' > '" + window.cacheDir + "/transition.txt'"]
+        transWriter.running = false
+        Qt.callLater(function() { transWriter.running = true })
+    }
+
+    function cycleTransition(direction) {
+        var names = []
+        for (var i = 0; i < window.transitionModel.length; i++) names.push(window.transitionModel[i].name)
+        var idx = names.indexOf(window.transitionType)
+        if (idx < 0) idx = 0
+        window.setTransition(names[(idx + direction + names.length) % names.length])
     }
 
     // Non-empty initial command so the QStringList binding never sees [undefined].
     property var applyArgs: ["true"]
+    property var transWriteArgs: ["true"]
 
     Process {
         id: applyProc
@@ -267,6 +314,29 @@ Item {
         stderr: StdioCollector {}
     }
 
+    Process {
+        id: transReader
+        command: ["sh", "-c", "cat '" + window.cacheDir + "/transition.txt' 2>/dev/null || echo fade"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var t = String(this.text || "").trim().split(/\s+/)[0] || "fade"
+                var ok = false
+                for (var i = 0; i < window.transitionModel.length; i++)
+                    if (window.transitionModel[i].name === t) { ok = true; break }
+                window.transitionType = ok ? t : "fade"
+            }
+        }
+        stderr: StdioCollector {}
+    }
+
+    Process {
+        id: transWriter
+        running: false
+        command: window.transWriteArgs
+        stdout: StdioCollector {}
+        stderr: StdioCollector {}
+    }
+
     function refreshCurrent() {
         if (currentReader.running) return
         currentReader.running = true
@@ -281,6 +351,7 @@ Item {
         }
         if (window.visible_) {
             window.refreshCurrent()
+            window.refreshTransition()
             view.forceActiveFocus()
         }
     }
@@ -342,6 +413,9 @@ Item {
                 // GPU transform emphasis instead of layout animation.
                 scale: isCurrent ? 1.0 : 0.94
                 Behavior on scale { Anim { type: Anim.BouncyFast } }
+                // Static fan: neighbours tilt away from the selected card.
+                // No Behavior on purpose — snaps instantly, zero per-frame cost.
+                rotation: isCurrent ? 0 : (index < view.currentIndex ? 2.2 : -2.2)
                 transform: Matrix4x4 {
                     property real s: window.skewFactor
                     matrix: Qt.matrix4x4(1, s, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
@@ -386,6 +460,11 @@ Item {
                             asynchronous: true
                             cache: true
                             smooth: true
+                            // Static zoom steps: side cards sit slightly zoomed,
+                            // selected settles to 1.0. No Behavior — snaps
+                            // instantly instead of animating every navigation
+                            // step across all visible delegates.
+                            scale: isCurrent ? 1.0 : 1.07
                             // No sourceSize override: thumbs on disk are
                             // already small (THUMB_HEIGHT 420). Forcing a
                             // size tied to the animated delegate geometry
@@ -407,6 +486,16 @@ Item {
                         Behavior on border.color { CAnim { } }
                         opacity: isCurrent ? 1.0 : 0.0
                         Behavior on opacity { Anim { type: Anim.DefaultEffects } }
+                    }
+
+                    // Apply flash: selecting a card blinks white while the
+                    // real awww transition fires behind. No Behavior —
+                    // snaps with isApplying, zero animation cost.
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: window.cornerRadius
+                        color: "white"
+                        opacity: (window.isApplying && isCurrent) ? 0.28 : 0.0
                     }
                 }
             }
@@ -508,6 +597,69 @@ Item {
         }
     }
 
+    // skwd-wall-style FX strip: transition picker, bottom-center.
+    Rectangle {
+        id: fxBar
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: window.u * 24
+        z: 200
+        height: window.u * 40
+        width: Math.min(parent.width - window.u * 80, fxRow.width + window.u * 20)
+        radius: window.cornerRadius
+        color: window.baseColor
+        border.width: 0
+        // Instant show/hide with the picker chrome — no fade Behavior.
+        visible: !window.showPanel && !window.isApplying
+
+        ListView {
+            id: fxRow
+            anchors.centerIn: parent
+            width: Math.min(parent.width - window.u * 20, contentWidth)
+            height: parent.height
+            orientation: ListView.Horizontal
+            spacing: window.u * 6
+            clip: true
+            // Draggable: 23 presets overflow on narrow screens; vertical
+            // wheel still passes through (orientation is horizontal).
+            interactive: true
+            model: window.transitionModel
+            delegate: Item {
+                required property var modelData
+                width: fxLabel.implicitWidth + window.u * 18
+                height: window.u * 40
+                Rectangle {
+                    id: fxPill
+                    anchors.centerIn: parent
+                    width: parent.width - window.u * 4
+                    height: window.u * 26
+                    radius: window.u * 13
+                    color: window.transitionType === modelData.name ? window.surface2
+                         : (fxMouse.containsMouse ? window.surface1 : "transparent")
+                    border.width: window.transitionType === modelData.name ? 1 : 0
+                    border.color: window.textColor
+                    Behavior on color { CAnim { } }
+                    Text {
+                        id: fxLabel
+                        anchors.centerIn: parent
+                        text: modelData.label || modelData.name
+                        color: window.transitionType === modelData.name ? window.textColor : window.subtextColor
+                        font.family: window.uiFont
+                        font.pixelSize: window.u * 11
+                    }
+                    MouseArea {
+                        id: fxMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        enabled: !window.isApplying && !window.showPanel
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: window.setTransition(modelData.name)
+                    }
+                }
+            }
+        }
+    }
+
     Rectangle {
         id: applyPanel
         visible: window.showPanel
@@ -520,9 +672,8 @@ Item {
         color: window.baseColor
         border.width: 0
         z: 300
+        // No entrance animation: snaps with showPanel.
         opacity: visible ? 1.0 : 0.0
-        Behavior on anchors.bottomMargin { Anim { type: Anim.Bouncy } }
-        Behavior on opacity { Anim { type: Anim.DefaultEffects } }
 
         MouseArea {
             anchors.fill: parent
@@ -551,7 +702,7 @@ Item {
 
             // Single mode: derived from the wallpaper itself at apply time.
             Text {
-                text: "Mode · Auto (from wallpaper)"
+                text: "Mode · Auto (from wallpaper)   ·   FX · " + window.transitionType
                 color: window.subtextColor
                 font.family: window.uiFont
                 font.pixelSize: window.u * 11
@@ -642,6 +793,14 @@ Item {
         onActivated: {
             if (!window.showPanel) window.applyWallpaper(view.currentIndex)
         }
+    }
+    Shortcut {
+        sequence: "t"; enabled: window.visible_ && !window.isApplying && !window.showPanel
+        onActivated: window.cycleTransition(1)
+    }
+    Shortcut {
+        sequence: "T"; enabled: window.visible_ && !window.isApplying && !window.showPanel
+        onActivated: window.cycleTransition(-1)
     }
     Shortcut {
         sequence: "Tab"; enabled: window.visible_ && !window.isApplying && !window.showPanel
