@@ -32,13 +32,15 @@
   [[ $ZSH_VERSION == (5.<1->*|<6->.*) ]] || return
 
   # Prompt colors.
-  local grey=242
-  local red=1
-  local yellow=3
-  local blue=4
-  local magenta=5
-  local cyan=6
-  local white=7
+  # Matugen (wallpaper) palette when available, else fallback to ANSI.
+  [[ -r ~/.config/matugen/p10k-colors.zsh ]] && source ~/.config/matugen/p10k-colors.zsh
+  local grey=${P10K_MTG_OUTLINE_VARIANT:-242}
+  local red=${P10K_MTG_ERROR:-1}
+  local yellow=${P10K_MTG_SECONDARY_CONTAINER:-3}
+  local blue=${P10K_MTG_PRIMARY:-4}
+  local magenta=${P10K_MTG_TERTIARY:-5}
+  local cyan=${P10K_MTG_PRIMARY_CONTAINER:-6}
+  local white=${P10K_MTG_ON_SURFACE:-7}
 
   # Left prompt segments.
   typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(

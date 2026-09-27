@@ -2,13 +2,13 @@
 # a command-line option that you want to pass to `bat` by default. You can
 # run `bat --help` to get a list of all possible configuration options.
 
-# Specify desired highlighting theme (e.g. "TwoDark"). Run `bat --list-themes`
-# for a list of all available themes
---theme="ansi"
-
+# Follows terminal (matugen) palette instead of hardcoded Dracula so
+# bat/fzf-preview stays in sync with foot/kitty on wallpaper change.
+--theme="base16"
+--style="-numbers"
 # Enable this to use italic text on the terminal. This is not supported on all
 # terminal emulators (like tmux, by default):
-#--italic-text=always
+--italic-text=always
 
 # Uncomment the following line to disable automatic paging:
 #--paging=never

@@ -67,11 +67,8 @@ setopt HIST_IGNORE_ALL_DUPS HIST_REDUCE_BLANKS HIST_IGNORE_SPACE SHARE_HISTORY
 #export TERM=foot
 export EDITOR=nvim
 typeset -U path PATH
-export PATH="$PATH:$HOME/.npm-global/bin"
-export PATH="$PATH:/sbin:/usr/sbin:/usr/local/sbin"
-export PATH="${PATH}:${HOME}/.local/bin"
-export PATH="${PATH}:${HOME}/.cargo/bin"
-export PATH="${PATH}:${HOME}/go/bin"
+path+=("$HOME/.npm-global/bin" /sbin /usr/sbin /usr/local/sbin "$HOME/.local/bin" "$HOME/.cargo/bin" "$HOME/go/bin")
+export PATH
 export OLLAMA_NOPRUNE=true
 export XDG_SESSION_TYPE=wayland
 export SDL_VIDEODRIVER=wayland
@@ -82,43 +79,25 @@ alias backup-keys='sudo rsync -rv --delete --exclude="S.gpg-agent*" --exclude="S
 alias nightmode='gammastep -m wayland -P -O 4500'
 alias cp='\rsync -av --progress'
 alias mv='\rsync -av --progress --remove-source-files'
-alias sync='\rsync -av --progress --delete'
 alias cat='bat'
 alias z='zathura'
 alias sudo='doas'
 alias tree='eza --tree --icons --sort=newest --color=always'
-alias lst='tree -L 2 -u -g  -d'
 alias u='topgrade'
 alias i='doas pacman -S '
 alias r='doas pacman -Rnscu '
-alias lta='eza --tree --icons --sort=newest'
-alias ls=' eza  --icons --color=always --group-directories-first  --sort=newest'
+alias ls='eza --icons --color=always --group-directories-first --sort=newest'
 alias l='eza -al --icons --color=always --group-directories-first --sort=newest'
-alias sl='eza --icons --sort=newest'
 alias sxiv='nsxiv'
-alias 00='loginctl poweroff'
-alias 01='loginctl reboot'
+alias 00='doas poweroff'
+alias 01='doas reboot'
 alias m='dbus-run-session niri --session'
 alias x='dbus-run-session mango'
 alias ip='ip --color=auto'
-alias netstat='/usr/bin/grc --colour=auto netstat'
-alias df='/usr/bin/grc --colour=auto df'
-alias curl='/usr/bin/grc --colour=auto curl'
-alias free='/usr/bin/grc --colour=auto free'
-alias tail='/usr/bin/grc --colour=auto tail'
-alias make='/usr/bin/grc --colour=auto make'
-alias head='/usr/bin/grc --colour=auto head'
-alias ifconfig='/usr/bin/grc --colour=auto ifconfig'
-alias uptime='/usr/bin/grc --colour=auto uptime'
+alias df='df -h'
+alias free='free -h'
 alias rec='LIBVA_DRIVER_NAME=iHD wl-screenrec -m 60 --codec avc --low-power=off --no-damage -b "20 MB" -f ~/Videos/rec.mp4'
-alias lsof='/usr/bin/grc --colour=auto lsof'
-alias lspci='/usr/bin/grc --colour=auto lspci'
-alias lsblk='/usr/bin/grc --colour=auto lsblk'
-alias mount='/usr/bin/grc --colour=auto mount'
-alias blkid='/usr/bin/grc --colour=auto blkid'
-alias env='/usr/bin/grc --colour=auto env'
-alias grep='grep -i --color=auto'
-alias rsync='rsync -av --progress'    
+alias rsync='rsync -av --progress'
 # run a command in a focused tab of the persistent herdr session
 # falls back to running it directly when already inside herdr or when herdr isn't running
 open-in-herdr() {
@@ -141,13 +120,25 @@ wp-tui() { open-in-herdr wp-tui wp-tui "$@" }
 alias ytd='yt-dlp  -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]" --audio-quality 0'
 alias ytdm='yt-dlp -f "bestaudio[ext=m4a]","bestaudio[ext=webm]" -x '
 alias v='nvim'
-alias fzf='fzf --preview "bat --color=always   {}"'
+alias fzf='fzf --preview "bat --color=always {}"'
 
 
-# --- ripgrep sane defaults ---
+# --- ripgrep replaces grep (same engine, grep-like vs rich output) ---
 alias rg='rg --pretty --smart-case'
+alias grep='rg --smart-case --no-heading --color=auto'
 
 command -v colordiff >/dev/null && alias diff='colordiff'
+
+# --- colors for man / less / everything (native, no grc, no systemd) ---
+export CLICOLOR=1
+export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
+# less with colors (less >= 581 supports --use-color)
+export LESS='-R -M -i -j10 --use-color -Dd+r -Du+b -DS+ky -DP+kg -DE+ky -DW+ky'
+export MANPAGER='less -R --use-color -Dd+r -Du+b'
+export MANROFFOPT='-c'
+# keep man + bat in sync (bat config uses base16, follows terminal)
+export BAT_THEME='base16'
+alias dmesg='dmesg --color=always'
 
 # --- fd (better find) ---
 command -v fdfind >/dev/null && alias fd='fdfind'
