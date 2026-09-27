@@ -91,7 +91,6 @@ alias l='eza -al --icons --color=always --group-directories-first --sort=newest'
 alias sxiv='nsxiv'
 alias 00='doas poweroff'
 alias 01='doas reboot'
-alias m='dbus-run-session niri --session'
 alias x='dbus-run-session mango'
 alias ip='ip --color=auto'
 alias df='df -h'
@@ -99,20 +98,30 @@ alias free='free -h'
 alias rec='LIBVA_DRIVER_NAME=iHD wl-screenrec -m 60 --codec avc --low-power=off --no-damage -b "20 MB" -f ~/Videos/rec.mp4'
 alias rsync='rsync -av --progress'
 # run a command in a focused tab of the persistent herdr session
-# falls back to running it directly when already inside herdr or when herdr isn't running
+# opens herdr first when the server isn't running, falls back to direct only inside herdr or on failure
 open-in-herdr() {
   local label="$1"; shift
-  if [[ -n "$HERDR_ENV" ]] || ! herdr status >/dev/null 2>&1; then
+  if [[ -n "$HERDR_ENV" ]]; then
     command "$@"
     return
   fi
-  local pane
-  pane=$(herdr tab create --label "$label" --cwd "$PWD" --focus | jq -r '.result.root_pane.pane_id // empty')
-  if [[ -n "$pane" ]]; then
-    herdr pane run "$pane" "$@"
-  else
-    command "$@"
+  if ! herdr status --json 2>/dev/null | jq -e '.server.running == true' >/dev/null 2>&1; then
+    # open herdr (server) first, then continue into the tab path
+    herdr server >/dev/null 2>&1 &!
+    local i
+    for i in {1..20}; do
+      herdr status --json 2>/dev/null | jq -e '.server.running == true' >/dev/null 2>&1 && break
+      sleep 0.25
+    done
   fi
+  local pane
+  pane=$(herdr tab create --label "$label" --cwd "$PWD" --focus 2>/dev/null | jq -r '.result.root_pane.pane_id // empty' 2>/dev/null)
+  if [[ -z "$pane" ]]; then
+    command "$@"
+    return
+  fi
+  herdr pane run "$pane" "$@"
+  exec herdr
 }
 alias yt='yt-x'
 opencode() { open-in-herdr opencode opencode "$@" }
@@ -220,30 +229,5 @@ alias mp4towall='~/.local/bin/mp4towall'
 
 if [[ -r ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]; then
   source ~/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-fi
-
-# Auto-heal stale DBUS_SESSION_BUS_ADDRESS (e.g. shells inherited from
-# herdr/long-lived parents across niri restarts via dbus-run-session).
-# If the socket in the current address is gone, re-derive it from niri.
-if [[ -n "$DBUS_SESSION_BUS_ADDRESS" ]]; then
-  _dbus_sock="${DBUS_SESSION_BUS_ADDRESS#*path=}"
-  _dbus_sock="${_dbus_sock%%,*}"
-  if [[ "$_dbus_sock" == unix:* || ! -S "$_dbus_sock" ]]; then
-    for _niri_pid in ${(f)"$(pgrep -x niri 2>/dev/null)"}; do
-      if [[ -r "/proc/$_niri_pid/environ" ]]; then
-        _fresh_addr="$(tr '\0' '\n' < "/proc/$_niri_pid/environ" 2>/dev/null | sed -n 's/^DBUS_SESSION_BUS_ADDRESS=//p')"
-        if [[ -n "$_fresh_addr" ]]; then
-          _fresh_sock="${_fresh_addr#*path=}"
-          _fresh_sock="${_fresh_sock%%,*}"
-          if [[ -S "$_fresh_sock" ]]; then
-            export DBUS_SESSION_BUS_ADDRESS="$_fresh_addr"
-            break
-          fi
-        fi
-      fi
-    done
-    unset _niri_pid _fresh_addr _fresh_sock
-  fi
-  unset _dbus_sock
 fi
 

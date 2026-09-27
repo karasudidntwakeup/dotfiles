@@ -7,7 +7,7 @@
     "description": "Larger harness logos + workspace/tab agent tree + animated working spinner (braille), held done check, LED status marks for the Herdr sidebar — claude, codex, opencode, omp, cline, mastracode, kimi, kilo, maki, pi, hermes, cursor, copilot, deepseek, gemini, gpt, qwen. Terminal-font-metric-matched icon font; tree layout with task labels from native session names.",
     "manifest_path": "/home/karasu/.config/herdr/plugins/github/qintmb.herdr-icon-agent-ui-3a8809b69f32/herdr-plugin.toml",
     "plugin_root": "/home/karasu/.config/herdr/plugins/github/qintmb.herdr-icon-agent-ui-3a8809b69f32",
-    "enabled": true,
+    "enabled": false,
     "platforms": [
       "linux",
       "macos",
