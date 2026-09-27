@@ -456,6 +456,11 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         y: Math.floor(parent.height - card.height - 24)
         radius: 10
+        topLeftRadius: 10
+        topRightRadius: 10
+        bottomLeftRadius: 10
+        bottomRightRadius: 10
+        antialiasing: true
         color: ytx.header
         border.width: 1
         border.color: ytx.divider
@@ -474,6 +479,10 @@ Item {
         Rectangle {
             anchors.fill: parent
             radius: 10
+            topLeftRadius: 10
+            topRightRadius: 10
+            bottomLeftRadius: 10
+            bottomRightRadius: 10
             color: "transparent"
             border.width: 1
             border.color: Qt.rgba(0, 0, 0, 0.4)
@@ -487,6 +496,12 @@ Item {
             Rectangle { // header (android, like WhatsApp)
                 Layout.fillWidth: true
                 Layout.preferredHeight: 60
+                radius: 10
+                topLeftRadius: 10
+                topRightRadius: 10
+                bottomLeftRadius: 0
+                bottomRightRadius: 0
+                antialiasing: true
                 color: ytx.header
                 RowLayout {
                     anchors.fill: parent

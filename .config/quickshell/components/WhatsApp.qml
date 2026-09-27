@@ -483,6 +483,11 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         y: Math.floor(parent.height - card.height - 24)
         radius: 10
+        topLeftRadius: 10
+        topRightRadius: 10
+        bottomLeftRadius: 10
+        bottomRightRadius: 10
+        antialiasing: true
         color: wa.header
         border.width: 1
         border.color: wa.divider
@@ -503,6 +508,10 @@ Item {
         Rectangle {
             anchors.fill: parent
             radius: 10
+            topLeftRadius: 10
+            topRightRadius: 10
+            bottomLeftRadius: 10
+            bottomRightRadius: 10
             color: "transparent"
             border.width: 1
             border.color: Qt.rgba(0, 0, 0, 0.4)
@@ -523,6 +532,12 @@ Item {
                 Rectangle { // header with inline search
                     Layout.fillWidth: true
                     Layout.preferredHeight: 60
+                    radius: 10
+                    topLeftRadius: 10
+                    topRightRadius: 10
+                    bottomLeftRadius: 0
+                    bottomRightRadius: 0
+                    antialiasing: true
                     color: wa.header
                     RowLayout {
                         anchors.fill: parent
@@ -681,6 +696,12 @@ Item {
                 Rectangle { // bottom tab bar (iOS-style, tonal, square)
                     Layout.fillWidth: true
                     Layout.preferredHeight: 56
+                    radius: 10
+                    topLeftRadius: 0
+                    topRightRadius: 0
+                    bottomLeftRadius: 10
+                    bottomRightRadius: 10
+                    antialiasing: true
                     color: wa.header
                     Row {
                         anchors.fill: parent
@@ -716,6 +737,12 @@ Item {
                 anchors.fill: parent; spacing: 0
                 Rectangle { // convo header
                     Layout.fillWidth: true; Layout.preferredHeight: 60; color: wa.header
+                    radius: 10
+                    topLeftRadius: 10
+                    topRightRadius: 10
+                    bottomLeftRadius: 0
+                    bottomRightRadius: 0
+                    antialiasing: true
                     RowLayout {
                         anchors.fill: parent
                         anchors.leftMargin: 4; anchors.rightMargin: 8; spacing: 4
@@ -880,8 +907,11 @@ Item {
                                 implicitHeight: bubbleRow.implicitHeight + 12
                                 radius: 10
                                 // iOS: uniformly rounded, no tail corner
-                                topLeftRadius: 0
-                                topRightRadius: 0
+                                topLeftRadius: 10
+                                topRightRadius: 10
+                                bottomLeftRadius: 10
+                                bottomRightRadius: 10
+                                antialiasing: true
                                 color: fromMe ? wa.bubbleOut : wa.bubbleIn
                                 RowLayout {
                                     id: bubbleRow
