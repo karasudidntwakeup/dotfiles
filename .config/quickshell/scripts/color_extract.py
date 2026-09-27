@@ -33,8 +33,8 @@ BUCKETS = [
     ("Pink",     (300, 345)),
 ]
 
-IMAGE_EXT = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".heic",
-             ".JPG", ".JPEG", ".PNG", ".WEBP", ".GIF", ".BMP", ".HEIC"}
+IMAGE_EXT = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".heic", ".avif",
+             ".JPG", ".JPEG", ".PNG", ".WEBP", ".GIF", ".BMP", ".HEIC", ".AVIF"}
 
 THUMB_HEIGHT = 420
 # Hard cap so a huge first run doesn't block the shell; large dirs are
@@ -186,8 +186,16 @@ def main():
 
     # Collect candidate files, track current files for pruning.
     files = []
+    # Newest-first so a newly added photo is indexed on the very next run
+    # instead of waiting behind hundreds of alphabetically-earlier files
+    # (CHUNK_MAX budgets each run; CJK names sort last in unicode order).
+    def _mtime(name):
+        try:
+            return os.stat(os.path.join(src_dir, name)).st_mtime
+        except Exception:
+            return 0
     try:
-        names = sorted(os.listdir(src_dir))
+        names = sorted(os.listdir(src_dir), key=_mtime, reverse=True)
     except Exception:
         names = []
     for name in names:

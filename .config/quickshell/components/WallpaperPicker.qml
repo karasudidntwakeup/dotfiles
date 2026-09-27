@@ -17,6 +17,11 @@ Item {
     property var displayModel: []
     property bool isApplying: false
     property bool isLoaded: false
+    // False while color_extract.py still has unprocessed files (CHUNK_MAX
+    // budget per run). parseManifest updates it; indexer keeps re-running
+    // until the manifest reports done so new photos appear without
+    // reopening the picker N times.
+    property bool manifestDone: true
 
     signal requestClose()
     property bool visible_: false
@@ -89,8 +94,10 @@ Item {
         var raw = String(listFile.text() || "")
         if (raw.trim().length === 0) return
         var out = []
+        var done = true
         try {
             var data = JSON.parse(raw)
+            done = data.done !== false
             var items = data.items || []
             for (var i = 0; i < items.length; i++) {
                 var it = items[i]
@@ -110,13 +117,16 @@ Item {
         wallpaperModel = out
         applyFilters()
         isLoaded = true
+        manifestDone = done
+        // Keep indexing until every file is processed.
+        if (!done) Qt.callLater(window.triggerIndexer)
     }
 
     FolderListModel {
         id: srcModel
         folder: "file://" + window.srcDir
-        nameFilters: ["*.jpg", "*.jpeg", "*.png", "*.webp", "*.gif",
-                      "*.JPG", "*.JPEG", "*.PNG", "*.WEBP", "*.GIF"]
+        nameFilters: ["*.jpg", "*.jpeg", "*.png", "*.webp", "*.gif", "*.bmp", "*.heic", "*.avif",
+                      "*.JPG", "*.JPEG", "*.PNG", "*.WEBP", "*.GIF", "*.BMP", "*.HEIC", "*.AVIF"]
         showDirs: false
         onStatusChanged: if (status === FolderListModel.Ready) Qt.callLater(window.triggerIndexer)
     }
