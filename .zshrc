@@ -41,7 +41,13 @@ bindkey '^K' kill-line
 #
 autoload -U up-line-or-beginning-search
 autoload -U down-line-or-beginning-search
-autoload -U compinit; compinit
+autoload -U compinit
+# Cache completions: only rebuild dump once a day, else use cache (faster startup)
+if [[ -n ${ZDOTDIR:-$HOME}/.zcompdump(#qN.mh+24) ]]; then
+  compinit -d ${ZDOTDIR:-$HOME}/.zcompdump
+else
+  compinit -C -d ${ZDOTDIR:-$HOME}/.zcompdump
+fi
 zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
 ##
@@ -185,9 +191,14 @@ function y() {
 	rm -f -- "$tmp"
 }
 
+# nvm (lazy-loaded only if installed; ~/.nvm missing right now so this is a no-op)
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+  nvm() { unset -f nvm node npm npx 2>/dev/null; source "$NVM_DIR/nvm.sh"; nvm "$@" }
+  node() { unset -f nvm node npm npx 2>/dev/null; source "$NVM_DIR/nvm.sh"; node "$@" }
+  npm() { unset -f nvm node npm npx 2>/dev/null; source "$NVM_DIR/nvm.sh"; npm "$@" }
+  npx() { unset -f nvm node npm npx 2>/dev/null; source "$NVM_DIR/nvm.sh"; npx "$@" }
+fi
 export PNPM_HOME="$HOME/.local/share/pnpm"
 path=("$PNPM_HOME/bin" "$PNPM_HOME" "${path[@]}")
 
