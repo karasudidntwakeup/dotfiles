@@ -18,7 +18,7 @@ Item {
     readonly property int maxRows: 8
     readonly property int searchHeight: 40
     readonly property int pad: 14
-    readonly property int cornerRadius: 0
+    readonly property int cornerRadius: 10
 
     // YtX-style Android roles: flat surface card, theme text tokens.
     readonly property color cardColor: rootRef ? Qt.color(rootRef.colorOf("surface_container")) : "#1f2c34"
@@ -270,7 +270,7 @@ Item {
                     id: wipeBtn
                     Layout.preferredWidth: wipeText.implicitWidth + 22
                     Layout.preferredHeight: 24
-                    radius: 0
+                    radius: 10
                     color: clipMgr.wipeArmed
                         ? (wipeHover.containsMouse ? rootRef.withAlpha(clipMgr.errorColor, 0.8) : clipMgr.errorColor)
                         : (wipeHover.containsMouse ? rootRef.withAlpha(clipMgr.fg, 0.08) : Qt.rgba(clipMgr.fg.r, clipMgr.fg.g, clipMgr.fg.b, 0.02))
@@ -322,7 +322,7 @@ Item {
                 Rectangle {
                     Layout.preferredWidth: 24
                     Layout.preferredHeight: 24
-                    radius: 0
+                    radius: 10
                     color: closeHover.containsMouse
                         ? rootRef.withAlpha(clipMgr.fg, 0.2)
                         : "transparent"
@@ -349,7 +349,7 @@ Item {
                 id: searchBox
                 width: parent.width
                 height: clipMgr.searchHeight
-                radius: 0
+                radius: 10
                 color: clipMgr.fieldColor
                 border.width: 1
                 border.color: searchField.inputFocus
@@ -413,7 +413,7 @@ Item {
                         visible: searchField.text.length > 0
                         Layout.preferredWidth: 22
                         Layout.preferredHeight: 22
-                        radius: 0
+                        radius: 10
                         color: clearHover.containsMouse
                             ? rootRef.withAlpha(clipMgr.fg, 0.25)
                             : "transparent"
@@ -481,7 +481,7 @@ Item {
                         visible: listModel.count > 0 && listView.currentIndex >= 0 && listView.currentItem !== null
                         width: listView.width
                         height: clipMgr.rowHeight
-                        radius: 0
+                        radius: 10
                         color: rootRef.withAlpha(clipMgr.fg, 0.09)
 
                         readonly property real targetY: (listView.currentIndex >= 0 && listView.currentItem !== null)
@@ -508,7 +508,7 @@ Item {
 
                         Rectangle {
                             anchors.fill: parent
-                            radius: 0
+                            radius: 10
                             color: rowHover.containsMouse && !isSelected
                                 ? rootRef.withAlpha(clipMgr.fg, 0.08)
                                 : "transparent"
@@ -528,7 +528,7 @@ Item {
 
                                 Rectangle {
                                     anchors.fill: parent
-                                    radius: 0
+                                    radius: 10
                                     color: isSelected
                                         ? rootRef.withAlpha(clipMgr.fg, 0.16)
                                         : rootRef.withAlpha(clipMgr.fg, 0.08)
@@ -611,7 +611,7 @@ Item {
                                 Layout.preferredWidth: 24
                                 Layout.preferredHeight: 24
                                 Layout.alignment: Qt.AlignVCenter
-                                radius: 0
+                                radius: 10
                                 color: deleteHover.containsMouse
                                     ? rootRef.withAlpha(clipMgr.errorColor, 0.5)
                                     : rootRef.withAlpha(clipMgr.fg, isSelected ? 0.25 : 0.12)

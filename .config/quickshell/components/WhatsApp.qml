@@ -482,7 +482,7 @@ Item {
         height: Math.min(740, Math.max(520, parent.height - 96))
         anchors.horizontalCenter: parent.horizontalCenter
         y: Math.floor(parent.height - card.height - 24)
-        radius: 0
+        radius: 10
         color: wa.header
         border.width: 1
         border.color: wa.divider
@@ -502,7 +502,7 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            radius: 0
+            radius: 10
             color: "transparent"
             border.width: 1
             border.color: Qt.rgba(0, 0, 0, 0.4)
@@ -545,7 +545,7 @@ Item {
                             Layout.preferredWidth: 220
                             Layout.preferredHeight: 28
                             Layout.alignment: Qt.AlignVCenter
-                            radius: 0; color: wa.field
+                            radius: 10; color: wa.field
                             RowLayout {
                                 anchors.fill: parent
                                 anchors.leftMargin: 14; anchors.rightMargin: 6
@@ -607,7 +607,7 @@ Item {
                                 spacing: 12
                                 Rectangle {
                                     Layout.preferredWidth: 46; Layout.preferredHeight: 46
-                                    radius: 0; color: wa.avatarColor(jid)
+                                    radius: 10; color: wa.avatarColor(jid)
                                     Text {
                                         anchors.centerIn: parent;                                         text: wa.initials(name)
                                         color: "#ffffff"; font.family: wa.uiFont
@@ -647,7 +647,7 @@ Item {
                                         Rectangle { // unread badge
                                             visible: unreadCount > 0
                                             Layout.preferredWidth: Math.max(20, badgeText.implicitWidth + 12)
-                                            Layout.preferredHeight: 20; radius: 0
+                                            Layout.preferredHeight: 20; radius: 10
                                             color: wa.green
                                             Text {
                                                 id: badgeText; anchors.centerIn: parent
@@ -722,7 +722,7 @@ Item {
                         IconBtn { icon: "back"; tip: "Back"; onClicked: wa.backToList() }
                         Rectangle {
                             Layout.preferredWidth: 38; Layout.preferredHeight: 38
-                            radius: 0; color: wa.avatarColor(wa.currentJid)
+                            radius: 10; color: wa.avatarColor(wa.currentJid)
                             Text {
                                 anchors.centerIn: parent
                                 text: wa.initials(wa.currentChat ? wa.currentChat.name : "")
@@ -790,7 +790,7 @@ Item {
                         Rectangle { // day divider chip
                             visible: isDay
                             anchors.centerIn: parent
-                            width: dayText.implicitWidth + 24; height: 24; radius: 0
+                            width: dayText.implicitWidth + 24; height: 24; radius: 10
                             color: wa.header
                             Text {
                                 id: dayText; anchors.centerIn: parent; text: label
@@ -815,7 +815,7 @@ Item {
                             }
                             Rectangle { // image thumb
                                 visible: isImage
-                                width: parent.width; height: 184; radius: 0; clip: true; color: wa.header
+                                width: parent.width; height: 184; radius: 10; clip: true; color: wa.header
                                 Image {
                                     anchors.fill: parent; source: isImage ? url : ""
                                     fillMode: Image.PreserveAspectCrop
@@ -828,7 +828,7 @@ Item {
                             }
                             Rectangle { // sticker
                                 visible: isSticker
-                                width: 160; height: 160; radius: 0; clip: true; color: "transparent"
+                                width: 160; height: 160; radius: 10; clip: true; color: "transparent"
                                 AnimatedImage {
                                     id: stickerImg; anchors.fill: parent
                                     source: isSticker ? url : ""
@@ -846,12 +846,12 @@ Item {
                             }
                             Rectangle { // audio row
                                 visible: isAudio
-                                width: parent.width; height: 44; radius: 0
+                                width: parent.width; height: 44; radius: 10
                                 color: fromMe ? wa.bubbleOut : wa.bubbleIn
                                 RowLayout {
                                     anchors.fill: parent; anchors.leftMargin: 6; anchors.rightMargin: 10; spacing: 8
                                     Rectangle {
-                                        Layout.preferredWidth: 30; Layout.preferredHeight: 30; radius: 0
+                                        Layout.preferredWidth: 30; Layout.preferredHeight: 30; radius: 10
                                         color: wa.green
                                         Text {
                                             anchors.centerIn: parent
@@ -878,7 +878,7 @@ Item {
                                 visible: body.length > 0
                                 width: parent.width
                                 implicitHeight: bubbleRow.implicitHeight + 12
-                                radius: 0
+                                radius: 10
                                 // iOS: uniformly rounded, no tail corner
                                 topLeftRadius: 0
                                 topRightRadius: 0
@@ -952,7 +952,7 @@ Item {
                         anchors.fill: parent
                         anchors.leftMargin: 10; anchors.rightMargin: 10; spacing: 8
                         Rectangle {
-                            Layout.fillWidth: true; Layout.preferredHeight: 46; radius: 0; color: wa.field
+                            Layout.fillWidth: true; Layout.preferredHeight: 46; radius: 10; color: wa.field
                             RowLayout {
                                 anchors.fill: parent
                                 anchors.leftMargin: 14; anchors.rightMargin: 6; spacing: 4
@@ -970,7 +970,7 @@ Item {
                             }
                         }
                         Rectangle { // round send FAB
-                            Layout.preferredWidth: 46; Layout.preferredHeight: 46; radius: 0
+                            Layout.preferredWidth: 46; Layout.preferredHeight: 46; radius: 10
                             color: sendField.text.length > 0 && wa.inChat ? wa.green : wa.field
                             opacity: (wa.inChat && !wa.sending && sendField.text.length > 0) ? 1 : 0.7
                             QIcon {
@@ -995,7 +995,7 @@ Item {
                 anchors.rightMargin: 16
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 74
-                width: 44; height: 44; radius: 0
+                width: 44; height: 44; radius: 10
                 color: wa.field
                 border.width: 1
                 border.color: wa.divider

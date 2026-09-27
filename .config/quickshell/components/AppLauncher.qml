@@ -18,7 +18,7 @@ Item {
     readonly property int maxRows: 5
     readonly property int searchHeight: 42
     readonly property int pad: 12
-    readonly property int cornerRadius: 0
+    readonly property int cornerRadius: 10
     readonly property int listSpacing: 4
 
     // YtX-style Android roles: flat surface card, theme text tokens.
@@ -329,7 +329,7 @@ Item {
                         visible: appList.count > 0 && appList.currentIndex >= 0 && appList.currentItem !== null
                         width: appList.width
                         height: launcher.rowHeight
-                        radius: 0
+                        radius: 10
                         color: launcher.highlight
                         y: appList.currentItem ? appList.currentItem.y : 0
                         Behavior on y {
@@ -355,7 +355,7 @@ Item {
                         // Hover layer under content.
                         Rectangle {
                             anchors.fill: parent
-                            radius: 0
+                            radius: 10
                             color: rowHover.containsMouse ? launcher.hoverFill : "transparent"
                             Behavior on color { CAnim { type: CAnim.FastEffects } }
                         }
@@ -555,7 +555,7 @@ Item {
                 id: searchBox
                 width: parent.width
                 height: launcher.searchHeight
-                radius: 0
+                radius: 10
                 // Pops a little when focused for typing.
                 scale: searchField.inputFocus ? 1.02 : 1.0
                 Behavior on scale { Anim { type: Anim.BouncyFast } }
@@ -623,7 +623,7 @@ Item {
                         visible: searchField.text.length > 0
                         Layout.preferredWidth: 22
                         Layout.preferredHeight: 22
-                        radius: 0
+                        radius: 10
                         color: clearHover.containsMouse
                             ? rootRef.withAlpha(launcher.fg, 0.25)
                             : "transparent"

@@ -162,7 +162,7 @@ Item {
         anchors.topMargin: rootRef ? rootRef.barHeight - 15 : 21
 
         color: center.panelColor
-        radius: 0
+        radius: 10
         border.width: 0
         border.color: center.panelBorder
         clip: true
@@ -198,7 +198,7 @@ Item {
                 Layout.preferredHeight: 168
                 Layout.minimumHeight: 168
                 visible: rootRef && rootRef.mediaStatus !== "none"
-                radius: 0
+                radius: 10
                 clip: true
                 antialiasing: true
                 smooth: true
@@ -226,7 +226,7 @@ Item {
                     id: mediaArtMask
                     anchors.fill: parent
                     anchors.margins: -5
-                    radius: 0
+                    radius: 10
                     color: "#ffffff"
                     antialiasing: true
                     smooth: true
@@ -454,7 +454,7 @@ Item {
                 Layout.preferredHeight: center.weekHeight
                 Layout.minimumHeight: center.weekHeight
                 visible: center.weekOn
-                radius: 0
+                radius: 10
                 color: rootRef ? rootRef.tonalPillColor(rootRef.pillColor("mauve")) : "#1a1b1e"
                 border.width: 0
                 clip: true
@@ -531,7 +531,7 @@ Item {
                             Layout.preferredWidth: 20
                             Layout.preferredHeight: 20
                             Layout.alignment: Qt.AlignVCenter
-                            radius: 0
+                            radius: 10
                             color: weekRefreshHover.containsMouse ? Qt.rgba(weekWidget.wfg.r, weekWidget.wfg.g, weekWidget.wfg.b, 0.15) : "transparent"
 
                             QIcon {
@@ -653,12 +653,12 @@ Item {
 
                                 Rectangle {
                                     anchors.fill: parent
-                                    radius: 0
+                                    radius: 10
                                     color: Qt.rgba(weekWidget.wfg.r, weekWidget.wfg.g, weekWidget.wfg.b, 0.18)
                                 }
                                 Rectangle {
                                     height: 3
-                                    radius: 0
+                                    radius: 10
                                     color: weekWidget.wfg
                                     width: parent.width * center.weekFrac(modelData.min, modelData.max)[1]
                                     x: parent.width * center.weekFrac(modelData.min, modelData.max)[0]
@@ -747,7 +747,7 @@ Item {
                         property var drive: modelData
                         Layout.fillWidth: true
                         Layout.preferredHeight: driveCol.implicitHeight + 20
-                        radius: 0
+                        radius: 10
                         color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.04)
                         border.width: 1
                         border.color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.09)
@@ -813,7 +813,7 @@ Item {
                                     Rectangle {
                                         Layout.preferredWidth: 6
                                         Layout.fillHeight: true
-                                        radius: 0
+                                        radius: 10
                                         color: modelData.mount ? center.accent : Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.25)
                                     }
 
@@ -896,7 +896,7 @@ Item {
                     visible: svc && svc.unreadCount > 0
                     Layout.preferredHeight: 18
                     implicitWidth: unreadLabel.implicitWidth + 12
-                    radius: 0
+                    radius: 10
                     color: center.accent
 
                     Text {
@@ -931,7 +931,7 @@ Item {
                 Layout.minimumHeight: 64
                 Layout.preferredHeight: Math.min(centerList.contentHeight, center.listMaxHeight) + 10
                 visible: centerList.count > 0
-                radius: 0
+                radius: 10
                 color: "transparent"
                 border.width: 0
                 border.color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.09)
@@ -969,7 +969,7 @@ Item {
                     background: Item {}
                     contentItem: Rectangle {
                         implicitWidth: 4
-                        radius: 0
+                        radius: 10
                          color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.25)
                     }
                 }
@@ -1047,7 +1047,7 @@ Item {
             anchors.centerIn: parent
             width: btn.btnSize
             height: btn.btnSize
-            radius: 0
+            radius: 10
             color: btn.accent
                 ? Qt.color(center.signalAccent)
                 : (hoverArea.containsMouse ? Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.1) : "transparent")
@@ -1081,7 +1081,7 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            radius: 0
+            radius: 10
             color: !btn.enabled_
                 ? Qt.rgba(1, 1, 1, 0.04)
                 : btn.active
@@ -1120,7 +1120,7 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            radius: 0
+            radius: 10
             color: dbtn.accent
                 ? Qt.rgba(center.accent.r, center.accent.g, center.accent.b, 0.28)
                 : (dbHover.containsMouse ? Qt.rgba(1, 1, 1, 0.16) : Qt.rgba(1, 1, 1, 0.08))
@@ -1163,7 +1163,7 @@ Item {
 
         Layout.preferredHeight: 76
         Layout.fillHeight: false
-        radius: 0
+        radius: 10
         color: rootRef ? rootRef.tonalPillColor(rootRef.pillColor(widget.tintName)) : "#1a1b1e"
         border.width: 0
         clip: true
@@ -1250,7 +1250,7 @@ Item {
             anchors.rightMargin: 10
             anchors.bottomMargin: 8
             height: 4
-            radius: 0
+            radius: 10
             color: Qt.rgba(widget.widgetFg.r, widget.widgetFg.g, widget.widgetFg.b, 0.18)
             clip: true
 

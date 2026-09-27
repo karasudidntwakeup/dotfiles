@@ -39,7 +39,7 @@ Item {
     readonly property color green: rootRef ? Qt.color(rootRef.colorOf("primary")) : "#00a884"
     readonly property bool noShadow: Quickshell.env("QS_NO_SHADOW") === "1"
 
-    readonly property int cornerRadius: 0
+    readonly property int cornerRadius: 10
     readonly property int pad: 14
     readonly property int cardWidth: Math.min(620, Math.max(0, ytx.width - 32))
     readonly property int searchHeight: 36
@@ -455,7 +455,7 @@ Item {
         height: Math.min(740, Math.max(520, parent.height - 96))
         anchors.horizontalCenter: parent.horizontalCenter
         y: Math.floor(parent.height - card.height - 24)
-        radius: 0
+        radius: 10
         color: ytx.header
         border.width: 1
         border.color: ytx.divider
@@ -473,7 +473,7 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            radius: 0
+            radius: 10
             color: "transparent"
             border.width: 1
             border.color: Qt.rgba(0, 0, 0, 0.4)
@@ -509,7 +509,7 @@ Item {
                         Layout.preferredWidth: 220
                         Layout.preferredHeight: 28
                         Layout.alignment: Qt.AlignVCenter
-                        radius: 0; color: ytx.field
+                        radius: 10; color: ytx.field
                         RowLayout {
                             anchors.fill: parent
                             anchors.leftMargin: 14; anchors.rightMargin: 6
@@ -588,7 +588,7 @@ Item {
                                 Layout.preferredWidth: 24
                                 Layout.preferredHeight: 24
                                 Layout.alignment: Qt.AlignVCenter
-                                radius: 0
+                                radius: 10
                                 color: "transparent"
                                 QIcon {
                                     anchors.centerIn: parent
@@ -654,7 +654,7 @@ Item {
                         id: homeChip
                         width: homeChipLabel.implicitWidth + 20
                         height: 22
-                        radius: 0
+                        radius: 10
                         color: homeHover.containsMouse ? rootRef.withAlpha(ytx.fg, 0.2) : rootRef.withAlpha(ytx.fg, 0.08)
                         Row {
                             id: homeChipLabel
@@ -691,7 +691,7 @@ Item {
                         id: recentChip
                         width: recentChipLabel.implicitWidth + 20
                         height: 22
-                        radius: 0
+                        radius: 10
                         color: recentHover.containsMouse ? rootRef.withAlpha(ytx.fg, 0.2) : rootRef.withAlpha(ytx.fg, 0.08)
                         Row {
                             id: recentChipLabel
@@ -729,7 +729,7 @@ Item {
                         enabled: !homeProc.running
                         width: 22
                         height: 22
-                        radius: 0
+                        radius: 10
                         color: refreshHover.containsMouse ? rootRef.withAlpha(ytx.fg, 0.2) : rootRef.withAlpha(ytx.fg, 0.08)
                         QIcon {
                             anchors.centerIn: parent
@@ -809,7 +809,7 @@ Item {
                         height: ytx.cellHeight
                         Rectangle {
                             anchors.fill: parent
-                            radius: 0
+                            radius: 10
                             color: isSelected ? rootRef.withAlpha(ytx.selBg, 0.28) : "transparent"
                             border.width: isSelected ? 2 : 0
                             border.color: ytx.selBg
@@ -827,7 +827,7 @@ Item {
                             Rectangle {
                                 width: ytx.thumbWidth
                                 height: ytx.thumbHeight
-                                radius: 0
+                                radius: 10
                                 clip: true
                                 color: "transparent"
                                 border.width: 1
@@ -857,7 +857,7 @@ Item {
                                 Rectangle {
                                     visible: thumbImg.status !== Image.Ready
                                     anchors.fill: parent
-                                    radius: 0
+                                    radius: 10
                                     color: isSelected ? ytx.selBg : rootRef.withAlpha(ytx.fg, 0.08)
                                 }
                             }

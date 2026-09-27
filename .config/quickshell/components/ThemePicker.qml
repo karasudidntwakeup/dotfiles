@@ -62,7 +62,7 @@ Item {
     readonly property real borderWidth: 3 * u
     readonly property real spacing: 10 * u
     readonly property real skewFactor: -0.35
-    readonly property real cornerRadius: 0
+    readonly property real cornerRadius: 10
     readonly property real selectedCenterOffset: (window.skewFactor * window.itemHeight) / 2
 
     readonly property var kindData: ["All", "Auto", "Fixed", "Nvim"]
@@ -434,7 +434,7 @@ Item {
                                             required property var modelData
                                             width: window.u * 26
                                             height: window.u * 26
-                                            radius: 0
+                                            radius: 10
                                             color: modelData
                                             border.width: 1
                                             border.color: Qt.rgba(1, 1, 1, 0.25)
@@ -683,7 +683,7 @@ Item {
                 Rectangle {
                     width: closeLabel.implicitWidth + window.u * 28
                     height: window.u * 32
-                    radius: 0
+                    radius: 10
                     color: closeHov.containsMouse ? window.surface1 : "transparent"
                     Text {
                         id: closeLabel

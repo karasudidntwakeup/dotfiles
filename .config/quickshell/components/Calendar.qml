@@ -655,7 +655,7 @@ PanelWindow {
             Anim { type: Anim.BouncyFast }
         }
 
-        radius: 0
+        radius: 10
         color: calPopup.calColor
         border.width: 1
         border.color: Qt.rgba(1, 1, 1, 0.12)
@@ -689,7 +689,7 @@ PanelWindow {
                     Layout.preferredWidth: 26
                     Layout.preferredHeight: 26
                     Layout.alignment: Qt.AlignVCenter
-                    radius: 0
+                    radius: 10
                     color: calPrevHover.containsMouse ? rootRef.withAlpha(calPopup.popupFg, 0.15) : "transparent"
 
                     QIcon {
@@ -756,7 +756,7 @@ PanelWindow {
                 Rectangle {
                     Layout.preferredWidth: 26
                     Layout.preferredHeight: 26
-                    radius: 0
+                    radius: 10
                     color: calNextHover.containsMouse ? rootRef.withAlpha(calPopup.popupFg, 0.15) : "transparent"
 
                     QIcon {
@@ -778,7 +778,7 @@ PanelWindow {
                 Rectangle {
                     Layout.preferredWidth: 26
                     Layout.preferredHeight: 26
-                    radius: 0
+                    radius: 10
                     color: calCloseHover.containsMouse ? rootRef.withAlpha(rootRef.error, 0.25) : "transparent"
 
                     QIcon {
@@ -907,7 +907,7 @@ PanelWindow {
                             Rectangle {
                                 anchors.fill: parent
                                 anchors.margins: 2
-                                radius: 0
+                                radius: 10
                                 border.width: isToday && !isSelected ? 1 : 0
                                 border.color: rootRef ? rootRef.withAlpha(calPopup.accentCol, 0.55) : "transparent"
                                 color: isSelected
@@ -940,7 +940,7 @@ PanelWindow {
                                             required property var modelData
                                             width: 4
                                             height: 4
-                                            radius: 2
+                                            radius: 10
                                             color: modelData
                                             opacity: inMonth ? 0.9 : 0.4
                                         }
@@ -997,7 +997,7 @@ PanelWindow {
                         Rectangle {
                             Layout.preferredWidth: 3
                             Layout.fillHeight: true
-                            radius: 0
+                            radius: 10
                             color: modelData.color || calPopup.accentCol
                         }
 
@@ -1045,7 +1045,7 @@ PanelWindow {
                             z: 2
                             Layout.preferredWidth: 44
                             Layout.preferredHeight: 20
-                            radius: 0
+                            radius: 10
                             color: joinHover.containsMouse
                                 ? rootRef.withAlpha(calPopup.accentCol, 0.85)
                                 : calPopup.accentCol
@@ -1152,7 +1152,7 @@ PanelWindow {
                         id: addBtn
                         Layout.preferredWidth: 26
                         Layout.fillHeight: true
-                        radius: 0
+                        radius: 10
                         color: addHover.containsMouse
                             ? rootRef.withAlpha(calPopup.popupFg, 0.35)
                             : rootRef.withAlpha(calPopup.popupFg, 0.22)
@@ -1177,7 +1177,7 @@ PanelWindow {
                         id: minusBtn
                         Layout.preferredWidth: 26
                         Layout.fillHeight: true
-                        radius: 0
+                        radius: 10
                         color: minusHover.containsMouse && calPopup.selectedEntryId >= 0
                             ? rootRef.withAlpha(rootRef.error, 0.35)
                             : rootRef.withAlpha(calPopup.popupFg, calPopup.selectedEntryId >= 0 ? 0.12 : 0.05)
@@ -1218,7 +1218,7 @@ PanelWindow {
                         background: Item {}
                         contentItem: Rectangle {
                             implicitWidth: 3
-                            radius: 0
+                            radius: 10
                             color: rootRef.withAlpha(calPopup.popupFg, 0.3)
                         }
                     }
@@ -1242,7 +1242,7 @@ PanelWindow {
 
                                 width: entriesCol.width
                                 height: 30
-                                radius: 0
+                                radius: 10
                                 color: rootRef.withAlpha(calPopup.popupFg, saved ? 0.05 : 0.08)
                                 border.width: 1
                                 border.color: isSelected
@@ -1260,7 +1260,7 @@ PanelWindow {
                                         visible: saved
                                         Layout.preferredWidth: 18
                                         Layout.preferredHeight: 18
-                                        radius: 0
+                                        radius: 10
                                         color: entryDone
                                             ? (todoCheckArea.containsMouse ? rootRef.withAlpha(calPopup.accentCol, 0.8) : calPopup.accentCol)
                                             : (todoCheckArea.containsMouse ? rootRef.withAlpha(calPopup.popupFg, 0.08) : "transparent")
@@ -1320,7 +1320,7 @@ PanelWindow {
                                         visible: !saved
                                         Layout.preferredWidth: 22
                                         Layout.preferredHeight: 22
-                                        radius: 0
+                                        radius: 10
                                         color: saveHover.containsMouse ? rootRef.withAlpha(calPopup.popupFg, 0.25) : "transparent"
 
                                         QIcon {
@@ -1364,7 +1364,7 @@ PanelWindow {
                 Layout.preferredHeight: 1
                 Layout.topMargin: 10
                 Layout.bottomMargin: 6
-                radius: 0
+                radius: 10
                 color: rootRef ? rootRef.withAlpha(calPopup.popupFg, 0.12) : Qt.rgba(1, 1, 1, 0.1)
             }
 
@@ -1427,7 +1427,7 @@ PanelWindow {
                             Layout.preferredWidth: 26
                             Layout.preferredHeight: 26
                             Layout.alignment: Qt.AlignVCenter
-                            radius: 0
+                            radius: 10
                             color: timerMinusHover.containsMouse
                                 ? rootRef.withAlpha(calPopup.popupFg, 0.35)
                                 : rootRef.withAlpha(calPopup.popupFg, 0.18)
@@ -1453,7 +1453,7 @@ PanelWindow {
                             Layout.preferredWidth: 26
                             Layout.preferredHeight: 26
                             Layout.alignment: Qt.AlignVCenter
-                            radius: 0
+                            radius: 10
                             color: timerPlusHover.containsMouse
                                 ? rootRef.withAlpha(calPopup.popupFg, 0.35)
                                 : rootRef.withAlpha(calPopup.popupFg, 0.18)
@@ -1479,7 +1479,7 @@ PanelWindow {
                             Layout.preferredWidth: 34
                             Layout.preferredHeight: 26
                             Layout.alignment: Qt.AlignVCenter
-                            radius: 0
+                            radius: 10
                             color: rootRef.timerRunning
                                 ? (timerToggleHover.containsMouse ? rootRef.withAlpha(calPopup.accentCol, 0.85) : calPopup.accentCol)
                                 : (timerToggleHover.containsMouse ? rootRef.withAlpha(calPopup.popupFg, 0.45) : rootRef.withAlpha(calPopup.popupFg, 0.28))
@@ -1505,7 +1505,7 @@ PanelWindow {
                             Layout.preferredWidth: 26
                             Layout.preferredHeight: 26
                             Layout.alignment: Qt.AlignVCenter
-                            radius: 0
+                            radius: 10
                             color: timerResetHover.containsMouse
                                 ? rootRef.withAlpha(rootRef.error, 0.35)
                                 : rootRef.withAlpha(calPopup.popupFg, 0.08)

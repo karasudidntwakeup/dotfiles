@@ -113,7 +113,7 @@ ShellRoot {
 
     readonly property int barHeight: 32
     readonly property int pillHeight: 32
-    readonly property int pillRadius: 0
+    readonly property int pillRadius: 10
     readonly property int groupSpacing: 8
 
     readonly property string terminalCommand: "kitty"
@@ -1215,7 +1215,7 @@ ShellRoot {
             anchors.verticalCenter: parent.verticalCenter
             width: tipText.implicitWidth + 14
             height: 22
-            radius: 0
+            radius: 10
             color: "#0b0b0e"
             border.width: 1
             border.color: Qt.rgba(1, 1, 1, 0.12)
@@ -2288,7 +2288,7 @@ function closeOverlays() {
                                 anchors.verticalCenter: parent.verticalCenter
                                 width: 3
                                 height: 3
-                                radius: 0
+                                radius: 10
                                 color: clockPill.dimTextColor
                             }
 

@@ -63,7 +63,7 @@ Item {
     readonly property real borderWidth: 3 * u
     readonly property real spacing: 10 * u
     readonly property real skewFactor: -0.35
-    readonly property real cornerRadius: 0
+    readonly property real cornerRadius: 10
     readonly property real selectedCenterOffset: (window.skewFactor * window.itemHeight) / 2
 
     readonly property var filterData: [
@@ -466,7 +466,7 @@ Item {
                                         delegate: Rectangle {
                                             width: window.u * 5
                                             height: window.u * 5
-                                            radius: 0
+                                            radius: 10
                                             color: window.currentFilter === modelData.name ? window.surface0 : window.subtextColor
                                         }
                                     }
@@ -584,7 +584,7 @@ Item {
                 Rectangle {
                     width: closeLabel.implicitWidth + window.u * 28
                     height: window.u * 32
-                    radius: 0
+                    radius: 10
                     color: closeHov.containsMouse ? window.surface1 : "transparent"
                     Text {
                         id: closeLabel
