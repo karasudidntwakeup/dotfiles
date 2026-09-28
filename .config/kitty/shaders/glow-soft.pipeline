@@ -1,0 +1,7 @@
+# Pure Glow Soft - subtle phosphor bloom, no CRT curve
+# Usage: custom_shaders glow-soft
+startgroup
+    var float BLOOM_THRESHOLD = 0.2
+    var float BLOOM_STRENGTH = 0.2
+    shaders bloom
+endgroup

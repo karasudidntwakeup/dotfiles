@@ -1,0 +1,7 @@
+# Retro CRT Glow - bundled crt + bloom for phosphor glow (static)
+# Usage: custom_shaders retro-crt-glow
+startgroup
+    var float WARP = 0.25
+    var float SCAN = 0.50
+    shaders crt bloom
+endgroup

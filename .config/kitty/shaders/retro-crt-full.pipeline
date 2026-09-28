@@ -1,0 +1,13 @@
+# Retro CRT Full - animated flicker + bloom glow, the works
+# Usage: custom_shaders retro-crt-full
+startgroup
+    animation_start os-window-focus-in | user-activity
+    animation_stop os-window-focus-out | user-idle
+    var float WARP = 0.25
+    var float SCAN = 0.50
+    var float FLICKER = 0.03
+    var float ROLL_INTENSITY = 0.06
+    var float ROLL_SPEED = 0.12
+    var float VIGNETTE = 0.35
+    shaders crt-flicker bloom
+endgroup

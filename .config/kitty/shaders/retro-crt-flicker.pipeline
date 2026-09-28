@@ -1,0 +1,14 @@
+# Retro CRT Flicker - animated: scanlines + curve + flicker + rolling band + vignette
+# Usage: custom_shaders retro-crt-flicker
+# Animates while focused/active, pauses when idle (saves CPU).
+startgroup
+    animation_start os-window-focus-in | user-activity
+    animation_stop os-window-focus-out | user-idle
+    var float WARP = 0.25
+    var float SCAN = 0.50
+    var float FLICKER = 0.03
+    var float ROLL_INTENSITY = 0.06
+    var float ROLL_SPEED = 0.12
+    var float VIGNETTE = 0.35
+    shaders crt-flicker
+endgroup

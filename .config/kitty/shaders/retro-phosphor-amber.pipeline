@@ -1,0 +1,10 @@
+# Retro Phosphor Amber - grille + amber tint + glow, full P3 terminal fantasy
+# Usage: custom_shaders retro-phosphor-amber
+startgroup
+    var float WARP = 0.25
+    var float SCAN = 0.55
+    var float GRILLE = 0.28
+    var float VIGNETTE = 0.35
+    var float4 TINT = float4(1.0, 0.71, 0.0, 1)
+    shaders crt-grille bloom
+endgroup

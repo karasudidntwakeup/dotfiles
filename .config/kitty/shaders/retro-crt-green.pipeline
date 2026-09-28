@@ -1,0 +1,8 @@
+# Retro CRT Green - P1 phosphor green tint
+# Usage: custom_shaders retro-crt-green
+startgroup
+    var float WARP = 0.25
+    var float SCAN = 0.50
+    var float4 TINT = float4(0.2, 1.0, 0.33, 1)
+    shaders crt
+endgroup

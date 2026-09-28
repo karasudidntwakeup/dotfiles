@@ -1,0 +1,13 @@
+# Retro Neon Amber - amber CRT + neon pop + glow (balanced strengths)
+# Usage: custom_shaders retro-neon-amber
+startgroup
+    var float WARP = 0.25
+    var float SCAN = 0.50
+    var float4 TINT = float4(1.0, 0.71, 0.0, 1)
+    var float THRESH = 0.45
+    var float POP = 1.20
+    var float SAT = 0.4
+    var float BLOOM_THRESHOLD = 0.2
+    var float BLOOM_STRENGTH = 0.3
+    shaders crt neon-pop bloom
+endgroup

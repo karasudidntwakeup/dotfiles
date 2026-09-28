@@ -1,0 +1,8 @@
+# Retro CRT - balanced default
+# Usage in kitty.conf (requires kitty >= 0.49):
+#   custom_shaders retro-crt
+startgroup
+    var float WARP = 0.25
+    var float SCAN = 0.50
+    shaders crt
+endgroup

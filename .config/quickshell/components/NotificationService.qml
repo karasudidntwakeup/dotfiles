@@ -353,7 +353,7 @@ Item {
             if (!svc.dnd || n.urgency === NotificationUrgency.Critical) {
                 if (now - svc.lastSoundTime >= 100) {
                     svc.lastSoundTime = now
-                    Quickshell.execDetached(["paplay", Quickshell.env("HOME") + "/.local/share/sounds/ios-rebound.oga"])
+                    Quickshell.execDetached(["paplay", Quickshell.env("HOME") + "/.local/share/sounds/minecraft-levelup.ogg"])
                 }
 
                 if (!svc.centerOpen) {

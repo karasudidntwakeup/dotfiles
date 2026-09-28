@@ -1,0 +1,7 @@
+# Retro CRT Soft - subtle scanlines + gentle curve for daily use
+# Usage: custom_shaders retro-crt-soft
+startgroup
+    var float WARP = 0.15
+    var float SCAN = 0.25
+    shaders crt
+endgroup

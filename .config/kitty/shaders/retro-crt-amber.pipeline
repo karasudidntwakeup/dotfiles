@@ -1,0 +1,8 @@
+# Retro CRT Amber - P3 amber phosphor tint
+# Usage: custom_shaders retro-crt-amber
+startgroup
+    var float WARP = 0.25
+    var float SCAN = 0.50
+    var float4 TINT = float4(1.0, 0.71, 0.0, 1)
+    shaders crt
+endgroup

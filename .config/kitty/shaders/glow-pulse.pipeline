@@ -1,0 +1,12 @@
+# Glow Pulse - breathing bloom, animated
+# Usage: custom_shaders glow-pulse
+startgroup
+    animation_start os-window-focus-in | user-activity
+    animation_stop os-window-focus-out | user-idle
+    var float THRESH = 0.3
+    var float DEPTH = 0.18
+    var float SPEED = 2.2
+    var float BLOOM_THRESHOLD = 0.2
+    var float BLOOM_STRENGTH = 0.3
+    shaders glow-pulse bloom
+endgroup

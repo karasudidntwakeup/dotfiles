@@ -1,0 +1,7 @@
+# Retro TFT - early LCD pixel grid, for when you're too modern for CRT
+# Usage: custom_shaders retro-tft
+startgroup
+    var float RESOLUTION = 4.0
+    var float STRENGTH = 0.5
+    shaders tft
+endgroup

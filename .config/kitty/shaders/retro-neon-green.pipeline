@@ -1,0 +1,13 @@
+# Retro Neon Green - green CRT + neon pop + glow (balanced strengths)
+# Usage: custom_shaders retro-neon-green
+startgroup
+    var float WARP = 0.25
+    var float SCAN = 0.50
+    var float4 TINT = float4(0.2, 1.0, 0.33, 1)
+    var float THRESH = 0.55
+    var float POP = 1.10
+    var float SAT = 0.3
+    var float BLOOM_THRESHOLD = 0.35
+    var float BLOOM_STRENGTH = 0.15
+    shaders crt neon-pop bloom
+endgroup

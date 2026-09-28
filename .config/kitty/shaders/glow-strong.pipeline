@@ -1,0 +1,7 @@
+# Pure Glow Strong - pronounced but not blown out
+# Usage: custom_shaders glow-strong
+startgroup
+    var float BLOOM_THRESHOLD = 0.15
+    var float BLOOM_STRENGTH = 0.4
+    shaders bloom
+endgroup

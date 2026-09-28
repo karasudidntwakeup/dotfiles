@@ -1,0 +1,6 @@
+# Retro CRT Blue - teal/blue tint (same as bundled crt-blue)
+# Usage: custom_shaders retro-crt-blue
+startgroup
+    var float4 TINT = float4(0, 0.8, 0.6, 1)
+    shaders crt
+endgroup

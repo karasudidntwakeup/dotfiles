@@ -1,0 +1,7 @@
+# Retro CRT Heavy - deep curve + strong scanlines, max nostalgia
+# Usage: custom_shaders retro-crt-heavy
+startgroup
+    var float WARP = 0.40
+    var float SCAN = 0.70
+    shaders crt
+endgroup
