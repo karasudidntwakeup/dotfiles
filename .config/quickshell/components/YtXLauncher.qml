@@ -44,7 +44,6 @@ Item {
     readonly property int cardWidth: Math.min(620, Math.max(0, ytx.width - 32))
     readonly property int searchHeight: 36
     readonly property int maxItems: 48
-    readonly property int visibleRows: 2
     readonly property int columns: Math.max(1, Math.min(3, Math.floor((cardWidth - 28 - pad * 2 + gridSpacing) / 180)))
     readonly property int gridSpacing: 12
     readonly property real cellWidth: Math.max(1, (cardWidth - 28 - pad * 2 + gridSpacing) / columns - gridSpacing)
@@ -344,12 +343,6 @@ Item {
             ytx.prefetchThumbs(arr);
         }
     }
-    function gridHeight() {
-        var rows = Math.min(Math.ceil(listModel.count / ytx.columns), ytx.visibleRows);
-        if (rows < 1)
-            rows = 1;
-        return rows * ytx.cellHeight + (rows - 1) * ytx.gridSpacing;
-    }
     onActiveChanged: {
         if (ytx.active) {
             if (!ytx.initialized) {
@@ -442,7 +435,6 @@ Item {
         onTriggered: searchField.forceActiveFocus()
     }
     Timer {
-        id: feedTicker
         interval: 300000
         repeat: true
         running: ytx.active && ytx.showingHome
@@ -637,7 +629,6 @@ Item {
                 }
             }
             Item {
-                id: statusRow
                 Layout.fillWidth: true
                 Layout.preferredHeight: 34
                 Layout.leftMargin: 14; Layout.rightMargin: 14
@@ -669,7 +660,6 @@ Item {
                     spacing: 8
                     visible: true
                     Rectangle {
-                        id: homeChip
                         width: homeChipLabel.implicitWidth + 20
                         height: 22
                         radius: 10
@@ -706,7 +696,6 @@ Item {
                         }
                     }
                     Rectangle {
-                        id: recentChip
                         width: recentChipLabel.implicitWidth + 20
                         height: 22
                         radius: 10
@@ -742,7 +731,6 @@ Item {
                         }
                     }
                     Rectangle {
-                        id: refreshChip
                         visible: ytx.showingHome
                         enabled: !homeProc.running
                         width: 22
@@ -768,7 +756,6 @@ Item {
                 }
             }
             Item {
-                id: gridContainer
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 Layout.leftMargin: 14; Layout.rightMargin: 14
@@ -883,7 +870,6 @@ Item {
                                 width: parent.width
                                 spacing: 2
                                 Text {
-                                    id: titleText
                                     width: parent.width
                                     height: ytx.titleHeight
                                     text: title

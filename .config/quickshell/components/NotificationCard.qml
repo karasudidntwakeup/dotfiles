@@ -26,12 +26,13 @@ Item {
         return []
     })()
 
-    readonly property bool isLight: rootRef ? rootRef.qsLight : false
     readonly property color cardColor: rootRef
         ? rootRef.pillColor("surface_container_highest")
         : "#f3dfd1"
+    // Same hairline as the panel's own cards (weather, storage rows): a light
+    // wash of the card's own text colour rather than a themed border token.
     readonly property color borderColor: rootRef
-        ? rootRef.withAlpha(rootRef.colorOf("widget_border"), isLight ? 0.7 : 0.6)
+        ? rootRef.withAlpha(card.fg, 0.09)
         : "#00000000"
     readonly property color fg: rootRef
         ? rootRef.contrastColor(card.cardColor)
@@ -42,8 +43,11 @@ Item {
     readonly property int fontSize: rootRef ? rootRef.fontSize : 13
 
     readonly property bool isPopup: context === "popup"
-    readonly property int pad: 14
-    readonly property int badgeSize: isPopup ? 40 : 42
+    readonly property int pad: 12
+    // A card is drawn the same in a popup and in the center, so a toast and
+    // the entry it leaves behind are identical. isPopup now only drives
+    // behaviour: auto-dismiss, and the close button appearing on hover.
+    readonly property int badgeSize: 30
     readonly property string name: nData ? (nData.appName || "System") : ""
     // OpenCode / herdr notifications get a Y2K star badge instead of the generic app icon.
     readonly property bool isOpenCode: {
@@ -68,39 +72,6 @@ Item {
         function onIconPathsUpdated() { card.iconTick++ }
     }
 
-    readonly property real ts: nData && nData.timestamp !== undefined ? nData.timestamp : Date.now()
-    property string timeText: ""
-    function fmtTime(t) {
-        if (!t) return ""
-        var now = new Date()
-        var d = new Date(t)
-        var sec = Math.floor((now.getTime() - d.getTime()) / 1000)
-        var min = Math.floor(sec / 60)
-        if (min < 1) return "now"
-        if (min < 60) return min + "m ago"
-        var sameDay = now.getFullYear() === d.getFullYear() &&
-            now.getMonth() === d.getMonth() && now.getDate() === d.getDate()
-        var hhmm = Qt.formatDateTime(d, "HH:mm")
-        if (sameDay) return hhmm
-        var yest = new Date(now)
-        yest.setDate(now.getDate() - 1)
-        if (yest.getFullYear() === d.getFullYear() &&
-            yest.getMonth() === d.getMonth() && yest.getDate() === d.getDate())
-            return "Yesterday " + hhmm
-        if (min < 7 * 24 * 60) return Qt.formatDateTime(d, "dddd") + " " + hhmm
-        return Qt.formatDateTime(d, "yyyy-MM-dd HH:mm")
-    }
-    // Text helper lives on root (contrastColor).
-    function refreshTime() { card.timeText = card.fmtTime(card.ts) }
-    onTsChanged: card.refreshTime()
-
-    Timer {
-        interval: 15000
-        repeat: true
-        running: card.visible
-        onTriggered: card.refreshTime()
-    }
-
     readonly property int timeoutMs: (function() {
         // No special-casing: critical notifications auto-dismiss like any
         // other instead of sticking on screen with a red border.
@@ -119,7 +90,6 @@ Item {
     HoverHandler { id: cardHover }
 
     Timer {
-        id: popTimer
         interval: card.timeoutMs
         running: card.isPopup && card.timeoutMs > 0 && card.visible &&
             !card.hovering && card.uid >= 0
@@ -207,16 +177,17 @@ Item {
     implicitHeight: cardBody.height
 
     Item {
-        id: dragLayer
         anchors.fill: parent
         transform: Translate { x: card.dragX }
         opacity: Math.max(0.0, 1.0 - Math.abs(card.dragX) / Math.max(1, card.width * 0.7))
         // Shadow lives here (unclipped wrapper) rather than on cardBody:
         // cardBody needs clip:true for its rounded corners, which would cut
-        // the shadow off on the same item.
-        layer.enabled: true
+        // the shadow off on the same item. Popups only — a toast floats over
+        // the wallpaper and needs the separation, while a card inside the
+        // center sits on the panel and renders flat.
+        layer.enabled: card.isPopup
         layer.effect: MultiEffect {
-            shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
+            shadowEnabled: card.isPopup && Quickshell.env("QS_NO_SHADOW") !== "1"
             shadowBlur: 0.8
             blurMax: 20
             shadowHorizontalOffset: 4
@@ -230,7 +201,7 @@ Item {
             anchors.left: parent.left
             anchors.right: parent.right
             height: cardContent.implicitHeight + card.pad * 2 + (card.imageOk ? card.imageBoxHeight + card.pad : 0)
-            radius: 10
+            radius: 8
             color: card.cardColor
             border.width: 1
             border.color: card.borderColor
@@ -281,14 +252,13 @@ Item {
                     Layout.preferredWidth: card.badgeSize
                     Layout.preferredHeight: card.badgeSize
                     Layout.alignment: Qt.AlignTop
-                    radius: 10
+                    radius: 8
                     color: rootRef ? rootRef.withAlpha(card.fg, 0.08) : "#dfdf00"
                     clip: true
 
                     Image {
-                        id: iconImg
                         anchors.fill: parent
-                        anchors.margins: 7
+                        anchors.margins: 5
                         source: card.iconSrc
                         visible: card.iconSrc.length > 0 && !card.iconFailed
                         fillMode: Image.PreserveAspectFit
@@ -304,21 +274,24 @@ Item {
                             ? Qt.resolvedUrl("../assets/icons/y2k-star-4.svg")
                             : Qt.resolvedUrl("../assets/icons/app.svg")
                         color: card.fg
-                        iconSize: card.fontSize + 5
+                        iconSize: card.fontSize + 1
                     }
                 }
 
                 ColumnLayout {
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignTop
-                    spacing: 2
+                    spacing: 3
 
+                    // App name and headline share one line, the way the
+                    // weather card puts its reading and its label together.
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: 6
 
                         Text {
-                            Layout.fillWidth: true
+                            Layout.alignment: Qt.AlignVCenter
+                            Layout.maximumWidth: 120
                             text: card.name
                             color: card.mute
                             font.family: card.uiFont
@@ -327,29 +300,31 @@ Item {
                             font.letterSpacing: 0
                             elide: Text.ElideRight
                         }
+
+                        Text {
+                            Layout.fillWidth: true
+                            Layout.alignment: Qt.AlignVCenter
+                            text: nData ? (nData.summary || "") : ""
+                            color: card.fg
+                            font.family: card.uiFont
+                            font.pixelSize: card.fontSize
+                            font.weight: Font.Bold
+                            elide: Text.ElideRight
+                            maximumLineCount: 1
+                        }
                     }
 
                     Text {
                         Layout.fillWidth: true
-                        text: nData ? (nData.summary || "") : ""
-                        color: card.fg
-                        font.family: card.uiFont
-                        font.pixelSize: card.fontSize + (card.isPopup ? 1 : 0)
-                        font.weight: Font.Bold
-                        wrapMode: Text.Wrap
-                        maximumLineCount: 2
-                        elide: Text.ElideRight
-                    }
-
-                    Text {
-                        Layout.fillWidth: true
-                        visible: nData && nData.body && nData.body.length > 0
+                        // Coerced: a bare && chain yields undefined, not false,
+                        // when nData is still unset, which warns on a bool.
+                        visible: !!(nData && nData.body && nData.body.length > 0)
                         text: nData ? (nData.body || "") : ""
                         color: card.mute
                         font.family: card.uiFont
-                        font.pixelSize: card.fontSize - 1
+                        font.pixelSize: card.fontSize - 3
                         wrapMode: Text.Wrap
-                        maximumLineCount: card.isPopup ? 2 : 3
+                        maximumLineCount: 2
                         elide: Text.ElideRight
                     }
                 }
@@ -368,9 +343,9 @@ Item {
 
                     delegate: Rectangle {
                         required property var modelData
-                        Layout.preferredHeight: 26
+                        Layout.preferredHeight: 24
                         implicitWidth: actionRow.implicitWidth + 20
-                        radius: 10
+                        radius: 8
                         color: actHover.containsMouse || actHover.pressed
                             ? rootRef.withAlpha(card.fg, 0.1)
                             : Qt.rgba(card.fg.r, card.fg.g, card.fg.b, 0.02)
@@ -395,7 +370,6 @@ Item {
                             }
 
                             Text {
-                                id: actionLabel
                                 text: modelData.text.toUpperCase()
                                 color: card.fg
                                 font.family: card.uiFont
@@ -423,7 +397,7 @@ Item {
     }
     }
 
-    readonly property int imageBoxHeight: card.isPopup ? 150 : 180
+    readonly property int imageBoxHeight: 180
     property bool imageOk: false
 
     MouseArea {
@@ -473,9 +447,9 @@ Item {
         anchors.topMargin: 8
         anchors.rightMargin: 8
         z: 3
-        width: 22
-        height: 22
-        radius: 10
+        width: 20
+        height: 20
+        radius: 8
         visible: card.isPopup ? (card.hovering || card.dragging) : true
         color: closeHover.containsMouse
             ? rootRef.withAlpha(card.fg, 0.22)

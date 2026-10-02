@@ -16,23 +16,27 @@ Item {
     readonly property int pad: 12
     readonly property int panelMaxHeight: Math.max(120, Math.round(center.height - 40))
     readonly property bool weekOn: rootRef && rootRef.weatherWeek && rootRef.weatherWeek.length > 0
-    readonly property int weekHeight: 252
-    readonly property int mountedDiskCount: rootRef && rootRef.mountedDisks ? rootRef.mountedDisks.length : 0
-    readonly property int mountedDisksHeight: Math.ceil(center.mountedDiskCount / 2) * 84
+    readonly property int weekHeight: 64
+
+    // One storage list holds the mounted filesystems and the removable drives,
+    // so a plugged-in stick is listed once instead of in two places.
+    // These four numbers are the single source of truth for the section's
+    // height: the rows are sized from the same constants this adds up.
+    readonly property int storageHeaderHeight: 24
+    readonly property int storageRowHeight: 40
+    readonly property int storageGap: 4
+    readonly property int storageSpacing: 8
+
     readonly property var removableList: rootRef && rootRef.removableDrives ? rootRef.removableDrives : []
-    readonly property int removableCount: center.removableList.length
-    // Header (24) + per-drive card (~50 + 30/volume), + spacing.
-    readonly property int removableHeight: {
-        if (center.removableCount === 0) return 0
-        var h = 30
-        for (var i = 0; i < center.removableList.length; i++) {
-            var d = center.removableList[i]
-            var vols = (d && d.volumes) ? d.volumes.length : 0
-            h += 56 + Math.max(1, vols) * 34
-        }
-        return h
+    readonly property var storageRows: center.buildStorageRows()
+    readonly property bool storageOn: center.storageRows.length > 0
+    readonly property int storageHeight: {
+        if (center.storageRows.length === 0) return 0
+        return center.storageHeaderHeight
+             + center.storageRows.length * (center.storageRowHeight + center.storageGap)
+             + center.storageSpacing
     }
-    readonly property int listMaxHeight: Math.max(64, center.panelMaxHeight - center.pad * 2 - 24 - 40 - center.mountedDisksHeight - center.removableHeight - (center.weekOn ? center.weekHeight + 8 : 0) - (center.mediaOn ? 168 + 8 : 0))
+    readonly property int listMaxHeight: Math.max(64, center.panelMaxHeight - center.pad * 2 - 24 - 40 - center.storageHeight - (center.weekOn ? center.weekHeight + 8 : 0) - (center.mediaOn ? 168 + 8 : 0))
     readonly property bool mediaOn: rootRef && rootRef.mediaStatus !== "none"
     // YtX-style Android roles: flat surface card, theme text tokens.
     readonly property color panelColor: rootRef ? Qt.color(rootRef.colorOf("surface_container")) : "#1f2c34"
@@ -48,24 +52,6 @@ Item {
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
 
 
-    readonly property int weekLo: {
-        var days = rootRef ? rootRef.weatherWeek : []
-        if (!days || days.length === 0) return 0
-        var lo = days[0].min
-        for (var i = 1; i < days.length; i++) lo = Math.min(lo, days[i].min)
-        return lo
-    }
-    readonly property int weekHi: {
-        var days = rootRef ? rootRef.weatherWeek : []
-        if (!days || days.length === 0) return 1
-        var hi = days[0].max
-        for (var i = 1; i < days.length; i++) hi = Math.max(hi, days[i].max)
-        return Math.max(hi, center.weekLo + 1)
-    }
-    function weekFrac(min, max) {
-        var span = Math.max(1, center.weekHi - center.weekLo)
-        return [(min - center.weekLo) / span, Math.max(0.06, (max - min) / span)]
-    }
     // Removable-drive helpers (port of wian47.removable-drives, simple scope:
     // mount / open / unmount / safely eject USB sticks, SD cards, ext. drives).
     function fmtSizeGB(gb) {
@@ -91,13 +77,86 @@ Item {
         var dev = (v.path || "").replace("/dev/", "")
         return (fs ? fs + " · " : "") + dev
     }
-    function diskFreeText(mount) {
-        if (!mount || !rootRef || !rootRef.mountedDisks) return ""
+    // Free space for a mount point, from the `df` list. Null when the
+    // filesystem is not mounted or is not in that list.
+    function diskInfo(mount) {
+        if (!mount || !rootRef || !rootRef.mountedDisks) return null
         for (var i = 0; i < rootRef.mountedDisks.length; i++) {
             var m = rootRef.mountedDisks[i]
-            if (m && m.mount === mount) return m.free + "G free of " + m.total + "G"
+            if (m && m.mount === mount) return m
         }
-        return ""
+        return null
+    }
+
+    // Flattens the mounted filesystems and the removable drives into one list
+    // of row descriptors, so the section is a single Repeater.
+    //   kind "disk"  a mounted filesystem        -> usage, bar, Open
+    //   kind "drive" the physical device         -> name, size, Eject
+    //   kind "vol"   one partition of a device   -> Mount or Open+Unmount
+    // A mounted partition is skipped as a "disk" row, so a USB stick that
+    // `df` also reports (it does for /mnt and /media mounts) shows up once.
+    function buildStorageRows() {
+        var rows = []
+        var disks = (rootRef && rootRef.mountedDisks) ? rootRef.mountedDisks : []
+        if (!(disks instanceof Array)) disks = []
+        var drives = (center.removableList instanceof Array) ? center.removableList : []
+
+        // Mount points already claimed by a removable partition.
+        var claimed = {}
+        for (var r = 0; r < drives.length; r++) {
+            var drv = drives[r]
+            var dvolumes = (drv && drv.volumes) ? drv.volumes : []
+            for (var w = 0; w < dvolumes.length; w++) {
+                if (dvolumes[w] && dvolumes[w].mount) claimed[dvolumes[w].mount] = true
+            }
+        }
+
+        for (var i = 0; i < disks.length; i++) {
+            var d = disks[i]
+            if (!d || !d.mount || claimed[d.mount]) continue
+            var pct = parseInt(d.pct, 10) || 0
+            rows.push({
+                kind: "disk",
+                label: d.mount === "/" ? "System /" : d.mount,
+                value: pct + "%",
+                sub: d.free + "G/" + d.total + "G",
+                progress: Math.max(0, Math.min(1, pct / 100)),
+                mount: d.mount,
+                mounted: true
+            })
+        }
+
+        for (var j = 0; j < drives.length; j++) {
+            var drive = drives[j]
+            if (!drive) continue
+            var size = center.fmtSizeGB(drive.sizeGB)
+            var dev = (drive.dev || "").replace("/dev/", "")
+            rows.push({
+                kind: "drive",
+                label: center.driveName(drive),
+                sub: (size ? size + " · " : "") + dev,
+                eject: drive.dev
+            })
+            var volumes = (drive.volumes) ? drive.volumes : []
+            for (var k = 0; k < volumes.length; k++) {
+                var v = volumes[k]
+                if (!v) continue
+                var info = v.mount ? center.diskInfo(v.mount) : null
+                rows.push({
+                    kind: "vol",
+                    label: center.volTitle(v),
+                    value: info ? info.pct + "%" : "",
+                    sub: v.mount
+                        ? (info ? v.mount + " · " + info.free + "G/" + info.total + "G" : v.mount)
+                        : "Not mounted",
+                    progress: info ? Math.max(0, Math.min(1, (parseInt(info.pct, 10) || 0) / 100)) : -1,
+                    mount: v.mount,
+                    devPath: v.path,
+                    mounted: !!v.mount
+                })
+            }
+        }
+        return rows
     }
 
     // Refresh the drive list every time the center opens.
@@ -106,7 +165,7 @@ Item {
         enabled: center.svc !== null
         function onCenterOpenChanged() {
             if (center.svc && center.svc.centerOpen && center.rootRef)
-                center.rootRef.refreshRemovable()
+                center.rootRef.refreshStorage()
         }
     }
     property real animProgress: (svc && svc.centerOpen && ready) ? 1.0 : 0.0
@@ -144,7 +203,6 @@ Item {
     }
 
     MouseArea {
-        id: backdropArea
         anchors.fill: parent
         onClicked: {
             if (center.rootRef && center.rootRef.closeNotifCenter) center.rootRef.closeNotifCenter()
@@ -166,16 +224,8 @@ Item {
         border.width: 0
         border.color: center.panelBorder
         clip: true
-        layer.enabled: true
-        layer.effect: MultiEffect {
-            shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
-            shadowBlur: 0.9
-            blurMax: 28
-            shadowHorizontalOffset: 5
-            shadowVerticalOffset: 10
-            shadowColor: Qt.rgba(0, 0, 0, 0.9)
-            shadowOpacity: 0.95
-        }
+        // No drop shadow: the panel is flat against the desktop. The panel
+        // used to run an offscreen MultiEffect pass just for this.
 
 
         opacity: center.fadeProgress
@@ -278,26 +328,21 @@ Item {
                         Layout.fillWidth: true
                         spacing: 3
 
-                        Text {
+                        Txt {
                             Layout.fillWidth: true
                             text: mediaCard.mediaTitle
-                             color: mediaCard.hasArt ? "#ffffff" : center.fg
-                             font.family: center.uiFont
-                            font.pixelSize: center.fontSize + 1
-                            font.weight: Font.Bold
-                            elide: Text.ElideRight
+                            color: mediaCard.hasArt ? "#ffffff" : center.fg
+                            sizeDelta: 1
+                            weight_: Font.Bold
                             maximumLineCount: 2
                         }
 
-                        Text {
+                        Txt {
                             Layout.fillWidth: true
                             text: mediaCard.mediaArtist
-                             color: mediaCard.hasArt ? Qt.rgba(1, 1, 1, 0.7) : center.muteFg
-                             font.family: center.uiFont
-                            font.pixelSize: 10
+                            color: mediaCard.hasArt ? Qt.rgba(1, 1, 1, 0.7) : center.muteFg
+                            sizeDelta: -3
                             font.letterSpacing: 0
-                            elide: Text.ElideRight
-                            maximumLineCount: 1
                         }
                     }
 
@@ -377,7 +422,6 @@ Item {
                             }
 
                             Timer {
-                                id: waveTimer
                                 interval: 50
                                 repeat: true
                                 running: waveCanvas.playing && waveCanvas.visible && center.visible
@@ -446,273 +490,122 @@ Item {
                 }
             }
 
-            // Mauve like the bar pill; ramp pulled 75% to card text so
-            // every step stays ≥4.5:1 on the tint (cold 4.9, warm 6.3).
+            // The featured card of the panel, but on the same surface as a
+            // storage drive row: a flat wash of the foreground plus a hairline,
+            // rather than the mauve tonal pill the bar uses.
             Rectangle {
                 id: weekWidget
                 Layout.fillWidth: true
                 Layout.preferredHeight: center.weekHeight
                 Layout.minimumHeight: center.weekHeight
                 visible: center.weekOn
-                radius: 10
-                color: rootRef ? rootRef.tonalPillColor(rootRef.pillColor("mauve")) : "#1a1b1e"
-                border.width: 0
+                radius: 8
+                color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.05)
+                border.width: 1
+                border.color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.09)
                 clip: true
 
-                readonly property color wfg: rootRef ? rootRef.pillForeground(weekWidget.color) : center.fg
-                readonly property color wdim: Qt.rgba(wfg.r, wfg.g, wfg.b, 0.72)
-                readonly property color coldCol: rootRef ? rootRef.mixColor(rootRef.pillColor("primary"), weekWidget.wfg, 0.75) : center.fg
-                readonly property color warmCol: rootRef ? rootRef.mixColor(rootRef.pillColor("error"), weekWidget.wfg, 0.75) : center.fg
+                readonly property color wfg: center.fg
+                readonly property color wdim: center.muteFg
+                readonly property int cardPad: 10
 
-                ColumnLayout {
+                // Everything sits on one line: the reading, its label and
+                // place, then the forecast pushed to the far right.
+                Item {
                     anchors.fill: parent
-                    anchors.margins: 6
-                    spacing: 2
+                    anchors.margins: weekWidget.cardPad
 
-                    // Big current weather: large glyph + temp, details and
-                    // refresh folded in so no footer row is needed.
                     RowLayout {
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 60
+                        anchors.fill: parent
                         spacing: 8
 
-                        Text {
-                            visible: rootRef ? !rootRef.weatherIsY2kMoon() : false
+                        Txt {
                             Layout.alignment: Qt.AlignVCenter
-                            text: rootRef ? rootRef.weatherGlyph() : ""
+                            Layout.maximumWidth: 64
+                            text: rootRef ? rootRef.weatherTempOnly() : ""
                             color: weekWidget.wfg
-                            font.family: center.iconFont
-                            font.pixelSize: center.fontSize + 22
+                            sizeDelta: 9
+                            weight_: Font.DemiBold
                         }
 
-                        QIcon {
-                            visible: rootRef ? rootRef.weatherIsY2kMoon() : false
+                        Txt {
                             Layout.alignment: Qt.AlignVCenter
-                            source: Qt.resolvedUrl("../assets/icons/y2k-moon-star.svg")
+                            visible: text.length > 0
+                            text: rootRef ? rootRef.weatherLabel() : ""
                             color: weekWidget.wfg
-                            iconSize: center.fontSize + 20
+                            sizeDelta: -1
                         }
 
-                        ColumnLayout {
+                        Txt {
+                            Layout.alignment: Qt.AlignVCenter
+                            visible: text.length > 0
+                            text: {
+                                var bits = []
+                                if (rootRef && rootRef.weatherFeels) bits.push("Feels " + rootRef.weatherFeels)
+                                if (rootRef && rootRef.weatherCity) bits.push(rootRef.weatherCity)
+                                return bits.join(" · ")
+                            }
+                            color: weekWidget.wdim
+                            sizeDelta: -3
+                        }
+
+                        // Pushes the forecast to the trailing edge.
+                        Item {
                             Layout.fillWidth: true
-                            Layout.alignment: Qt.AlignVCenter
-                            spacing: 0
-
-                            Text {
-                                Layout.fillWidth: true
-                                text: rootRef ? rootRef.weatherText : ""
-                                color: weekWidget.wfg
-                                font.family: center.uiFont
-                                font.pixelSize: center.fontSize + 16
-                                font.weight: Font.Bold
-                                elide: Text.ElideRight
-                                maximumLineCount: 1
-                            }
-
-                            Text {
-                                visible: text.length > 0
-                                Layout.fillWidth: true
-                                text: {
-                                    var bits = []
-                                    if (rootRef && rootRef.weatherFeels) bits.push("Feels " + rootRef.weatherFeels)
-                                    if (rootRef && rootRef.weatherCity) bits.push(rootRef.weatherCity)
-                                    if (rootRef && rootRef.weatherUpdatedText) bits.push(rootRef.weatherUpdatedText)
-                                    return bits.join(" · ")
-                                }
-                                color: weekWidget.wdim
-                                font.family: center.uiFont
-                                font.pixelSize: center.fontSize - 1
-                                elide: Text.ElideRight
-                                maximumLineCount: 1
-                            }
+                            Layout.preferredHeight: 1
                         }
 
-                        Rectangle {
-                            Layout.preferredWidth: 20
-                            Layout.preferredHeight: 20
-                            Layout.alignment: Qt.AlignVCenter
-                            radius: 10
-                            color: weekRefreshHover.containsMouse ? Qt.rgba(weekWidget.wfg.r, weekWidget.wfg.g, weekWidget.wfg.b, 0.15) : "transparent"
-
-                            QIcon {
-                                anchors.centerIn: parent
-                                source: Qt.resolvedUrl("../assets/icons/refresh.svg")
-                                color: weekWidget.wfg
-                                iconSize: center.fontSize - 1
-                            }
-
-                            MouseArea {
-                                id: weekRefreshHover
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: { if (rootRef) rootRef.refreshWeather() }
-                            }
-                        }
-                    }
-
-                    // Next 12 hours, temps tinted cold→warm by week's range.
-                    Flickable {
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 46
-                        visible: rootRef && rootRef.weatherHours && rootRef.weatherHours.length > 0
-                        contentWidth: hourRow.width
-                        contentHeight: 46
-                        clip: true
-                        boundsBehavior: Flickable.StopAtBounds
-                        flickableDirection: Flickable.HorizontalFlick
-
-                        Row {
-                            id: hourRow
-                            height: 46
+                        // The next four days, so today is not repeated next
+                        // to the current reading.
+                        RowLayout {
+                            spacing: 4
 
                             Repeater {
-                                model: rootRef ? rootRef.weatherHours : []
-                                delegate: Column {
-                                    required property var modelData
-                                    required property int index
-                                    width: 40
-                                    topPadding: 2
+                                model: rootRef ? rootRef.weatherWeek.slice(1, 5) : []
+                                delegate: ColumnLayout {
+                                    Layout.preferredWidth: 32
                                     spacing: 1
 
-                                    Text {
-                                        width: 40
+                                    Txt {
+                                        Layout.fillWidth: true
                                         horizontalAlignment: Text.AlignHCenter
-                                        text: index === 0 ? "Now" : modelData.t
+                                        text: modelData.day
                                         color: weekWidget.wdim
-                                        font.family: center.uiFont
-                                        font.pixelSize: center.fontSize - 2
+                                        sizeDelta: -3
                                     }
 
-                                    Text {
-                                        width: 40
+                                    Txt {
+                                        Layout.fillWidth: true
                                         horizontalAlignment: Text.AlignHCenter
-                                        text: rootRef ? rootRef.hourGlyph(modelData.key, modelData.day) : ""
+                                        text: rootRef ? rootRef.hourGlyph(modelData.key, true) : ""
+                                        color: weekWidget.wdim
+                                        glyphFont: true
+                                    }
+
+                                    Txt {
+                                        Layout.fillWidth: true
+                                        horizontalAlignment: Text.AlignHCenter
+                                        text: modelData.max + "°"
                                         color: weekWidget.wfg
-                                        font.family: center.iconFont
-                                        font.pixelSize: center.fontSize + 1
-                                    }
-
-                                    Text {
-                                        width: 40
-                                        horizontalAlignment: Text.AlignHCenter
-                                        text: modelData.temp + "°"
-                                        color: {
-                                            var span = Math.max(1, center.weekHi - center.weekLo)
-                                            var f = Math.max(0, Math.min(1, (modelData.temp - center.weekLo) / span))
-                                            return rootRef.mixColor(weekWidget.coldCol, weekWidget.warmCol, f)
-                                        }
-                                        font.family: center.uiFont
-                                        font.pixelSize: center.fontSize - 1
-                                        font.weight: Font.DemiBold
+                                        sizeDelta: -2
                                     }
                                 }
                             }
                         }
                     }
-
-                    // Six days: today + next five, with min/max range bars.
-                    Repeater {
-                        model: rootRef ? rootRef.weatherWeek.slice(0, 6) : []
-                        delegate: RowLayout {
-                            required property var modelData
-                            required property int index
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 20
-                            spacing: 6
-
-                            Text {
-                                Layout.preferredWidth: 44
-                                text: modelData.day
-                                color: weekWidget.wfg
-                                opacity: index === 0 ? 1.0 : 0.7
-                                font.family: center.uiFont
-                                font.pixelSize: center.fontSize - 1
-                                font.weight: index === 0 ? Font.Bold : Font.Normal
-                                elide: Text.ElideRight
-                            }
-                            Text {
-                                Layout.preferredWidth: 18
-                                horizontalAlignment: Text.AlignHCenter
-                                text: rootRef ? rootRef.hourGlyph(modelData.key, true) : ""
-                                color: weekWidget.wfg
-                                font.family: center.iconFont
-                                font.pixelSize: center.fontSize + 1
-                            }
-                            Text {
-                                Layout.preferredWidth: 28
-                                horizontalAlignment: Text.AlignRight
-                                text: modelData.min + "°"
-                                color: weekWidget.wdim
-                                font.family: center.uiFont
-                                font.pixelSize: center.fontSize - 1
-                            }
-                            Item {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 3
-
-                                Rectangle {
-                                    anchors.fill: parent
-                                    radius: 10
-                                    color: Qt.rgba(weekWidget.wfg.r, weekWidget.wfg.g, weekWidget.wfg.b, 0.18)
-                                }
-                                Rectangle {
-                                    height: 3
-                                    radius: 10
-                                    color: weekWidget.wfg
-                                    width: parent.width * center.weekFrac(modelData.min, modelData.max)[1]
-                                    x: parent.width * center.weekFrac(modelData.min, modelData.max)[0]
-                                }
-                            }
-                            Text {
-                                Layout.preferredWidth: 28
-                                text: modelData.max + "°"
-                                color: weekWidget.wfg
-                                font.family: center.uiFont
-                                font.pixelSize: center.fontSize - 1
-                                font.weight: Font.DemiBold
-                            }
-                        }
-                    }
-
                 }
             }
 
-            // Mounted disks, two tiles per row.
-            Grid {
-                Layout.fillWidth: true
-                visible: center.mountedDiskCount > 0
-                columns: 2
-                rowSpacing: 8
-                columnSpacing: 8
-
-                Repeater {
-                    model: rootRef && rootRef.mountedDisks ? rootRef.mountedDisks : []
-                    delegate: InfoWidget {
-                        width: Math.round((center.panelWidth - center.pad * 2 - 8) / 2)
-                        height: 76
-                        visible: true
-                        tintName: "tertiary_container"
-                        title: modelData.pct + "%"
-                        subtitle: modelData.free + "G free of " + modelData.total + "G"
-                        caption: modelData.mount === "/" ? "System /" : modelData.mount
-                        glyph: ""
-                        isY2kMoon: false
-                        progress: Math.max(0, Math.min(1, (modelData.pct || 0) / 100))
-                    }
-                }
-            }
-
-            // Removable drives (USB sticks, SD cards, external drives):
-            // mount, open, unmount and safely eject without a terminal.
+            // Storage: the mounted filesystems and the removable drives in
+            // one flat list, each row a single line.
             ColumnLayout {
                 Layout.fillWidth: true
-                visible: center.removableCount > 0
-                spacing: 6
+                visible: center.storageOn
+                spacing: center.storageGap
 
                 RowLayout {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 24
+                    Layout.preferredHeight: center.storageHeaderHeight
                     spacing: 6
 
                     QIcon {
@@ -722,148 +615,29 @@ Item {
                         Layout.alignment: Qt.AlignVCenter
                     }
 
-                    Text {
+                    Txt {
                         Layout.fillWidth: true
-                        text: "Removable" + (center.removableCount > 1 ? " · " + center.removableCount : "")
-                        color: center.muteFg
-                        font.family: center.uiFont
-                        font.pixelSize: center.fontSize
-                        font.weight: Font.DemiBold
-                        elide: Text.ElideRight
-                        verticalAlignment: Text.AlignVCenter
+                        text: "Storage"
+                        dim: true
+                        sizeDelta: 0
+                        weight_: Font.DemiBold
                     }
 
                     HeaderBtn {
                         iconSource: Qt.resolvedUrl("../assets/icons/refresh.svg")
                         active: false
-                        onTapped: { if (rootRef) rootRef.refreshRemovable() }
+                        onTapped: { if (rootRef) rootRef.refreshStorage() }
                     }
                 }
 
                 Repeater {
-                    model: center.removableList
-                    delegate: Rectangle {
+                    model: center.storageRows
+                    delegate: StorageRow {
                         required property var modelData
-                        property var drive: modelData
                         Layout.fillWidth: true
-                        Layout.preferredHeight: driveCol.implicitHeight + 20
-                        radius: 10
-                        color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.04)
-                        border.width: 1
-                        border.color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.09)
-                        clip: true
-
-                        ColumnLayout {
-                            id: driveCol
-                            anchors.left: parent.left
-                            anchors.right: parent.right
-                            anchors.top: parent.top
-                            anchors.margins: 8
-                            spacing: 4
-
-                            RowLayout {
-                                Layout.fillWidth: true
-                                spacing: 6
-
-                                ColumnLayout {
-                                    Layout.fillWidth: true
-                                    spacing: 1
-
-                                    Text {
-                                        Layout.fillWidth: true
-                                        text: center.driveName(drive)
-                                        color: center.fg
-                                        font.family: center.uiFont
-                                        font.pixelSize: center.fontSize
-                                        font.weight: Font.Bold
-                                        elide: Text.ElideRight
-                                        maximumLineCount: 1
-                                    }
-
-                                    Text {
-                                        Layout.fillWidth: true
-                                        text: {
-                                            var size = center.fmtSizeGB(drive.sizeGB)
-                                            var dev = (drive.dev || "").replace("/dev/", "")
-                                            return (size ? size + " · " : "") + dev
-                                        }
-                                        color: center.muteFg
-                                        font.family: center.uiFont
-                                        font.pixelSize: center.fontSize - 2
-                                        elide: Text.ElideRight
-                                        maximumLineCount: 1
-                                    }
-                                }
-
-                                DriveBtn {
-                                    label: "Eject"
-                                    accent: true
-                                    onTapped: { if (rootRef) rootRef.ejectDrive(drive.dev) }
-                                }
-                            }
-
-                            Repeater {
-                                model: drive.volumes || []
-                                delegate: RowLayout {
-                                    required property var modelData
-                                    Layout.fillWidth: true
-                                    Layout.preferredHeight: 30
-                                    spacing: 8
-
-                                    Rectangle {
-                                        Layout.preferredWidth: 6
-                                        Layout.fillHeight: true
-                                        radius: 10
-                                        color: modelData.mount ? center.accent : Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.25)
-                                    }
-
-                                    ColumnLayout {
-                                        Layout.fillWidth: true
-                                        spacing: 0
-
-                                        Text {
-                                            Layout.fillWidth: true
-                                            text: center.volTitle(modelData)
-                                            color: center.fg
-                                            font.family: center.uiFont
-                                            font.pixelSize: center.fontSize
-                                            font.weight: Font.Medium
-                                            elide: Text.ElideRight
-                                            maximumLineCount: 1
-                                        }
-
-                                        Text {
-                                            Layout.fillWidth: true
-                                            visible: text.length > 0
-                                            text: modelData.mount
-                                                ? (modelData.mount + (center.diskFreeText(modelData.mount).length > 0 ? " · " + center.diskFreeText(modelData.mount) : ""))
-                                                : "Not mounted"
-                                            color: center.muteFg
-                                            font.family: center.uiFont
-                                            font.pixelSize: center.fontSize - 2
-                                            elide: Text.ElideRight
-                                            maximumLineCount: 1
-                                        }
-                                    }
-
-                                    DriveBtn {
-                                        visible: !modelData.mount
-                                        label: "Mount"
-                                        onTapped: { if (rootRef) rootRef.mountVolume(modelData.path) }
-                                    }
-                                    DriveBtn {
-                                        visible: !!modelData.mount
-                                        label: "Open"
-                                        onTapped: { if (rootRef) rootRef.openMount(modelData.mount) }
-                                    }
-                                    DriveBtn {
-                                        visible: !!modelData.mount
-                                        label: "Unmount"
-                                        onTapped: { if (rootRef) rootRef.unmountVolume(modelData.path) }
-                                    }
-                                }
-                            }
-                        }
+                        Layout.preferredHeight: center.storageRowHeight
+                        Layout.minimumHeight: center.storageRowHeight
+                        rowData: modelData
                     }
                 }
             }
@@ -882,12 +656,10 @@ Item {
                     Layout.alignment: Qt.AlignVCenter
                 }
 
-                Text {
+                Txt {
                     text: "Notifications"
-                    color: center.fg
-                    font.family: center.uiFont
-                    font.pixelSize: center.fontSize + 1
-                    font.weight: Font.DemiBold
+                    sizeDelta: 1
+                    weight_: Font.DemiBold
                     Layout.fillWidth: true
                     verticalAlignment: Text.AlignVCenter
                 }
@@ -899,14 +671,13 @@ Item {
                     radius: 10
                     color: center.accent
 
-                    Text {
+                    Txt {
                         id: unreadLabel
                         anchors.centerIn: parent
                         text: svc ? String(svc.unreadCount) : ""
                         color: rootRef ? rootRef.contrastColor(center.accent) : "#000000"
-                        font.family: center.uiFont
-                        font.pixelSize: center.fontSize - 2
-                        font.weight: Font.DemiBold
+                        sizeDelta: -2
+                        weight_: Font.DemiBold
                     }
                 }
 
@@ -929,7 +700,9 @@ Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 Layout.minimumHeight: 64
-                Layout.preferredHeight: Math.min(centerList.contentHeight, center.listMaxHeight) + 10
+                // Exact: the list fills this wrapper edge to edge, so no
+                // padding is added here.
+                Layout.preferredHeight: Math.min(centerList.contentHeight, center.listMaxHeight)
                 visible: centerList.count > 0
                 radius: 10
                 color: "transparent"
@@ -939,9 +712,10 @@ Item {
 
             ListView {
                 id: centerList
+                // No side insets: notification cards are the same width as the
+                // weather and storage cards above them. The scrollbar overlays
+                // the trailing edge instead of stealing width from the list.
                 anchors.fill: parent
-                anchors.margins: 6
-                anchors.rightMargin: 16
                 model: svc ? svc.history : []
                 spacing: 8
                 boundsBehavior: Flickable.StopAtBounds
@@ -961,7 +735,9 @@ Item {
                     anchors.top: parent.top
                     anchors.bottom: parent.bottom
                     anchors.right: parent.right
-                    anchors.rightMargin: 8
+                    // Sits just inside the card's right edge, clear of the
+                    // close button in the card's top-right corner.
+                    anchors.rightMargin: 3
                     anchors.topMargin: 8
                     anchors.bottomMargin: 8
                     width: 4
@@ -1014,12 +790,9 @@ Item {
                     iconSize: center.fontSize + 4
                 }
 
-                Text {
+                Txt {
                     anchors.verticalCenter: parent.verticalCenter
                     text: "All clear"
-                    color: center.fg
-                    font.family: center.uiFont
-                    font.pixelSize: center.fontSize
                 }
 
                 QIcon {
@@ -1031,6 +804,24 @@ Item {
             }
 
         }
+
+    // Every label in the panel is the same Text with a size offset and a
+    // weight, so they all come from here instead of being spelled out.
+    component Txt: Text {
+        // Offset from center.fontSize, so the panel scales as one piece.
+        property int sizeDelta: 0
+        property int weight_: Font.Normal
+        property bool dim: false
+        // Glyphs (Symbols Nerd Font) rather than the UI face.
+        property bool glyphFont: false
+
+        color: dim ? center.muteFg : center.fg
+        font.family: glyphFont ? center.iconFont : center.uiFont
+        font.pixelSize: center.fontSize + sizeDelta
+        font.weight: weight_
+        elide: Text.ElideRight
+        maximumLineCount: 1
+    }
 
     component MediaBtn: Item {
         id: btn
@@ -1127,14 +918,12 @@ Item {
             border.color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.14)
             Behavior on color { CAnim { type: CAnim.FastEffects } }
 
-            Text {
+            Txt {
                 id: dbtnLabel
                 anchors.centerIn: parent
                 text: dbtn.label
-                color: center.fg
-                font.family: center.uiFont
-                font.pixelSize: center.fontSize - 1
-                font.weight: Font.DemiBold
+                sizeDelta: -1
+                weight_: Font.DemiBold
             }
 
             MouseArea {
@@ -1147,118 +936,102 @@ Item {
         }
     }
 
-    // Widget-style cards mirroring the top-bar weather / prayer pills,
-    // with a caption, a big value and a subtitle line.
-    component InfoWidget: Rectangle {
-        id: widget
-        property string tintName: "primary_fixed_dim"
-        property string caption: ""
-        property string title: ""
-        property string subtitle: ""
-        property string glyph: ""
-        property bool isY2kMoon: false
-        // 0..1 usage bar at the card bottom; negative hides it.
-        property real progress: -1
+    // One line of the storage list. The row's kind decides what it shows:
+    // a filesystem is usage + bar + Open, a device is name + size + Eject,
+    // a partition is Mount when it is out and Open + Unmount when it is in.
+    component StorageRow: Rectangle {
+        id: row
+        property var rowData: ({})
+        readonly property var data_: row.rowData || ({})
+        readonly property bool isDrive: data_.kind === "drive"
+        readonly property bool isVol: data_.kind === "vol"
+        readonly property bool isMounted: !!data_.mounted
+        // Partitions read as an inset under the device they belong to.
+        readonly property real inset: row.isVol ? 14 : 0
 
-        Layout.preferredHeight: 76
         Layout.fillHeight: false
-        radius: 10
-        color: rootRef ? rootRef.tonalPillColor(rootRef.pillColor(widget.tintName)) : "#1a1b1e"
-        border.width: 0
+        radius: 8
+        color: row.isDrive
+            ? Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.05)
+            : "transparent"
+        border.width: row.isDrive ? 1 : 0
+        border.color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.09)
         clip: true
-
-        readonly property color widgetFg: rootRef ? rootRef.pillForeground(widget.color) : center.fg
-        readonly property color widgetDim: Qt.rgba(widgetFg.r, widgetFg.g, widgetFg.b, 0.68)
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 10
+            anchors.leftMargin: 10 + row.inset
             anchors.rightMargin: 10
-            anchors.topMargin: 8
-            anchors.bottomMargin: 16
             spacing: 8
 
-            ColumnLayout {
+            // Usage percentage, only where there is a filesystem to measure.
+            Txt {
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredWidth: 38
+                visible: (row.data_.value || "") !== ""
+                text: row.data_.value || ""
+                sizeDelta: row.isDrive ? -2 : 1
+                weight_: Font.DemiBold
+            }
+
+            Txt {
+                Layout.alignment: Qt.AlignVCenter
+                Layout.maximumWidth: 108
+                text: row.data_.label || ""
+                sizeDelta: row.isDrive ? 0 : -1
+                weight_: row.isDrive ? Font.DemiBold : Font.Medium
+            }
+
+            Txt {
+                Layout.alignment: Qt.AlignVCenter
                 Layout.fillWidth: true
-                Layout.fillHeight: true
-                spacing: 1
-
-                Text {
-                    visible: widget.caption.length > 0
-                    Layout.fillWidth: true
-                    text: widget.caption.toUpperCase()
-                    color: widget.widgetDim
-                    font.family: center.uiFont
-                    font.pixelSize: center.fontSize - 3
-                    font.weight: Font.DemiBold
-                    font.letterSpacing: 1.2
-                    elide: Text.ElideRight
-                    maximumLineCount: 1
-                }
-
-                Text {
-                    Layout.fillWidth: true
-                    text: widget.title
-                    color: widget.widgetFg
-                    font.family: center.uiFont
-                    font.pixelSize: center.fontSize + 5
-                    font.weight: Font.Bold
-                    elide: Text.ElideRight
-                    maximumLineCount: 1
-                }
-
-                Text {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    text: widget.subtitle
-                    color: widget.widgetDim
-                    font.family: center.uiFont
-                    font.pixelSize: center.fontSize - 1
-                    font.weight: Font.Medium
-                    elide: Text.ElideRight
-                    maximumLineCount: 1
-                    verticalAlignment: Text.AlignTop
-                }
+                text: row.data_.sub || ""
+                dim: true
+                sizeDelta: -3
             }
-
-            Text {
-                visible: !widget.isY2kMoon && widget.glyph.length > 0
-                Layout.alignment: Qt.AlignVCenter
-                text: widget.glyph
-                color: widget.widgetFg
-                font.family: center.iconFont
-                font.pixelSize: 24
-            }
-
-            QIcon {
-                visible: widget.isY2kMoon
-                Layout.alignment: Qt.AlignVCenter
-                source: Qt.resolvedUrl("../assets/icons/y2k-moon-star.svg")
-                color: widget.widgetFg
-                iconSize: 26
-            }
-        }
-
-        // Usage bar inset above the card bottom edge.
-        Rectangle {
-            visible: widget.progress >= 0
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            anchors.leftMargin: 10
-            anchors.rightMargin: 10
-            anchors.bottomMargin: 8
-            height: 4
-            radius: 10
-            color: Qt.rgba(widget.widgetFg.r, widget.widgetFg.g, widget.widgetFg.b, 0.18)
-            clip: true
 
             Rectangle {
-                anchors.left: parent.left
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
-                width: parent.width * Math.max(0, Math.min(1, widget.progress))
-                color: widget.widgetFg
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredWidth: 28
+                Layout.preferredHeight: 3
+                visible: row.data_.progress !== undefined && row.data_.progress >= 0
+                radius: 10
+                color: Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.18)
+                clip: true
+
+                Rectangle {
+                    anchors.left: parent.left
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    width: parent.width * Math.max(0, Math.min(1, row.data_.progress || 0))
+                    color: center.fg
+                }
+            }
+
+            DriveBtn {
+                Layout.alignment: Qt.AlignVCenter
+                visible: row.isVol && !row.isMounted
+                label: "Mount"
+                onTapped: { if (rootRef) rootRef.mountVolume(row.data_.devPath) }
+            }
+            DriveBtn {
+                Layout.alignment: Qt.AlignVCenter
+                visible: !row.isDrive && row.isMounted
+                label: "Open"
+                onTapped: { if (rootRef) rootRef.openMount(row.data_.mount) }
+            }
+            DriveBtn {
+                Layout.alignment: Qt.AlignVCenter
+                visible: row.isVol && row.isMounted
+                label: "Unmount"
+                onTapped: { if (rootRef) rootRef.unmountVolume(row.data_.devPath) }
+            }
+            DriveBtn {
+                Layout.alignment: Qt.AlignVCenter
+                visible: row.isDrive
+                label: "Eject"
+                accent: true
+                onTapped: { if (rootRef) rootRef.ejectDrive(row.data_.eject) }
             }
         }
     }

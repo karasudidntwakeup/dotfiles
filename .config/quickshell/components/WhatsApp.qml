@@ -520,7 +520,6 @@ Item {
 
         // ===== page 0: chat list =====
         Item {
-            id: listPage
             anchors.fill: parent
             visible: card.page === 0
             enabled: card.page === 0
@@ -728,7 +727,6 @@ Item {
 
         // ===== page 1: conversation =====
         Item {
-            id: chatPage
             anchors.fill: parent
             visible: card.page === 1
             enabled: card.page === 1
@@ -901,7 +899,6 @@ Item {
                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: wa.toggleAudio(src) }
                             }
                             Rectangle { // text bubble
-                                id: bubble
                                 visible: body.length > 0
                                 width: parent.width
                                 implicitHeight: bubbleRow.implicitHeight + 12

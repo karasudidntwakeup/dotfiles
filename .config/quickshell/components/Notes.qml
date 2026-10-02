@@ -77,7 +77,6 @@ Item {
     property string editingId: ""
     property string editingTitle: ""
     property string composerColor: "yellow"
-    property bool composerDirty: bodyArea.text.length > 0
 
     onActiveChanged: {
         if (notes.active) {
@@ -500,7 +499,6 @@ Item {
                             Layout.alignment: Qt.AlignVCenter
                         }
                         Rectangle {
-                            id: saveBtn
                             Layout.preferredWidth: saveLabel.implicitWidth + 22
                             Layout.preferredHeight: 26
                             radius: 10
@@ -658,7 +656,6 @@ Item {
                         height: gridView.cellHeight
 
                         Rectangle {
-                            id: sticky
                             anchors.fill: parent
                             anchors.margins: 5
                             radius: 10

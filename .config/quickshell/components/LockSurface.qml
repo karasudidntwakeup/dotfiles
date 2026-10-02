@@ -196,7 +196,6 @@ Item {
     }
 
     Item {
-        id: clockBlock
         height: clockHour.implicitHeight + clockMinute.implicitHeight - 10
         anchors.left: parent.left
         anchors.leftMargin: 7
@@ -285,7 +284,6 @@ Item {
     }
 
     Text {
-        id: quoteTop
         text: "You can have everything and feel nothing."
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
@@ -296,7 +294,6 @@ Item {
     }
 
     Text {
-        id: quoteBot
         text: "What you resist, persists. What you accept, dissolves."
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
@@ -320,7 +317,6 @@ Item {
     }
 
     Rectangle {
-        id: passBox
         width: 480; height: 72
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
@@ -338,12 +334,10 @@ Item {
         }
 
         Item {
-            id: dotsArea
             anchors.centerIn: parent
             width: 460; height: 64
 
                 Row {
-                    id: dotsRow
                     anchors.centerIn: parent
                     spacing: 8
 
@@ -369,7 +363,6 @@ Item {
 
                         // y2k dot-art icon, one glyph per keystroke — never "."/real chars
                         Text {
-                            id: glyphText
                             anchors.centerIn: parent
                             // staggered float while PAM verifies
                             y: lockRoot.unlockInProgress

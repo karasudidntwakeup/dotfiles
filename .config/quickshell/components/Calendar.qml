@@ -635,7 +635,6 @@ PanelWindow {
         }
 
         MouseArea {
-            id: calDismiss
             anchors.fill: parent
             cursorShape: Qt.ArrowCursor
             onClicked: {
@@ -653,7 +652,6 @@ PanelWindow {
             height: bodyColumn.implicitHeight + 24
 
             MouseArea {
-                id: calCardGuard
                 anchors.fill: parent
             }
 
@@ -886,7 +884,6 @@ PanelWindow {
                 Item { width: 8; height: 1 }
 
                 Grid {
-                    id: calGrid
                     width: parent.width - 36
                     height: 192
                     columns: 7
@@ -1155,7 +1152,6 @@ PanelWindow {
                     spacing: 6
 
                     Rectangle {
-                        id: addBtn
                         Layout.preferredWidth: 26
                         Layout.fillHeight: true
                         radius: 10
@@ -1180,7 +1176,6 @@ PanelWindow {
                     }
 
                     Rectangle {
-                        id: minusBtn
                         Layout.preferredWidth: 26
                         Layout.fillHeight: true
                         radius: 10
@@ -1235,7 +1230,6 @@ PanelWindow {
                         spacing: 6
 
                         Repeater {
-                            id: entriesRepeater
                             model: ListModel { id: entriesModel }
 
                             delegate: Rectangle {
@@ -1429,7 +1423,6 @@ PanelWindow {
                         }
 
                         Rectangle {
-                            id: timerMinusBtn
                             Layout.preferredWidth: 26
                             Layout.preferredHeight: 26
                             Layout.alignment: Qt.AlignVCenter
@@ -1455,7 +1448,6 @@ PanelWindow {
                         }
 
                         Rectangle {
-                            id: timerPlusBtn
                             Layout.preferredWidth: 26
                             Layout.preferredHeight: 26
                             Layout.alignment: Qt.AlignVCenter
@@ -1481,7 +1473,6 @@ PanelWindow {
                         }
 
                         Rectangle {
-                            id: timerToggleBtn
                             Layout.preferredWidth: 34
                             Layout.preferredHeight: 26
                             Layout.alignment: Qt.AlignVCenter
@@ -1507,7 +1498,6 @@ PanelWindow {
                         }
 
                         Rectangle {
-                            id: timerResetBtn
                             Layout.preferredWidth: 26
                             Layout.preferredHeight: 26
                             Layout.alignment: Qt.AlignVCenter

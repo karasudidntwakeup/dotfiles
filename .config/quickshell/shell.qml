@@ -44,20 +44,19 @@ ShellRoot {
 
     FileView {
         id: qsThemeFile
-        property var qsTheme: ({})
         path: Quickshell.shellDir + "/qs-theme.json"
         watchChanges: true
         blockLoading: true
         onFileChanged: qsThemeFile.reload()
         onLoadFailed: error => console.log("[qs-theme] failed to load qs-theme.json:", error)
         onLoaded: {
-            var map = {}
+            // Parse is only a validation pass: nothing reads the result, the
+            // theme is applied through colors.js. It stays to log a broken file.
             try {
-                map = JSON.parse(String(qsThemeFile.text())) || {}
+                JSON.parse(String(qsThemeFile.text()))
             } catch (e) {
                 console.log("[qs-theme] parse error:", e)
             }
-            qsThemeFile.qsTheme = map
         }
     }
 
@@ -66,8 +65,6 @@ ShellRoot {
     // dark/light (qs-theme.json) still drives GTK/apps via
     // wallpaper_apply.sh; the shell just doesn't follow it.
     readonly property bool qsLight: true
-
-    readonly property color qsPillFallbackBg: "#1a1b1e"
 
     function pillColor(name) {
         return colorOf(name)
@@ -154,13 +151,32 @@ ShellRoot {
     property var weatherWeek: []
     property string weatherFeels: ""
     property string weatherCity: ""
-    property var weatherHours: []
-    property string weatherUpdatedText: ""
 
     function updateWeatherDayNight() {
         var h = new Date().getHours()
         var day = h >= 6 && h < 19
         if (day !== weatherIsDay) weatherIsDay = day
+    }
+
+    // Condition label for the key weather.sh reports. The pill only ever
+    // showed the temperature, so the panel needs its own name for the kind.
+    function weatherLabel() {
+        switch (weatherKey) {
+        case "sun": return "Clear"
+        case "partly": return "Partly cloudy"
+        case "cloud": return "Cloudy"
+        case "fog": return "Fog"
+        case "rain": return "Rain"
+        case "storm": return "Thunderstorm"
+        case "snow": return "Snow"
+        default: return "Cloudy"
+        }
+    }
+
+    // The panel shows the temperature alone, in the display face, so the
+    // unit suffix the script appends is dropped to keep the reading large.
+    function weatherTempOnly() {
+        return weatherText.replace(/C$/, "")
     }
 
     // Modern glyph icon (Symbols Nerd Font weather set —
@@ -190,11 +206,6 @@ ShellRoot {
         return !weatherIsDay && weatherKey === "sun"
     }
 
-    function refreshWeather() {
-        weatherProc.running = true
-        weatherWeekProc.running = true
-    }
-
     property string prayerText: ""
     property string prayerName: ""
     property date prayerTarget: new Date(0)
@@ -219,6 +230,13 @@ ShellRoot {
 
     function refreshRemovable() {
         if (!removableProc.running) removableProc.running = true
+    }
+
+    // The storage list in the NotifCenter joins removable drives with the
+    // mounted filesystems, so both halves have to be re-read together.
+    function refreshStorage() {
+        root.refreshRemovable()
+        if (!mountedDisksProc.running) mountedDisksProc.running = true
     }
 
     function removableAction(args) {
@@ -251,9 +269,14 @@ ShellRoot {
     }
 
     function openMount(mountPoint) {
-        // Goes through xdg-open, which is configured system-wide to open
-        // directories in foot (foot-open.desktop handles inode/directory).
-        if (mountPoint) Quickshell.execDetached(["xdg-open", mountPoint])
+        // Opens a foot terminal in the directory. foot is used directly
+        // rather than xdg-open so the intent is explicit; it reuses a running
+        // foot server and starts one if there is none.
+        if (!mountPoint) return
+        var title = "foot"
+        var parts = String(mountPoint).split("/").filter(p => p.length > 0)
+        if (parts.length > 0) title = parts[parts.length - 1]
+        Quickshell.execDetached(["foot", "-T", title, mountPoint])
     }
 
     Process {
@@ -281,10 +304,8 @@ ShellRoot {
         id: removableCmd
         onExited: code => {
             // Re-read drive + disk state after any mount/unmount/eject.
-            Qt.callLater(() => {
-                root.refreshRemovable()
-                mountedDisksProc.running = true
-            })
+            // refreshStorage covers both processes.
+            Qt.callLater(() => root.refreshStorage())
         }
     }
 
@@ -348,7 +369,6 @@ ShellRoot {
                         weatherText = parts[1].trim()
                         weatherFeels = parts.length >= 4 ? parts[3].trim() : ""
                         weatherCity = parts.length >= 5 ? parts[4].trim() : ""
-                        weatherUpdatedText = "updated " + Qt.formatDateTime(new Date(), "HH:mm")
                     } else {
                         weatherText = ""
                         weatherFeels = ""
@@ -431,20 +451,28 @@ ShellRoot {
         id: mountedDisksProc
         command: ["sh", "-c", Quickshell.shellDir + "/scripts/mounted_disks.sh"]
         stdout: StdioCollector {
-            onStreamFinished: root.mountedDisks = root.parseMountedDisks(this.text)
+            onStreamFinished: {
+                var arr = root.parseMountedDisks(this.text)
+                // Keep the old reference when nothing changed, so the storage
+                // rows in the NotifCenter are not rebuilt on every open.
+                if (JSON.stringify(arr) !== JSON.stringify(root.mountedDisks))
+                    root.mountedDisks = arr
+            }
         }
     }
 
     Process {
         id: weatherWeekProc
         command: ["sh", "-c", Quickshell.shellDir + "/scripts/weather_week.sh"]
-        stdout: SplitParser {
-            onRead: data => {
-                if (!data) return
+        stdout: StdioCollector {
+            onStreamFinished: {
                 try {
-                    var v = JSON.parse(data.trim())
-                    if (v instanceof Array) root.weatherWeek = v
-                    else if (v && v.hours instanceof Array) root.weatherHours = v.hours
+                    var v = JSON.parse(this.text.trim())
+                    if (!(v instanceof Array)) return
+                    // Keep the old reference when nothing changed, so the
+                    // forecast columns in the NotifCenter are not rebuilt.
+                    if (JSON.stringify(v) !== JSON.stringify(root.weatherWeek))
+                        root.weatherWeek = v
                 } catch (e) {}
             }
         }
@@ -475,7 +503,6 @@ ShellRoot {
     }
 
     Timer {
-        id: prayerAlertTimer
         interval: 30000
         running: root.prayerName.length > 0 && !root.prayerAlerted
         repeat: true
@@ -715,7 +742,6 @@ ShellRoot {
     }
 
     Timer {
-        id: mediaTicker
         interval: 250
         running: root.mediaStatus === "Playing" && notifSvc.centerOpen
         repeat: true
@@ -845,7 +871,6 @@ ShellRoot {
     }
 
     Process {
-        id: awwwProc
         command: ["awww-daemon"]
         running: true
     }
@@ -1009,7 +1034,6 @@ ShellRoot {
             }
 
             Text {
-                id: pillIcon
                 visible: pill.icon.length > 0
                 text: pill.icon
                 color: pill.pillTextColor
@@ -1020,7 +1044,6 @@ ShellRoot {
             }
 
             Text {
-                id: pillText
                 text: pill.label
                 color: pill.pillTextColor
                 Layout.alignment: Qt.AlignVCenter
@@ -1100,7 +1123,6 @@ ShellRoot {
             spacing: 8
 
             Item {
-                id: arcSlot
                 anchors.verticalCenter: parent.verticalCenter
                 implicitWidth: arcC.width + 8
                 implicitHeight: root.pillHeight
@@ -1196,7 +1218,6 @@ ShellRoot {
             }
 
             Text {
-                id: infoText
                 anchors.verticalCenter: parent.verticalCenter
                 text: root.networkConnected ? (root.networkIp + "  ↓  " + root.formatSpeed(root.networkDown)) : "No net"
                 color: dc.pillTextColor
@@ -1443,7 +1464,6 @@ ShellRoot {
     }
 
     WlSessionLock {
-        id: wLock
         locked: lockActive
 
         WlSessionLockSurface {
@@ -1452,7 +1472,6 @@ ShellRoot {
                 anchors.fill: parent
                 clip: true
                 LockSurface {
-                    id: passSurface
                     anchors.fill: parent
                     rootRef: root
                     locked: root.lockActive
@@ -1779,7 +1798,6 @@ function closeOverlays() {
     }
 
     NotifPopups {
-        id: notifPopups
         rootRef: root
         svc: notifSvc
     }
@@ -1824,8 +1842,7 @@ function closeOverlays() {
             // Center-only data: fetch on open instead of polling at idle.
             if (!mediaProc.running) mediaProc.running = true
             if (!weatherWeekProc.running) weatherWeekProc.running = true
-            if (!mountedDisksProc.running) mountedDisksProc.running = true
-            root.refreshRemovable()
+            root.refreshStorage()
             var it = item
             if (it) Qt.callLater(() => it.forceActiveFocus())
         }
@@ -1933,7 +1950,6 @@ function closeOverlays() {
                     }
 
                     Module {
-                        id: prayerPill
                         enterOrder: 1
                         label: root.prayerText
                         tint: root.memTint(root.memPercent)
@@ -2017,7 +2033,6 @@ function closeOverlays() {
                     }
 
                     DynamicPill {
-                        id: netBattPill
                         enterOrder: 7
                     }
 

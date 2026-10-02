@@ -283,7 +283,6 @@ Item {
     }
 
     NotificationServer {
-        id: notifServer
         keepOnReload: true
         bodySupported: true
         actionsSupported: true

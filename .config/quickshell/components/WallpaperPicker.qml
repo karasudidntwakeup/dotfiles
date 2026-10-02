@@ -17,11 +17,6 @@ Item {
     property var displayModel: []
     property bool isApplying: false
     property bool isLoaded: false
-    // False while color_extract.py still has unprocessed files (CHUNK_MAX
-    // budget per run). parseManifest updates it; indexer keeps re-running
-    // until the manifest reports done so new photos appear without
-    // reopening the picker N times.
-    property bool manifestDone: true
 
     signal requestClose()
     property bool visible_: false
@@ -112,13 +107,11 @@ Item {
         wallpaperModel = out
         applyFilters()
         isLoaded = true
-        manifestDone = done
         // Keep indexing until every file is processed.
         if (!done) Qt.callLater(window.triggerIndexer)
     }
 
     FolderListModel {
-        id: srcModel
         folder: "file://" + window.srcDir
         nameFilters: ["*.jpg", "*.jpeg", "*.png", "*.webp", "*.gif", "*.bmp", "*.heic", "*.avif",
                       "*.JPG", "*.JPEG", "*.PNG", "*.WEBP", "*.GIF", "*.BMP", "*.HEIC", "*.AVIF"]
@@ -584,7 +577,6 @@ Item {
                         Behavior on border.width { Anim { type: Anim.BouncyFast } }
 
                         MouseArea {
-                            id: swatchMouse
                             anchors.fill: parent
                             hoverEnabled: true
                             enabled: !window.isApplying && !window.showPanel
@@ -599,7 +591,6 @@ Item {
 
     // skwd-wall-style FX strip: transition picker, bottom-center.
     Rectangle {
-        id: fxBar
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
         anchors.bottomMargin: window.u * 24
@@ -629,7 +620,6 @@ Item {
                 width: fxLabel.implicitWidth + window.u * 18
                 height: window.u * 40
                 Rectangle {
-                    id: fxPill
                     anchors.centerIn: parent
                     width: parent.width - window.u * 4
                     height: window.u * 26

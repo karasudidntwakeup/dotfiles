@@ -607,7 +607,6 @@ Item {
                             }
 
                             Rectangle {
-                                id: deleteBtn
                                 Layout.preferredWidth: 24
                                 Layout.preferredHeight: 24
                                 Layout.alignment: Qt.AlignVCenter
