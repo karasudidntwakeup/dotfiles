@@ -209,7 +209,8 @@ Item {
         if (asAudio)
             ytx.play(["--no-video", "--ytdl-format=bestaudio/best", "--force-media-title=" + it.title, it.url]);
         else
-            ytx.play(["--force-media-title=" + it.title, it.url]);
+            // 1080p cap: panel is 1920x1080, higher only burns CPU downscaling.
+            ytx.play(["--ytdl-format=bv*[height<=1080][fps<=60][vcodec~='^(avc|h264)']+ba/bv*[height<=1080][fps<=60]+ba/b[height<=1080]/b", "--force-media-title=" + it.title, it.url]);
         ytx.requestClose();
     }
     function playAll(asAudio) {
@@ -224,6 +225,8 @@ Item {
         var args = [];
         if (asAudio)
             args.push("--no-video", "--ytdl-format=bestaudio/best");
+        else
+            args.push("--ytdl-format=bv*[height<=1080][fps<=60][vcodec~='^(avc|h264)']+ba/bv*[height<=1080][fps<=60]+ba/b[height<=1080]/b");
         for (var j = 0; j < urls.length; j++)
             args.push(urls[j]);
         ytx.play(args);
