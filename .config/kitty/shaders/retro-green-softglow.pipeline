@@ -1,9 +1,8 @@
-# Retro Green Softglow - green CRT + whisper of bloom (sharp, faint halo)
+# Retro Softglow - neutral CRT + whisper of bloom (sharp, faint halo, no tint)
 # Usage: custom_shaders retro-green-softglow
 startgroup
     var float WARP = 0.25
     var float SCAN = 0.50
-    var float4 TINT = float4(0.2, 1.0, 0.33, 1)
     var float BLOOM_THRESHOLD = 0.45
     var float BLOOM_STRENGTH = 0.10
     shaders crt bloom
