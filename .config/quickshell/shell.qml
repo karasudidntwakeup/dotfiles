@@ -77,8 +77,6 @@ ShellRoot {
         var color = Qt.color(accent)
         // Tonal pills follow the mode: light pills on light mode, dark
         // pills on dark mode, so text picked by contrastColor stays readable.
-        // Tonal pills follow the mode: light pills on light mode, dark
-        // pills on dark mode, so text picked by contrastColor stays readable.
         var lightness = root.qsLight
             ? Math.max(color.hslLightness, 0.76)
             : Math.min(color.hslLightness, 0.24)
@@ -507,7 +505,7 @@ ShellRoot {
 
     Process {
         id: volProc
-        command: ["sh", "-c", Quickshell.shellDir + "/scripts/volume.sh"]
+        command: ["sh", "-c", Quickshell.shellDir + "/scripts/vol.sh get"]
         stdout: SplitParser {
             onRead: data => {
                 var parts = data.trim().split("|")
@@ -1479,6 +1477,54 @@ function closeOverlays() {
         root.closeCalendar()
     }
 
+    // Shared overlay shell: fullscreen layer + lazy Loader held through
+    // the close fade, then unloaded from idle RAM. One definition replaces
+    // the 8 copy-pasted PanelWindow/Loader/Timer blocks below (launcher,
+    // ytx, whatsapp, clipboard, notes, wallpaper, theme, notifications).
+    component OverlaySheet: PanelWindow {
+        id: sheet
+        required property string ns
+        property bool open: false
+        property Component content
+        readonly property alias item: sheetLoader.item
+        property bool ready: false
+        signal loaded()
+        function hold() { unloadTimer.restart() }
+        WlrLayershell.namespace: sheet.ns
+        WlrLayershell.layer: WlrLayer.Overlay
+        WlrLayershell.keyboardFocus: sheet.open ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+        anchors.top: true
+        anchors.bottom: true
+        anchors.left: true
+        anchors.right: true
+        color: "transparent"
+        visible: sheet.open || (sheetLoader.item ? sheetLoader.item.fadeProgress > 0.001 : false)
+
+        Loader {
+            id: sheetLoader
+            anchors.fill: parent
+            // Held loaded through the close fade by the timer below, then
+            // unloads the whole tree from idle RAM. hold() is called
+            // synchronously inside the close functions BEFORE the flag
+            // clears, so the item can never be destroyed mid-fade.
+            // The ready gate keeps freshly loaded content from popping in
+            // before its first frame (starts at animProgress 0).
+            active: sheet.open || unloadTimer.running
+            sourceComponent: sheet.content
+            onStatusChanged: { if (status === Loader.Null) sheet.ready = false }
+            onLoaded: {
+                sheet.loaded()
+                Qt.callLater(() => sheet.ready = true)
+            }
+        }
+
+        Timer {
+            id: unloadTimer
+            interval: 700
+            repeat: false
+        }
+    }
+
     property bool wallpaperActive: false
 
     function openWallpaperPicker() {
@@ -1487,7 +1533,7 @@ function closeOverlays() {
         root.wallpaperActive = true
     }
     function closeWallpaperPicker() {
-        if (wallpaperLoader.item) wallpaperUnload.restart()
+        wallpaperWin.hold()
         root.wallpaperActive = false
     }
     function toggleWallpaperPicker() {
@@ -1510,7 +1556,7 @@ function closeOverlays() {
         root.themeActive = true
     }
     function closeThemePicker() {
-        if (themePickerLoader.item) themeUnload.restart()
+        themeWin.hold()
         root.themeActive = false
     }
     function toggleThemePicker() {
@@ -1528,7 +1574,7 @@ function closeOverlays() {
     property bool launcherActive: false
 
     function openAppLauncher() { root.closeOverlays(); root.launcherActive = true }
-    function closeAppLauncher() { if (appLauncherLoader.item) appLauncherUnload.restart(); root.launcherActive = false }
+    function closeAppLauncher() { appLauncherWin.hold(); root.launcherActive = false }
     function toggleAppLauncher() {
         if (root.launcherActive) root.closeAppLauncher()
         else root.openAppLauncher()
@@ -1541,56 +1587,24 @@ function closeOverlays() {
         }
     }
 
-    PanelWindow {
+    OverlaySheet {
         id: appLauncherWin
-        // Lazy: content loads on first open, unloads after close fade.
-        visible: root.launcherActive || (appLauncherLoader.item ? appLauncherLoader.item.fadeProgress > 0.001 : false)
-        color: "transparent"
-        WlrLayershell.namespace: "app-launcher"
-        WlrLayershell.layer: WlrLayer.Overlay
-        // NOTE: no `focusable:` alongside keyboardFocus (both write the same
-        // property; focusable would downgrade Exclusive to OnDemand and mango
-        // only auto-focuses Exclusive layers).
-        WlrLayershell.keyboardFocus: root.launcherActive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-        anchors.top: true
-        anchors.bottom: true
-        anchors.left: true
-        anchors.right: true
-
-        Timer {
-            id: appLauncherUnload
-            interval: 700
-            repeat: false
-        }
-
-        Loader {
-            id: appLauncherLoader
-            anchors.fill: parent
-            // Held loaded through the close fade by the timer above, then
-            // unloads the whole tree + icons from idle RAM. The timer is
-            // restarted synchronously inside closeAppLauncher() BEFORE the
-            // flag clears, so the item can never be destroyed early.
-            active: root.launcherActive || appLauncherUnload.running
-            // Gates the content's active flag so a freshly loaded instance
-            // starts at animProgress 0 and fades in instead of popping.
-            property bool itemReady: false
-            onStatusChanged: { if (status === Loader.Null) itemReady = false }
-            sourceComponent: Component {
-                AppLauncher {
-                    anchors.fill: parent
-                    rootRef: root
-                    active: root.launcherActive && appLauncherLoader.itemReady
-                    onRequestClose: root.closeAppLauncher()
-                }
+        ns: "app-launcher"
+        open: root.launcherActive
+        content: Component {
+            AppLauncher {
+                anchors.fill: parent
+                rootRef: root
+                active: root.launcherActive && appLauncherWin.ready
+                onRequestClose: root.closeAppLauncher()
             }
-            onLoaded: Qt.callLater(() => appLauncherLoader.itemReady = true)
         }
     }
 
     property bool ytxActive: false
 
     function openYtx() { root.closeOverlays(); root.ytxActive = true }
-    function closeYtx() { if (ytxLoader.item) ytxUnload.restart(); root.ytxActive = false }
+    function closeYtx() { ytxWin.hold(); root.ytxActive = false }
     function toggleYtx() {
         if (root.ytxActive) root.closeYtx()
         else root.openYtx()
@@ -1603,51 +1617,24 @@ function closeOverlays() {
         }
     }
 
-    PanelWindow {
+    OverlaySheet {
         id: ytxWin
-        // Lazy: content loads on first open, unloads after close fade.
-        visible: root.ytxActive || (ytxLoader.item ? ytxLoader.item.fadeProgress > 0.001 : false)
-        color: "transparent"
-        WlrLayershell.namespace: "ytx-picker"
-        WlrLayershell.layer: WlrLayer.Overlay
-        WlrLayershell.keyboardFocus: root.ytxActive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-        anchors.top: true
-        anchors.bottom: true
-        anchors.left: true
-        anchors.right: true
-
-        Loader {
-            id: ytxLoader
-            anchors.fill: parent
-            // Self-sustaining: stays loaded until the close fade reaches 0,
-            // then unloads the whole tree from idle RAM.
-            active: root.ytxActive || ytxUnload.running
-            // Gates the content's active flag so a freshly loaded instance
-            // starts at animProgress 0 and fades in instead of popping.
-            property bool itemReady: false
-            onStatusChanged: { if (status === Loader.Null) itemReady = false }
-            sourceComponent: Component {
-                YtXLauncher {
-                    anchors.fill: parent
-                    rootRef: root
-                    active: root.ytxActive && ytxLoader.itemReady
-                    onRequestClose: root.closeYtx()
-                }
+        ns: "ytx-picker"
+        open: root.ytxActive
+        content: Component {
+            YtXLauncher {
+                anchors.fill: parent
+                rootRef: root
+                active: root.ytxActive && ytxWin.ready
+                onRequestClose: root.closeYtx()
             }
-            onLoaded: Qt.callLater(() => ytxLoader.itemReady = true)
-        }
-
-        Timer {
-            id: ytxUnload
-            interval: 700
-            repeat: false
         }
     }
 
     property bool whatsappActive: false
 
     function openWhatsApp() { root.closeOverlays(); root.whatsappActive = true }
-    function closeWhatsApp() { if (waLoader.item) waUnload.restart(); root.whatsappActive = false }
+    function closeWhatsApp() { whatsappWin.hold(); root.whatsappActive = false }
     function toggleWhatsApp() {
         if (root.whatsappActive) root.closeWhatsApp()
         else root.openWhatsApp()
@@ -1660,51 +1647,24 @@ function closeOverlays() {
         }
     }
 
-    PanelWindow {
+    OverlaySheet {
         id: whatsappWin
-        // Lazy: content loads on first open, unloads after close fade.
-        visible: root.whatsappActive || (waLoader.item ? waLoader.item.fadeProgress > 0.001 : false)
-        color: "transparent"
-        WlrLayershell.namespace: "whatsapp-picker"
-        WlrLayershell.layer: WlrLayer.Overlay
-        WlrLayershell.keyboardFocus: root.whatsappActive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-        anchors.top: true
-        anchors.bottom: true
-        anchors.left: true
-        anchors.right: true
-
-        Loader {
-            id: waLoader
-            anchors.fill: parent
-            // Self-sustaining: stays loaded until the close fade reaches 0,
-            // then unloads the whole tree from idle RAM.
-            active: root.whatsappActive || waUnload.running
-            // Gates the content's active flag so a freshly loaded instance
-            // starts at animProgress 0 and fades in instead of popping.
-            property bool itemReady: false
-            onStatusChanged: { if (status === Loader.Null) itemReady = false }
-            sourceComponent: Component {
-                WhatsApp {
-                    anchors.fill: parent
-                    rootRef: root
-                    active: root.whatsappActive && waLoader.itemReady
-                    onRequestClose: root.closeWhatsApp()
-                }
+        ns: "whatsapp-picker"
+        open: root.whatsappActive
+        content: Component {
+            WhatsApp {
+                anchors.fill: parent
+                rootRef: root
+                active: root.whatsappActive && whatsappWin.ready
+                onRequestClose: root.closeWhatsApp()
             }
-            onLoaded: Qt.callLater(() => waLoader.itemReady = true)
-        }
-
-        Timer {
-            id: waUnload
-            interval: 700
-            repeat: false
         }
     }
 
     property bool clipboardActive: false
 
     function openClipboard() { root.closeOverlays(); root.clipboardActive = true }
-    function closeClipboard() { if (clipLoader.item) clipUnload.restart(); root.clipboardActive = false }
+    function closeClipboard() { clipWin.hold(); root.clipboardActive = false }
     function toggleClipboard() {
         if (root.clipboardActive) root.closeClipboard()
         else root.openClipboard()
@@ -1717,51 +1677,24 @@ function closeOverlays() {
         }
     }
 
-    PanelWindow {
+    OverlaySheet {
         id: clipWin
-        // Lazy: content loads on first open, unloads after close fade.
-        visible: root.clipboardActive || (clipLoader.item ? clipLoader.item.fadeProgress > 0.001 : false)
-        color: "transparent"
-        WlrLayershell.namespace: "clipboard-picker"
-        WlrLayershell.layer: WlrLayer.Overlay
-        WlrLayershell.keyboardFocus: root.clipboardActive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-        anchors.top: true
-        anchors.bottom: true
-        anchors.left: true
-        anchors.right: true
-
-        Loader {
-            id: clipLoader
-            anchors.fill: parent
-            // Self-sustaining: stays loaded until the close fade reaches 0,
-            // then unloads the whole tree from idle RAM.
-            active: root.clipboardActive || clipUnload.running
-            // Gates the content's active flag so a freshly loaded instance
-            // starts at animProgress 0 and fades in instead of popping.
-            property bool itemReady: false
-            onStatusChanged: { if (status === Loader.Null) itemReady = false }
-            sourceComponent: Component {
-                Clipboard {
-                    anchors.fill: parent
-                    rootRef: root
-                    active: root.clipboardActive && clipLoader.itemReady
-                    onRequestClose: root.closeClipboard()
-                }
+        ns: "clipboard-picker"
+        open: root.clipboardActive
+        content: Component {
+            Clipboard {
+                anchors.fill: parent
+                rootRef: root
+                active: root.clipboardActive && clipWin.ready
+                onRequestClose: root.closeClipboard()
             }
-            onLoaded: Qt.callLater(() => clipLoader.itemReady = true)
-        }
-
-        Timer {
-            id: clipUnload
-            interval: 700
-            repeat: false
         }
     }
 
     property bool notesActive: false
 
     function openNotes() { root.closeOverlays(); root.notesActive = true }
-    function closeNotes() { if (notesLoader.item) notesUnload.restart(); root.notesActive = false }
+    function closeNotes() { notesWin.hold(); root.notesActive = false }
     function toggleNotes() {
         if (root.notesActive) root.closeNotes()
         else root.openNotes()
@@ -1774,156 +1707,69 @@ function closeOverlays() {
         }
     }
 
-    PanelWindow {
+    OverlaySheet {
         id: notesWin
-        // Lazy: content loads on first open, unloads after close fade.
-        visible: root.notesActive || (notesLoader.item ? notesLoader.item.fadeProgress > 0.001 : false)
-        color: "transparent"
-        WlrLayershell.namespace: "notes-picker"
-        WlrLayershell.layer: WlrLayer.Overlay
-        WlrLayershell.keyboardFocus: root.notesActive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-        anchors.top: true
-        anchors.bottom: true
-        anchors.left: true
-        anchors.right: true
-
-        Loader {
-            id: notesLoader
-            anchors.fill: parent
-            // Self-sustaining: stays loaded until the close fade reaches 0,
-            // then unloads the whole tree from idle RAM.
-            active: root.notesActive || notesUnload.running
-            // Gates the content's active flag so a freshly loaded instance
-            // starts at animProgress 0 and fades in instead of popping.
-            property bool itemReady: false
-            onStatusChanged: { if (status === Loader.Null) itemReady = false }
-            sourceComponent: Component {
-                Notes {
-                    anchors.fill: parent
-                    rootRef: root
-                    active: root.notesActive && notesLoader.itemReady
-                    onRequestClose: root.closeNotes()
-                }
+        ns: "notes-picker"
+        open: root.notesActive
+        content: Component {
+            Notes {
+                anchors.fill: parent
+                rootRef: root
+                active: root.notesActive && notesWin.ready
+                onRequestClose: root.closeNotes()
             }
-            onLoaded: Qt.callLater(() => notesLoader.itemReady = true)
-        }
-
-        Timer {
-            id: notesUnload
-            interval: 700
-            repeat: false
         }
     }
 
-    PanelWindow {
-        id: wallPicker
-        // Lazy: content loads on first open, unloads after close fade.
-        visible: root.wallpaperActive || (wallpaperLoader.item ? wallpaperLoader.item.fadeProgress > 0.001 : false)
-        color: "transparent"
-        WlrLayershell.namespace: "wallpaper-picker"
-        WlrLayershell.layer: WlrLayer.Overlay
-        WlrLayershell.keyboardFocus: root.wallpaperActive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-        anchors.top: true
-        anchors.bottom: true
-        anchors.left: true
-        anchors.right: true
+    OverlaySheet {
+        id: wallpaperWin
+        ns: "wallpaper-picker"
+        open: root.wallpaperActive
+        content: Component {
+            WallpaperPicker {
+                anchors.fill: parent
+                visible_: root.wallpaperActive && wallpaperWin.ready
 
-        Loader {
-            id: wallpaperLoader
-            anchors.fill: parent
-            // Self-sustaining: stays loaded until the close fade reaches 0,
-            // freeing models + thumbnail Images from idle RAM.
-            active: root.wallpaperActive || wallpaperUnload.running
-            // Gates visible_ so a freshly loaded instance starts at
-            // animProgress 0 and fades in instead of popping.
-            property bool itemReady: false
-            onStatusChanged: { if (status === Loader.Null) itemReady = false }
-            sourceComponent: Component {
-                WallpaperPicker {
-                    anchors.fill: parent
-                    visible_: root.wallpaperActive && wallpaperLoader.itemReady
-
-                    surfaceColor: "#17181c"
-                    borderColor: Qt.color(root.colorOf("outline_variant"))
-                    fgColor: "#ffffff"
-                    accentColor: Qt.color(root.colorOf("primary"))
-                    iconFont: root.iconFont
-                    uiFont: root.uiFont
-                    onRequestClose: root.closeWallpaperPicker()
-                }
+                surfaceColor: "#17181c"
+                borderColor: Qt.color(root.colorOf("outline_variant"))
+                fgColor: "#ffffff"
+                accentColor: Qt.color(root.colorOf("primary"))
+                iconFont: root.iconFont
+                uiFont: root.uiFont
+                onRequestClose: root.closeWallpaperPicker()
             }
-            onLoaded: {
-                // Populate thumbs on open (item starts empty after unload).
+        }
+        // Populate thumbs on open (item starts empty after unload).
+        onLoaded: { if (item) item.triggerIndexer() }
+        onVisibleChanged: {
+            if (visible && item) {
                 item.triggerIndexer()
-                Qt.callLater(() => wallpaperLoader.itemReady = true)
-            }
-        }
-
-        Timer {
-            id: wallpaperUnload
-            interval: 700
-            repeat: false
-        }
-
-        onVisibleChanged: {
-            if (visible && wallpaperLoader.item) {
-                wallpaperLoader.item.triggerIndexer()
             }
         }
     }
 
-    PanelWindow {
-        id: themePickerWin
-        // Lazy: content loads on first open, unloads after close fade.
-        visible: root.themeActive || (themePickerLoader.item ? themePickerLoader.item.fadeProgress > 0.001 : false)
-        color: "transparent"
-        WlrLayershell.namespace: "theme-picker"
-        WlrLayershell.layer: WlrLayer.Overlay
-        WlrLayershell.keyboardFocus: root.themeActive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-        anchors.top: true
-        anchors.bottom: true
-        anchors.left: true
-        anchors.right: true
+    OverlaySheet {
+        id: themeWin
+        ns: "theme-picker"
+        open: root.themeActive
+        content: Component {
+            ThemePicker {
+                anchors.fill: parent
+                visible_: root.themeActive && themeWin.ready
 
-        Loader {
-            id: themePickerLoader
-            anchors.fill: parent
-            // Self-sustaining: stays loaded until the close fade reaches 0,
-            // then unloads the whole tree from idle RAM.
-            active: root.themeActive || themeUnload.running
-            // Gates visible_ so a freshly loaded instance starts at
-            // animProgress 0 and fades in instead of popping.
-            property bool itemReady: false
-            onStatusChanged: { if (status === Loader.Null) itemReady = false }
-            sourceComponent: Component {
-                ThemePicker {
-                    anchors.fill: parent
-                    visible_: root.themeActive && themePickerLoader.itemReady
-
-                    surfaceColor: "#17181c"
-                    borderColor: Qt.color(root.colorOf("outline_variant"))
-                    fgColor: "#ffffff"
-                    accentColor: Qt.color(root.colorOf("primary"))
-                    iconFont: root.iconFont
-                    uiFont: root.uiFont
-                    onRequestClose: root.closeThemePicker()
-                }
-            }
-            onLoaded: {
-                item.triggerGenerator()
-                Qt.callLater(() => themePickerLoader.itemReady = true)
+                surfaceColor: "#17181c"
+                borderColor: Qt.color(root.colorOf("outline_variant"))
+                fgColor: "#ffffff"
+                accentColor: Qt.color(root.colorOf("primary"))
+                iconFont: root.iconFont
+                uiFont: root.uiFont
+                onRequestClose: root.closeThemePicker()
             }
         }
-
-        Timer {
-            id: themeUnload
-            interval: 700
-            repeat: false
-        }
-
+        onLoaded: { if (item) item.triggerGenerator() }
         onVisibleChanged: {
-            if (visible && themePickerLoader.item) {
-                themePickerLoader.item.triggerGenerator()
+            if (visible && item) {
+                item.triggerGenerator()
             }
         }
     }
@@ -1950,7 +1796,7 @@ function closeOverlays() {
     // Timer restarted FIRST so the Loader hold is established before
     // centerOpen clears; the item can never be destroyed mid-fade.
     function closeNotifCenter() {
-        if (notifCenterLoader.item) notifCenterUnload.restart()
+        notifWin.hold()
         notifSvc.closeCenter()
     }
 
@@ -1961,40 +1807,16 @@ function closeOverlays() {
         }
     }
 
-    PanelWindow {
-        id: notifCenterWin
-        // Lazy: content loads on first open, unloads after close fade.
-        visible: notifSvc.centerOpen || (notifCenterLoader.item ? notifCenterLoader.item.fadeProgress > 0.001 : false)
-        color: "transparent"
-        WlrLayershell.namespace: "notification-center"
-        WlrLayershell.layer: WlrLayer.Overlay
-        WlrLayershell.keyboardFocus: notifSvc.centerOpen ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-        anchors.top: true
-        anchors.bottom: true
-        anchors.left: true
-        anchors.right: true
-
-        Loader {
-            id: notifCenterLoader
-            anchors.fill: parent
-            // Held loaded through the close fade by the timer below, then
-            // unloads the whole tree from idle RAM. The timer is restarted
-            // synchronously inside closeNotifCenter() BEFORE centerOpen
-            // clears, so the item can never be destroyed early.
-            active: notifSvc.centerOpen || notifCenterUnload.running
-            sourceComponent: Component {
-                NotifCenter {
-                    anchors.fill: parent
-                    rootRef: root
-                    svc: notifSvc
-                }
+    OverlaySheet {
+        id: notifWin
+        ns: "notification-center"
+        open: notifSvc.centerOpen
+        content: Component {
+            NotifCenter {
+                anchors.fill: parent
+                rootRef: root
+                svc: notifSvc
             }
-        }
-
-        Timer {
-            id: notifCenterUnload
-            interval: 700
-            repeat: false
         }
 
         onVisibleChanged: {
@@ -2004,7 +1826,8 @@ function closeOverlays() {
             if (!weatherWeekProc.running) weatherWeekProc.running = true
             if (!mountedDisksProc.running) mountedDisksProc.running = true
             root.refreshRemovable()
-            if (notifCenterLoader.item) Qt.callLater(() => notifCenterLoader.item.forceActiveFocus())
+            var it = item
+            if (it) Qt.callLater(() => it.forceActiveFocus())
         }
     }
 

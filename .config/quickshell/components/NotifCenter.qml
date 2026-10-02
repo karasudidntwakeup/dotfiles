@@ -995,7 +995,6 @@ Item {
                     svc: center.svc
                     nData: model
                     context: "center"
-                    selected: centerList.currentIndex === index
                     z: centerList.currentIndex === index ? 2 : 1
                     onCardSelected: centerList.currentIndex = index
                 }

@@ -10,12 +10,10 @@ Item {
     property var svc: null
     property var nData: null
     property string context: "popup"
-    property bool selected: false
 
     signal cardSelected()
 
     readonly property int uid: nData && nData.uid !== undefined ? nData.uid : -1
-    readonly property int urgency: nData && nData.urgency !== undefined ? nData.urgency : 1
     property var realNotif: (function() {
         if (svc && svc.liveNotifs && card.uid >= 0 && svc.liveNotifs[card.uid])
             return svc.liveNotifs[card.uid]
@@ -35,7 +33,6 @@ Item {
     readonly property color borderColor: rootRef
         ? rootRef.withAlpha(rootRef.colorOf("widget_border"), isLight ? 0.7 : 0.6)
         : "#00000000"
-    readonly property color errorColor: rootRef ? Qt.color(rootRef.colorOf("widget_error")) : "#dc4446"
     readonly property color fg: rootRef
         ? rootRef.contrastColor(card.cardColor)
         : "#000000"
@@ -105,7 +102,8 @@ Item {
     }
 
     readonly property int timeoutMs: (function() {
-        if (card.urgency === 2) return 0
+        // No special-casing: critical notifications auto-dismiss like any
+        // other instead of sticking on screen with a red border.
         var n = card.realNotif
         if (n) {
             var t = n.expireTimeout
@@ -234,8 +232,8 @@ Item {
             height: cardContent.implicitHeight + card.pad * 2 + (card.imageOk ? card.imageBoxHeight + card.pad : 0)
             radius: 10
             color: card.cardColor
-            border.width: card.urgency === 2 ? 1.5 : 1
-            border.color: card.urgency === 2 ? card.errorColor : card.borderColor
+            border.width: 1
+            border.color: card.borderColor
             clip: true
 
 
@@ -427,15 +425,6 @@ Item {
 
     readonly property int imageBoxHeight: card.isPopup ? 150 : 180
     property bool imageOk: false
-
-    Rectangle {
-        anchors.fill: parent
-        radius: 10
-        visible: card.selected
-        color: "transparent"
-        border.width: 2
-        border.color: rootRef ? Qt.color(rootRef.colorOf("widget_accent")) : "#888888"
-    }
 
     MouseArea {
         id: cardArea

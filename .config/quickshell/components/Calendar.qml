@@ -541,16 +541,21 @@ PanelWindow {
         return Qt.formatDate(new Date(y, m, d), "ddd, MMM d")
     }
 
+    // Retry the initial positioning while the anchor chain is still laying
+    // out. Geometry is only computable once the bar window, its content and
+    // the popup card all have non-zero sizes, which spans a few frames.
+    // Backs off geometrically (25/50/100/200/400ms) instead of hammering at
+    // 16ms: on a healthy layout this settles on the first or second attempt.
     Timer {
         id: positionTimer
-        interval: 16
+        interval: 25
         repeat: false
         property int attempts: 0
         onTriggered: {
-            if (!calPopup.updateCalPosition() && attempts < 60) {
-                attempts++
-                positionTimer.restart()
-            }
+            if (calPopup.updateCalPosition() || attempts >= 5) return
+            attempts++
+            positionTimer.interval = Math.min(positionTimer.interval * 2, 400)
+            positionTimer.restart()
         }
     }
 
@@ -586,6 +591,7 @@ PanelWindow {
             calPopup.rebuildModel()
             timerBody.opacity = 0
             positionTimer.attempts = 0
+            positionTimer.interval = 25
             positionTimer.restart()
             timerPopupOut.stop()
             Qt.callLater(() => {

@@ -369,7 +369,7 @@ Item {
                         body: bodyText,
                         actionsJson: entry.actionsJson,
                         hasActions: acts.length > 0,
-                         timestamp: now,
+                        timestamp: now,
                         urgency: n.urgency
                     })
                     svc.prunePopups()

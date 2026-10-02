@@ -632,7 +632,7 @@ Item {
                         }
                     }
                     Item { Layout.fillWidth: true }
-                    IconBtn { icon: "refresh"; tip: "Refresh"; onClicked: ytx.ensureHome(true) }
+                    IconBtn { icon: "refresh"; tint: ytx.waFg; onClicked: ytx.ensureHome(true) }
 
                 }
             }
@@ -927,25 +927,4 @@ Item {
         }
     }
 
-    // ---------- small icon button (same as WhatsApp) ----------
-    component IconBtn: Item {
-        id: btn
-        property string icon: ""
-        property string tip: ""
-        property bool enabled: true
-        signal clicked()
-        implicitWidth: 34; implicitHeight: 34
-        opacity: btn.enabled ? 1 : 0.4
-        QIcon {
-            anchors.centerIn: parent
-            source: btn.icon === "refresh" ? Qt.resolvedUrl("../assets/icons/refresh.svg")
-                : Qt.resolvedUrl("../assets/icons/close.svg")
-            color: ytx.waFg; iconSize: 16
-        }
-        MouseArea {
-            anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-            enabled: btn.enabled
-            onClicked: btn.clicked()
-        }
     }
-}

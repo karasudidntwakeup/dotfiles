@@ -14,6 +14,8 @@ import shutil
 import socket
 import subprocess
 import sys
+import time
+from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 HOST = "127.0.0.1"
@@ -21,6 +23,14 @@ PORT = 51828
 MAX_BODY = 256 * 1024
 DIRECT_JID = re.compile(r"[0-9]{1,32}@(s\.whatsapp\.net|lid)")
 GROUP_JID = re.compile(r"[0-9]{1,32}(-[0-9]{1,32})?@g\.us")
+
+# Offline-backlog guard: when the laptop wakes, wacli replays every message
+# received while it was off (already seen/handled on the phone). Only notify
+# for fresh messages; anything older than this was sent while we were away.
+try:
+    MAX_AGE_SECS = max(30, int(os.environ.get("WA_NOTIFY_MAX_AGE", "180")))
+except Exception:
+    MAX_AGE_SECS = 180
 
 
 if "go/bin" not in os.environ.get("PATH", ""):
@@ -81,6 +91,37 @@ def session_bus():
     return os.environ.get("DBUS_SESSION_BUS_ADDRESS")
 
 
+def msg_time(msg):
+    """Unix timestamp of when a message was sent, or None if unknown.
+
+    Accepts ISO-8601 strings (wacli's "2026-09-17T22:48:46Z") and numeric
+    epoch seconds/milliseconds. Unknown/missing -> None (notify as before).
+    """
+    for key in ("Timestamp", "timestamp", "SentAt", "sent_at", "sentAt"):
+        v = msg.get(key)
+        if v is None:
+            continue
+        try:
+            if isinstance(v, (int, float)):
+                ts = float(v)
+            else:
+                s = str(v).strip()
+                if not s:
+                    continue
+                if re.fullmatch(r"-?\d+(\.\d+)?", s):
+                    ts = float(s)
+                else:
+                    if s.endswith("Z"):
+                        s = s[:-1] + "+00:00"
+                    return datetime.fromisoformat(s).timestamp()
+            if ts > 1e12:  # epoch millis
+                ts /= 1000.0
+            return ts
+        except Exception:
+            continue
+    return None
+
+
 def contact_name(jid, cache):
     """Best-effort display name for a contact JID (lazily cached)."""
     if jid in cache:
@@ -136,6 +177,11 @@ class Handler(BaseHTTPRequestHandler):
             return
         chat = msg.get("Chat") or ""
         if not (DIRECT_JID.fullmatch(chat) or GROUP_JID.fullmatch(chat)):
+            return
+        ts = msg_time(msg)
+        if ts is not None and ts < time.time() - MAX_AGE_SECS:
+            # Sent while this laptop was off/asleep (offline-backlog replay
+            # on reconnect) — already handled on the phone, stay silent.
             return
         text = (msg.get("Text") or "").strip()
         if not text:

@@ -593,7 +593,7 @@ Item {
                             }
                         }
                         Item { Layout.fillWidth: true }
-                        IconBtn { icon: "refresh"; tip: "Refresh"; onClicked: wa.loadChats() }
+                        IconBtn { icon: "refresh"; tint: wa.fg; onClicked: wa.loadChats() }
 
                     }
                 }
@@ -746,7 +746,7 @@ Item {
                     RowLayout {
                         anchors.fill: parent
                         anchors.leftMargin: 4; anchors.rightMargin: 8; spacing: 4
-                        IconBtn { icon: "back"; tip: "Back"; onClicked: wa.backToList() }
+                        IconBtn { icon: "back"; tint: wa.fg; onClicked: wa.backToList() }
                         Rectangle {
                             Layout.preferredWidth: 38; Layout.preferredHeight: 38
                             radius: 10; color: wa.avatarColor(wa.currentJid)
@@ -996,7 +996,7 @@ Item {
                                     onAccepted: wa.sendMessage()
                                     Keys.onEscapePressed: e => { wa.backToList(); e.accepted = true }
                                 }
-                                IconBtn { icon: "photo"; tip: "Photo"; enabled: wa.inChat && !wa.sending; onClicked: wa.sendPaste() }
+                                IconBtn { icon: "photo"; tint: wa.fg; enabled: wa.inChat && !wa.sending; onClicked: wa.sendPaste() }
                             }
                         }
                         Rectangle { // round send FAB
@@ -1052,27 +1052,4 @@ Item {
     }
 
     // ---------- small icon button ----------
-    component IconBtn: Item {
-        id: btn
-        property string icon: ""
-        property string tip: ""
-        property bool enabled: true
-        signal clicked()
-        implicitWidth: 34; implicitHeight: 34
-        opacity: btn.enabled ? 1 : 0.4
-        QIcon {
-            anchors.centerIn: parent
-            source: btn.icon === "back" ? Qt.resolvedUrl("../assets/icons/chev-left.svg")
-                : btn.icon === "refresh" ? Qt.resolvedUrl("../assets/icons/refresh.svg")
-                : btn.icon === "clip" ? Qt.resolvedUrl("../assets/icons/clipboard.svg")
-                : btn.icon === "photo" ? Qt.resolvedUrl("../assets/icons/photo.svg")
-                : Qt.resolvedUrl("../assets/icons/close.svg")
-            color: wa.fg; iconSize: 16
-        }
-        MouseArea {
-            anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-            enabled: btn.enabled
-            onClicked: btn.clicked()
-        }
     }
-}
