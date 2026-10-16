@@ -145,24 +145,23 @@ Item {
         fillMode: Image.PreserveAspectCrop
         asynchronous: true
     }
-    Process {
-        id: wpQuery
-        command: ["awww", "query"]
-        stdout: SplitParser {
-            onRead: line => {
-                var i = line.indexOf("currently displaying: image: ")
-                if (i >= 0) {
-                    var p = line.substring(i + "currently displaying: image: ".length).trim()
-                    if (p.length > 0) wallpaper.source = "file://" + p
-                }
-            }
+    // Same source of truth as WallpaperBackground: current.txt.
+    FileView {
+        id: lockWpFile
+        path: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/quickshell/wallpaper/current.txt"
+        watchChanges: true
+        blockLoading: true
+        onFileChanged: lockWpFile.reload()
+        onLoaded: {
+            var p = String(lockWpFile.text() || "").trim()
+            if (p.length > 0) wallpaper.source = "file://" + p
         }
     }
     Timer {
         // Gated on locked: no wallpaper decode at idle. Fires on lock
         // (triggeredOnStart) so the backdrop is ready behind the blur.
         interval: 1000; running: lockRoot.locked; repeat: false; triggeredOnStart: true
-        onTriggered: wpQuery.running = true
+        onTriggered: lockWpFile.reload()
     }
     MultiEffect {
         anchors.fill: wallpaper

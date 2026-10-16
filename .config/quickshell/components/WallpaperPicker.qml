@@ -190,8 +190,8 @@ Item {
     // Live stage reported by wallpaper_apply.sh (@@stage lines on stdout).
     property string applyStatus: ""
 
-    // skwd-wall-inspired transition FX (runs through awww's engine;
-    // see the preset map in wallpaper_apply.sh). Grouped like skwd-wall's
+    // QS-native transition FX (runs in WallpaperBackground;
+    // see the preset map there). Grouped like skwd-wall's
     // families: fade / wipe / warp, plus shuffle.
     property string transitionType: "fade"
     readonly property var transitionModel: [
@@ -482,7 +482,7 @@ Item {
                     }
 
                     // Apply flash: selecting a card blinks white while the
-                    // real awww transition fires behind. No Behavior —
+                    // real QS transition fires behind. No Behavior —
                     // snaps with isApplying, zero animation cost.
                     Rectangle {
                         anchors.fill: parent

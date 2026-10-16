@@ -1,7 +1,7 @@
 #!/bin/sh
 # Weekly forecast backend (Open-Meteo, no API key).
 # Output: one JSON line — [{day,max,min,key}...] for 7 days.
-# Location: WX_LAT/WX_LON env override, else IP geolocation, else Cairo.
+# Location: WX_LAT/WX_LON env override, else IP geolocation, else Berlin.
 export WX_LAT="${WX_LAT:-}" WX_LON="${WX_LON:-}"
 python3 - <<'EOF' || exit 1
 import json, os, urllib.request
@@ -20,7 +20,7 @@ if not lat or not lon:
     except Exception:
         lat, lon = None, None
 if not lat or not lon:
-    lat, lon = 30.0444, 31.2357
+    lat, lon = 52.5200, 13.4050
 
 def key_of(code):
     if code == 0:

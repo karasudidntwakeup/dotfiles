@@ -2,8 +2,8 @@
 # Weather pill backend (quickshell-local, no waybar dependency).
 # Output: "<key>|<text>|<day|night>|<feels>|<city>"
 #   key  = sun|partly|cloud|rain|storm|snow|fog
-#   text = e.g. "30°C", feels = e.g. "29°C", city = e.g. "Cairo"
-# Location: WX_LAT/WX_LON env override, else IP geolocation, else Cairo.
+#   text = e.g. "30°C", feels = e.g. "29°C", city = e.g. "Berlin"
+# Location: WX_LAT/WX_LON env override, else IP geolocation, else Berlin.
 # Data: Open-Meteo (no API key needed).
 
 export WX_LAT="${WX_LAT:-}" WX_LON="${WX_LON:-}"
@@ -24,7 +24,7 @@ if not lat or not lon:
     except Exception:
         lat, lon = None, None
 if not lat or not lon:
-    lat, lon, city = 30.0444, 31.2357, "Cairo"  # Cairo fallback
+    lat, lon, city = 52.5200, 13.4050, "Berlin"  # Berlin fallback
 
 url = (f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}"
        f"&current=temperature_2m,apparent_temperature,weather_code,is_day,is_day&timezone=auto")

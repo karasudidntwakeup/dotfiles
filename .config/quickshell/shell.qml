@@ -269,14 +269,13 @@ ShellRoot {
     }
 
     function openMount(mountPoint) {
-        // Opens a foot terminal in the directory. foot is used directly
-        // rather than xdg-open so the intent is explicit; it reuses a running
-        // foot server and starts one if there is none.
+        // Opens a foot terminal in the directory. -D sets the working
+        // directory; a bare path would be treated as the command to run.
         if (!mountPoint) return
         var title = "foot"
         var parts = String(mountPoint).split("/").filter(p => p.length > 0)
         if (parts.length > 0) title = parts[parts.length - 1]
-        Quickshell.execDetached(["foot", "-T", title, mountPoint])
+        Quickshell.execDetached([root.terminalCommand, "-D", mountPoint, "-T", title])
     }
 
     Process {
@@ -870,9 +869,12 @@ ShellRoot {
         }
     }
 
-    Process {
-        command: ["awww-daemon"]
-        running: true
+    // QS-native wallpaper: one Background-layer window per screen.
+    Variants {
+        model: Quickshell.screens
+        WallpaperBackground {
+            modelData: modelData
+        }
     }
 
     // Startup sequencer: spreads the initial process spawns over ~2s

@@ -52,89 +52,29 @@ SCHEME="${SCHEME:-tonal_spot}"
 # --- FAST FOREGROUND: pixels on screen in ~100ms, then exit. ---
 # Everything slow (magick luminance probe ~500ms, 3-4x python startups,
 # matugen's ~1s run, GTK/system switches) happens in the detached theme
-# worker spawned below. awww animates async, so `awww img` returning =
-# wallpaper changing; the picker closes on our exit while the transition
-# and theme settle behind it.
+# worker spawned below. The QS background watches current.txt, so
+# publishing the file IS the wallpaper change; the picker closes on our
+# exit while the QS transition and theme settle behind it.
 if [ -z "$THEME_ONLY" ]; then
-  # Transition preset (one key in transition.txt; env bypass available).
+  # Resolve "random" so QS (which reads transition.txt) gets a concrete
+  # preset. Env bypass still wins for one-off overrides.
   TRANSITION_FILE="$CACHE/transition.txt"
-  TRANSITION_PRESET=""
-  TRANSITION_ARGS="${AWWW_TRANSITION_ARGS:-}"
-  if [ -n "${AWWW_TRANSITION:-}" ]; then
-    TRANSITION_TYPE="$AWWW_TRANSITION"
-    TRANSITION_DUR="${AWWW_TRANSITION_DURATION:-0.6}"
+  if [ -n "${QS_TRANSITION:-}" ]; then
+    printf '%s\n' "$QS_TRANSITION" > "$TRANSITION_FILE"
   else
-    [ -f "$TRANSITION_FILE" ] && read TRANSITION_PRESET < "$TRANSITION_FILE" || true
+    read TRANSITION_PRESET < "$TRANSITION_FILE" 2>/dev/null || TRANSITION_PRESET="fade"
     TRANSITION_PRESET="${TRANSITION_PRESET:-fade}"
-    # Zero-spawn shuffle via $RANDOM (shuf/awk cost ~10ms per apply).
     if [ "$TRANSITION_PRESET" = "random" ]; then
       # shellcheck disable=SC2207
       POOL=(fade fade-slow wipe wipe-h wipe-v wipe-diag wave wave-big slide-left slide-right slide-up slide-down grow grow-corner grow-top iris implode any ripple)
       TRANSITION_PRESET="${POOL[$((RANDOM % ${#POOL[@]}))]}"
+      printf '%s\n' "$TRANSITION_PRESET" > "$TRANSITION_FILE"
     fi
-    TRANSITION_DUR="${AWWW_TRANSITION_DURATION:-}"
-    case "$TRANSITION_PRESET" in
-      fade)       TRANSITION_TYPE="fade";   DUR="0.6" ;;
-      fade-fast)  TRANSITION_TYPE="fade";   DUR="0.4" ;;
-      fade-slow)  TRANSITION_TYPE="fade";   DUR="1.5" ;;
-      simple)     TRANSITION_TYPE="simple"; DUR="0.3" ;;
-      none)       TRANSITION_TYPE="none";   DUR="0.2" ;;
-      wipe)       TRANSITION_TYPE="wipe";   DUR="0.7"; TRANSITION_ARGS="--transition-angle 45" ;;
-      wipe-h)     TRANSITION_TYPE="wipe";   DUR="0.7"; TRANSITION_ARGS="--transition-angle 0" ;;
-      wipe-v)     TRANSITION_TYPE="wipe";   DUR="0.7"; TRANSITION_ARGS="--transition-angle 90" ;;
-      wipe-diag)  TRANSITION_TYPE="wipe";   DUR="0.7"; TRANSITION_ARGS="--transition-angle 135" ;;
-      wave)       TRANSITION_TYPE="wave";   DUR="0.8"; TRANSITION_ARGS="--transition-angle 45 --transition-wave 20,20" ;;
-      wave-big)   TRANSITION_TYPE="wave";   DUR="0.9"; TRANSITION_ARGS="--transition-angle 45 --transition-wave 40,40" ;;
-      wave-steep) TRANSITION_TYPE="wave";   DUR="0.8"; TRANSITION_ARGS="--transition-angle 90 --transition-wave 12,12" ;;
-      slide-left) TRANSITION_TYPE="left";   DUR="0.6" ;;
-      slide-right) TRANSITION_TYPE="right"; DUR="0.6" ;;
-      slide-up)   TRANSITION_TYPE="top";    DUR="0.6" ;;
-      slide-down) TRANSITION_TYPE="bottom"; DUR="0.6" ;;
-      grow)        TRANSITION_TYPE="grow";   DUR="0.8"; TRANSITION_ARGS="--transition-pos center" ;;
-      grow-corner) TRANSITION_TYPE="grow";   DUR="0.8"; TRANSITION_ARGS="--transition-pos bottom-right" ;;
-      grow-top)    TRANSITION_TYPE="grow";   DUR="0.8"; TRANSITION_ARGS="--transition-pos top" ;;
-      iris)        TRANSITION_TYPE="center"; DUR="0.8" ;;
-      any)         TRANSITION_TYPE="any";    DUR="0.8" ;;
-      implode)     TRANSITION_TYPE="outer";  DUR="0.8"; TRANSITION_ARGS="--transition-pos center" ;;
-      ripple)      TRANSITION_TYPE="outer";  DUR="0.9"; TRANSITION_ARGS="--transition-pos bottom-left" ;;
-      *) TRANSITION_TYPE="$TRANSITION_PRESET"; DUR="0.6"
-         case "$TRANSITION_TYPE" in
-           none|simple|fade|left|right|top|bottom|wipe|wave|grow|center|any|outer) ;;
-           *) TRANSITION_TYPE="fade" ;;
-         esac ;;
-    esac
-    TRANSITION_DUR="${TRANSITION_DUR:-$DUR}"
   fi
-  TRANSITION_FPS="${AWWW_TRANSITION_FPS:-60}"
 
-  # Send first, recover only on failure: the daemon autostarts with the
-  # session, so a pre-send `query` roundtrip is pure overhead.
-  send_wallpaper() {
-    case "$IMG" in
-      # awww re-reads cached sprite-sheets per `img` call; only animated
-      # formats can go stale, so only they pay the clear-cache roundtrip.
-      *.gif|*.GIF|*.webp|*.WEBP) awww clear-cache 2>/dev/null || true ;;
-    esac
-    # shellcheck disable=SC2086
-    awww img "$IMG" --transition-type "$TRANSITION_TYPE" \
-      --transition-duration "$TRANSITION_DUR" --transition-fps "$TRANSITION_FPS" \
-      $TRANSITION_ARGS
-  }
   echo "@@stage wallpaper"
-  if ! send_wallpaper; then
-    # Stale/dead daemon (leftover socket, connection refused): restart it
-    # and retry once. Failure here exits nonzero so the picker shows it.
-    pkill -x awww-daemon 2>/dev/null || true
-    (setsid -f awww-daemon </dev/null >/dev/null 2>&1 &)
-    for i in $(seq 1 40); do
-      awww query >/dev/null 2>&1 && break
-      sleep 0.25
-    done
-    send_wallpaper
-  fi
-
-  # Remember the selection now (cheap) so preselect is correct even
-  # while the theme worker is still running.
+  # Publish first: QS FileView picks this up near-instantly.
+  # Failure here exits nonzero so the picker shows it.
   printf '%s\n' "$IMG" > "$CACHE/current.txt"
   printf '%s\n%s\n' "$SCHEME" "$HEX" > "$CACHE/scheme.txt.tmp"
   mv -f "$CACHE/scheme.txt.tmp" "$CACHE/scheme.txt"
