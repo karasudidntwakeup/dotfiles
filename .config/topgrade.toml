@@ -16,7 +16,10 @@ sudo_command = "doas"
 # Was "pacman" + a custom "yay -Syyu" command = system updated TWICE,
 # with AUR packages only covered by the duplicate. Use yay once.
 arch_package_manager = "yay"
-yay_arguments = "--nodevel"
+# yay v13 removed --nodevel (now "invalid option 'nodevel'").
+# Use --devel=false to skip -git devel checks, or "" for yay defaults (devel=false already).
+# See `man yay` ("temporarily disable it by using '--devel=false'").
+yay_arguments = "--devel=false"
 
 [git]
 # Removed broken entries: ~/github/Niri-glass (missing),
