@@ -112,5 +112,5 @@ binds {
     Mod+Shift+W hotkey-overlay-title="WhatsApp" { spawn "qs" "ipc" "call" "whatsapp" "toggle"; }
     Mod+G hotkey-overlay-title="Wallpaper Picker" { spawn "qs" "ipc" "call" "wallpaper" "toggle"; }
     Mod+Shift+M hotkey-overlay-title="Notification Center" { spawn "qs" "ipc" "call" "notifications" "toggle"; }
-    Mod+Shift+C hotkey-overlay-title="Color Scheme Picker" { spawn "~/.config/quickshell/scripts/scheme_fzf.sh"; }
+    Mod+Shift+C hotkey-overlay-title="Theme Picker" { spawn "qs" "ipc" "call" "theme" "toggle"; }
 }

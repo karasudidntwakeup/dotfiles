@@ -1,17 +1,18 @@
+// No solid overview backdrop — transparent so the wallpaper stays visible.
 overview {
-    backdrop-color "#11111b"
+    backdrop-color "transparent"
 }
 
 layout {
     border {
-        active-color "#89b4fa"
-        inactive-color "#a6adc8"
-        urgent-color "#f38ba8"
+        active-color "#7797b7"
+        inactive-color "#c7cdd8"
+        urgent-color "#d57780"
     }
     focus-ring {
-        active-color "#89b4fa"
-        inactive-color "#a6adc8"
-        urgent-color "#f38ba8"
+        active-color "#7797b7"
+        inactive-color "#c7cdd8"
+        urgent-color "#d57780"
     }
     shadow {
         color "#000000"
@@ -20,7 +21,7 @@ layout {
 
 recent-windows {
     highlight {
-        active-color "#89b4fa"
-        urgent-color "#f38ba8"
+        active-color "#7797b7"
+        urgent-color "#d57780"
     }
 }
