@@ -20,7 +20,6 @@ set -e
 IMG="$1"
 # One mode: $2 (old manual dark|light) is ignored — light/dark is derived
 # from the scheme itself below (derive_mode_from_scheme).
-MODE_OVERRIDE="$2"
 SCHEME="${3:-}"
 HEX="${4:-}"
 PIN_WIDGETS="${5:-0}"

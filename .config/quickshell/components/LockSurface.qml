@@ -323,7 +323,7 @@ Item {
         color: "transparent"
         border.width: 0
 
-        transform: Translate { id: shakeT; property real x: 0 }
+        transform: Translate { id: shakeT; x: 0 }
         SequentialAnimation {
             id: cardshake; running: false
             NumberAnimation { target: shakeT; property: "x"; to: 8; duration: 45; easing.type: Easing.OutQuad }

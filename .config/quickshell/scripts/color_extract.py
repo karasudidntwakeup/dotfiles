@@ -49,7 +49,7 @@ def bucket_from_rgb(r, g, b):
     (desaturated), then dark-red maroon before bright red, and pale/muted
     purple as mauve before straight purple.
     """
-    h, s, v = colorsys.rgb_to_hsv(r / 255.0, g / 255.0, b / 255.0)
+    h, s, _ = colorsys.rgb_to_hsv(r / 255.0, g / 255.0, b / 255.0)
     hd = h * 360.0
     _, l, _ = colorsys.rgb_to_hls(r / 255.0, g / 255.0, b / 255.0)
     if l <= 0.12:
@@ -146,7 +146,7 @@ def file_sig(path):
     """Return a signature that changes when a file is created/edited."""
     try:
         st = os.stat(path)
-        return "{}:{}:{}".format(st.st_size, int(st.st_mtime), st.st_ino)
+        return "{}:{}:{}".format(st.st_size, st.st_mtime_ns, st.st_ino)
     except Exception:
         return ""
 
@@ -205,7 +205,6 @@ def main():
 
     cur_names = set()
     processed = 0
-    has_new = False
     items = []
 
     for name, path in files:
@@ -236,8 +235,9 @@ def main():
         digest = hashlib.md5(name.encode("utf-8")).hexdigest()[:12]
         thumb_name = "thumb_" + digest + ".jpg"
         thumb_path = os.path.join(thumb_dir, thumb_name)
-        if not os.path.exists(thumb_path):
-            make_thumbnail(path, thumb_path)
+        # A changed image needs a fresh thumbnail even when its name is unchanged.
+        if not make_thumbnail(path, thumb_path) and os.path.exists(thumb_path):
+            os.unlink(thumb_path)
         # Fall back to the original file if a thumbnail can't be generated
         # (e.g. HEIC / corrupt files). Using the existing source path also
         # stops these from being reprocessed every run.
@@ -258,7 +258,6 @@ def main():
         cache[name] = entry
         items.append(entry)
         processed += 1
-        has_new = True
 
     # Drop entries for deleted files.
     for old in list(cache.keys()):

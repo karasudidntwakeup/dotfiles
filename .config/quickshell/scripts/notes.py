@@ -21,6 +21,7 @@ import sys
 import time
 import tempfile
 import subprocess
+import uuid
 
 DATA_HOME = os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share"))
 STORE = os.path.join(DATA_HOME, "quickshell", "notes.json")
@@ -134,6 +135,22 @@ def valid_color(c):
     return c if c in VALID_COLORS else DEFAULT_COLOR
 
 
+def new_note(text, title, color):
+    ms = now_ms()
+    timestamp = fmt_ts(ms)
+    return {
+        "id": uuid.uuid4().hex,
+        "title": title,
+        "text": text,
+        "color": color,
+        "pinned": False,
+        "ts": timestamp,
+        "updated": timestamp,
+        "created_ms": ms,
+        "updated_ms": ms,
+    }
+
+
 def print_error(msg):
     sys.stderr.write(msg + "\n")
 
@@ -157,19 +174,8 @@ def main():
         color = valid_color((sys.argv[4] if len(sys.argv) > 4 else "").strip())
         if not text and not title:
             return 0
-        ms = now_ms()
         notes = load()
-        notes.insert(0, {
-            "id": str(ms),
-            "title": title,
-            "text": text,
-            "color": color,
-            "pinned": False,
-            "ts": fmt_ts(ms),
-            "updated": fmt_ts(ms),
-            "created_ms": ms,
-            "updated_ms": ms,
-        })
+        notes.insert(0, new_note(text, title, color))
         sort_notes(notes)
         save(notes)
         return 0
@@ -184,11 +190,8 @@ def main():
         if n is None:
             print_error("note not found: " + nid)
             return 1
-        # Empty update keeps old value (lets callers pass "" to skip).
-        if text != "\x00":
-            n["text"] = text
-        if title != "\x00":
-            n["title"] = title
+        n["text"] = text
+        n["title"] = title
         if color:
             n["color"] = valid_color(color.strip())
         ms = now_ms()
@@ -238,18 +241,7 @@ def main():
         if n is None:
             print_error("note not found: " + nid)
             return 1
-        ms = now_ms()
-        notes.insert(0, {
-            "id": str(ms),
-            "title": n.get("title", ""),
-            "text": n.get("text", ""),
-            "color": n.get("color", DEFAULT_COLOR),
-            "pinned": False,
-            "ts": fmt_ts(ms),
-            "updated": fmt_ts(ms),
-            "created_ms": ms,
-            "updated_ms": ms,
-        })
+        notes.insert(0, new_note(n["text"], n["title"], n["color"]))
         sort_notes(notes)
         save(notes)
         return 0

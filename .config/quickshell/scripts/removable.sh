@@ -7,7 +7,6 @@
 lsblk -J -b \
   -o NAME,PATH,TYPE,SIZE,FSTYPE,LABEL,UUID,MOUNTPOINT,HOTPLUG,RM,TRAN,VENDOR,MODEL,SERIAL \
   2>/dev/null | jq -c '
-  def sysmount: ["", "/init", "/boot", "/boot/efi", "/home", "/nix/store", "/nix", "[SWAP]"];
   def is_system(children):
     ([children[]? | .mountpoint // ""] | map(select(
       . == "/" or (startswith("/boot")) or . == "/home" or (startswith("/home/"))

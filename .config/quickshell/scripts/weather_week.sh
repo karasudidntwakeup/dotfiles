@@ -13,13 +13,13 @@ def get(url, timeout):
         return json.load(r)
 
 lat, lon = os.environ.get("WX_LAT"), os.environ.get("WX_LON")
-if not lat or not lon:
+if lat in (None, "") or lon in (None, ""):
     try:
         geo = get("http://ip-api.com/json/?fields=status,lat,lon", 10)
         lat, lon = geo.get("lat"), geo.get("lon")
     except Exception:
         lat, lon = None, None
-if not lat or not lon:
+if lat in (None, "") or lon in (None, ""):
     lat, lon = 52.5200, 13.4050
 
 def key_of(code):

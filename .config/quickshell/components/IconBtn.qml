@@ -8,7 +8,6 @@ Item {
     property string icon: ""
     property color tint: "#ffffff"
     property int iconSize: 16
-    property bool enabled: true
     signal clicked()
 
     implicitWidth: 34

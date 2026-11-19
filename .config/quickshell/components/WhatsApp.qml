@@ -61,6 +61,7 @@ Item {
     readonly property bool inChat: wa.currentJid.length > 0
     property var drafts: ({})
     property string _sendFileErr: ""
+    property string _sendTextErr: ""
     property string _msgSig: ""
     property bool atEnd: true
     // Set for explicit jumps (open chat / send); background polls never move the view.
@@ -418,6 +419,9 @@ Item {
         id: sendProc
         property string targetJid: ""
         property string pendingText: ""
+        stdout: SplitParser {
+            onRead: data => { if (data) wa._sendTextErr = data.trim().slice(0, 160) }
+        }
         onExited: code => {
             if (code === 0) {
                 wa.sendFailed = false; wa.sendStatus = ""
@@ -425,12 +429,13 @@ Item {
                 wa.kickRefresh()
             } else {
                 wa.sendFailed = true
-                wa.sendStatus = "Not sent — tap send to retry"
+                wa.sendStatus = wa._sendTextErr || "Not sent — tap send to retry"
                 if (wa.currentJid === targetJid && !sendField.text.length)
                     sendField.text = pendingText
                 wa.drafts[targetJid] = pendingText
             }
             pendingText = ""
+            _sendTextErr = ""
         }
     }
     Process {

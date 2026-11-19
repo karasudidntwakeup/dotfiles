@@ -17,17 +17,17 @@ def get(url, timeout):
 
 lat, lon = os.environ.get("WX_LAT"), os.environ.get("WX_LON")
 city = ""
-if not lat or not lon:
+if lat in (None, "") or lon in (None, ""):
     try:
         geo = get("http://ip-api.com/json/?fields=status,lat,lon,city", 10)
         lat, lon, city = geo.get("lat"), geo.get("lon"), geo.get("city") or ""
     except Exception:
         lat, lon = None, None
-if not lat or not lon:
+if lat in (None, "") or lon in (None, ""):
     lat, lon, city = 52.5200, 13.4050, "Berlin"  # Berlin fallback
 
 url = (f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}"
-       f"&current=temperature_2m,apparent_temperature,weather_code,is_day,is_day&timezone=auto")
+       f"&current=temperature_2m,apparent_temperature,weather_code,is_day&timezone=auto")
 data = get(url, 15)
 c = data.get("current") or {}
 t, code, day = c.get("temperature_2m"), c.get("weather_code"), c.get("is_day", 1)

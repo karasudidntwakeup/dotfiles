@@ -42,7 +42,8 @@ else
     [ -n "$FILE" ] || fail "No photo in clipboard"
 fi
 
-ERR="$(wacli send file --to "$JID" --file "$FILE" --post-send-wait 0 2>&1 >/dev/null)"
+ERR="$(wacli send file --to "$JID" --file "$FILE" --post-send-wait 0 \
+    --lock-wait 60s 2>&1 >/dev/null)"
 rc=$?
 [ "$rc" -ne 0 ] && fail "${ERR:-send failed (rc=$rc)}"
 exit 0

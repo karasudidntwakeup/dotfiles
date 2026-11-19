@@ -20,12 +20,12 @@ Item {
 
     signal requestClose()
     property bool visible_: false
-    // No open/close animation: the picker snaps in/out instantly.
-    // (Behaviors on progress properties kept the PanelWindow alive for
-    // the outro; without them visible_ toggles apply immediately.)
     property real animProgress: visible_ ? 1.0 : 0.0
+    Behavior on animProgress { Anim { type: Anim.Bouncy } }
     property real fadeProgress: visible_ ? 1.0 : 0.0
+    Behavior on fadeProgress { Anim { type: Anim.SlowEffects } }
     opacity: fadeProgress
+    transform: Translate { y: (1.0 - animProgress) * 24 }
     property string currentPath: ""
 
     property color surfaceColor: "#101013"

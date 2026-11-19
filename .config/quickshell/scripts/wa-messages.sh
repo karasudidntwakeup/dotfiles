@@ -3,13 +3,6 @@ set -u
 umask 077
 
 JID="${1:-}"
-case "$JID" in
-    [0-9]*@*) ;;
-    *)
-        echo "usage: wa-messages.sh JID" >&2
-        exit 2
-        ;;
-esac
 JID_RE='^([0-9]+@(s\.whatsapp\.net|lid)|[0-9]+(-[0-9]+)?@g\.us)$'
 if ! [[ $JID =~ $JID_RE ]]; then
     echo "usage: wa-messages.sh JID" >&2
@@ -99,8 +92,6 @@ for m in msgs:
                 m["src"] = p
             else:
                 m.pop("src", None)
-    else:
-        m.pop("src", None)
 out = {
     "jid": jid,
     "messages": msgs,

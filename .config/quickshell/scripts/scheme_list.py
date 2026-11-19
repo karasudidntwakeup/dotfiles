@@ -18,7 +18,7 @@ import re
 import sys
 from pathlib import Path
 
-SCRIPTS = Path.home() / ".config/quickshell/scripts"
+SCRIPTS = Path(__file__).resolve().parent
 CACHE = Path(sys.argv[1]) if len(sys.argv) > 1 else (
     Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache"))
     / "quickshell" / "wallpaper"
