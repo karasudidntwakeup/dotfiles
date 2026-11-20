@@ -1,28 +1,41 @@
 #!/bin/sh
-# outputs JSON: connected SSID, signal, IP, and download speed for the bar pill.
-# (An older revision also listed visible networks; nothing consumed it.)
+# Resolve the interface and local source address the kernel selects for
+# an external destination. Route lookup does not send any packets.
+route_source() {
+    ip "$1" route get "$2" 2>/dev/null | awk '
+        NR == 1 {
+            for (i = 1; i < NF; i++) {
+                if ($i == "dev") iface = $(i + 1)
+                if ($i == "src") address = $(i + 1)
+            }
+            if (iface != "" && iface != "lo" && address != "")
+                print iface, address
+        }
+    '
+}
 
-iface="$(iwctl station list 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g' | awk '/connected/ && !/disconnected/ { print $1; exit }')"
-[ -z "$iface" ] && iface="$(iwctl station list 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g' | awk '/disconnected/ { print $1; exit }')"
-[ -z "$iface" ] && iface="wlan0"
-
-status="$(iwctl station "$iface" show 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g')"
-ssid="$(echo "$status" | awk '/Connected network/ { for (i=3;i<=NF;i++) printf (i>3?" ":"") $i }')"
-state="$(echo "$status" | awk '/State/ { print $NF; exit }')"
+route="$(route_source -4 1.1.1.1)"
+[ -n "$route" ] || route="$(route_source -6 2606:4700:4700::1111)"
+read -r iface ip <<EOF
+$route
+EOF
 
 signal=""
-ip=""
 down=""
 connected="false"
-if [ "$state" = "connected" ]; then
+if [ -n "$ip" ]; then
     connected="true"
-    rssi="$(echo "$status" | awk '/RSSI/ && !/Average/ { print $(NF-1); exit }')"
-    if [ -n "$rssi" ]; then
-        signal=$(( (100 + rssi) * 100 / 60 ))
-        [ "$signal" -gt 100 ] && signal=100
-        [ "$signal" -lt 0 ] && signal=0
+    if [ -d "/sys/class/net/$iface/wireless" ] || [ -e "/sys/class/net/$iface/phy80211" ]; then
+        status="$(iwctl station "$iface" show 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g')"
+        rssi="$(printf '%s\n' "$status" | awk '/RSSI/ && !/Average/ { print $(NF-1); exit }')"
+        if [ -n "$rssi" ]; then
+            signal=$(( (100 + rssi) * 100 / 60 ))
+            [ "$signal" -gt 100 ] && signal=100
+            [ "$signal" -lt 0 ] && signal=0
+        fi
+    else
+        signal=100
     fi
-    ip="$(ip -4 addr show "$iface" 2>/dev/null | awk '/inet / { print $2; exit }' | cut -d/ -f1)"
 
     # download speed (bytes/sec) sampled from rx counter between polls
     rxnow="$(cat "/sys/class/net/$iface/statistics/rx_bytes" 2>/dev/null)"
@@ -42,5 +55,5 @@ if [ "$state" = "connected" ]; then
     fi
 fi
 
-printf '{"connected":%s,"iface":"%s","ssid":"%s","signal":"%s","down":%d,"ip":"%s","networks":[]}' \
-    "$connected" "${iface:-}" "$ssid" "$signal" "${down:-0}" "$ip"
+printf '{"connected":%s,"signal":"%s","down":%d,"ip":"%s"}\n' \
+    "$connected" "$signal" "${down:-0}" "$ip"

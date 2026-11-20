@@ -43,11 +43,8 @@ Item {
     readonly property int fontSize: rootRef ? rootRef.fontSize : 13
 
     readonly property bool isPopup: context === "popup"
-    readonly property int pad: 12
-    // A card is drawn the same in a popup and in the center, so a toast and
-    // the entry it leaves behind are identical. isPopup now only drives
-    // behaviour: auto-dismiss, and the close button appearing on hover.
-    readonly property int badgeSize: 30
+    readonly property int pad: card.isPopup ? 12 : 9
+    readonly property int badgeSize: card.isPopup ? 30 : 26
     readonly property string name: nData ? (nData.appName || "System") : ""
     // OpenCode / herdr notifications get a Y2K star badge instead of the generic app icon.
     readonly property bool isOpenCode: {
@@ -397,7 +394,7 @@ Item {
     }
     }
 
-    readonly property int imageBoxHeight: 180
+    readonly property int imageBoxHeight: card.isPopup ? 180 : 140
     property bool imageOk: false
 
     MouseArea {

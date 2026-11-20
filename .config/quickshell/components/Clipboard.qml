@@ -13,11 +13,11 @@ Item {
 
     signal requestClose()
 
-    readonly property int cardWidth: 400
-    readonly property int rowHeight: 46
+    readonly property int cardWidth: 384
+    readonly property int rowHeight: 42
     readonly property int maxRows: 8
-    readonly property int searchHeight: 40
-    readonly property int pad: 14
+    readonly property int searchHeight: 36
+    readonly property int pad: 10
     readonly property int cornerRadius: 10
 
     // YtX-style Android roles: flat surface card, theme text tokens.

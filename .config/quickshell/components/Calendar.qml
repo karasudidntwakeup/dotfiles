@@ -75,6 +75,9 @@ PanelWindow {
     property int newEntryId: -1
     property int entrySeq: 0
 
+    readonly property int dayCellHeight: 28
+    readonly property int dayRowSpacing: 2
+    readonly property int calendarGridHeight: 6 * (dayCellHeight + dayRowSpacing)
     readonly property int editorHeight: 164
 
     property real popProgress: 0
@@ -645,7 +648,7 @@ PanelWindow {
 
         Rectangle {
             id: calPopupBody
-            width: 372
+            width: 356
             anchors.top: calPopupContent.top
             anchors.right: calPopupContent.right
             // Size follows content like the other popup cards (no hardcoded override).
@@ -848,7 +851,7 @@ PanelWindow {
 
             Row {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 192
+                Layout.preferredHeight: calPopup.calendarGridHeight
                 spacing: 0
 
                 // Scroll on the grid steps months, like the plugin.
@@ -869,7 +872,7 @@ PanelWindow {
                         delegate: Text {
                             required property int index
                             width: 28
-                            height: 32
+                            height: calPopup.dayCellHeight + calPopup.dayRowSpacing
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
                             text: calPopup.rowWeekNumber(index)
@@ -885,10 +888,10 @@ PanelWindow {
 
                 Grid {
                     width: parent.width - 36
-                    height: 192
+                    height: calPopup.calendarGridHeight
                     columns: 7
                     columnSpacing: 0
-                    rowSpacing: 2
+                    rowSpacing: calPopup.dayRowSpacing
 
                     Repeater {
                         model: ListModel { id: calDays }
@@ -905,7 +908,7 @@ PanelWindow {
                             readonly property var dots: calPopup.dayDots(key, isSelected)
 
                             width: (calPopupBody.width - 24 - 36) / 7
-                            height: 30
+                            height: calPopup.dayCellHeight
 
                             Rectangle {
                                 anchors.fill: parent

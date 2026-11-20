@@ -48,8 +48,8 @@ Item {
     readonly property color blue: accentColor
 
     readonly property real u: Screen.height >= 1400 ? 1.0 : 0.85
-    readonly property real itemWidth: 400 * u
-    readonly property real itemHeight: 420 * u
+    readonly property real itemWidth: 368 * u
+    readonly property real itemHeight: 386 * u
     readonly property real borderWidth: 3 * u
     readonly property real spacing: 10 * u
     readonly property real skewFactor: -0.35
@@ -657,7 +657,7 @@ Item {
         anchors.bottomMargin: visible ? window.u * 32 : -height
         anchors.horizontalCenter: parent.horizontalCenter
         width: Math.min(parent.width - window.u * 80, 720)
-        height: panelCol.height + window.u * 32
+        height: panelCol.height + window.u * 24
         radius: window.cornerRadius
         color: window.baseColor
         border.width: 0
@@ -677,7 +677,7 @@ Item {
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.top: parent.top
-            anchors.margins: window.u * 16
+            anchors.margins: window.u * 12
             spacing: window.u * 12
 
             Text {

@@ -40,19 +40,20 @@ Item {
     readonly property bool noShadow: Quickshell.env("QS_NO_SHADOW") === "1"
 
     readonly property int cornerRadius: 10
-    readonly property int pad: 14
-    readonly property int cardWidth: Math.min(620, Math.max(0, ytx.width - 32))
-    readonly property int searchHeight: 36
+    readonly property int pad: 10
+    readonly property int cardWidth: Math.min(568, Math.max(0, ytx.width - 32))
     readonly property int maxItems: 48
-    readonly property int columns: Math.max(1, Math.min(3, Math.floor((cardWidth - 28 - pad * 2 + gridSpacing) / 180)))
-    readonly property int gridSpacing: 12
-    readonly property real cellWidth: Math.max(1, (cardWidth - 28 - pad * 2 + gridSpacing) / columns - gridSpacing)
-    readonly property int cellInset: 5
-    readonly property real thumbWidth: cellWidth - cellInset * 2
+    readonly property int gridSpacing: 8
+    readonly property real gridWidth: Math.max(0, cardWidth - pad * 2 + gridSpacing)
+    readonly property int columns: Math.max(1, Math.min(3, Math.floor(gridWidth / 170)))
+    readonly property real cellWidth: Math.max(1, gridWidth / columns - gridSpacing)
+    readonly property int cellInset: 4
+    readonly property int thumbSpacing: 5
+    readonly property real thumbWidth: Math.max(1, cellWidth - cellInset * 2)
     readonly property int thumbHeight: Math.round(thumbWidth * 9 / 16)
     readonly property int titleHeight: Math.round((fontSize - 1) * 1.2) * 2
     readonly property int channelHeight: Math.max(10, fontSize - 3)
-    readonly property int cellHeight: cellInset * 2 + thumbHeight + 7 + titleHeight + 3 + channelHeight
+    readonly property int cellHeight: cellInset * 2 + thumbHeight + thumbSpacing + titleHeight + 2 + channelHeight
     readonly property string cardTile: "ytx_card"
     // Muted take on the periwinkle token — text/borders follow via contrastColor.
     readonly property color cardColor: {
@@ -72,7 +73,7 @@ Item {
     readonly property string fontFamily: uiFont
     readonly property string uiFont: rootRef && rootRef.uiFont ? rootRef.uiFont : "Geist"
     readonly property int fontSize: rootRef && rootRef.fontSize ? Math.round(rootRef.fontSize) : 13
-    readonly property int bottomMargin: 24
+    readonly property int bottomMargin: 18
     readonly property string homeDir: Quickshell.env("HOME")
     readonly property string thumbCache: homeDir + "/.cache/rofi-youtube"
     property real thumbTicks: 0
@@ -445,11 +446,10 @@ Item {
 
     Rectangle {
         id: card
-        // Wide foldable (Pura X 16:10-ish): broad phone, docked at bottom.
-        width: Math.min(620, parent.width - 32)
-        height: Math.min(740, Math.max(520, parent.height - 96))
+        width: ytx.cardWidth
+        height: Math.min(620, Math.max(0, parent.height - ytx.bottomMargin - 48))
         anchors.horizontalCenter: parent.horizontalCenter
-        y: Math.floor(parent.height - card.height - 24)
+        y: Math.floor(parent.height - card.height - ytx.bottomMargin)
         radius: 10
         topLeftRadius: 10
         topRightRadius: 10
@@ -490,7 +490,7 @@ Item {
             spacing: 0
             Rectangle { // header (android, like WhatsApp)
                 Layout.fillWidth: true
-                Layout.preferredHeight: 60
+                Layout.preferredHeight: 48
                 radius: 10
                 topLeftRadius: 10
                 topRightRadius: 10
@@ -516,7 +516,7 @@ Item {
                     }
                     Item { Layout.fillWidth: true }
                     Rectangle { // inline search
-                        Layout.preferredWidth: 220
+                        Layout.preferredWidth: Math.min(220, Math.max(96, ytx.cardWidth - 190))
                         Layout.preferredHeight: 28
                         Layout.alignment: Qt.AlignVCenter
                         radius: 10; color: ytx.field
@@ -630,8 +630,8 @@ Item {
             }
             Item {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 34
-                Layout.leftMargin: 14; Layout.rightMargin: 14
+                Layout.preferredHeight: 30
+                Layout.leftMargin: ytx.pad; Layout.rightMargin: ytx.pad
                 visible: true
                 BusyIndicator {
                     anchors.left: parent.left
@@ -758,8 +758,8 @@ Item {
             Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.leftMargin: 14; Layout.rightMargin: 14
-                Layout.topMargin: 6; Layout.bottomMargin: 14
+                Layout.leftMargin: ytx.pad; Layout.rightMargin: ytx.pad
+                Layout.topMargin: 4; Layout.bottomMargin: ytx.pad
                 // The window can have no size for the first frames after it
                 // maps; with degenerate widths every cell would pile at the
                 // origin for a flash. Keep the grid hidden until sane.
@@ -768,7 +768,7 @@ Item {
                     id: grid
                     anchors.left: parent.left
                     anchors.top: parent.top
-                    width: Math.max(0, parent.width + ytx.gridSpacing)
+                    width: ytx.gridWidth
                     height: parent.height
                     model: ytx.width > 64 ? listModel : null
                     cellWidth: Math.max(1, width / ytx.columns)
@@ -828,7 +828,7 @@ Item {
                             anchors.leftMargin: ytx.cellInset
                             anchors.rightMargin: ytx.cellInset
                             anchors.bottomMargin: ytx.cellInset
-                            spacing: 7
+                            spacing: ytx.thumbSpacing
                             Rectangle {
                                 width: ytx.thumbWidth
                                 height: ytx.thumbHeight

@@ -482,11 +482,10 @@ Item {
 
     Rectangle {
         id: card
-        // Wide foldable (Pura X 16:10-ish): broad phone, docked at bottom.
-        width: Math.min(620, parent.width - 32)
-        height: Math.min(740, Math.max(520, parent.height - 96))
+        width: Math.min(568, Math.max(0, parent.width - 32))
+        height: Math.min(640, Math.max(0, parent.height - 66))
         anchors.horizontalCenter: parent.horizontalCenter
-        y: Math.floor(parent.height - card.height - 24)
+        y: Math.floor(parent.height - card.height - 18)
         radius: 10
         topLeftRadius: 10
         topRightRadius: 10
@@ -535,7 +534,7 @@ Item {
 
                 Rectangle { // header with inline search
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 60
+                    Layout.preferredHeight: 48
                     radius: 10
                     topLeftRadius: 10
                     topRightRadius: 10
@@ -561,7 +560,7 @@ Item {
                         }
                         Item { Layout.fillWidth: true }
                         Rectangle { // inline search
-                            Layout.preferredWidth: 220
+                            Layout.preferredWidth: Math.min(220, Math.max(96, card.width - 176))
                             Layout.preferredHeight: 28
                             Layout.alignment: Qt.AlignVCenter
                             radius: 10; color: wa.field
@@ -615,7 +614,7 @@ Item {
                         required property int unreadCount
                         required property string lastTs
                         required property bool muted
-                        width: chatList.width; height: 68
+                        width: chatList.width; height: 58
                         Rectangle {
                             anchors.fill: parent
                             color: chatRowHover.containsMouse ? wa.field
@@ -625,7 +624,7 @@ Item {
                                 anchors.leftMargin: 12; anchors.rightMargin: 12
                                 spacing: 12
                                 Rectangle {
-                                    Layout.preferredWidth: 46; Layout.preferredHeight: 46
+                                    Layout.preferredWidth: 40; Layout.preferredHeight: 40
                                     radius: 10; color: wa.avatarColor(jid)
                                     Text {
                                         anchors.centerIn: parent;                                         text: wa.initials(name)
@@ -699,7 +698,7 @@ Item {
                 }
                 Rectangle { // bottom tab bar (iOS-style, tonal, square)
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 56
+                    Layout.preferredHeight: 44
                     radius: 10
                     topLeftRadius: 0
                     topRightRadius: 0
@@ -713,7 +712,7 @@ Item {
                             model: [{k: "chats", l: "Chats"}, {k: "groups", l: "Groups"}, {k: "channels", l: "Channels"}]
                             delegate: Item {
                                 required property var modelData
-                                width: card.width / 3; height: 56
+                                width: card.width / 3; height: parent.height
                                 Text {
                                     anchors.centerIn: parent; text: modelData.l
                                     color: wa.activeTab === modelData.k ? wa.green : wa.muted
@@ -739,7 +738,7 @@ Item {
             ColumnLayout {
                 anchors.fill: parent; spacing: 0
                 Rectangle { // convo header
-                    Layout.fillWidth: true; Layout.preferredHeight: 60; color: wa.header
+                    Layout.fillWidth: true; Layout.preferredHeight: 48; color: wa.header
                     radius: 10
                     topLeftRadius: 10
                     topRightRadius: 10
@@ -979,7 +978,7 @@ Item {
                 }
 
                 Rectangle { // input bar
-                    Layout.fillWidth: true; Layout.preferredHeight: 62; color: "transparent"
+                    Layout.fillWidth: true; Layout.preferredHeight: 54; color: "transparent"
                     RowLayout {
                         anchors.fill: parent
                         anchors.leftMargin: 10; anchors.rightMargin: 10; spacing: 8

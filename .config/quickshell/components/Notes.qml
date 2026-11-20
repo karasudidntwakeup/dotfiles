@@ -15,8 +15,8 @@ Item {
 
     signal requestClose()
 
-    readonly property int cardWidth: 720
-    readonly property int pad: 16
+    readonly property int cardWidth: 664
+    readonly property int pad: 12
     readonly property int cornerRadius: 10
     readonly property int searchHeight: 38
 
@@ -258,7 +258,7 @@ Item {
     Rectangle {
         id: card
         z: 1
-        width: notes.cardWidth
+        width: Math.min(notes.cardWidth, Math.max(0, parent.width - 32))
         anchors.horizontalCenter: parent.horizontalCenter
         y: Math.floor(parent.height - card.height - notes.bottomMargin)
         height: Math.min(contentColumn.implicitHeight + notes.pad * 2, parent.height - 60)
@@ -286,7 +286,7 @@ Item {
             id: contentColumn
             x: notes.pad
             y: notes.pad
-            width: notes.cardWidth - notes.pad * 2
+            width: Math.min(notes.cardWidth, Math.max(0, parent.width - 32)) - notes.pad * 2
             spacing: 10
 
             // Header
@@ -615,7 +615,7 @@ Item {
             // Sticky grid
             Item {
                 width: parent.width
-                height: gridModel.count === 0 ? 110 : Math.min(2, Math.ceil(gridModel.count / 2)) * 184
+                height: gridModel.count === 0 ? 96 : Math.min(2, Math.ceil(gridModel.count / 2)) * gridView.cellHeight
                 clip: true
 
                 GridView {
@@ -623,7 +623,7 @@ Item {
                     anchors.fill: parent
                     model: gridModel
                     cellWidth: Math.floor(width / 2)
-                    cellHeight: 184
+                    cellHeight: 168
                     boundsBehavior: Flickable.StopAtBounds
                     clip: true
 

@@ -13,11 +13,11 @@ Item {
     signal requestClose()
 
     // Compact bottom drawer, large rounding.
-    readonly property int cardWidth: 440
-    readonly property int rowHeight: 44
+    readonly property int cardWidth: 416
+    readonly property int rowHeight: 40
     readonly property int maxRows: 5
-    readonly property int searchHeight: 42
-    readonly property int pad: 12
+    readonly property int searchHeight: 38
+    readonly property int pad: 10
     readonly property int cornerRadius: 10
     readonly property int listSpacing: 4
 

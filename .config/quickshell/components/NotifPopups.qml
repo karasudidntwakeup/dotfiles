@@ -71,7 +71,7 @@ PanelWindow {
         width: 360
         height: parent.height
         model: svc ? svc.popups : []
-        spacing: 10
+        spacing: 8
         interactive: true
         // No viewport clipping: the window bounds already clip, and clipping
         // here would slice the card shadows (offset + blur overhang).

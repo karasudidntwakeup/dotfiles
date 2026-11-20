@@ -306,7 +306,7 @@ Item {
         // Gated on locked: the 2944px art decodes to ~33MB; keep it
         // out of idle RAM and load it only while the lock is shown.
         source: lockRoot.locked ? lockRoot.assetDir + "globe-3d.png" : ""
-        width: 110; height: 110
+        width: 96; height: 96
         x: 30
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 25

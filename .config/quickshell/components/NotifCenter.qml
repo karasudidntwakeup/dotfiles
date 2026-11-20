@@ -12,20 +12,21 @@ Item {
 
     focus: svc ? svc.centerOpen : false
 
-    readonly property int panelWidth: 440
-    readonly property int pad: 12
+    readonly property int panelWidth: 420
+    readonly property int pad: 10
     readonly property int panelMaxHeight: Math.max(120, Math.round(center.height - 40))
     readonly property bool weekOn: rootRef && rootRef.weatherWeek && rootRef.weatherWeek.length > 0
-    readonly property int weekHeight: 64
+    readonly property int weekHeight: 58
+    readonly property int mediaHeight: 140
+    readonly property int sectionSpacing: 6
+    readonly property int headerHeight: 26
+    readonly property int listMinHeight: 48
 
     // One storage list holds the mounted filesystems and the removable drives,
     // so a plugged-in stick is listed once instead of in two places.
-    // These four numbers are the single source of truth for the section's
-    // height: the rows are sized from the same constants this adds up.
-    readonly property int storageHeaderHeight: 24
-    readonly property int storageRowHeight: 40
-    readonly property int storageGap: 4
-    readonly property int storageSpacing: 8
+    readonly property int storageHeaderHeight: center.headerHeight
+    readonly property int storageRowHeight: 34
+    readonly property int storageGap: 3
 
     readonly property var removableList: rootRef && rootRef.removableDrives ? rootRef.removableDrives : []
     readonly property var storageRows: center.buildStorageRows()
@@ -34,10 +35,14 @@ Item {
         if (center.storageRows.length === 0) return 0
         return center.storageHeaderHeight
              + center.storageRows.length * (center.storageRowHeight + center.storageGap)
-             + center.storageSpacing
+             + center.sectionSpacing
     }
-    readonly property int listMaxHeight: Math.max(64, center.panelMaxHeight - center.pad * 2 - 24 - 40 - center.storageHeight - (center.weekOn ? center.weekHeight + 8 : 0) - (center.mediaOn ? 168 + 8 : 0))
     readonly property bool mediaOn: rootRef && rootRef.mediaStatus !== "none"
+    readonly property int listMaxHeight: Math.max(center.listMinHeight,
+        center.panelMaxHeight - center.pad * 2 - center.headerHeight - center.sectionSpacing
+        - center.storageHeight
+        - (center.weekOn ? center.weekHeight + center.sectionSpacing : 0)
+        - (center.mediaOn ? center.mediaHeight + center.sectionSpacing : 0))
     // YtX-style Android roles: flat surface card, theme text tokens.
     readonly property color panelColor: rootRef ? Qt.color(rootRef.colorOf("surface_container")) : "#1f2c34"
     readonly property color panelBorder: rootRef
@@ -240,14 +245,14 @@ Item {
             anchors.rightMargin: center.pad
             anchors.topMargin: center.pad
             anchors.bottomMargin: center.pad
-            spacing: 8
+            spacing: center.sectionSpacing
 
             Rectangle {
                 id: mediaCard
                 Layout.fillWidth: true
-                Layout.preferredHeight: 168
-                Layout.minimumHeight: 168
-                visible: rootRef && rootRef.mediaStatus !== "none"
+                Layout.preferredHeight: center.mediaHeight
+                Layout.minimumHeight: center.mediaHeight
+                visible: center.mediaOn
                 radius: 10
                 clip: true
                 antialiasing: true
@@ -507,7 +512,7 @@ Item {
 
                 readonly property color wfg: center.fg
                 readonly property color wdim: center.muteFg
-                readonly property int cardPad: 10
+                readonly property int cardPad: 6
 
                 // Everything sits on one line: the reading, its label and
                 // place, then the forecast pushed to the far right.
@@ -645,8 +650,8 @@ Item {
             // Notifications header: sits directly above the list.
             RowLayout {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 24
-                Layout.minimumHeight: 24
+                Layout.preferredHeight: center.headerHeight
+                Layout.minimumHeight: center.headerHeight
                 spacing: 6
 
                 QIcon {
@@ -699,7 +704,7 @@ Item {
                 id: listWrap
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.minimumHeight: 64
+                Layout.minimumHeight: center.listMinHeight
                 // Exact: the list fills this wrapper edge to edge, so no
                 // padding is added here.
                 Layout.preferredHeight: Math.min(centerList.contentHeight, center.listMaxHeight)
@@ -717,7 +722,7 @@ Item {
                 // the trailing edge instead of stealing width from the list.
                 anchors.fill: parent
                 model: svc ? svc.history : []
-                spacing: 8
+                spacing: center.sectionSpacing
                 boundsBehavior: Flickable.StopAtBounds
 
                 add: Transition {

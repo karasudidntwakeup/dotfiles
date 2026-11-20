@@ -108,7 +108,7 @@ ShellRoot {
 
     readonly property int barHeight: 32
     readonly property int pillHeight: 32
-    readonly property int pillRadius: 10
+    readonly property int pillRadius: 12
     readonly property int groupSpacing: 8
 
     readonly property string terminalCommand: "foot"
@@ -997,7 +997,7 @@ ShellRoot {
         radius: root.pillRadius
         color: root.tonalPillColor(tint)
         border.width: 1
-        border.color: Qt.rgba(1, 1, 1, 0.12)
+        border.color: root.withAlpha(Qt.color(root.colorOf("outline_variant")), 0.38)
         property int enterOrder: 0
         property real enterShift: 10
         opacity: 0
@@ -1013,12 +1013,12 @@ ShellRoot {
         layer.enabled: Quickshell.env("QS_NO_SHADOW") !== "1"
         layer.effect: MultiEffect {
             shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
-            shadowBlur: 0.7
+            shadowBlur: 0.8
             blurMax: 16
-            shadowHorizontalOffset: 3
-            shadowVerticalOffset: 5
-            shadowColor: Qt.rgba(0, 0, 0, 0.9)
-            shadowOpacity: 0.9
+            shadowHorizontalOffset: 0
+            shadowVerticalOffset: 3
+            shadowColor: Qt.rgba(0, 0, 0, 0.34)
+            shadowOpacity: 0.8
         }
 
         Behavior on color { CAnim { } }
@@ -1088,7 +1088,7 @@ ShellRoot {
         radius: root.pillRadius
         color: root.tonalPillColor(dc.tint)
         border.width: 1
-        border.color: Qt.rgba(1, 1, 1, 0.12)
+        border.color: root.withAlpha(Qt.color(root.colorOf("outline_variant")), 0.38)
         property int enterOrder: 0
         property real enterShift: 10
         opacity: 0
@@ -1104,12 +1104,12 @@ ShellRoot {
         layer.enabled: !dc.staticMode && Quickshell.env("QS_NO_SHADOW") !== "1"
         layer.effect: MultiEffect {
             shadowEnabled: !dc.staticMode && Quickshell.env("QS_NO_SHADOW") !== "1"
-            shadowBlur: 0.7
+            shadowBlur: 0.8
             blurMax: 16
-            shadowHorizontalOffset: 3
-            shadowVerticalOffset: 5
-            shadowColor: Qt.rgba(0, 0, 0, 0.9)
-            shadowOpacity: 0.9
+            shadowHorizontalOffset: 0
+            shadowVerticalOffset: 3
+            shadowColor: Qt.rgba(0, 0, 0, 0.34)
+            shadowOpacity: 0.8
         }
 
         implicitWidth: dcRow.implicitWidth + dc.padX
@@ -1853,7 +1853,7 @@ function closeOverlays() {
     Variants {
         model: Quickshell.screens
 
-            PanelWindow {
+        PanelWindow {
             id: bar
             property var modelData
             screen: modelData
@@ -2049,10 +2049,10 @@ function closeOverlays() {
 
                         implicitWidth: clockRow.implicitWidth + 20
                         implicitHeight: root.pillHeight
-        radius: root.pillRadius
-        color: root.tonalPillColor(tint)
-        border.width: 1
-        border.color: Qt.rgba(1, 1, 1, 0.12)
+                        radius: root.pillRadius
+                        color: root.tonalPillColor(tint)
+                        border.width: 1
+                        border.color: root.withAlpha(Qt.color(root.colorOf("outline_variant")), 0.38)
                         property real enterShift: 10
                         opacity: 0
                         transform: Translate { y: clockPill.enterShift }
@@ -2062,17 +2062,17 @@ function closeOverlays() {
                             repeat: false
                             onTriggered: { clockPill.opacity = 1; clockPill.enterShift = 0 }
                         }
-        Behavior on opacity { Anim { type: Anim.DefaultEffects } }
-        Behavior on enterShift { Anim { type: Anim.Bouncy } }
-        layer.enabled: Quickshell.env("QS_NO_SHADOW") !== "1"
-        layer.effect: MultiEffect {
-            shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
-                            shadowBlur: 0.7
+                        Behavior on opacity { Anim { type: Anim.DefaultEffects } }
+                        Behavior on enterShift { Anim { type: Anim.Bouncy } }
+                        layer.enabled: Quickshell.env("QS_NO_SHADOW") !== "1"
+                        layer.effect: MultiEffect {
+                            shadowEnabled: Quickshell.env("QS_NO_SHADOW") !== "1"
+                            shadowBlur: 0.8
                             blurMax: 16
-                            shadowHorizontalOffset: 3
-                            shadowVerticalOffset: 5
-                            shadowColor: Qt.rgba(0, 0, 0, 0.9)
-                            shadowOpacity: 0.9
+                            shadowHorizontalOffset: 0
+                            shadowVerticalOffset: 3
+                            shadowColor: Qt.rgba(0, 0, 0, 0.34)
+                            shadowOpacity: 0.8
                         }
                         Behavior on color { CAnim { } }
                         Behavior on implicitWidth { Anim { type: Anim.BouncyFast } }
@@ -2197,8 +2197,7 @@ function closeOverlays() {
                     }
                 }
             }
-
-            }
+        }
     }
 
     // Calendar is lazy-loaded: nothing (notes FileView, timers, day grid)
