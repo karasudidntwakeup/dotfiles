@@ -40,20 +40,20 @@ Item {
     property color surfaceColor: "#101013"
     property color borderColor: "#2b2b30"
     property color fgColor: "#ffffff"
+    property color mutedColor: "#b1b1bb"
+    property color hoverColor: "#202026"
+    property color selectedColor: "#292930"
     property color accentColor: "#FF3030"
     property string uiFont: "Geist"
     property string iconFont: "Symbols Nerd Font"
 
     function withAlpha(c, a) { return Qt.rgba(c.r, c.g, c.b, a) }
-    function brighten(c, f) {
-        return Qt.rgba(Math.min(1, c.r * f), Math.min(1, c.g * f), Math.min(1, c.b * f), 1)
-    }
     readonly property color baseColor: withAlpha(surfaceColor, 0.90)
     readonly property color surface0: surfaceColor
-    readonly property color surface1: brighten(surfaceColor, 1.18)
-    readonly property color surface2: brighten(surfaceColor, 1.45)
+    readonly property color surface1: hoverColor
+    readonly property color surface2: selectedColor
     readonly property color textColor: fgColor
-    readonly property color subtextColor: withAlpha(fgColor, 0.55)
+    readonly property color subtextColor: mutedColor
     readonly property color blue: accentColor
 
     readonly property real u: Screen.height >= 1400 ? 1.0 : 0.85

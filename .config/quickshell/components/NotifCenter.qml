@@ -310,7 +310,7 @@ Item {
                     antialiasing: true
                     smooth: true
                     color: mediaCard.hasArt
-                        ? Qt.rgba(0.03, 0.04, 0.05, 0.55)
+                        ? Qt.rgba(0.03, 0.04, 0.05, 0.68)
                         : Qt.rgba(center.fg.r, center.fg.g, center.fg.b, 0.05)
                 }
 
@@ -345,7 +345,7 @@ Item {
                         Txt {
                             Layout.fillWidth: true
                             text: mediaCard.mediaArtist
-                            color: mediaCard.hasArt ? Qt.rgba(1, 1, 1, 0.7) : center.muteFg
+                            color: mediaCard.hasArt ? "#f0f0f0" : center.muteFg
                             sizeDelta: -3
                             font.letterSpacing: 0
                         }

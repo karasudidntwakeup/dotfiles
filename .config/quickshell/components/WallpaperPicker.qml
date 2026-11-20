@@ -31,20 +31,20 @@ Item {
     property color surfaceColor: "#101013"
     property color borderColor: "#2b2b30"
     property color fgColor: "#ffffff"
+    property color mutedColor: "#b1b1bb"
+    property color hoverColor: "#202026"
+    property color selectedColor: "#292930"
     property color accentColor: "#FF3030"
     property string uiFont: "Geist"
     property string iconFont: "Symbols Nerd Font"
 
     function withAlpha(c, a) { return Qt.rgba(c.r, c.g, c.b, a) }
-    function brighten(c, f) {
-        return Qt.rgba(Math.min(1, c.r * f), Math.min(1, c.g * f), Math.min(1, c.b * f), 1)
-    }
     readonly property color baseColor: withAlpha(surfaceColor, 0.90)
     readonly property color surface0: surfaceColor
-    readonly property color surface1: brighten(surfaceColor, 1.18)
-    readonly property color surface2: brighten(surfaceColor, 1.45)
+    readonly property color surface1: hoverColor
+    readonly property color surface2: selectedColor
     readonly property color textColor: fgColor
-    readonly property color subtextColor: withAlpha(fgColor, 0.55)
+    readonly property color subtextColor: mutedColor
     readonly property color blue: accentColor
 
     readonly property real u: Screen.height >= 1400 ? 1.0 : 0.85
@@ -226,7 +226,7 @@ Item {
         if (window.isApplying || window.showPanel || index < 0 || index >= window.displayModel.length) return
         window.selectedItem = window.displayModel[index]
         window.applyError = ""
-        window.applyStatus = "Starting " + window.transitionType + "…"
+        window.applyStatus = "Starting…"
         window.isApplying = true
         window.showPanel = true
         // Non-empty initial command so the QStringList binding never sees [undefined].
@@ -242,7 +242,7 @@ Item {
         var t = String(line || "").trim()
         if (t.indexOf("@@stage ") !== 0) return
         var stage = t.substring(8)
-        if (stage === "wallpaper") window.applyStatus = "Setting wallpaper · " + window.transitionType + "…"
+        if (stage === "wallpaper") window.applyStatus = "Setting wallpaper…"
         else if (stage === "theme") window.applyStatus = "Generating theme…"
     }
 
@@ -589,14 +589,19 @@ Item {
         }
     }
 
-    // skwd-wall-style FX strip: transition picker, bottom-center.
+    // Transition picker, bottom-center.
     Rectangle {
+        id: transitionStrip
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
         anchors.bottomMargin: window.u * 24
         z: 200
         height: window.u * 40
-        width: Math.min(parent.width - window.u * 80, fxRow.width + window.u * 20)
+        readonly property real chipWidth: window.u * 18
+        readonly property real chipSpacing: window.u * 4
+        readonly property int chipCount: window.transitionModel.length
+        width: Math.max(0, Math.min(parent.width - window.u * 80,
+            chipCount * chipWidth + Math.max(0, chipCount - 1) * chipSpacing + window.u * 20))
         radius: window.cornerRadius
         color: window.baseColor
         border.width: 0
@@ -604,12 +609,11 @@ Item {
         visible: !window.showPanel && !window.isApplying
 
         ListView {
-            id: fxRow
             anchors.centerIn: parent
-            width: Math.min(parent.width - window.u * 20, contentWidth)
+            width: Math.max(0, parent.width - window.u * 20)
             height: parent.height
             orientation: ListView.Horizontal
-            spacing: window.u * 6
+            spacing: transitionStrip.chipSpacing
             clip: true
             // Draggable: 23 presets overflow on narrow screens; vertical
             // wheel still passes through (orientation is horizontal).
@@ -617,34 +621,29 @@ Item {
             model: window.transitionModel
             delegate: Item {
                 required property var modelData
-                width: fxLabel.implicitWidth + window.u * 18
+                readonly property bool selected: window.transitionType === modelData.name
+                width: transitionStrip.chipWidth
+                Accessible.role: Accessible.RadioButton
+                Accessible.name: modelData.label
+                Accessible.description: modelData.hint
+                Accessible.checked: selected
+                Accessible.onPressAction: window.setTransition(modelData.name)
                 height: window.u * 40
                 Rectangle {
                     anchors.centerIn: parent
-                    width: parent.width - window.u * 4
-                    height: window.u * 26
-                    radius: window.u * 13
-                    color: window.transitionType === modelData.name ? window.surface2
-                         : (fxMouse.containsMouse ? window.surface1 : "transparent")
-                    border.width: window.transitionType === modelData.name ? 1 : 0
-                    border.color: window.textColor
-                    Behavior on color { CAnim { } }
-                    Text {
-                        id: fxLabel
-                        anchors.centerIn: parent
-                        text: modelData.label || modelData.name
-                        color: window.transitionType === modelData.name ? window.textColor : window.subtextColor
-                        font.family: window.uiFont
-                        font.pixelSize: window.u * 11
-                    }
-                    MouseArea {
-                        id: fxMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        enabled: !window.isApplying && !window.showPanel
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: window.setTransition(modelData.name)
-                    }
+                    width: window.u * (parent.selected ? 10 : 6)
+                    height: width
+                    radius: width / 2
+                    color: parent.selected || fxMouse.containsMouse ? window.textColor : window.subtextColor
+                    opacity: parent.selected || fxMouse.containsMouse ? 1 : 0.5
+                }
+                MouseArea {
+                    id: fxMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    enabled: !window.isApplying && !window.showPanel
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: window.setTransition(modelData.name)
                 }
             }
         }
@@ -692,7 +691,7 @@ Item {
 
             // Single mode: derived from the wallpaper itself at apply time.
             Text {
-                text: "Mode · Auto (from wallpaper)   ·   FX · " + window.transitionType
+                text: "Mode · Auto (from wallpaper)"
                 color: window.subtextColor
                 font.family: window.uiFont
                 font.pixelSize: window.u * 11

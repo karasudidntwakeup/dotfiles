@@ -624,8 +624,12 @@ Item {
                         }
                     }
                     Item { Layout.fillWidth: true }
-                    IconBtn { icon: "refresh"; tint: ytx.waFg; onClicked: ytx.ensureHome(true) }
-
+                    IconBtn {
+                        icon: "refresh"
+                        tint: ytx.waFg
+                        enabled: !homeProc.running
+                        onClicked: ytx.ensureHome(true)
+                    }
                 }
             }
             Item {
@@ -651,7 +655,7 @@ Item {
                     text: ytx.searching ? "Searching\u2026" : ytx.pendingHome ? "Loading\u2026" : ytx.searchFailed ? "No results" : ytx.activeQuery.length > 0 ? ytx.videos.length + " results" : ytx.homeFailed ? "Couldn\u2019t load" : ytx.homeLoaded ? ytx.videos.length + " recommended" : ""
                     font.family: ytx.uiFont
                     font.pixelSize: Math.max(10, ytx.fontSize - 1)
-                    color: ytx.searchFailed || ytx.homeFailed ? Qt.rgba(1, 0.45, 0.4, 1) : rootRef.withAlpha(ytx.fg, 0.6)
+                    color: ytx.searchFailed || ytx.homeFailed ? rootRef.readableColor(rootRef.error, ytx.header) : ytx.muted
                 }
                 Row {
                     id: chipRow
@@ -727,29 +731,6 @@ Item {
                                 ytx.showRecent();
                                 searchField.text = "";
                                 searchField.forceActiveFocus();
-                            }
-                        }
-                    }
-                    Rectangle {
-                        visible: ytx.showingHome
-                        enabled: !homeProc.running
-                        width: 22
-                        height: 22
-                        radius: 10
-                        color: refreshHover.containsMouse ? rootRef.withAlpha(ytx.fg, 0.2) : rootRef.withAlpha(ytx.fg, 0.08)
-                        QIcon {
-                            anchors.centerIn: parent
-                            source: Qt.resolvedUrl("../assets/icons/refresh.svg")
-                            color: ytx.fg
-                            iconSize: Math.max(10, ytx.fontSize)
-                        }
-                        MouseArea {
-                            id: refreshHover
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                ytx.ensureHome(true);
                             }
                         }
                     }

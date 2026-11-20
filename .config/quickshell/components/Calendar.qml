@@ -36,16 +36,13 @@ PanelWindow {
         : "#ffffff"
 
     readonly property color accentCol: rootRef
-        ? (rootRef.pillColor ? rootRef.pillColor("primary") : (rootRef.primary || "#4a9eff"))
+        ? rootRef.readableColor(rootRef.primary, calColor)
         : "#4a9eff"
-
-    // Done green: theme token pulled 60% to black (≈7:1 on the card).
-    readonly property color doneGreen: rootRef && rootRef.mixColor
-        ? rootRef.mixColor(rootRef.colorOf("green"), "#000000", 0.6)
+    readonly property color doneGreen: rootRef
+        ? rootRef.readableColor(rootRef.colorOf("green"), calColor)
         : "#2e7d32"
-    readonly property color accentFg: rootRef
-        ? (rootRef.luminance(Qt.color(accentCol)) > 0.45 ? "#000000" : "#ffffff")
-        : "#ffffff"
+    readonly property color accentFg: rootRef ? rootRef.contrastColor(accentCol) : "#ffffff"
+    readonly property color errorInk: rootRef ? rootRef.readableColor(rootRef.error, calColor) : "#ff8080"
 
     property bool closingBySelf: false
     property int shownYear: new Date().getFullYear()
@@ -791,7 +788,7 @@ PanelWindow {
                     QIcon {
                         anchors.centerIn: parent
                         source: Qt.resolvedUrl("../assets/icons/close.svg")
-                        color: calCloseHover.containsMouse ? rootRef.error : calPopup.popupFg
+                        color: calCloseHover.containsMouse ? calPopup.errorInk : calPopup.popupFg
                         iconSize: rootRef.fontSize + 3
                     }
 
@@ -1190,7 +1187,7 @@ PanelWindow {
                         QIcon {
                             anchors.centerIn: parent
                             source: Qt.resolvedUrl("../assets/icons/minus.svg")
-                            color: calPopup.selectedEntryId >= 0 ? rootRef.error : rootRef.withAlpha(calPopup.popupFg, 0.3)
+                            color: calPopup.selectedEntryId >= 0 ? calPopup.errorInk : rootRef.withAlpha(calPopup.popupFg, 0.3)
                             iconSize: rootRef.fontSize + 4
                         }
 
@@ -1417,7 +1414,7 @@ PanelWindow {
 
                         Text {
                             text: rootRef.fmtTimer(rootRef.timerRemainingMs)
-                            color: rootRef.timerRemainingMs <= 0 ? rootRef.error : calPopup.popupFg
+                            color: rootRef.timerRemainingMs <= 0 ? calPopup.errorInk : calPopup.popupFg
                             font.family: rootRef.uiFont
                             font.pixelSize: rootRef.fontSize + 8
                             font.weight: Font.Normal
@@ -1512,7 +1509,7 @@ PanelWindow {
                             QIcon {
                                 anchors.centerIn: parent
                                 source: Qt.resolvedUrl("../assets/icons/refresh.svg")
-                                color: rootRef.error
+                                color: calPopup.errorInk
                                 iconSize: rootRef.fontSize + 2
                             }
 

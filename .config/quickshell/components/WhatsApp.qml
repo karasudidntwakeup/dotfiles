@@ -28,13 +28,14 @@ Item {
     readonly property color header: rootRef ? Qt.color(rootRef.colorOf("surface_container")) : "#1f2c34"
     readonly property color bubbleIn: rootRef ? Qt.color(rootRef.colorOf("surface_container_high")) : "#1f2c34"
     readonly property color bubbleOut: rootRef ? Qt.color(rootRef.colorOf("primary_container")) : "#005c4b"
-    readonly property color green: rootRef ? Qt.color(rootRef.colorOf("primary")) : "#00a884"
+    readonly property color green: rootRef ? rootRef.readableColor(rootRef.primary, wa.header) : "#00a884"
     readonly property color fg: rootRef ? Qt.color(rootRef.colorOf("on_surface")) : "#e9edef"
     readonly property color muted: rootRef ? Qt.color(rootRef.colorOf("on_surface_variant")) : "#8696a0"
     readonly property color divider: rootRef ? rootRef.withAlpha(Qt.color(rootRef.colorOf("outline_variant")), 0.5) : "#222d34"
     readonly property color field: rootRef ? Qt.color(rootRef.colorOf("surface_container_high")) : "#2a3942"
-    readonly property color err: rootRef ? Qt.color(rootRef.colorOf("error")) : "#f15c6d"
+    readonly property color err: rootRef ? rootRef.readableColor(rootRef.error, wa.header) : "#f15c6d"
     // Outgoing-ink follows the outgoing token for contrast on any theme.
+    readonly property color greenFg: rootRef ? rootRef.contrastColor(wa.green) : "#06281f"
     readonly property color outFg: rootRef ? rootRef.contrastColor(wa.bubbleOut) : "#06281f"
     readonly property color outTime: rootRef ? rootRef.withAlpha(wa.outFg, 0.7) : "#a8d5cc"
 
@@ -670,7 +671,7 @@ Item {
                                             Text {
                                                 id: badgeText; anchors.centerIn: parent
                                                 text: unreadCount > 99 ? "99+" : String(unreadCount)
-                                                color: wa.outFg; font.family: wa.uiFont
+                                                color: wa.greenFg; font.family: wa.uiFont
                                                 font.pixelSize: Math.max(9, wa.fontSize - 3); font.weight: Font.Bold
                                             }
                                         }
@@ -1007,7 +1008,7 @@ Item {
                             QIcon {
                                 anchors.centerIn: parent
                                 source: Qt.resolvedUrl("../assets/icons/send.svg")
-                                color: sendField.text.length > 0 ? wa.outFg : wa.muted
+                                color: sendField.text.length > 0 && wa.inChat ? wa.greenFg : wa.muted
                                 iconSize: 18
                             }
                             MouseArea {

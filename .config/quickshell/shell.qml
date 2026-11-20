@@ -29,52 +29,91 @@ ShellRoot {
         }
     }
 
-    // Mode-aware lookup: base vars hold the DARK scheme, *_light vars
-    // the LIGHT scheme (see the matugen template), so colors.js carries
-    // both modes no matter which --mode generated it. In light mode prefer
-    // the light twin; fall back to base when a role has no light variant.
-    function colorOf(name) {
-        if (root.qsLight) {
-            var l = colorFile.paletteMap[name + "_light"]
-            if (l !== undefined) return l
+    // Some generated presets repeat one palette under both mode suffixes.
+    // Keep neutral surfaces usable even when that palette has the wrong tone.
+    readonly property var surfaceFallbacks: ({
+        background: ["#f6f7fa", "#151619"],
+        surface: ["#f6f7fa", "#151619"],
+        surface_container_lowest: ["#ffffff", "#101114"],
+        surface_container_low: ["#f0f1f4", "#1b1c20"],
+        surface_container: ["#eaecf0", "#202126"],
+        surface_container_high: ["#e3e5ea", "#292b30"],
+        surface_container_highest: ["#dadde3", "#33353b"]
+    })
+
+    function colorOf(name, light = root.qsLight) {
+        var map = colorFile.paletteMap
+        var value = light ? map[name + "_light"] || map[name] : map[name]
+        var fallback = root.surfaceFallbacks[name]
+        if (fallback && (!value || (light ? root.relativeLuminance(value) < 0.20 : root.relativeLuminance(value) > 0.175)))
+            return fallback[light ? 0 : 1]
+
+        if (name === "on_surface" || name === "on_surface_variant" || name === "on_background") {
+            var surfaces = name === "on_background" ? ["background"] : [
+                "surface", "surface_container_lowest", "surface_container_low",
+                "surface_container", "surface_container_high", "surface_container_highest"
+            ]
+            var ink = light ? "#000000" : "#ffffff"
+            if (!value) return ink
+            if (surfaces.some(role => root.contrastRatio(value, root.colorOf(role, light)) < 4.5))
+                return ink
         }
-        var v = colorFile.paletteMap[name]
-        return v === undefined ? "#808080" : v
+        return value || "#808080"
     }
 
     FileView {
         id: qsThemeFile
+        property string mode: "light"
         path: Quickshell.shellDir + "/qs-theme.json"
         watchChanges: true
         blockLoading: true
         onFileChanged: qsThemeFile.reload()
         onLoadFailed: error => console.log("[qs-theme] failed to load qs-theme.json:", error)
         onLoaded: {
-            // Parse is only a validation pass: nothing reads the result, the
-            // theme is applied through colors.js. It stays to log a broken file.
             try {
-                JSON.parse(String(qsThemeFile.text()))
+                var theme = JSON.parse(String(qsThemeFile.text()))
+                if (theme.mode === "light" || theme.mode === "dark")
+                    qsThemeFile.mode = theme.mode
             } catch (e) {
                 console.log("[qs-theme] parse error:", e)
             }
         }
     }
 
-    // Bar is always light: colorOf() permanently prefers the *_light
-    // roles from colors.js (which carries both modes). The system
-    // dark/light (qs-theme.json) still drives GTK/apps via
-    // wallpaper_apply.sh; the shell just doesn't follow it.
-    readonly property bool qsLight: true
+    // An explicit desktop preference overrides the wallpaper-derived mode.
+    Process {
+        id: desktopTheme
+        property string mode: ""
+        running: true
+        command: ["sh", "-c",
+            "gsettings get org.gnome.desktop.interface color-scheme; "
+            + "exec gsettings monitor org.gnome.desktop.interface color-scheme"]
+        stdout: SplitParser {
+            onRead: line => {
+                var match = line.trim().match(/^(?:color-scheme:\s*)?'?(prefer-light|prefer-dark|default)'?$/)
+                if (match)
+                    desktopTheme.mode = match[1] === "default" ? "" : match[1]
+            }
+        }
+    }
+
+    readonly property bool qsLight: desktopTheme.mode
+        ? desktopTheme.mode === "prefer-light"
+        : qsThemeFile.mode === "light"
 
     function pillColor(name) {
         return colorOf(name)
     }
 
-    function tonalPillColor(accent) {
+    function barColor(name) {
+        return root.colorOf(name, true)
+    }
+
+    function tonalPillColor(accent, light = root.qsLight) {
         var color = Qt.color(accent)
         // Tonal pills follow the mode: light pills on light mode, dark
         // pills on dark mode, so text picked by contrastColor stays readable.
-        var lightness = root.qsLight
+        var lightness = light
             ? Math.max(color.hslLightness, 0.76)
             : Math.min(color.hslLightness, 0.24)
         return Qt.hsla(Math.max(0, color.hslHue), color.hslSaturation, lightness, 1)
@@ -86,16 +125,30 @@ ShellRoot {
         return root.contrastColor(background)
     }
 
-    // Max-contrast text pick (black vs white, whichever contrasts more).
-    // Single shared implementation — components must call this instead of
-    // carrying their own copies.
-    function contrastColor(c) {
-        var col = Qt.color(c)
-        var linear = value => value <= 0.03928 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4)
-        var l = 0.2126 * linear(col.r) + 0.7152 * linear(col.g) + 0.0722 * linear(col.b)
-        var white = 1.05 / (l + 0.05)
-        var black = (l + 0.05) / 0.05
-        return white >= black ? "#ffffff" : "#000000"
+    function relativeLuminance(color) {
+        var col = Qt.color(color)
+        var linear = value => value <= 0.04045 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4)
+        return 0.2126 * linear(col.r) + 0.7152 * linear(col.g) + 0.0722 * linear(col.b)
+    }
+
+    function contrastRatio(foreground, background) {
+        var fg = root.relativeLuminance(foreground)
+        var bg = root.relativeLuminance(background)
+        return (Math.max(fg, bg) + 0.05) / (Math.min(fg, bg) + 0.05)
+    }
+
+    function contrastColor(background) {
+        return root.relativeLuminance(background) < 0.179 ? "#ffffff" : "#000000"
+    }
+
+    function readableColor(foreground, background) {
+        if (root.contrastRatio(foreground, background) >= 4.5) return Qt.color(foreground)
+        var ink = root.contrastColor(background)
+        for (var amount of [0.25, 0.5, 0.75]) {
+            var candidate = root.mixColor(foreground, ink, amount)
+            if (root.contrastRatio(candidate, background) >= 4.5) return candidate
+        }
+        return Qt.color(ink)
     }
 
     readonly property color primary: colorOf("primary")
@@ -130,18 +183,18 @@ ShellRoot {
     }
 
     function memTint(p) {
-        var g = root.pillColor("secondary_fixed_dim")
-        var a = root.pillColor("secondary_container")
-        var r = root.pillColor("error")
+        var g = root.barColor("secondary_fixed_dim")
+        var a = root.barColor("secondary_container")
+        var r = root.barColor("error")
         if (p <= 50) return root.mixColor(g, a, p / 50)
         return root.mixColor(a, r, (p - 50) / 50)
     }
 
     // Audio meter: calm grey when quiet → primary blue when loud, red on mute.
     function volTint() {
-        if (root.muted) return root.pillColor("error")
-        return root.mixColor(root.pillColor("surface_container_high"),
-                             root.pillColor("primary_fixed_dim"),
+        if (root.muted) return root.barColor("error")
+        return root.mixColor(root.barColor("surface_container_high"),
+                             root.barColor("primary_fixed_dim"),
                              root.volumePercent / 100)
     }
 
@@ -986,7 +1039,7 @@ ShellRoot {
         property int rowSpacing: 4
         property bool rowClip: false
         property int iconSize: root.fontSize + 8
-        property color tint: root.primary
+        property color tint: root.barColor("primary")
         property alias clickArea: pillArea
         property alias wheelArea: pillArea
 
@@ -995,9 +1048,9 @@ ShellRoot {
         implicitWidth: pillRow.implicitWidth + pill.padX
         implicitHeight: root.pillHeight
         radius: root.pillRadius
-        color: root.tonalPillColor(tint)
+        color: root.tonalPillColor(tint, true)
         border.width: 1
-        border.color: root.withAlpha(Qt.color(root.colorOf("outline_variant")), 0.38)
+        border.color: root.withAlpha(Qt.color(root.barColor("outline_variant")), 0.38)
         property int enterOrder: 0
         property real enterShift: 10
         opacity: 0
@@ -1076,7 +1129,7 @@ ShellRoot {
         readonly property bool staticMode: Quickshell.env("QS_NO_DYNAMIC") === "1" || root.memPercent >= 85
         // Pill gets its own `wifi` token (peach) — wifi strength is also
         // shown by the live arcs inside. Red only offline.
-        readonly property color tint: root.networkConnected ? root.pillColor("keymap") : root.pillColor("error")
+        readonly property color tint: root.networkConnected ? root.barColor("keymap") : root.barColor("error")
         readonly property color pillTextColor: root.pillForeground(dc.color)
         readonly property bool hovering: dcArea.containsMouse || dcArea.pressed
         // Smoothed signal so arcs animate live instead of jumping.
@@ -1086,9 +1139,9 @@ ShellRoot {
 
         implicitHeight: root.pillHeight
         radius: root.pillRadius
-        color: root.tonalPillColor(dc.tint)
+        color: root.tonalPillColor(dc.tint, true)
         border.width: 1
-        border.color: root.withAlpha(Qt.color(root.colorOf("outline_variant")), 0.38)
+        border.color: root.withAlpha(Qt.color(root.barColor("outline_variant")), 0.38)
         property int enterOrder: 0
         property real enterShift: 10
         opacity: 0
@@ -1237,9 +1290,9 @@ ShellRoot {
             width: tipText.implicitWidth + 14
             height: 22
             radius: 10
-            color: "#0b0b0e"
+            color: root.barColor("surface_container")
             border.width: 1
-            border.color: Qt.rgba(1, 1, 1, 0.12)
+            border.color: root.withAlpha(Qt.color(root.barColor("outline_variant")), 0.38)
             opacity: dc.hovering ? 1 : 0
             Behavior on opacity { Anim { type: Anim.DefaultEffects } }
 
@@ -1247,7 +1300,7 @@ ShellRoot {
                 id: tipText
                 anchors.centerIn: parent
                 text: root.charging ? "CHARGING" : root.batteryPercent + "%"
-                color: !root.charging && root.batteryPercent < 15 ? root.pillColor("error") : "#ffffff"
+                color: !root.charging && root.batteryPercent < 15 ? root.readableColor(root.barColor("error"), tip.color) : root.pillForeground(tip.color)
                 font.family: root.fontFamily
                 font.pixelSize: root.fontSize - 1
                 font.weight: Font.Normal
@@ -1751,9 +1804,12 @@ function closeOverlays() {
                 anchors.fill: parent
                 visible_: root.wallpaperActive && wallpaperWin.ready
 
-                surfaceColor: "#17181c"
+                surfaceColor: Qt.color(root.colorOf("surface_container"))
                 borderColor: Qt.color(root.colorOf("outline_variant"))
-                fgColor: "#ffffff"
+                fgColor: Qt.color(root.colorOf("on_surface"))
+                mutedColor: Qt.color(root.colorOf("on_surface_variant"))
+                hoverColor: Qt.color(root.colorOf("surface_container_high"))
+                selectedColor: Qt.color(root.colorOf("surface_container_highest"))
                 accentColor: Qt.color(root.colorOf("primary"))
                 iconFont: root.iconFont
                 uiFont: root.uiFont
@@ -1778,9 +1834,12 @@ function closeOverlays() {
                 anchors.fill: parent
                 visible_: root.themeActive && themeWin.ready
 
-                surfaceColor: "#17181c"
+                surfaceColor: Qt.color(root.colorOf("surface_container"))
                 borderColor: Qt.color(root.colorOf("outline_variant"))
-                fgColor: "#ffffff"
+                fgColor: Qt.color(root.colorOf("on_surface"))
+                mutedColor: Qt.color(root.colorOf("on_surface_variant"))
+                hoverColor: Qt.color(root.colorOf("surface_container_high"))
+                selectedColor: Qt.color(root.colorOf("surface_container_highest"))
                 accentColor: Qt.color(root.colorOf("primary"))
                 iconFont: root.iconFont
                 uiFont: root.uiFont
@@ -1937,7 +1996,7 @@ function closeOverlays() {
                         iconSource: root.weatherIsY2kMoon() ? y2kMoonSource : null
                         iconSize: root.fontSize + 11
                         label: root.weatherText
-                        tint: root.pillColor("mauve")
+                        tint: root.barColor("mauve")
                         visible: root.weatherText.length > 0
                         clickArea.onClicked: root.toggleNotifCenter()
 
@@ -1963,7 +2022,7 @@ function closeOverlays() {
                         enterOrder: 2
                         iconSource: kbIconSource
                         label: root.shortLayout(mangoIpc.keyboardLayoutName)
-                        tint: root.pillColor("keymap")
+                        tint: root.barColor("keymap")
 
                         Component {
                             id: kbIconSource
@@ -1976,7 +2035,7 @@ function closeOverlays() {
                         enterOrder: 3
                         iconSource: bluetoothIconSource
                         label: root.bluetoothText
-                        tint: root.pillColor("secondary_fixed_dim")
+                        tint: root.barColor("secondary_fixed_dim")
                         visible: root.bluetoothStatus === "connected"
 
                         Component {
@@ -2042,17 +2101,17 @@ function closeOverlays() {
                         id: clockPill
                         property int enterOrder: 8
                         property color tint: (calLoader.item ? calLoader.item.visible : false)
-                            ? root.mixColor(root.pillColor("tertiary_container"), "#ffffff", 0.3)
-                            : root.pillColor("tertiary_container")
+                            ? root.mixColor(root.barColor("tertiary_container"), "#ffffff", 0.3)
+                            : root.barColor("tertiary_container")
                         readonly property color pillTextColor: root.pillForeground(clockPill.color)
                         readonly property color dimTextColor: Qt.rgba(pillTextColor.r, pillTextColor.g, pillTextColor.b, 0.62)
 
                         implicitWidth: clockRow.implicitWidth + 20
                         implicitHeight: root.pillHeight
                         radius: root.pillRadius
-                        color: root.tonalPillColor(tint)
+                        color: root.tonalPillColor(tint, true)
                         border.width: 1
-                        border.color: root.withAlpha(Qt.color(root.colorOf("outline_variant")), 0.38)
+                        border.color: root.withAlpha(Qt.color(root.barColor("outline_variant")), 0.38)
                         property real enterShift: 10
                         opacity: 0
                         transform: Translate { y: clockPill.enterShift }
