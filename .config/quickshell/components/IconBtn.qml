@@ -1,5 +1,4 @@
 import QtQuick
-import Quickshell
 
 // Square icon button shared by the phone sheets (WhatsApp, YouTube).
 // Icon names map to assets/icons/*.svg; unknown names fall back to close.

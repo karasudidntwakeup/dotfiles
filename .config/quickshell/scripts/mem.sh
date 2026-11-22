@@ -1,9 +1,11 @@
 #!/bin/sh
-# Emit "USED_GB|PERCENT" for the QuickShell memory pill/widget.
-TOTAL=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
-AVAIL=$(awk '/MemAvailable/ {print $2}' /proc/meminfo)
-USED_KB=$(( TOTAL - AVAIL ))
-USED_GB=$(awk -v u="$USED_KB" 'BEGIN { printf "%.1f", u / 1024 / 1024 }')
-PERCENT=$(( USED_KB * 100 / TOTAL ))
-
-echo "${USED_GB}|${PERCENT}"
+# Emit used GiB and percent in a single pass over meminfo.
+awk '
+    /^MemTotal:/ { total = $2 }
+    /^MemAvailable:/ { available = $2 }
+    END {
+        if (total <= 0) exit 1
+        used = total - available
+        printf "%.1f|%d\n", used / 1048576, used * 100 / total
+    }
+' /proc/meminfo

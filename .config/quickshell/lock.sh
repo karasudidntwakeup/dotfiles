@@ -1,3 +1,4 @@
 #!/bin/sh
-mkdir -p ~/.cache/quickshell
-echo "lock" > ~/.cache/quickshell/lock-request
+lock_dir="$HOME/.cache/quickshell"
+mkdir -p -- "$lock_dir" &&
+    printf 'lock\n' > "$lock_dir/lock-request"

@@ -101,10 +101,6 @@ ShellRoot {
         ? desktopTheme.mode === "prefer-light"
         : qsThemeFile.mode === "light"
 
-    function pillColor(name) {
-        return colorOf(name)
-    }
-
     function barColor(name) {
         return root.colorOf(name, true)
     }
@@ -117,12 +113,6 @@ ShellRoot {
             ? Math.max(color.hslLightness, 0.76)
             : Math.min(color.hslLightness, 0.24)
         return Qt.hsla(Math.max(0, color.hslHue), color.hslSaturation, lightness, 1)
-    }
-
-    // Kept as the pill-text entry point; delegates to the single shared
-    // max-contrast implementation so both never drift apart.
-    function pillForeground(background) {
-        return root.contrastColor(background)
     }
 
     function relativeLuminance(color) {
@@ -165,10 +155,6 @@ ShellRoot {
     readonly property int groupSpacing: 8
 
     readonly property string terminalCommand: "foot"
-
-    function luminance(color) {
-        return 0.299 * color.r + 0.587 * color.g + 0.114 * color.b
-    }
 
     function withAlpha(color, a) {
         return Qt.rgba(color.r, color.g, color.b, a)
@@ -281,18 +267,17 @@ ShellRoot {
     property var mountedDisks: []
     property var removableDrives: []
 
-    function refreshRemovable() {
-        if (!removableProc.running) removableProc.running = true
-    }
-
-    // The storage list in the NotifCenter joins removable drives with the
-    // mounted filesystems, so both halves have to be re-read together.
     function refreshStorage() {
-        root.refreshRemovable()
-        if (!mountedDisksProc.running) mountedDisksProc.running = true
+        if (removableProc.running || mountedDisksProc.running) {
+            removableDebounce.restart()
+            return
+        }
+        removableProc.running = true
+        mountedDisksProc.running = true
     }
 
     function removableAction(args) {
+        if (removableCmd.running) return
         removableCmd.command = args
         removableCmd.running = true
     }
@@ -316,9 +301,9 @@ ShellRoot {
         for (var j = 0; j < vols.length; j++)
             if (vols[j] && vols[j].mount) mounts.push(vols[j].path)
         var script = "disk=\"$1\"; shift; "
-                   + "for v in \"$@\"; do udisksctl unmount -b \"$v\" >/dev/null 2>&1; done; "
+                   + "for v in \"$@\"; do udisksctl unmount -b \"$v\" >/dev/null || exit; done; "
                    + "udisksctl power-off -b \"$disk\""
-        root.removableAction(["sh", "-c", script, "eject", devPath] + mounts)
+        root.removableAction(["sh", "-c", script, "eject", devPath].concat(mounts))
     }
 
     function openMount(mountPoint) {
@@ -333,7 +318,7 @@ ShellRoot {
 
     Process {
         id: removableProc
-        command: ["sh", "-c", Quickshell.shellDir + "/scripts/removable.sh"]
+        command: ["sh", Quickshell.shellDir + "/scripts/removable.sh"]
         stdout: StdioCollector {
             onStreamFinished: {
                 try {
@@ -355,9 +340,8 @@ ShellRoot {
     Process {
         id: removableCmd
         onExited: code => {
-            // Re-read drive + disk state after any mount/unmount/eject.
-            // refreshStorage covers both processes.
-            Qt.callLater(() => root.refreshStorage())
+            if (code !== 0) console.warn("[storage] command failed:", code)
+            removableDebounce.restart()
         }
     }
 
@@ -366,7 +350,7 @@ ShellRoot {
     // Bursts (one plug = several signals) are coalesced by the debounce timer.
     Process {
         id: removableWatch
-        command: ["sh", "-c", Quickshell.shellDir + "/scripts/removable_watch.sh"]
+        command: ["sh", Quickshell.shellDir + "/scripts/removable_watch.sh"]
         running: true
         stdout: SplitParser {
             onRead: data => {
@@ -381,7 +365,7 @@ ShellRoot {
         id: removableDebounce
         interval: 600
         repeat: false
-        onTriggered: root.refreshRemovable()
+        onTriggered: root.refreshStorage()
     }
 
     Timer {
@@ -393,7 +377,7 @@ ShellRoot {
 
     Process {
         id: weatherProc
-        command: ["sh", "-c", Quickshell.shellDir + "/scripts/weather.sh"]
+        command: ["sh", Quickshell.shellDir + "/scripts/weather.sh"]
         stdout: SplitParser {
             onRead: data => {
                 var t = data ? data.trim() : ""
@@ -438,7 +422,7 @@ ShellRoot {
 
     Process {
         id: prayerProc
-        command: ["sh", "-c", Quickshell.shellDir + "/scripts/prayer.sh"]
+        command: ["sh", Quickshell.shellDir + "/scripts/prayer.sh"]
         stdout: SplitParser {
             onRead: data => {
                 if (!data) return
@@ -467,7 +451,7 @@ ShellRoot {
 
     Process {
         id: memProc
-        command: ["sh", "-c", Quickshell.shellDir + "/scripts/mem.sh"]
+        command: ["sh", Quickshell.shellDir + "/scripts/mem.sh"]
         stdout: SplitParser {
             onRead: data => {
                 if (!data) return
@@ -501,7 +485,7 @@ ShellRoot {
 
     Process {
         id: mountedDisksProc
-        command: ["sh", "-c", Quickshell.shellDir + "/scripts/mounted_disks.sh"]
+        command: ["sh", Quickshell.shellDir + "/scripts/mounted_disks.sh"]
         stdout: StdioCollector {
             onStreamFinished: {
                 var arr = root.parseMountedDisks(this.text)
@@ -515,7 +499,7 @@ ShellRoot {
 
     Process {
         id: weatherWeekProc
-        command: ["sh", "-c", Quickshell.shellDir + "/scripts/weather_week.sh"]
+        command: ["sh", Quickshell.shellDir + "/scripts/weather_week.sh"]
         stdout: StdioCollector {
             onStreamFinished: {
                 try {
@@ -584,7 +568,7 @@ ShellRoot {
 
     Process {
         id: volProc
-        command: ["sh", "-c", Quickshell.shellDir + "/scripts/vol.sh get"]
+        command: ["sh", Quickshell.shellDir + "/scripts/vol.sh", "get"]
         stdout: SplitParser {
             onRead: data => {
                 var parts = data.trim().split("|")
@@ -596,17 +580,46 @@ ShellRoot {
 
     Process {
         id: volCmd
+        property var queue: []
+
+        function enqueue(args) {
+            queue.push(args)
+            if (!running) Qt.callLater(volCmd.runNext)
+        }
+
+        function runNext() {
+            if (running) return
+            if (queue.length === 0) {
+                volRefresh.restart()
+                return
+            }
+            command = ["sh", Quickshell.shellDir + "/scripts/vol.sh"].concat(queue.shift())
+            running = true
+        }
+
+        onExited: Qt.callLater(volCmd.runNext)
+    }
+
+    Timer {
+        id: volRefresh
+        interval: 75
+        onTriggered: {
+            if (volProc.running)
+                restart()
+            else
+                volProc.running = true
+        }
     }
 
     Process {
         id: volWatch
-        command: ["sh", "-c", "exec pactl subscribe"]
+        command: ["pactl", "subscribe"]
         running: true
         stdout: SplitParser {
             onRead: data => {
                 var t = data.toLowerCase()
-                if ((t.indexOf("sink") >= 0 || t.indexOf("server") >= 0) && !volProc.running)
-                    volProc.running = true
+                if (t.includes("sink") || t.includes("server"))
+                    volRefresh.restart()
             }
         }
         onExited: volRestart.restart()
@@ -616,7 +629,10 @@ ShellRoot {
         id: volRestart
         interval: 5000
         repeat: false
-        onTriggered: volWatch.running = true
+        onTriggered: {
+            volWatch.running = true
+            volRefresh.restart()
+        }
     }
 
     readonly property var battery: UPower.displayDevice
@@ -645,7 +661,7 @@ ShellRoot {
 
     Process {
         id: netProc
-        command: ["sh", "-c", "sh " + Quickshell.shellDir + "/scripts/wifi.sh"]
+        command: ["sh", Quickshell.shellDir + "/scripts/wifi.sh"]
         stdout: SplitParser {
             onRead: data => {
                 if (data) {
@@ -673,7 +689,7 @@ ShellRoot {
 
     Process {
         id: btProc
-        command: ["sh", "-c", Quickshell.shellDir + "/scripts/bluetooth.sh"]
+        command: ["sh", Quickshell.shellDir + "/scripts/bluetooth.sh"]
         stdout: SplitParser {
             onRead: data => {
                 if (data) {
@@ -695,6 +711,8 @@ ShellRoot {
 
     Process {
         id: btCmd
+        command: ["bluetoothctl", "disconnect"]
+        onExited: btProc.running = true
     }
 
     Timer {
@@ -726,30 +744,20 @@ ShellRoot {
 
     Process {
         id: mediaProc
-        command: ["sh", "-c", Quickshell.shellDir + "/scripts/media.sh"]
+        command: ["sh", Quickshell.shellDir + "/scripts/media.sh"]
         stdout: SplitParser {
             onRead: data => {
                 if (!data) return
-                var fields = data.trim().split("|")
+                var fields = data.split("\u001f")
+                if (fields.length !== 6) return
                 if (fields[0]) root.mediaStatus = fields[0]
 
-                var n = fields.length
-                var pos = (parseFloat(fields[n - 3]) || 0) / 1000
-                var len = parseFloat(fields[n - 2]) / 1000
-                var art = fields[n - 1] || ""
-                var info = fields.slice(1, n - 3).join("|")
-
-                var title = ""
-                var artist = ""
-                var sep = info.indexOf("\u001E")
-                if (sep >= 0) {
-                    artist = info.substring(0, sep).trim()
-                    title = info.substring(sep + 1).trim()
-                } else {
-                    title = info.trim()
-                }
-
-                var sig = info + "\u001E" + art
+                const pos = Math.max(0, Number(fields[1]) / 1000 || 0)
+                const len = Number(fields[2]) / 1000
+                const artist = fields[3]
+                const title = fields[4]
+                const art = fields[5]
+                const sig = fields.slice(3).join("\u001f")
                 var trackChanged = sig !== root.mediaSig
                 if (trackChanged) {
                     root.mediaSig = sig
@@ -763,10 +771,7 @@ ShellRoot {
                     : (!trackChanged && root.mediaLenMs > 0) ? root.mediaLenMs
                     : 0
 
-                root.mediaPosMs =
-                    trackChanged ? pos
-                    : root.mediaStatus === "Playing" ? Math.max(root.mediaPosMs, pos)
-                    : pos
+                root.mediaPosMs = pos
             }
         }
     }
@@ -774,14 +779,13 @@ ShellRoot {
     Timer {
         id: mediaSync
         interval: 2000
-        running: true
+        running: notifSvc.centerOpen
         repeat: true
         // Media lives in the notification center: no polling at all while
         // it's closed. While open, back off to every 5th tick (10s) when
         // nothing is playing.
         property int idleTicks: 0
         onTriggered: {
-            if (!notifSvc.centerOpen) return
             if (root.mediaStatus === "none") {
                 mediaSync.idleTicks++
                 if (mediaSync.idleTicks < 5) return
@@ -795,52 +799,37 @@ ShellRoot {
 
     Timer {
         interval: 250
-        running: root.mediaStatus === "Playing" && notifSvc.centerOpen
+        running: root.mediaStatus === "Playing" && root.mediaLenMs > 0 && notifSvc.centerOpen
         repeat: true
-        onTriggered: {
-            if (root.mediaStatus === "Playing")
-                root.mediaPosMs = Math.min(root.mediaPosMs + 250, root.mediaLenMs)
-        }
-        onRunningChanged: {
-
-            if (running && !mediaProc.running) mediaProc.running = true
-        }
+        onTriggered: root.mediaPosMs = Math.min(root.mediaPosMs + interval, root.mediaLenMs)
     }
 
-    property var calRegistry: ({})
-
-    function registerCalendarAnchor(outputName, anchor, screen, win) {
-        if (!root.calRegistry[outputName]) root.calRegistry[outputName] = {}
-        root.calRegistry[outputName].anchor = anchor
-        root.calRegistry[outputName].screen = screen
-        root.calRegistry[outputName].win = win
-    }
-
-    function openCalendarForOutput(outputName) {
-        var entry = root.calRegistry[outputName]
-        if (!entry) return
-        // Toggle when already open.
-        if (calLoader.item && calLoader.item.visible) {
+    function toggleCalendar(anchor, screen, window) {
+        if (root.calDemand) {
             root.closeCalendar()
             return
         }
-        root.calPendingEntry = entry
+        root.closeOverlays()
+        root.calEntry = { anchor, screen, window }
         root.calDemand = true
-        // Loader instantiates synchronously; if ready, apply anchors + open now
-        // (onLoaded below covers the async path).
-        if (calLoader.item && !calLoader.item.visible) {
-            var it = calLoader.item
-            it.anchorItem = entry.anchor || null
-            it.anchorWin = entry.win || null
-            if (entry.screen) it.screen = entry.screen
-            root.calPendingEntry = null
-            it.open()
-        }
+        if (calLoader.item)
+            root.showCalendar()
     }
 
-    // Timer restarted FIRST so the Loader hold is established before
-    // calDemand clears; the item can never be destroyed mid-fade.
+    function showCalendar() {
+        const entry = root.calEntry
+        if (!entry) return
+        root.calEntry = null
+        const calendar = calLoader.item
+        calendar.anchorItem = entry.anchor
+        calendar.anchorWin = entry.window
+        calendar.screen = entry.screen
+        calendar.open()
+    }
+
     function closeCalendar() {
+        if (!root.calDemand) return
+        root.calEntry = null
         if (calLoader.item) {
             calUnload.restart()
             calLoader.item.close()
@@ -930,9 +919,7 @@ ShellRoot {
         }
     }
 
-    // Startup sequencer: spreads the initial process spawns over ~2s
-    // instead of a 9-way fork stampede, so first paint isn't janked.
-    // Bar-visible pills first, slow network fetchers last.
+    // Stagger the initial status queries so the bar can paint first.
     property var startupQueue: []
     Timer {
         id: startupSeq
@@ -957,6 +944,7 @@ ShellRoot {
         root.startupQueue = [
             () => { memProc.running = true },
             () => { netProc.running = true },
+            () => { volProc.running = true },
             () => { btProc.running = true },
             () => { weatherProc.running = true },
             () => { prayerProc.running = true }
@@ -1041,9 +1029,8 @@ ShellRoot {
         property int iconSize: root.fontSize + 8
         property color tint: root.barColor("primary")
         property alias clickArea: pillArea
-        property alias wheelArea: pillArea
 
-        readonly property color pillTextColor: root.pillForeground(pill.color)
+        readonly property color pillTextColor: root.contrastColor(pill.color)
 
         implicitWidth: pillRow.implicitWidth + pill.padX
         implicitHeight: root.pillHeight
@@ -1130,7 +1117,7 @@ ShellRoot {
         // Pill gets its own `wifi` token (peach) — wifi strength is also
         // shown by the live arcs inside. Red only offline.
         readonly property color tint: root.networkConnected ? root.barColor("keymap") : root.barColor("error")
-        readonly property color pillTextColor: root.pillForeground(dc.color)
+        readonly property color pillTextColor: root.contrastColor(dc.color)
         readonly property bool hovering: dcArea.containsMouse || dcArea.pressed
         // Smoothed signal so arcs animate live instead of jumping.
         // Disabled in staticMode: direct assignment, no animation churn.
@@ -1300,7 +1287,7 @@ ShellRoot {
                 id: tipText
                 anchors.centerIn: parent
                 text: root.charging ? "CHARGING" : root.batteryPercent + "%"
-                color: !root.charging && root.batteryPercent < 15 ? root.readableColor(root.barColor("error"), tip.color) : root.pillForeground(tip.color)
+                color: !root.charging && root.batteryPercent < 15 ? root.readableColor(root.barColor("error"), tip.color) : root.contrastColor(tip.color)
                 font.family: root.fontFamily
                 font.pixelSize: root.fontSize - 1
                 font.weight: Font.Normal
@@ -1532,29 +1519,25 @@ ShellRoot {
                     locked: root.lockActive
                     onUnlocked: {
                         lockActive = false
-                        Quickshell.execDetached(["sh", "-c", "rm -f '" + Quickshell.env("HOME") + "/.cache/quickshell/lock-request'"])
+                        Quickshell.execDetached(["rm", "-f", "--", lockReq.path])
                     }
                 }
             }
         }
     }
 
-function closeOverlays() {
+    function closeOverlays() {
         root.closeNotifCenter()
-        root.closeAppLauncher()
-        root.closeYtx()
-        root.closeWhatsApp()
-        root.closeClipboard()
-        root.closeNotes()
-        root.closeWallpaperPicker()
-        root.closeThemePicker()
+        appLauncherWin.dismiss()
+        ytxWin.dismiss()
+        whatsappWin.dismiss()
+        clipWin.dismiss()
+        notesWin.dismiss()
+        wallpaperWin.dismiss()
+        themeWin.dismiss()
         root.closeCalendar()
     }
 
-    // Shared overlay shell: fullscreen layer + lazy Loader held through
-    // the close fade, then unloaded from idle RAM. One definition replaces
-    // the 8 copy-pasted PanelWindow/Loader/Timer blocks below (launcher,
-    // ytx, whatsapp, clipboard, notes, wallpaper, theme, notifications).
     component OverlaySheet: PanelWindow {
         id: sheet
         required property string ns
@@ -1562,8 +1545,31 @@ function closeOverlays() {
         property Component content
         readonly property alias item: sheetLoader.item
         property bool ready: false
-        signal loaded()
-        function hold() { unloadTimer.restart() }
+        property bool busy: false
+        function setBusy(value) {
+            if (!value && !sheet.open)
+                unloadTimer.restart()
+            sheet.busy = value
+        }
+        function hold() {
+            if (sheet.open)
+                unloadTimer.restart()
+        }
+
+        function dismiss() {
+            if (!sheet.open) return
+            sheet.hold()
+            sheet.open = false
+        }
+
+        function toggle() {
+            if (sheet.open) {
+                sheet.dismiss()
+                return
+            }
+            root.closeOverlays()
+            sheet.open = true
+        }
         WlrLayershell.namespace: sheet.ns
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.keyboardFocus: sheet.open ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
@@ -1577,17 +1583,11 @@ function closeOverlays() {
         Loader {
             id: sheetLoader
             anchors.fill: parent
-            // Held loaded through the close fade by the timer below, then
-            // unloads the whole tree from idle RAM. hold() is called
-            // synchronously inside the close functions BEFORE the flag
-            // clears, so the item can never be destroyed mid-fade.
-            // The ready gate keeps freshly loaded content from popping in
-            // before its first frame (starts at animProgress 0).
-            active: sheet.open || unloadTimer.running
+            // Keep the content alive until the close animation finishes.
+            active: sheet.open || unloadTimer.running || sheet.busy
             sourceComponent: sheet.content
             onStatusChanged: { if (status === Loader.Null) sheet.ready = false }
             onLoaded: {
-                sheet.loaded()
                 Qt.callLater(() => sheet.ready = true)
             }
         }
@@ -1599,198 +1599,116 @@ function closeOverlays() {
         }
     }
 
-    property bool wallpaperActive: false
-
-    function openWallpaperPicker() {
-        if (root.wallpaperActive) return
-        root.closeOverlays()
-        root.wallpaperActive = true
-    }
-    function closeWallpaperPicker() {
-        wallpaperWin.hold()
-        root.wallpaperActive = false
-    }
-    function toggleWallpaperPicker() {
-        if (root.wallpaperActive) closeWallpaperPicker()
-        else openWallpaperPicker()
-    }
-
     IpcHandler {
         target: "wallpaper"
         function toggle(): void {
-            root.toggleWallpaperPicker()
+            wallpaperWin.toggle()
         }
-    }
-
-    property bool themeActive: false
-
-    function openThemePicker() {
-        if (root.themeActive) return
-        root.closeOverlays()
-        root.themeActive = true
-    }
-    function closeThemePicker() {
-        themeWin.hold()
-        root.themeActive = false
-    }
-    function toggleThemePicker() {
-        if (root.themeActive) closeThemePicker()
-        else openThemePicker()
     }
 
     IpcHandler {
         target: "theme"
         function toggle(): void {
-            root.toggleThemePicker()
+            themeWin.toggle()
         }
-    }
-
-    property bool launcherActive: false
-
-    function openAppLauncher() { root.closeOverlays(); root.launcherActive = true }
-    function closeAppLauncher() { appLauncherWin.hold(); root.launcherActive = false }
-    function toggleAppLauncher() {
-        if (root.launcherActive) root.closeAppLauncher()
-        else root.openAppLauncher()
     }
 
     IpcHandler {
         target: "launcher"
         function toggle(): void {
-            root.toggleAppLauncher()
+            appLauncherWin.toggle()
         }
     }
 
     OverlaySheet {
         id: appLauncherWin
         ns: "app-launcher"
-        open: root.launcherActive
         content: Component {
             AppLauncher {
                 anchors.fill: parent
                 rootRef: root
-                active: root.launcherActive && appLauncherWin.ready
-                onRequestClose: root.closeAppLauncher()
+                active: appLauncherWin.open && appLauncherWin.ready
+                onRequestClose: appLauncherWin.dismiss()
             }
         }
-    }
-
-    property bool ytxActive: false
-
-    function openYtx() { root.closeOverlays(); root.ytxActive = true }
-    function closeYtx() { ytxWin.hold(); root.ytxActive = false }
-    function toggleYtx() {
-        if (root.ytxActive) root.closeYtx()
-        else root.openYtx()
     }
 
     IpcHandler {
         target: "ytx"
         function toggle(): void {
-            root.toggleYtx()
+            ytxWin.toggle()
         }
     }
 
     OverlaySheet {
         id: ytxWin
         ns: "ytx-picker"
-        open: root.ytxActive
         content: Component {
             YtXLauncher {
                 anchors.fill: parent
                 rootRef: root
-                active: root.ytxActive && ytxWin.ready
-                onRequestClose: root.closeYtx()
+                active: ytxWin.open && ytxWin.ready
+                onRequestClose: ytxWin.dismiss()
             }
         }
-    }
-
-    property bool whatsappActive: false
-
-    function openWhatsApp() { root.closeOverlays(); root.whatsappActive = true }
-    function closeWhatsApp() { whatsappWin.hold(); root.whatsappActive = false }
-    function toggleWhatsApp() {
-        if (root.whatsappActive) root.closeWhatsApp()
-        else root.openWhatsApp()
     }
 
     IpcHandler {
         target: "whatsapp"
         function toggle(): void {
-            root.toggleWhatsApp()
+            whatsappWin.toggle()
         }
     }
 
     OverlaySheet {
         id: whatsappWin
         ns: "whatsapp-picker"
-        open: root.whatsappActive
         content: Component {
             WhatsApp {
                 anchors.fill: parent
                 rootRef: root
-                active: root.whatsappActive && whatsappWin.ready
-                onRequestClose: root.closeWhatsApp()
+                active: whatsappWin.open && whatsappWin.ready
+                onRequestClose: whatsappWin.dismiss()
             }
         }
-    }
-
-    property bool clipboardActive: false
-
-    function openClipboard() { root.closeOverlays(); root.clipboardActive = true }
-    function closeClipboard() { clipWin.hold(); root.clipboardActive = false }
-    function toggleClipboard() {
-        if (root.clipboardActive) root.closeClipboard()
-        else root.openClipboard()
     }
 
     IpcHandler {
         target: "clipboard"
         function toggle(): void {
-            root.toggleClipboard()
+            clipWin.toggle()
         }
     }
 
     OverlaySheet {
         id: clipWin
         ns: "clipboard-picker"
-        open: root.clipboardActive
         content: Component {
             Clipboard {
                 anchors.fill: parent
                 rootRef: root
-                active: root.clipboardActive && clipWin.ready
-                onRequestClose: root.closeClipboard()
+                active: clipWin.open && clipWin.ready
+                onRequestClose: clipWin.dismiss()
             }
         }
-    }
-
-    property bool notesActive: false
-
-    function openNotes() { root.closeOverlays(); root.notesActive = true }
-    function closeNotes() { notesWin.hold(); root.notesActive = false }
-    function toggleNotes() {
-        if (root.notesActive) root.closeNotes()
-        else root.openNotes()
     }
 
     IpcHandler {
         target: "notes"
         function toggle(): void {
-            root.toggleNotes()
+            notesWin.toggle()
         }
     }
 
     OverlaySheet {
         id: notesWin
         ns: "notes-picker"
-        open: root.notesActive
         content: Component {
             Notes {
                 anchors.fill: parent
                 rootRef: root
-                active: root.notesActive && notesWin.ready
-                onRequestClose: root.closeNotes()
+                active: notesWin.open && notesWin.ready
+                onRequestClose: notesWin.dismiss()
             }
         }
     }
@@ -1798,11 +1716,10 @@ function closeOverlays() {
     OverlaySheet {
         id: wallpaperWin
         ns: "wallpaper-picker"
-        open: root.wallpaperActive
         content: Component {
             WallpaperPicker {
                 anchors.fill: parent
-                visible_: root.wallpaperActive && wallpaperWin.ready
+                visible_: wallpaperWin.open && wallpaperWin.ready
 
                 surfaceColor: Qt.color(root.colorOf("surface_container"))
                 borderColor: Qt.color(root.colorOf("outline_variant"))
@@ -1813,14 +1730,8 @@ function closeOverlays() {
                 accentColor: Qt.color(root.colorOf("primary"))
                 iconFont: root.iconFont
                 uiFont: root.uiFont
-                onRequestClose: root.closeWallpaperPicker()
-            }
-        }
-        // Populate thumbs on open (item starts empty after unload).
-        onLoaded: { if (item) item.triggerIndexer() }
-        onVisibleChanged: {
-            if (visible && item) {
-                item.triggerIndexer()
+                onIsApplyingChanged: wallpaperWin.setBusy(isApplying)
+                onRequestClose: wallpaperWin.dismiss()
             }
         }
     }
@@ -1828,11 +1739,10 @@ function closeOverlays() {
     OverlaySheet {
         id: themeWin
         ns: "theme-picker"
-        open: root.themeActive
         content: Component {
             ThemePicker {
                 anchors.fill: parent
-                visible_: root.themeActive && themeWin.ready
+                visible_: themeWin.open && themeWin.ready
 
                 surfaceColor: Qt.color(root.colorOf("surface_container"))
                 borderColor: Qt.color(root.colorOf("outline_variant"))
@@ -1843,13 +1753,8 @@ function closeOverlays() {
                 accentColor: Qt.color(root.colorOf("primary"))
                 iconFont: root.iconFont
                 uiFont: root.uiFont
-                onRequestClose: root.closeThemePicker()
-            }
-        }
-        onLoaded: { if (item) item.triggerGenerator() }
-        onVisibleChanged: {
-            if (visible && item) {
-                item.triggerGenerator()
+                onIsApplyingChanged: themeWin.setBusy(isApplying)
+                onRequestClose: themeWin.dismiss()
             }
         }
     }
@@ -1872,8 +1777,6 @@ function closeOverlays() {
         }
     }
 
-    // Timer restarted FIRST so the Loader hold is established before
-    // centerOpen clears; the item can never be destroyed mid-fade.
     function closeNotifCenter() {
         notifWin.hold()
         notifSvc.closeCenter()
@@ -1898,14 +1801,16 @@ function closeOverlays() {
             }
         }
 
-        onVisibleChanged: {
-            if (!visible) return
+        onOpenChanged: {
+            if (!open) return
             // Center-only data: fetch on open instead of polling at idle.
             if (!mediaProc.running) mediaProc.running = true
             if (!weatherWeekProc.running) weatherWeekProc.running = true
             root.refreshStorage()
-            var it = item
-            if (it) Qt.callLater(() => it.forceActiveFocus())
+            Qt.callLater(() => {
+                if (notifWin.open && notifWin.item)
+                    notifWin.item.forceActiveFocus()
+            })
         }
     }
 
@@ -1936,11 +1841,6 @@ function closeOverlays() {
                 item: barRow
             }
 
-            readonly property string outputName: modelData ? modelData.name : ""
-
-            Component.onCompleted: {
-                root.registerCalendarAnchor(outputName, clockPill, modelData, bar)
-            }
 
             Item {
                 id: barContent
@@ -2043,11 +1943,7 @@ function closeOverlays() {
                             BluetoothIcon { tint: btPill.pillTextColor }
                         }
 
-                        clickArea.onClicked: {
-                            btCmd.command = ["sh", "-c", "bluetoothctl disconnect"]
-                            btCmd.running = true
-                            btProc.running = true
-                        }
+                        clickArea.onClicked: btCmd.running = true
                     }
 
                     Module {
@@ -2066,16 +1962,11 @@ function closeOverlays() {
                             }
                         }
 
-                        clickArea.onClicked: {
-                            volCmd.command = ["sh", "-c", Quickshell.shellDir + "/scripts/vol.sh mute"]
-                            volCmd.running = true
-                            volProc.running = true
-                        }
-                        wheelArea.onWheel: event => {
-                            var delta = event.angleDelta.y > 0 ? "+5%" : "-5%"
-                            volCmd.command = ["sh", "-c", Quickshell.shellDir + "/scripts/vol.sh set " + delta]
-                            volCmd.running = true
-                            volProc.running = true
+                        clickArea.onClicked: volCmd.enqueue(["mute"])
+                        clickArea.onWheel: event => {
+                            if (event.angleDelta.y === 0) return
+                            const delta = event.angleDelta.y > 0 ? "+5%" : "-5%"
+                            volCmd.enqueue(["set", delta])
                             event.accepted = true
                         }
                     }
@@ -2100,10 +1991,10 @@ function closeOverlays() {
                     Rectangle {
                         id: clockPill
                         property int enterOrder: 8
-                        property color tint: (calLoader.item ? calLoader.item.visible : false)
+                        property color tint: root.calDemand
                             ? root.mixColor(root.barColor("tertiary_container"), "#ffffff", 0.3)
                             : root.barColor("tertiary_container")
-                        readonly property color pillTextColor: root.pillForeground(clockPill.color)
+                        readonly property color pillTextColor: root.contrastColor(clockPill.color)
                         readonly property color dimTextColor: Qt.rgba(pillTextColor.r, pillTextColor.g, pillTextColor.b, 0.62)
 
                         implicitWidth: clockRow.implicitWidth + 20
@@ -2248,7 +2139,7 @@ function closeOverlays() {
                             acceptedButtons: Qt.LeftButton | Qt.RightButton
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: root.openCalendarForOutput(bar.outputName)
+                            onClicked: root.toggleCalendar(clockPill, bar.screen, bar)
                         }
 
                         scale: clockArea.pressed ? 0.94 : clockArea.containsMouse ? 1.06 : 1.0
@@ -2259,32 +2150,17 @@ function closeOverlays() {
         }
     }
 
-    // Calendar is lazy-loaded: nothing (notes FileView, timers, day grid)
-    // exists until first open; unloads after the close fade.
     property bool calDemand: false
-    property var calPendingEntry: null
+    property var calEntry: null
     Loader {
         id: calLoader
-        // Held loaded through the close fade by calUnload, then unloads
-        // notes FileView, timers and the day grid from idle RAM. The timer
-        // is restarted synchronously inside closeCalendar() BEFORE calDemand
-        // clears, so the item can never be destroyed early.
         active: root.calDemand || calUnload.running
         sourceComponent: Component {
             Calendar {
                 rootRef: root
             }
         }
-        onLoaded: {
-            if (root.calPendingEntry) {
-                var e = root.calPendingEntry
-                root.calPendingEntry = null
-                item.anchorItem = e.anchor || null
-                item.anchorWin = e.win || null
-                if (e.screen) item.screen = e.screen
-            }
-            item.open()
-        }
+        onLoaded: root.showCalendar()
     }
 
     Timer {

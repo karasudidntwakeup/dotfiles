@@ -27,11 +27,11 @@ PanelWindow {
 
     readonly property string cacheDir: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/quickshell/wallpaper"
 
-    // Displayed image (file:// URL). Front/back pair enables crossfade.
-    property string shown: ""
-    property string backSrc: ""
-    property string frontSrc: ""
-    property bool firstLoad: true
+    property string requestedSource: ""
+    property string requestedEffect: "fade"
+    property WallpaperLayer currentLayer: layerA
+    readonly property WallpaperLayer incomingLayer: currentLayer === layerA ? layerB : layerA
+
     // Transition state for the incoming front image.
     property string fx: "fade"
     property int fxDur: 600
@@ -41,7 +41,7 @@ PanelWindow {
     property real frontScale: 1
 
     function isGif(p) {
-        return String(p || "").toLowerCase().endsWith(".gif")
+        return String(p || "").toLowerCase().split(/[?#]/)[0].endsWith(".gif")
     }
 
     // Duration table mirrors wallpaper_apply.sh TRANSITION_PRESET map.
@@ -77,33 +77,45 @@ PanelWindow {
     function showWallpaper(path, transition) {
         var p = String(path || "").trim()
         if (p.length === 0) return
-        var url = (p.indexOf("file://") === 0) ? p : "file://" + p
-        if (url === bg.shown && !bg.firstLoad) return
-        var t = String(transition || bg.fx || "fade").trim().split(/\s+/)[0] || "fade"
-        if (bg.firstLoad) {
-            // Instant on session start: no flash of black, no anim.
-            bg.fx = t
-            bg.backSrc = url
-            bg.frontSrc = ""
-            bg.shown = url
-            bg.firstLoad = false
+        bg.requestedSource = p.startsWith("file://") ? p : "file://" + p.split("/").map(encodeURIComponent).join("/")
+        bg.requestedEffect = String(transition || "fade").trim().split(/\s+/)[0] || "fade"
+        Qt.callLater(bg.updateWallpaper)
+    }
+
+    function updateWallpaper() {
+        if (anim.running || !bg.requestedSource) return
+
+        var incoming = bg.incomingLayer
+        if (bg.requestedSource === bg.currentLayer.imageSource) {
+            incoming.imageSource = ""
             return
         }
-        bg.fx = t
-        bg.fxDur = durFor(t)
-        if (bg.fxDur <= 0) {
-            bg.backSrc = url
-            bg.frontSrc = ""
-            bg.shown = url
+
+        if (incoming.imageSource !== bg.requestedSource) {
+            incoming.imageSource = bg.requestedSource
+            // Let the image source bindings update before checking status.
+            Qt.callLater(bg.updateWallpaper)
             return
         }
-        bg.backSrc = bg.shown
-        bg.frontSrc = url
+        if (incoming.loadStatus !== Image.Ready) return
+
+        bg.fx = bg.requestedEffect
+        bg.fxDur = durFor(bg.fx)
+        if (!bg.currentLayer.imageSource || bg.fxDur === 0) {
+            finishWallpaper()
+            return
+        }
+
         setupFront()
-        // Restart from the next tick so source/binding propagation settles
-        // before the animation runs (same pattern as the pickers).
-        anim.running = false
-        Qt.callLater(function () { anim.running = true })
+        anim.start()
+    }
+
+    function finishWallpaper() {
+        var previous = bg.currentLayer
+        bg.currentLayer = bg.incomingLayer
+        previous.imageSource = ""
+        bg.frontOp = 0
+        Qt.callLater(bg.updateWallpaper)
     }
 
     function setupFront() {
@@ -114,7 +126,7 @@ PanelWindow {
         bg.frontX = 0
         bg.frontY = 0
         bg.frontScale = 1
-        frontItem.transformOrigin = Item.Center
+        bg.incomingLayer.transformOrigin = Item.Center
         switch (bg.fx) {
         case "simple":
         case "fade":
@@ -161,11 +173,11 @@ PanelWindow {
             break
         case "grow-corner":
             bg.frontScale = 0.3
-            frontItem.transformOrigin = Item.BottomRight
+            bg.incomingLayer.transformOrigin = Item.BottomRight
             break
         case "grow-top":
             bg.frontScale = 0.3
-            frontItem.transformOrigin = Item.Top
+            bg.incomingLayer.transformOrigin = Item.Top
             break
         case "iris":
         case "center":
@@ -176,7 +188,7 @@ PanelWindow {
             // Deterministic pseudo-random origin from path length so the
             // "anywhere" preset varies without extra state.
             var origins = [Item.TopLeft, Item.TopRight, Item.BottomLeft, Item.BottomRight, Item.Center]
-            frontItem.transformOrigin = origins[bg.frontSrc.length % origins.length]
+            bg.incomingLayer.transformOrigin = origins[bg.incomingLayer.imageSource.length % origins.length]
             break
         case "implode":
         case "outer":
@@ -185,7 +197,7 @@ PanelWindow {
         case "ripple":
             // Anchored at bottom-left (matches the picker preset map).
             bg.frontScale = 1.4
-            frontItem.transformOrigin = Item.BottomLeft
+            bg.incomingLayer.transformOrigin = Item.BottomLeft
             break
         case "left":
             bg.frontX = -W
@@ -204,52 +216,44 @@ PanelWindow {
         }
     }
 
-    // Back (old) image, static.
-    Image {
-        id: backImg
-        anchors.fill: parent
-        fillMode: Image.PreserveAspectCrop
-        asynchronous: true
-        cache: true
-        source: bg.backSrc
-        visible: bg.backSrc !== ""
-    }
-    // Animated back for gifs.
-    AnimatedImage {
-        anchors.fill: parent
-        fillMode: Image.PreserveAspectCrop
-        asynchronous: true
-        cache: true
-        source: bg.isGif(bg.backSrc) ? bg.backSrc : ""
-        visible: bg.isGif(bg.backSrc)
-        playing: visible
+    // Keep the decoded image in its own layer when it becomes the wallpaper.
+    component WallpaperLayer: Item {
+        id: wallpaperLayer
+        property string imageSource: ""
+        readonly property bool animated: bg.isGif(imageSource)
+        readonly property int loadStatus: animated ? animatedImage.status : stillImage.status
+        readonly property bool current: bg.currentLayer === wallpaperLayer
+
+        width: parent.width
+        height: parent.height
+        z: current ? 0 : 1
+        opacity: current ? 1 : bg.frontOp
+        x: current ? 0 : bg.frontX
+        y: current ? 0 : bg.frontY
+        scale: current ? 1 : bg.frontScale
+
+        onLoadStatusChanged: Qt.callLater(bg.updateWallpaper)
+
+        Image {
+            id: stillImage
+            anchors.fill: parent
+            fillMode: Image.PreserveAspectCrop
+            asynchronous: true
+            source: wallpaperLayer.animated ? "" : wallpaperLayer.imageSource
+        }
+
+        AnimatedImage {
+            id: animatedImage
+            anchors.fill: parent
+            fillMode: Image.PreserveAspectCrop
+            asynchronous: true
+            source: wallpaperLayer.animated ? wallpaperLayer.imageSource : ""
+            playing: wallpaperLayer.current || anim.running
+        }
     }
 
-    // Front (incoming) container: position/scale/opacity animated.
-    Item {
-        id: frontItem
-        anchors.fill: parent
-        opacity: bg.frontOp
-        // Static front.
-        Image {
-            anchors.fill: parent
-            fillMode: Image.PreserveAspectCrop
-            asynchronous: true
-            cache: true
-            source: (!bg.isGif(bg.frontSrc)) ? bg.frontSrc : ""
-            visible: bg.frontSrc !== "" && !bg.isGif(bg.frontSrc)
-        }
-        // Animated front for gifs.
-        AnimatedImage {
-            anchors.fill: parent
-            fillMode: Image.PreserveAspectCrop
-            asynchronous: true
-            cache: true
-            source: bg.isGif(bg.frontSrc) ? bg.frontSrc : ""
-            visible: bg.frontSrc !== "" && bg.isGif(bg.frontSrc)
-            playing: visible
-        }
-    }
+    WallpaperLayer { id: layerA }
+    WallpaperLayer { id: layerB }
 
     ParallelAnimation {
         id: anim
@@ -258,21 +262,8 @@ PanelWindow {
         NumberAnimation { target: bg; property: "frontX"; to: 0; duration: bg.fxDur; easing.type: Easing.InOutQuad }
         NumberAnimation { target: bg; property: "frontY"; to: 0; duration: bg.fxDur; easing.type: Easing.InOutQuad }
         NumberAnimation { target: bg; property: "frontScale"; to: 1; duration: bg.fxDur; easing.type: Easing.OutQuad }
-        onFinished: {
-            bg.backSrc = bg.frontSrc
-            bg.shown = bg.frontSrc
-            bg.frontSrc = ""
-            bg.frontOp = 0
-            bg.frontX = 0
-            bg.frontY = 0
-            bg.frontScale = 1
-        }
+        onFinished: bg.finishWallpaper()
     }
-
-    // Bind animated geometry to the container.
-    Binding { target: frontItem; property: "x"; value: bg.frontX }
-    Binding { target: frontItem; property: "y"; value: bg.frontY }
-    Binding { target: frontItem; property: "scale"; value: bg.frontScale }
 
     FileView {
         id: curFile
@@ -280,28 +271,19 @@ PanelWindow {
         watchChanges: true
         blockLoading: true
         onFileChanged: curFile.reload()
-        onLoaded: bg.showWallpaper(String(curFile.text()).trim(), transFile.preset)
+        onLoaded: {
+            transFile.wallpaperPath = curFile.text()
+            transFile.reload()
+        }
         onLoadFailed: error => console.log("[wallpaper] current.txt:", error)
     }
 
     FileView {
         id: transFile
-        // NOTE: named `preset`, not `text` — FileView already has text().
-        property string preset: "fade"
+        property string wallpaperPath: ""
         path: bg.cacheDir + "/transition.txt"
-        watchChanges: true
         blockLoading: true
-        onFileChanged: transFile.reload()
-        onLoaded: {
-            var t = String(transFile.text() || "").trim().split(/\s+/)[0] || "fade"
-            transFile.preset = t
-            bg.fx = t
-        }
-        onLoadFailed: { transFile.preset = "fade"; bg.fx = "fade" }
-    }
-
-    Component.onCompleted: {
-        curFile.reload()
-        transFile.reload()
+        onLoaded: bg.showWallpaper(wallpaperPath, transFile.text())
+        onLoadFailed: bg.showWallpaper(wallpaperPath, "fade")
     }
 }

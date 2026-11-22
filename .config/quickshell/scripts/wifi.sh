@@ -37,20 +37,24 @@ if [ -n "$ip" ]; then
         signal=100
     fi
 
-    # download speed (bytes/sec) sampled from rx counter between polls
+    # Sample the receive counter against the previous poll.
     rxnow="$(cat "/sys/class/net/$iface/statistics/rx_bytes" 2>/dev/null)"
-    if [ -n "$rxnow" ] && [ "$rxnow" -gt 0 ] 2>/dev/null; then
-        statefile="/tmp/wifi-down-${iface}.state"
-        old="$(cat "$statefile" 2>/dev/null)"
+    state_dir="${XDG_RUNTIME_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}}/quickshell"
+    if [ -n "$rxnow" ] && (umask 077 && mkdir -p -- "$state_dir"); then
+        statefile="$state_dir/wifi-down-$iface.state"
         now="$(date +%s)"
-        echo "$now $rxnow" > "$statefile"
-        if [ -n "$old" ]; then
-            set -- $old
-            [ "$now" -gt "$1" ] && {
-                drx=$(( rxnow - $2 ))
-                [ "$drx" -lt 0 ] && drx=0
-                down=$(( drx / (now - "$1") ))
-            }
+        old_time=''
+        old_rx=''
+        if [ -f "$statefile" ]; then
+            read -r old_time old_rx < "$statefile" || :
+        fi
+        if [ "$now" -gt "${old_time:-0}" ] 2>/dev/null &&
+           [ -n "$old_time" ] && [ "$rxnow" -ge "${old_rx:-0}" ] 2>/dev/null; then
+            down=$(( (rxnow - old_rx) / (now - old_time) ))
+        fi
+        if sample="$(mktemp "$state_dir/.wifi-down-XXXXXXXX")"; then
+            printf '%s %s\n' "$now" "$rxnow" > "$sample" &&
+                mv -f -- "$sample" "$statefile" || rm -f -- "$sample"
         fi
     fi
 fi

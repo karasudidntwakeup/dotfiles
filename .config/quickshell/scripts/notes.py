@@ -15,6 +15,7 @@ Commands:
   copy <id>            (copies to clipboard via wl-copy)
   clear
 """
+import fcntl
 import json
 import os
 import sys
@@ -155,7 +156,7 @@ def print_error(msg):
     sys.stderr.write(msg + "\n")
 
 
-def main():
+def run_command():
     if len(sys.argv) < 2:
         print_error("usage: notes.py <list|add|update|toggle-pin|pin|unpin|"
                     "set-color|duplicate|delete|copy|clear>")
@@ -269,6 +270,18 @@ def main():
 
     print_error("unknown command: " + cmd)
     return 1
+
+
+def main():
+    if len(sys.argv) < 2 or sys.argv[1] in ("list", "copy"):
+        return run_command()
+
+    # Atomic replacement protects readers. Lock the whole read/modify/write
+    # transaction so simultaneous shell processes cannot lose each other's edits.
+    os.makedirs(os.path.dirname(STORE), exist_ok=True)
+    with open(STORE + ".lock", "a", encoding="utf-8") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        return run_command()
 
 
 if __name__ == "__main__":

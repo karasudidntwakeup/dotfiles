@@ -7,221 +7,221 @@
    light variants live in the *_light roles below, so colors.js carries
    both modes no matter which --mode matugen ran with). */
 
-var primary = "#61e2ff"
+var primary = "#1a1a1a"
 
-var on_primary = "#1f1c2b"
+var on_primary = "#000000"
 
-var primary_container = "#61e2ff"
+var primary_container = "#3e3e3e"
 
-var on_primary_container = "#1f1c2b"
+var on_primary_container = "#000000"
 
-var inverse_primary = "#af6df9"
+var inverse_primary = "#2e2e2e"
 
-var primary_fixed = "#61e2ff"
+var primary_fixed = "#3e3e3e"
 
-var primary_fixed_dim = "#61e2ff"
+var primary_fixed_dim = "#1a1a1a"
 
-var on_primary_fixed = "#1f1c2b"
+var on_primary_fixed = "#000000"
 
-var on_primary_fixed_variant = "#545076"
+var on_primary_fixed_variant = "#000000"
 
-var secondary = "#72f1b8"
+var secondary = "#3a3a3a"
 
-var on_secondary = "#1f1c2b"
+var on_secondary = "#000000"
 
-var secondary_container = "#ffcc00"
+var secondary_container = "#4a4a4a"
 
-var on_secondary_container = "#1f1c2b"
+var on_secondary_container = "#000000"
 
-var secondary_fixed = "#ffcc00"
+var secondary_fixed = "#4a4a4a"
 
-var secondary_fixed_dim = "#72f1b8"
+var secondary_fixed_dim = "#3a3a3a"
 
-var on_secondary_fixed = "#1f1c2b"
+var on_secondary_fixed = "#000000"
 
-var on_secondary_fixed_variant = "#545076"
+var on_secondary_fixed_variant = "#000000"
 
-var tertiary = "#ff8b39"
+var tertiary = "#4a4a4a"
 
-var on_tertiary = "#1f1c2b"
+var on_tertiary = "#000000"
 
-var tertiary_container = "#fe4450"
+var tertiary_container = "#2e2e2e"
 
-var on_tertiary_container = "#61e2ff"
+var on_tertiary_container = "#000000"
 
-var tertiary_fixed = "#fe4450"
+var tertiary_fixed = "#2e2e2e"
 
-var tertiary_fixed_dim = "#ff8b39"
+var tertiary_fixed_dim = "#4a4a4a"
 
-var on_tertiary_fixed = "#61e2ff"
+var on_tertiary_fixed = "#000000"
 
-var on_tertiary_fixed_variant = "#545076"
+var on_tertiary_fixed_variant = "#000000"
 
-var error = "#fe4450"
+var error = "#2a2a2a"
 
-var on_error = "#61e2ff"
+var on_error = "#000000"
 
-var error_container = "#40dbfc"
+var error_container = "#2a2a2a"
 
-var on_error_container = "#1f1c2b"
+var on_error_container = "#000000"
 
-var background = "#1f1c2b"
+var background = "#e8e8e8"
 
-var on_background = "#61e2ff"
+var on_background = "#000000"
 
-var surface = "#1f1c2b"
+var surface = "#e8e8e8"
 
-var on_surface = "#61e2ff"
+var on_surface = "#000000"
 
-var surface_variant = "#383550"
+var surface_variant = "#e8e8e8"
 
-var on_surface_variant = "#dbe3e3"
+var on_surface_variant = "#808080"
 
-var surface_dim = "#262335"
+var surface_dim = "#ffffff"
 
-var surface_bright = "#383550"
+var surface_bright = "#e8e8e8"
 
-var surface_tint = "#61e2ff"
+var surface_tint = "#1a1a1a"
 
-var inverse_surface = "#4a476b"
+var inverse_surface = "#808080"
 
-var inverse_on_surface = "#262335"
+var inverse_on_surface = "#ffffff"
 
-var outline = "#56537d"
+var outline = "#000000"
 
-var outline_variant = "#545076"
+var outline_variant = "#000000"
 
 var scrim = "#000000"
 
 var shadow = "#000000"
 
-var source = "#61e2ff"
+var source = "#1a1a1a"
 
 /* Popup surface tones: neutral + raised variants used by popups. */
-var surface_container_lowest = "#262335"
+var surface_container_lowest = "#ffffff"
 
-var surface_container_low = "#2c293e"
+var surface_container_low = "#f5f5f5"
 
-var surface_container = "#322f47"
+var surface_container = "#f5f5f5"
 
-var surface_container_high = "#383550"
+var surface_container_high = "#e8e8e8"
 
-var surface_container_highest = "#3e3b59"
+var surface_container_highest = "#d6d6d6"
 
 /* Light scheme variants (QS "Light" mode pill backgrounds) */
 
-var primary_light = "#61e2ff"
+var primary_light = "#1a1a1a"
 
-var on_primary_light = "#1f1c2b"
+var on_primary_light = "#000000"
 
-var primary_container_light = "#61e2ff"
+var primary_container_light = "#3e3e3e"
 
-var on_primary_container_light = "#1f1c2b"
+var on_primary_container_light = "#000000"
 
-var inverse_primary_light = "#af6df9"
+var inverse_primary_light = "#2e2e2e"
 
-var primary_fixed_light = "#61e2ff"
+var primary_fixed_light = "#3e3e3e"
 
-var primary_fixed_dim_light = "#61e2ff"
+var primary_fixed_dim_light = "#1a1a1a"
 
-var on_primary_fixed_light = "#1f1c2b"
+var on_primary_fixed_light = "#000000"
 
-var on_primary_fixed_variant_light = "#545076"
+var on_primary_fixed_variant_light = "#000000"
 
-var secondary_light = "#72f1b8"
+var secondary_light = "#3a3a3a"
 
-var on_secondary_light = "#1f1c2b"
+var on_secondary_light = "#000000"
 
-var secondary_container_light = "#ffcc00"
+var secondary_container_light = "#4a4a4a"
 
-var on_secondary_container_light = "#1f1c2b"
+var on_secondary_container_light = "#000000"
 
-var secondary_fixed_light = "#ffcc00"
+var secondary_fixed_light = "#4a4a4a"
 
-var secondary_fixed_dim_light = "#72f1b8"
+var secondary_fixed_dim_light = "#3a3a3a"
 
-var on_secondary_fixed_light = "#1f1c2b"
+var on_secondary_fixed_light = "#000000"
 
-var on_secondary_fixed_variant_light = "#545076"
+var on_secondary_fixed_variant_light = "#000000"
 
-var tertiary_light = "#ff8b39"
+var tertiary_light = "#4a4a4a"
 
-var on_tertiary_light = "#1f1c2b"
+var on_tertiary_light = "#000000"
 
-var tertiary_container_light = "#fe4450"
+var tertiary_container_light = "#2e2e2e"
 
-var on_tertiary_container_light = "#61e2ff"
+var on_tertiary_container_light = "#000000"
 
-var tertiary_fixed_light = "#fe4450"
+var tertiary_fixed_light = "#2e2e2e"
 
-var tertiary_fixed_dim_light = "#ff8b39"
+var tertiary_fixed_dim_light = "#4a4a4a"
 
-var on_tertiary_fixed_light = "#61e2ff"
+var on_tertiary_fixed_light = "#000000"
 
-var on_tertiary_fixed_variant_light = "#545076"
+var on_tertiary_fixed_variant_light = "#000000"
 
-var error_light = "#fe4450"
+var error_light = "#2a2a2a"
 
-var on_error_light = "#61e2ff"
+var on_error_light = "#000000"
 
-var error_container_light = "#40dbfc"
+var error_container_light = "#2a2a2a"
 
-var on_error_container_light = "#1f1c2b"
+var on_error_container_light = "#000000"
 
-var background_light = "#1f1c2b"
+var background_light = "#e8e8e8"
 
-var on_background_light = "#61e2ff"
+var on_background_light = "#000000"
 
-var surface_light = "#1f1c2b"
+var surface_light = "#e8e8e8"
 
-var on_surface_light = "#61e2ff"
+var on_surface_light = "#000000"
 
-var surface_variant_light = "#383550"
+var surface_variant_light = "#e8e8e8"
 
-var on_surface_variant_light = "#dbe3e3"
+var on_surface_variant_light = "#808080"
 
-var surface_dim_light = "#262335"
+var surface_dim_light = "#ffffff"
 
-var surface_bright_light = "#383550"
+var surface_bright_light = "#e8e8e8"
 
-var surface_tint_light = "#61e2ff"
+var surface_tint_light = "#1a1a1a"
 
-var inverse_surface_light = "#4a476b"
+var inverse_surface_light = "#808080"
 
-var inverse_on_surface_light = "#262335"
+var inverse_on_surface_light = "#ffffff"
 
-var outline_light = "#56537d"
+var outline_light = "#000000"
 
-var outline_variant_light = "#545076"
+var outline_variant_light = "#000000"
 
 var scrim_light = "#000000"
 
 var shadow_light = "#000000"
 
-var source_light = "#61e2ff"
+var source_light = "#1a1a1a"
 
-var surface_container_lowest_light = "#262335"
+var surface_container_lowest_light = "#ffffff"
 
-var surface_container_low_light = "#2c293e"
+var surface_container_low_light = "#f5f5f5"
 
-var surface_container_light = "#322f47"
+var surface_container_light = "#f5f5f5"
 
-var surface_container_high_light = "#383550"
+var surface_container_high_light = "#e8e8e8"
 
-var surface_container_highest_light = "#3e3b59"
+var surface_container_highest_light = "#d6d6d6"
 
 /* Custom widget colors */
-var prayer = "#ffcc00"
+var prayer = "#4a4a4a"
 
-var prayer_light = "#ffcc00"
+var prayer_light = "#4a4a4a"
 
-var keymap = "#af6df9"
+var keymap = "#2e2e2e"
 
-var keymap_light = "#af6df9"
+var keymap_light = "#2e2e2e"
 
-var wifi = "#ff8b39"
+var wifi = "#4a4a4a"
 
-var wifi_light = "#ff8b39"
+var wifi_light = "#4a4a4a"
 
 /* Widget colors: each quickshell component gets its own distinct hue.
    launcher  -> primary_container   (sapphire/blue)
@@ -233,65 +233,45 @@ var wifi_light = "#ff8b39"
    prayer    -> secondary_container (yellow)
    keymap    -> inverse_primary     (mauve)
    wifi      -> tertiary            (peach) */
-var ytx_card = "#fe4450"
+var ytx_card = "#2e2e2e"
 
-var ytx_card_light = "#fe4450"
+var ytx_card_light = "#2e2e2e"
 
-var widget_card = "#ff8b39"
+var widget_card = "#4a4a4a"
 
-var widget_card_light = "#ff8b39"
+var widget_card_light = "#4a4a4a"
 
-var launcher_card = "#61e2ff"
+var launcher_card = "#3e3e3e"
 
-var launcher_card_light = "#61e2ff"
+var launcher_card_light = "#3e3e3e"
 
-var notes_card = "#61e2ff"
+var notes_card = "#1a1a1a"
 
-var notes_card_light = "#61e2ff"
+var notes_card_light = "#1a1a1a"
 
-var whatsapp_card = "#72f1b8"
+var whatsapp_card = "#3a3a3a"
 
-var whatsapp_card_light = "#72f1b8"
+var whatsapp_card_light = "#3a3a3a"
 
-var notif_card = "#fe4450"
+var notif_card = "#2e2e2e"
 
-var notif_card_light = "#fe4450"
+var notif_card_light = "#2e2e2e"
 
-var widget_accent = "#61e2ff"
+var widget_accent = "#1a1a1a"
 
-var widget_accent_light = "#61e2ff"
+var widget_accent_light = "#1a1a1a"
 
-var widget_border = "#545076"
+var widget_border = "#000000"
 
-var widget_border_light = "#545076"
+var widget_border_light = "#000000"
 
-var widget_error = "#fe4450"
+var widget_error = "#2a2a2a"
 
-var widget_error_light = "#fe4450"
+var widget_error_light = "#2a2a2a"
 
 /* Matugen accent green/mauve */
-var green = "#72f1b8"
-var green_light = "#66ff66"
-var mauve = "#af6df9"
-var mauve_light = "#b266ff"
+var green = "#9e9e9e"
+var green_light = "#b2b2b2"
+var mauve = "#9e9e9e"
+var mauve_light = "#b2b2b2"
 
-
-/* Widget colors pinned by color-scheme picker */
-var ytx_card = "#b93a86"
-var ytx_card_light = "#b93a86"
-var widget_card = "#d15704"
-var widget_card_light = "#d15704"
-var launcher_card = "#0598bc"
-var launcher_card_light = "#0598bc"
-var notes_card = "#0d7fdd"
-var notes_card_light = "#0d7fdd"
-var whatsapp_card = "#18654b"
-var whatsapp_card_light = "#18654b"
-var notif_card = "#b93a86"
-var notif_card_light = "#b93a86"
-var widget_accent = "#0d7fdd"
-var widget_accent_light = "#0d7fdd"
-var widget_border = "#bcbec0"
-var widget_border_light = "#bcbec0"
-var widget_error = "#de2c2e"
-var widget_error_light = "#de2c2e"

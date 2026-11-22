@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Layouts
 import QtQuick.Effects
 import Qt.labs.folderlistmodel
 import Quickshell
@@ -343,6 +342,7 @@ Item {
             window.applyStatus = ""
         }
         if (window.visible_) {
+            window.triggerIndexer()
             window.refreshCurrent()
             window.refreshTransition()
             view.forceActiveFocus()

@@ -1278,7 +1278,23 @@ if [ -f "$CACHE/apply.log" ] && [ "$(stat -c %s "$CACHE/apply.log" 2>/dev/null |
 fi
 
 echo "@@stage theme"
-matugen "${MATUGEN[@]}" --mode "$MODE"
+# Replace the legacy Foot hook for this run. It broadcasts the first
+# palette in foot.ini to every terminal before the mode is selected.
+MATUGEN_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/matugen/config.toml"
+if [ -r "$MATUGEN_CONFIG" ]; then
+  RUN_CONFIG=$(mktemp "$CACHE/matugen.XXXXXX.toml")
+  trap 'rm -f -- "$RUN_CONFIG"' EXIT
+  awk '
+    /^[[:space:]]*\[/ { in_foot = ($0 ~ /^[[:space:]]*\[templates[.]foot\][[:space:]]*($|#)/) }
+    in_foot && /^[[:space:]]*post_hook[[:space:]]*=/ && /foot-live[.]sh/ { next }
+    { print }
+  ' "$MATUGEN_CONFIG" > "$RUN_CONFIG"
+  matugen --config "$RUN_CONFIG" "${MATUGEN[@]}" --mode "$MODE"
+else
+  matugen "${MATUGEN[@]}" --mode "$MODE"
+fi
+
+python3 "$SCRIPT_DIR/foot_colors.py" "$MODE"
 
 # Accent green/mauve into colors.js: preset runs already carry native theme
 # green/mauve roles; image runs get them by hue-rotating the source color so
@@ -1354,22 +1370,20 @@ fi
 # Wallpaper was already set (fast fade) before theming — nothing left to do
 # here except remember the selection.
 
-# System light/dark: GTK + icons + portal color-scheme + terminal + Qt.
+# System light/dark: GTK + icons + portal color-scheme + Qt.
 # matugen only recolors its own templates; the desktop itself follows these
 # settings, so the picker mode drives the whole system, not just wallpaper
 # apps. LibreWolf/Electron follow the portal automatically (no hardcoded
 # prefs); Qt/GTK2/Xwayland read the config files below.
 apply_system_theme() {
   local mode="$1" # light | dark
-  local gtk_theme icon_theme color_scheme prefer_dark wm_theme qt_scheme foot_sig foot_init
+  local gtk_theme icon_theme color_scheme prefer_dark wm_theme qt_scheme
   if [ "$mode" = "light" ]; then
     gtk_theme="adw-gtk3"; icon_theme="MacTahoe-light"; color_scheme="prefer-light"
     prefer_dark=0; wm_theme="Adwaita"; qt_scheme="airy.conf"
-    foot_sig="-USR2"; foot_init="light"
   else
     gtk_theme="adw-gtk3-dark"; icon_theme="MacTahoe-dark"; color_scheme="prefer-dark"
     prefer_dark=1; wm_theme="Adwaita-dark"; qt_scheme="darker.conf"
-    foot_sig="-USR1"; foot_init="dark"
   fi
   # Live settings: running GTK apps + xdg-desktop-portal read these.
   gsettings set org.gnome.desktop.interface gtk-theme "$gtk_theme" 2>/dev/null || true
@@ -1390,9 +1404,6 @@ apply_system_theme() {
   [ -f "$HOME/.gtkrc-2.0" ] && sed -i "s/^gtk-icon-theme-name=.*/gtk-icon-theme-name=\"$icon_theme\"/" "$HOME/.gtkrc-2.0" || true
   # Qt5ct palette.
   [ -f "$HOME/.config/qt5ct/qt5ct.conf" ] && sed -i "s|^color_scheme_path=.*|color_scheme_path=/usr/share/qt5ct/colors/$qt_scheme|" "$HOME/.config/qt5ct/qt5ct.conf" || true
-  # Foot: default for new windows + live-switch running ones.
-  [ -f "$HOME/.config/foot/foot.ini" ] && sed -i "s/^initial-color-theme=.*/initial-color-theme=$foot_init/" "$HOME/.config/foot/foot.ini" || true
-  pkill "$foot_sig" foot 2>/dev/null || true
 }
 
 # QuickShell only: write the chosen light/dark mode for the bar to read.
@@ -1402,10 +1413,5 @@ printf '%s\n' "$QUICK" > "$QUICK_THEME_FILE"
 
 echo "@@stage system"
 apply_system_theme "$MODE"
-
-# Remember the last applied wallpaper so the picker can preselect it.
-printf '%s\n' "$IMG" > "$CACHE/current.txt"
-printf '%s\n%s\n' "$SCHEME" "$HEX" > "$CACHE/scheme.txt.tmp"
-mv -f "$CACHE/scheme.txt.tmp" "$CACHE/scheme.txt"
 
 exit 0

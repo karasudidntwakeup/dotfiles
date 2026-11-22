@@ -165,12 +165,11 @@ PanelWindow {
     }
 
     function open() {
-        if (calPopup.visible) {
-            calPopup.close()
-            return
-        }
-        calPopup.shownYear = new Date().getFullYear()
-        calPopup.shownMonth = new Date().getMonth()
+        if (calPopup.visible)
+            calPopup.visible = false
+        const now = new Date()
+        calPopup.shownYear = now.getFullYear()
+        calPopup.shownMonth = now.getMonth()
         calPopup.visible = true
     }
 
@@ -279,7 +278,7 @@ PanelWindow {
 
     // False while a text field owns focus, so nav keys never fire mid-edit.
     function navGuard() {
-        var f = calPopup.activeFocusItem
+        const f = calPopupContent.Window.window?.activeFocusItem
         return !(f instanceof TextField) && !(f instanceof TextInput) && !(f instanceof TextArea)
     }
 
@@ -988,94 +987,98 @@ PanelWindow {
 
                 Repeater {
                     model: agendaBox.agendaEvents
-                    delegate: RowLayout {
+                    delegate: Item {
                         required property var modelData
                         readonly property string phase: calPopup.eventPhase(modelData)
                         readonly property real startMs: modelData.allDay ? NaN : Date.parse(modelData.start)
                         Layout.fillWidth: true
                         Layout.preferredHeight: 24
-                        spacing: 6
                         opacity: phase === "past" ? 0.45 : 1.0
-
-                        Rectangle {
-                            Layout.preferredWidth: 3
-                            Layout.fillHeight: true
-                            radius: 10
-                            color: modelData.color || calPopup.accentCol
-                        }
-
-                        Text {
-                            Layout.preferredWidth: 44
-                            text: modelData.allDay ? "all day" : calPopup.fmtClock(modelData.start)
-                            color: phase === "now" ? calPopup.accentCol : calPopup.popupFg
-                            opacity: modelData.allDay ? 0.6 : 1.0
-                            font.family: rootRef.uiFont
-                            font.pixelSize: rootRef.fontSize - 2
-                            font.weight: phase === "now" ? Font.Bold : Font.Normal
-                            elide: Text.ElideRight
-                        }
-
-                        Text {
-                            Layout.fillWidth: true
-                            text: {
-                                var t = modelData.title || "(no title)"
-                                if (phase !== "now") return t
-                                var left = modelData.end ? Date.parse(modelData.end) - calPopup.nowTick.getTime() : NaN
-                                if (!isNaN(left) && left > 0 && left < 3600000)
-                                    return t + " · " + Math.ceil(left / 60000) + "min left"
-                                return t
-                            }
-                            color: phase === "now" ? calPopup.accentCol : calPopup.popupFg
-                            font.family: rootRef.uiFont
-                            font.pixelSize: rootRef.fontSize - 1
-                            font.weight: phase === "now" ? Font.Bold : Font.Normal
-                            elide: Text.ElideRight
-                            verticalAlignment: Text.AlignVCenter
-                        }
-
-                        Text {
-                            visible: !modelData.allDay && phase === "later" && !isNaN(startMs) && startMs >= calPopup.nowTick.getTime()
-                            text: calPopup.formatCountdown(startMs - calPopup.nowTick.getTime())
-                            color: calPopup.popupFg
-                            opacity: 0.6
-                            font.family: rootRef.uiFont
-                            font.pixelSize: rootRef.fontSize - 2
-                            verticalAlignment: Text.AlignVCenter
-                        }
-
-                        Rectangle {
-                            visible: calPopup.isJoinable(modelData)
-                            z: 2
-                            Layout.preferredWidth: 44
-                            Layout.preferredHeight: 20
-                            radius: 10
-                            color: joinHover.containsMouse
-                                ? rootRef.withAlpha(calPopup.accentCol, 0.85)
-                                : calPopup.accentCol
-
-                            Text {
-                                anchors.centerIn: parent
-                                text: "Join"
-                                color: calPopup.accentFg
-                                font.family: rootRef.uiFont
-                                font.pixelSize: rootRef.fontSize - 2
-                                font.weight: Font.Bold
-                            }
-
-                            MouseArea {
-                                id: joinHover
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: calPopup.openHttps(modelData.meetingUrl)
-                            }
-                        }
 
                         MouseArea {
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: modelData.eventUrl || modelData.meetingUrl ? Qt.PointingHandCursor : Qt.ArrowCursor
                             onClicked: calPopup.openHttps(modelData.eventUrl || modelData.meetingUrl)
+                        }
+
+                        RowLayout {
+                            anchors.fill: parent
+                            spacing: 6
+
+                            Rectangle {
+                                Layout.preferredWidth: 3
+                                Layout.fillHeight: true
+                                radius: 10
+                                color: modelData.color || calPopup.accentCol
+                            }
+
+                            Text {
+                                Layout.preferredWidth: 44
+                                text: modelData.allDay ? "all day" : calPopup.fmtClock(modelData.start)
+                                color: phase === "now" ? calPopup.accentCol : calPopup.popupFg
+                                opacity: modelData.allDay ? 0.6 : 1.0
+                                font.family: rootRef.uiFont
+                                font.pixelSize: rootRef.fontSize - 2
+                                font.weight: phase === "now" ? Font.Bold : Font.Normal
+                                elide: Text.ElideRight
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: {
+                                    var t = modelData.title || "(no title)"
+                                    if (phase !== "now") return t
+                                    var left = modelData.end ? Date.parse(modelData.end) - calPopup.nowTick.getTime() : NaN
+                                    if (!isNaN(left) && left > 0 && left < 3600000)
+                                        return t + " · " + Math.ceil(left / 60000) + "min left"
+                                    return t
+                                }
+                                color: phase === "now" ? calPopup.accentCol : calPopup.popupFg
+                                font.family: rootRef.uiFont
+                                font.pixelSize: rootRef.fontSize - 1
+                                font.weight: phase === "now" ? Font.Bold : Font.Normal
+                                elide: Text.ElideRight
+                                verticalAlignment: Text.AlignVCenter
+                            }
+
+                            Text {
+                                visible: !modelData.allDay && phase === "later" && !isNaN(startMs) && startMs >= calPopup.nowTick.getTime()
+                                text: calPopup.formatCountdown(startMs - calPopup.nowTick.getTime())
+                                color: calPopup.popupFg
+                                opacity: 0.6
+                                font.family: rootRef.uiFont
+                                font.pixelSize: rootRef.fontSize - 2
+                                verticalAlignment: Text.AlignVCenter
+                            }
+
+                            Rectangle {
+                                visible: calPopup.isJoinable(modelData)
+                                z: 2
+                                Layout.preferredWidth: 44
+                                Layout.preferredHeight: 20
+                                radius: 10
+                                color: joinHover.containsMouse
+                                    ? rootRef.withAlpha(calPopup.accentCol, 0.85)
+                                    : calPopup.accentCol
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "Join"
+                                    color: calPopup.accentFg
+                                    font.family: rootRef.uiFont
+                                    font.pixelSize: rootRef.fontSize - 2
+                                    font.weight: Font.Bold
+                                }
+
+                                MouseArea {
+                                    id: joinHover
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: calPopup.openHttps(modelData.meetingUrl)
+                                }
+                            }
                         }
                     }
                 }
